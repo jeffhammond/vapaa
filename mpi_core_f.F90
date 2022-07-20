@@ -33,15 +33,25 @@ module mpi_core_f
     contains
 
         subroutine F_MPI_Init_handles()
-            use mpi_global_constants, only: MPI_COMM_WORLD, MPI_COMM_SELF, MPI_COMM_NULL
-            use mpi_comm_c, only: C_MPI_COMM_WORLD, C_MPI_COMM_SELF, C_MPI_COMM_NULL
-            integer(kind=c_int) :: comm_c
+            use mpi_global_constants, only: MPI_COMM_WORLD, &
+                                            MPI_COMM_SELF,  &
+                                            MPI_COMM_NULL,  &
+                                            MPI_DATATYPE_NULL
+            use mpi_comm_c, only: C_MPI_COMM_WORLD, &
+                                  C_MPI_COMM_SELF,  &
+                                  C_MPI_COMM_NULL
+            use mpi_datatype_c, only: C_MPI_DATATYPE_NULL
+            integer(kind=c_int) :: comm_c, datatype_c
+            ! comm
             call C_MPI_COMM_WORLD(comm_c)
             MPI_COMM_WORLD % MPI_VAL = comm_c
             call C_MPI_COMM_SELF(comm_c)
             MPI_COMM_SELF % MPI_VAL = comm_c
             call C_MPI_COMM_NULL(comm_c)
             MPI_COMM_NULL % MPI_VAL = comm_c
+            ! datatype
+            call C_MPI_DATATYPE_NULL(datatype_c)
+            MPI_DATATYPE_NULL % MPI_VAL = datatype_c
         end subroutine F_MPI_Init_handles
 
         subroutine MPI_Init_f08(ierror) 
