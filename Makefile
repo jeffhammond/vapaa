@@ -31,7 +31,7 @@ mpi_core_f.o: mpi_core_f.F90 mpi_core_c.o mpi_handle_types.o
 mpi_handle_types.o: mpi_handle_types.F90
 	$(FC) $(FCFLAGS) -c $<
 
-mpi_global_constants.o: mpi_global_constants.F90
+mpi_global_constants.o: mpi_global_constants.F90 mpi_handle_types.o
 	$(FC) $(FCFLAGS) -c $<
 
 clean:
