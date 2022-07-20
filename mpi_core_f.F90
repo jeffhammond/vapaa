@@ -109,4 +109,19 @@ module mpi_core_f
             endif
         end subroutine MPI_Query_thread_f08
 
+        subroutine MPI_Abort_f08(comm, errorcode, ierror) 
+            use mpi_handle_types, only: MPI_Comm
+            use mpi_core_c, only: C_MPI_Abort
+            integer, intent(out) :: errorcode
+            integer, optional, intent(out) :: ierror
+            type(MPI_Comm) :: comm
+            integer(kind=c_int) :: comm_c, errorcode_c, ierror_c
+            comm_c = comm % MPI_VAL
+            errorcode_c = errorcode
+            call C_MPI_Abort(comm_c, errorcode_c, ierror_c)
+            if (present(ierror)) then
+                ierror = ierror_c
+            endif
+        end subroutine MPI_Abort_f08
+
 end module mpi_core_f

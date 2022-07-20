@@ -48,4 +48,12 @@ module mpi_core_c
         end subroutine C_MPI_Query_thread
     end interface
 
+    interface
+        subroutine C_MPI_Abort(comm_c, errorcode_c, ierror_c) bind(C,name="C_MPI_Abort")
+            use iso_c_binding, only: c_int
+            implicit none
+            integer(kind=c_int) :: comm_c, errorcode_c, ierror_c
+        end subroutine C_MPI_Abort
+    end interface
+
 end module mpi_core_c

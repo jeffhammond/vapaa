@@ -10,23 +10,30 @@ FORTRAN_LIBS = -L/opt/homebrew/Cellar/gcc/11.3.0_2/lib/gcc/11 -lgfortran
 
 all: test_core.x
 
-test_core.x: test_core.o mpi_core_f.o mpi_core_c.o mpi_core.o
+test_core.x: test_core.o mpi_f08.o mpi_core_f.o mpi_core_c.o mpi_core.o
 	$(CC) $(CFLAGS) $^ $(FORTRAN_LIBS) -o $@
 
 test_core.o: test_core.F90 mpi_core_f.o mpi_core_c.o
-	$(FC) $(FCFLAGS) -c $< -o $@
+	$(FC) $(FCFLAGS) -c $<
+
+mpi_f08.o: mpi_f08.F90 mpi_handle_types.o mpi_core_f.o
+	$(FC) $(FCFLAGS) -c $<
 
 mpi_core.o: mpi_core.c
-	$(CC) $(CFLAGS) -c $< -o $@
+	$(CC) $(CFLAGS) -c $<
 
 mpi_core_c.o: mpi_core_c.F90 mpi_core.o
-	$(FC) $(FCFLAGS) -c $< -o $@
+	$(FC) $(FCFLAGS) -c $<
 
-mpi_core_f.o: mpi_core_f.F90 mpi_core_c.o
-	$(FC) $(FCFLAGS) -c $< -o $@
+mpi_core_f.o: mpi_core_f.F90 mpi_core_c.o mpi_handle_types.o
+	$(FC) $(FCFLAGS) -c $<
+
+mpi_handle_types.o: mpi_handle_types.F90
+	$(FC) $(FCFLAGS) -c $<
 
 clean:
 	-rm -f test_core.x test_core.o
-	-rm -f mpi_core.o
-	-rm -f mpi_core_c.mod mpi_core_c.o
+	-rm -f mpi_f08.mod mpi_f08.o
 	-rm -f mpi_core_f.mod mpi_core_f.o
+	-rm -f mpi_core_c.mod mpi_core_c.o
+	-rm -f mpi_core.o
