@@ -6,26 +6,23 @@ CFLAGS := -std=c11 $(WARNFLAGS)
 FC := gfortran-11
 FCFLAGS := -std=f2018 $(WARNFLAGS)
 
+AR := ar
+ARFLAGS := -r
+
 FORTRAN_LIBS = -L/opt/homebrew/Cellar/gcc/11.3.0_2/lib/gcc/11 -lgfortran
 
 all: test_core.x
 
-test_core.x: test_core.o mpi_f08.o mpi_handle_types.o mpi_global_constants.o mpi_core_f.o mpi_core_c.o mpi_core.o
+test_core.x: test_core.o libmpi_f08.a
 	$(CC) $(CFLAGS) $^ $(FORTRAN_LIBS) -o $@
 
 test_core.o: test_core.F90 mpi_f08.o
 	$(FC) $(FCFLAGS) -c $<
 
+libmpi_f08.a: mpi_f08.o mpi_handle_types.o mpi_global_constants.o mpi_core_f.o mpi_core_c.o mpi_core.o
+	$(AR) $(ARFLAGS) $@ $^
+
 mpi_f08.o: mpi_f08.F90 mpi_handle_types.o mpi_global_constants.o mpi_core_f.o
-	$(FC) $(FCFLAGS) -c $<
-
-mpi_core.o: mpi_core.c
-	$(CC) $(CFLAGS) -c $<
-
-mpi_core_c.o: mpi_core_c.F90 mpi_core.o
-	$(FC) $(FCFLAGS) -c $<
-
-mpi_core_f.o: mpi_core_f.F90 mpi_core_c.o mpi_handle_types.o
 	$(FC) $(FCFLAGS) -c $<
 
 mpi_handle_types.o: mpi_handle_types.F90
@@ -33,6 +30,15 @@ mpi_handle_types.o: mpi_handle_types.F90
 
 mpi_global_constants.o: mpi_global_constants.F90 mpi_handle_types.o
 	$(FC) $(FCFLAGS) -c $<
+
+mpi_core_f.o: mpi_core_f.F90 mpi_core_c.o mpi_handle_types.o
+	$(FC) $(FCFLAGS) -c $<
+
+mpi_core_c.o: mpi_core_c.F90 mpi_core.o
+	$(FC) $(FCFLAGS) -c $<
+
+mpi_core.o: mpi_core.c
+	$(CC) $(CFLAGS) -c $<
 
 clean:
 	-rm -f test_core.x test_core.o
