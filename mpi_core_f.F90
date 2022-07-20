@@ -41,16 +41,16 @@ module mpi_core_f
     contains
 
         subroutine MPI_Init_f08(ierror) 
-            use mpi_global_constants, only: MPI_COMM_WORLD
-            use mpi_core_c, only: C_MPI_Init, C_MPI_COMM_WORLD
+            use mpi_global_constants, only: MPI_COMM_WORLD, MPI_COMM_NULL
+            use mpi_core_c, only: C_MPI_Init, C_MPI_COMM_WORLD, C_MPI_COMM_NULL
             integer, optional, intent(out) :: ierror
             integer(kind=c_int) :: comm_c, ierror_c
             call C_MPI_Init(ierror_c)
             call C_MPI_COMM_WORLD(comm_c)
             MPI_COMM_WORLD % MPI_VAL = comm_c
-            if (present(ierror)) then
-                ierror = ierror_c
-            endif
+            call C_MPI_COMM_NULL(comm_c)
+            MPI_COMM_NULL % MPI_VAL = comm_c
+            if (present(ierror)) ierror = ierror_c
         end subroutine MPI_Init_f08
 
         subroutine MPI_Init_thread_f08(required, provided, ierror) 
@@ -62,9 +62,7 @@ module mpi_core_f
             required_c = required
             call C_MPI_Init_thread(required_c, provided_c, ierror_c)
             provided = provided_c
-            if (present(ierror)) then
-                ierror = ierror_c
-            endif
+            if (present(ierror)) ierror = ierror_c
         end subroutine MPI_Init_thread_f08
 
         subroutine MPI_Finalize_f08(ierror) 
@@ -72,9 +70,7 @@ module mpi_core_f
             integer, optional, intent(out) :: ierror
             integer(kind=c_int) :: ierror_c
             call C_MPI_Finalize(ierror_c)
-            if (present(ierror)) then
-                ierror = ierror_c
-            endif
+            if (present(ierror)) ierror = ierror_c
         end subroutine MPI_Finalize_f08
 
         ! MPI 4.0 2.6.3
@@ -91,9 +87,7 @@ module mpi_core_f
             else
                 flag = .true.
             endif
-            if (present(ierror)) then
-                ierror = ierror_c
-            endif
+            if (present(ierror)) ierror = ierror_c
         end subroutine MPI_Initialized_f08
 
         subroutine MPI_Finalized_f08(flag, ierror) 
@@ -107,9 +101,7 @@ module mpi_core_f
             else
                 flag = .true.
             endif
-            if (present(ierror)) then
-                ierror = ierror_c
-            endif
+            if (present(ierror)) ierror = ierror_c
         end subroutine MPI_Finalized_f08
 
         subroutine MPI_Query_thread_f08(provided, ierror) 
@@ -119,9 +111,7 @@ module mpi_core_f
             integer(kind=c_int) :: provided_c, ierror_c
             call C_MPI_Query_thread(provided_c, ierror_c)
             provided = provided_c
-            if (present(ierror)) then
-                ierror = ierror_c
-            endif
+            if (present(ierror)) ierror = ierror_c
         end subroutine MPI_Query_thread_f08
 
         subroutine MPI_Abort_f08(comm, errorcode, ierror) 
@@ -134,9 +124,7 @@ module mpi_core_f
             comm_c = comm % MPI_VAL
             errorcode_c = errorcode
             call C_MPI_Abort(comm_c, errorcode_c, ierror_c)
-            if (present(ierror)) then
-                ierror = ierror_c
-            endif
+            if (present(ierror)) ierror = ierror_c
         end subroutine MPI_Abort_f08
 
         subroutine MPI_Comm_rank_f08(comm, rank, ierror) 
@@ -149,9 +137,7 @@ module mpi_core_f
             comm_c = comm % MPI_VAL
             call C_MPI_Comm_rank(comm_c, rank_c, ierror_c)
             rank = rank_c
-            if (present(ierror)) then
-                ierror = ierror_c
-            endif
+            if (present(ierror)) ierror = ierror_c
         end subroutine MPI_Comm_rank_f08
 
         subroutine MPI_Comm_size_f08(comm, size, ierror) 
@@ -164,9 +150,7 @@ module mpi_core_f
             comm_c = comm % MPI_VAL
             call C_MPI_Comm_size(comm_c, size_c, ierror_c)
             size = size_c
-            if (present(ierror)) then
-                ierror = ierror_c
-            endif
+            if (present(ierror)) ierror = ierror_c
         end subroutine MPI_Comm_size_f08
 
 end module mpi_core_f

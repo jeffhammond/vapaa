@@ -9,6 +9,10 @@ void C_MPI_COMM_WORLD(int * comm)
     *comm = MPI_Comm_c2f(MPI_COMM_WORLD);
 }
 
+void C_MPI_COMM_NULL(int * comm)
+{
+    *comm = MPI_Comm_c2f(MPI_COMM_NULL);
+}
 // STANDARD STUFF
 
 void C_MPI_Init(int * ierror)

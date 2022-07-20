@@ -10,6 +10,14 @@ module mpi_core_c
         end subroutine C_MPI_COMM_WORLD
     end interface
 
+    interface
+        subroutine C_MPI_COMM_NULL(comm_f) bind(C,name="C_MPI_COMM_NULL")
+            use iso_c_binding, only: c_int
+            implicit none
+            integer(kind=c_int) :: comm_f
+        end subroutine C_MPI_COMM_NULL
+    end interface
+
     ! STANDARD STUFF
 
     interface
