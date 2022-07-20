@@ -30,19 +30,12 @@ module mpi_core_f
         module procedure MPI_Abort_f08
     end interface MPI_Abort
 
-    interface MPI_Comm_rank
-        module procedure MPI_Comm_rank_f08
-    end interface MPI_Comm_rank
-
-    interface MPI_Comm_size
-        module procedure MPI_Comm_size_f08
-    end interface MPI_Comm_size
-
     contains
 
         subroutine MPI_Init_f08(ierror) 
             use mpi_global_constants, only: MPI_COMM_WORLD, MPI_COMM_NULL
-            use mpi_core_c, only: C_MPI_Init, C_MPI_COMM_WORLD, C_MPI_COMM_NULL
+            use mpi_core_c, only: C_MPI_Init
+            use mpi_comm_c, only: C_MPI_COMM_WORLD, C_MPI_COMM_NULL
             integer, optional, intent(out) :: ierror
             integer(kind=c_int) :: comm_c, ierror_c
             call C_MPI_Init(ierror_c)
@@ -54,14 +47,20 @@ module mpi_core_f
         end subroutine MPI_Init_f08
 
         subroutine MPI_Init_thread_f08(required, provided, ierror) 
+            use mpi_global_constants, only: MPI_COMM_WORLD, MPI_COMM_NULL
             use mpi_core_c, only: C_MPI_Init_thread
+            use mpi_comm_c, only: C_MPI_COMM_WORLD, C_MPI_COMM_NULL
             integer, intent(in) :: required
             integer, intent(out) :: provided
             integer, optional, intent(out) :: ierror
-            integer(kind=c_int) :: required_c, provided_c, ierror_c
+            integer(kind=c_int) :: comm_c, required_c, provided_c, ierror_c
             required_c = required
             call C_MPI_Init_thread(required_c, provided_c, ierror_c)
             provided = provided_c
+            call C_MPI_COMM_WORLD(comm_c)
+            MPI_COMM_WORLD % MPI_VAL = comm_c
+            call C_MPI_COMM_NULL(comm_c)
+            MPI_COMM_NULL % MPI_VAL = comm_c
             if (present(ierror)) ierror = ierror_c
         end subroutine MPI_Init_thread_f08
 
@@ -126,31 +125,5 @@ module mpi_core_f
             call C_MPI_Abort(comm_c, errorcode_c, ierror_c)
             if (present(ierror)) ierror = ierror_c
         end subroutine MPI_Abort_f08
-
-        subroutine MPI_Comm_rank_f08(comm, rank, ierror) 
-            use mpi_handle_types, only: MPI_Comm
-            use mpi_core_c, only: C_MPI_Comm_rank
-            type(MPI_Comm), intent(in) :: comm
-            integer, intent(out) :: rank
-            integer, optional, intent(out) :: ierror
-            integer(kind=c_int) :: comm_c, rank_c, ierror_c
-            comm_c = comm % MPI_VAL
-            call C_MPI_Comm_rank(comm_c, rank_c, ierror_c)
-            rank = rank_c
-            if (present(ierror)) ierror = ierror_c
-        end subroutine MPI_Comm_rank_f08
-
-        subroutine MPI_Comm_size_f08(comm, size, ierror) 
-            use mpi_handle_types, only: MPI_Comm
-            use mpi_core_c, only: C_MPI_Comm_size
-            type(MPI_Comm), intent(in) :: comm
-            integer, intent(out) :: size
-            integer, optional, intent(out) :: ierror
-            integer(kind=c_int) :: comm_c, size_c, ierror_c
-            comm_c = comm % MPI_VAL
-            call C_MPI_Comm_size(comm_c, size_c, ierror_c)
-            size = size_c
-            if (present(ierror)) ierror = ierror_c
-        end subroutine MPI_Comm_size_f08
 
 end module mpi_core_f
