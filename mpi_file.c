@@ -4,9 +4,9 @@
 
 // NOT STANDARD STUFF
 
-void C_MPI_FILE_NULL(int * comm)
+void C_MPI_FILE_NULL(int * file)
 {
-    *comm = MPI_File_c2f(MPI_FILE_NULL);
+    *file = MPI_File_c2f(MPI_FILE_NULL);
 }
 
 // STANDARD STUFF

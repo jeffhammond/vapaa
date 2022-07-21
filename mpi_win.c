@@ -4,9 +4,9 @@
 
 // NOT STANDARD STUFF
 
-void C_MPI_REQUEST_NULL(int * comm)
+void C_MPI_WIN_NULL(int * win)
 {
-    *comm = MPI_Request_c2f(MPI_REQUEST_NULL);
+    *win = MPI_Win_c2f(MPI_WIN_NULL);
 }
 
 // STANDARD STUFF

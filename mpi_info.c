@@ -4,9 +4,9 @@
 
 // NOT STANDARD STUFF
 
-void C_MPI_INFO_NULL(int * comm)
+void C_MPI_INFO_NULL(int * info)
 {
-    *comm = MPI_Info_c2f(MPI_INFO_NULL);
+    *info = MPI_Info_c2f(MPI_INFO_NULL);
 }
 
 // STANDARD STUFF

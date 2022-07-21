@@ -4,9 +4,9 @@
 
 // NOT STANDARD STUFF
 
-void C_MPI_DATATYPE_NULL(int * comm)
+void C_MPI_DATATYPE_NULL(int * datatype)
 {
-    *comm = MPI_Type_c2f(MPI_DATATYPE_NULL);
+    *datatype = MPI_Type_c2f(MPI_DATATYPE_NULL);
 }
 
 // STANDARD STUFF

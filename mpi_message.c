@@ -4,9 +4,9 @@
 
 // NOT STANDARD STUFF
 
-void C_MPI_MESSAGE_NULL(int * comm)
+void C_MPI_MESSAGE_NULL(int * message)
 {
-    *comm = MPI_Message_c2f(MPI_MESSAGE_NULL);
+    *message = MPI_Message_c2f(MPI_MESSAGE_NULL);
 }
 
 // STANDARD STUFF
