@@ -26,7 +26,9 @@ libmpi_f08.a: mpi_f08.o mpi_handle_types.o mpi_global_constants.o \
 	$(AR) $(ARFLAGS) $@ $^
 
 mpi_f08.o: mpi_f08.F90 mpi_handle_types.o mpi_global_constants.o \
-	   mpi_core_f.o mpi_comm_f.o
+	   mpi_core_f.o mpi_comm_f.o mpi_datatype_f.o mpi_file_f.o \
+	   mpi_group_f.o mpi_info_f.o mpi_message_f.o mpi_request_f.o \
+	   mpi_win_f.o
 	$(FC) $(FCFLAGS) -c $<
 
 mpi_handle_types.o: mpi_handle_types.F90
