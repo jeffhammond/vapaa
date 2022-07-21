@@ -8,6 +8,7 @@ module mpi_f08
     use mpi_group_f
     use mpi_info_f
     use mpi_message_f
+    use mpi_op_f
     use mpi_request_f
     use mpi_win_f
 end module mpi_f08
