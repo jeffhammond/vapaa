@@ -1,6 +1,23 @@
 module mpi_handle_types
-    use iso_c_binding, only: c_int
+    use iso_c_binding, only: c_int, c_size_t
     implicit none
+
+#if !defined(MPICH) && !defined(OPEN_MPI)
+#error Sadly, you must compile with an ABIFLAG.
+#endif
+    type, bind(C) :: MPI_Status
+#ifdef MPICH
+        integer(kind=c_int)    :: count_lo
+        integer(kind=c_int)    :: count_hi_and_cancelled
+#endif                         
+        integer(kind=c_int)    :: MPI_SOURCE
+        integer(kind=c_int)    :: MPI_TAG
+        integer(kind=c_int)    :: MPI_ERROR
+#ifdef OPEN_MPI                
+        integer(kind=c_int)    :: cancelled
+        integer(kind=c_size_t) :: ucount
+#endif
+    end type MPI_Status
 
     ! MPI_VAL is supposed to be a Fortran integer
     ! but in practice it is a C int, and I do not want

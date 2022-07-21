@@ -6,6 +6,9 @@ CFLAGS := -std=c11 $(WARNFLAGS)
 FC := gfortran-11
 FCFLAGS := -std=f2018 $(WARNFLAGS)
 
+#ABIFLAG = -DMPICH
+ABIFLAG = -DOPEN_MPI
+
 AR := ar
 ARFLAGS := -r
 
@@ -39,7 +42,7 @@ mpi_f08.o: mpi_f08.F90 mpi_handle_types.o mpi_global_constants.o \
 	$(FC) $(FCFLAGS) -c $<
 
 mpi_handle_types.o: mpi_handle_types.F90
-	$(FC) $(FCFLAGS) -c $<
+	$(FC) $(FCFLAGS) $(ABIFLAG) -c $<
 
 mpi_global_constants.o: mpi_global_constants.F90 mpi_handle_types.o
 	$(FC) $(FCFLAGS) -c $<
