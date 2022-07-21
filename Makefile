@@ -1,13 +1,13 @@
 WARNFLAGS = -Wall -Wextra -Werror -pedantic
 
-CC := mpicc
+CC := /opt/homebrew/Cellar/mpich/4.0.2/bin/mpicc
 CFLAGS := -std=c11 $(WARNFLAGS)
 
 FC := gfortran-11
 FCFLAGS := -std=f2018 $(WARNFLAGS)
 
-#ABIFLAG = -DMPICH
-ABIFLAG = -DOPEN_MPI
+ABIFLAG = -DMPICH
+#ABIFLAG = -DOPEN_MPI
 
 AR := ar
 ARFLAGS := -r
@@ -32,13 +32,14 @@ libmpi_f08.a: mpi_f08.o mpi_handle_types.o mpi_global_constants.o \
 	      mpi_message_f.o mpi_message_c.o mpi_message.o \
 	      mpi_op_f.o mpi_op_c.o mpi_op.o \
 	      mpi_request_f.o mpi_request_c.o mpi_request.o \
+	      mpi_status_f.o mpi_status_c.o mpi_status.o \
 	      mpi_win_f.o mpi_win_c.o mpi_win.o
 	$(AR) $(ARFLAGS) $@ $^
 
 mpi_f08.o: mpi_f08.F90 mpi_handle_types.o mpi_global_constants.o \
 	   mpi_core_f.o mpi_comm_f.o mpi_datatype_f.o mpi_file_f.o \
 	   mpi_group_f.o mpi_info_f.o mpi_message_f.o mpi_op_f.o \
-	   mpi_request_f.o mpi_win_f.o
+	   mpi_request_f.o mpi_status_f.o mpi_win_f.o
 	$(FC) $(FCFLAGS) -c $<
 
 mpi_handle_types.o: mpi_handle_types.F90
@@ -52,7 +53,7 @@ mpi_global_constants.o: mpi_global_constants.F90 mpi_handle_types.o
 mpi_core_f.o: mpi_core_f.F90 mpi_handle_types.o mpi_global_constants.o \
               mpi_core_c.o mpi_comm_c.o mpi_datatype_c.o mpi_file_c.o \
 	      mpi_group_c.o mpi_info_c.o mpi_message_c.o mpi_op_c.o \
-	      mpi_request_c.o mpi_win_c.o
+	      mpi_request_c.o mpi_status_c.o mpi_win_c.o
 	$(FC) $(FCFLAGS) -c $<
 
 mpi_core_c.o: mpi_core_c.F90 mpi_core.o
@@ -147,6 +148,17 @@ mpi_request_c.o: mpi_request_c.F90 mpi_request.o
 	$(FC) $(FCFLAGS) -c $<
 
 mpi_request.o: mpi_request.c
+	$(CC) $(CFLAGS) -c $<
+
+# status
+
+mpi_status_f.o: mpi_status_f.F90 mpi_status_c.o mpi_handle_types.o mpi_global_constants.o
+	$(FC) $(FCFLAGS) -c $<
+
+mpi_status_c.o: mpi_status_c.F90 mpi_status.o
+	$(FC) $(FCFLAGS) -c $<
+
+mpi_status.o: mpi_status.c
 	$(CC) $(CFLAGS) -c $<
 
 # WIN
