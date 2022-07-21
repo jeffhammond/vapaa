@@ -50,9 +50,9 @@ module mpi_global_constants
     integer, parameter :: MPI_OFFSET_KIND  = c_intptr_t ! c_ptrdiff_t
 
     ! this requires work...
-    integer, parameter :: MPI_SUBARRAYS_SUPPORTED        = 0
+    logical, parameter :: MPI_SUBARRAYS_SUPPORTED        = .false.
 
     ! i do not know a compiler that does not support this...
-    integer, parameter :: MPI_ASYNC_PROTECTS_NONBLOCKING = 1
+    logical, parameter :: MPI_ASYNC_PROTECTS_NONBLOCKING = .true.
 
 end module mpi_global_constants
