@@ -58,5 +58,13 @@ module mpi_core_c
         end subroutine C_MPI_Abort
     end interface
 
+    interface
+        subroutine C_MPI_Get_version(version_c, subversion_c, ierror_c) bind(C,name="C_MPI_Get_version")
+            use iso_c_binding, only: c_int
+            implicit none
+            integer(kind=c_int) :: version_c, subversion_c, ierror_c
+        end subroutine C_MPI_Get_version
+    end interface
+
 end module mpi_core_c
 

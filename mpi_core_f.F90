@@ -30,6 +30,10 @@ module mpi_core_f
         module procedure MPI_Abort_f08
     end interface MPI_Abort
 
+    interface MPI_Get_version
+        module procedure MPI_Get_version_f08
+    end interface MPI_Get_version
+
     contains
 
         subroutine F_MPI_Init_handles()
@@ -174,5 +178,16 @@ module mpi_core_f
             call C_MPI_Abort(comm_c, errorcode_c, ierror_c)
             if (present(ierror)) ierror = ierror_c
         end subroutine MPI_Abort_f08
+
+        subroutine MPI_Get_version_f08(version, subversion, ierror) 
+            use mpi_core_c, only: C_MPI_Get_version
+            integer, intent(out) :: version, subversion
+            integer, optional, intent(out) :: ierror
+            integer(kind=c_int) :: version_c, subversion_c, ierror_c
+            call C_MPI_Get_version(version_c, subversion_c, ierror_c)
+            version = version_c
+            subversion = subversion_c
+            if (present(ierror)) ierror = ierror_c
+        end subroutine MPI_Get_version_f08
 
 end module mpi_core_f

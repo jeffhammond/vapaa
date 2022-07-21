@@ -39,3 +39,8 @@ void C_MPI_Abort(int * comm_f, int * errorcode, int * ierror)
     MPI_Comm comm = MPI_Comm_f2c(*comm_f);
     *ierror = MPI_Abort(comm, *errorcode);
 }
+
+void C_MPI_Get_version(int * version, int * subversion, int * ierror)
+{
+    *ierror = MPI_Get_version(version, subversion);
+}
