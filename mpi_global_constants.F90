@@ -17,6 +17,10 @@ module mpi_global_constants
     type(MPI_Request)  :: MPI_REQUEST_NULL
     type(MPI_Win)      :: MPI_WIN_NULL
 
+    ! IGNORE sentinels
+    type(MPI_Status)   :: MPI_STATUS_IGNORE
+    type(MPI_Status)   :: MPI_STATUSES_IGNORE
+
     ! 2.5.4 Named Constants
     ! The constants that are required to be compile-time constants
     ! (and can thus be used for array length declarations and labels 
