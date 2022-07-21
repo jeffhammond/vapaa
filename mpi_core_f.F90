@@ -33,15 +33,31 @@ module mpi_core_f
     contains
 
         subroutine F_MPI_Init_handles()
-            use mpi_global_constants, only: MPI_COMM_WORLD, &
-                                            MPI_COMM_SELF,  &
-                                            MPI_COMM_NULL,  &
-                                            MPI_DATATYPE_NULL
-            use mpi_comm_c, only: C_MPI_COMM_WORLD, &
-                                  C_MPI_COMM_SELF,  &
-                                  C_MPI_COMM_NULL
+            use mpi_global_constants, only: MPI_COMM_WORLD,    &
+                                            MPI_COMM_SELF,     &
+                                            MPI_COMM_NULL,     &
+                                            MPI_DATATYPE_NULL, &
+                                            MPI_FILE_NULL,     &
+                                            MPI_GROUP_NULL,    &
+                                            MPI_INFO_NULL,     &
+                                            MPI_MESSAGE_NULL,  &
+                                            MPI_OP_NULL,       &
+                                            MPI_REQUEST_NULL,  &
+                                            MPI_WIN_NULL
+            use mpi_comm_c, only:     C_MPI_COMM_WORLD,    &
+                                      C_MPI_COMM_SELF,     &
+                                      C_MPI_COMM_NULL
             use mpi_datatype_c, only: C_MPI_DATATYPE_NULL
-            integer(kind=c_int) :: comm_c, datatype_c
+            use mpi_file_c, only:     C_MPI_FILE_NULL
+            use mpi_group_c, only:    C_MPI_GROUP_NULL
+            use mpi_info_c, only:     C_MPI_INFO_NULL
+            use mpi_message_c, only:  C_MPI_MESSAGE_NULL
+            use mpi_op_c, only:       C_MPI_OP_NULL
+            use mpi_request_c, only:  C_MPI_REQUEST_NULL
+            use mpi_win_c, only:      C_MPI_WIN_NULL
+            integer(kind=c_int) :: comm_c, datatype_c, file_c, group_c
+            integer(kind=c_int) :: info_c, message_c, op_c, request_c
+            integer(kind=c_int) :: win_c
             ! comm
             call C_MPI_COMM_WORLD(comm_c)
             MPI_COMM_WORLD % MPI_VAL = comm_c
@@ -52,6 +68,27 @@ module mpi_core_f
             ! datatype
             call C_MPI_DATATYPE_NULL(datatype_c)
             MPI_DATATYPE_NULL % MPI_VAL = datatype_c
+            ! file
+            call C_MPI_FILE_NULL(file_c)
+            MPI_FILE_NULL % MPI_VAL = file_c
+            ! group
+            call C_MPI_GROUP_NULL(group_c)
+            MPI_GROUP_NULL % MPI_VAL = group_c
+            ! message
+            call C_MPI_MESSAGE_NULL(message_c)
+            MPI_MESSAGE_NULL % MPI_VAL = message_c
+            ! info
+            call C_MPI_INFO_NULL(info_c)
+            MPI_INFO_NULL % MPI_VAL = info_c
+            ! op
+            call C_MPI_OP_NULL(op_c)
+            MPI_OP_NULL % MPI_VAL = op_c
+            ! request
+            call C_MPI_REQUEST_NULL(request_c)
+            MPI_REQUEST_NULL % MPI_VAL = request_c
+            ! win
+            call C_MPI_WIN_NULL(win_c)
+            MPI_WIN_NULL % MPI_VAL = win_c
         end subroutine F_MPI_Init_handles
 
         subroutine MPI_Init_f08(ierror) 

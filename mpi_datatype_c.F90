@@ -13,4 +13,3 @@ module mpi_datatype_c
     ! STANDARD STUFF
 
 end module mpi_datatype_c
-

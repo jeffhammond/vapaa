@@ -22,7 +22,14 @@ test_core.o: test_core.F90 mpi_f08.o
 libmpi_f08.a: mpi_f08.o mpi_handle_types.o mpi_global_constants.o \
 	      mpi_core_f.o mpi_core_c.o mpi_core.o \
 	      mpi_comm_f.o mpi_comm_c.o mpi_comm.o \
-	      mpi_datatype_f.o mpi_datatype_c.o mpi_datatype.o
+	      mpi_datatype_f.o mpi_datatype_c.o mpi_datatype.o \
+	      mpi_file_f.o mpi_file_c.o mpi_file.o \
+	      mpi_group_f.o mpi_group_c.o mpi_group.o \
+	      mpi_info_f.o mpi_info_c.o mpi_info.o \
+	      mpi_message_f.o mpi_message_c.o mpi_message.o \
+	      mpi_op_f.o mpi_op_c.o mpi_op.o \
+	      mpi_request_f.o mpi_request_c.o mpi_request.o \
+	      mpi_win_f.o mpi_win_c.o mpi_win.o
 	$(AR) $(ARFLAGS) $@ $^
 
 mpi_f08.o: mpi_f08.F90 mpi_handle_types.o mpi_global_constants.o \
@@ -40,7 +47,9 @@ mpi_global_constants.o: mpi_global_constants.F90 mpi_handle_types.o
 # CORE
 
 mpi_core_f.o: mpi_core_f.F90 mpi_handle_types.o mpi_global_constants.o \
-              mpi_core_c.o mpi_comm_c.o  mpi_datatype_c.o
+              mpi_core_c.o mpi_comm_c.o mpi_datatype_c.o mpi_file_c.o \
+	      mpi_group_c.o mpi_info_c.o mpi_message_c.o mpi_op_c.o \
+	      mpi_request_c.o mpi_win_c.o
 	$(FC) $(FCFLAGS) -c $<
 
 mpi_core_c.o: mpi_core_c.F90 mpi_core.o
