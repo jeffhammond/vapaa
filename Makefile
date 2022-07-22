@@ -1,30 +1,31 @@
 WARNFLAGS = -Wall -Wextra -Werror -pedantic
 
-CC := /opt/homebrew/Cellar/mpich/4.0.2/bin/mpicc
+CC := /opt/ompi/git/bin/mpicc
 CFLAGS := -std=c11 $(WARNFLAGS)
 
 FC := gfortran-11
 FCFLAGS := -std=f2018 $(WARNFLAGS)
 
-ABIFLAG = -DMPICH
-#ABIFLAG = -DOPEN_MPI
+#ABIFLAG = -DMPICH
+ABIFLAG = -DOPEN_MPI
 
 AR := ar
 ARFLAGS := -r
 
 FORTRAN_LIBS = -L/opt/homebrew/Cellar/gcc/11.3.0_2/lib/gcc/11 -lgfortran
 
-all: test_core.x
+all: test_core.x test_collectives.x
 
-test_core.x: test_core.o libmpi_f08.a
+%.x: %.o libmpi_f08.a
 	$(CC) $(CFLAGS) $^ $(FORTRAN_LIBS) -o $@
 
-test_core.o: test_core.F90 mpi_f08.o
+%.o: %.F90 mpi_f08.o
 	$(FC) $(FCFLAGS) -c $<
 
 libmpi_f08.a: mpi_f08.o mpi_handle_types.o mpi_global_constants.o \
 	      mpi_core_f.o mpi_core_c.o mpi_core.o \
 	      mpi_comm_f.o mpi_comm_c.o mpi_comm.o \
+	      mpi_coll_f.o mpi_coll_c.o mpi_coll.o \
 	      mpi_datatype_f.o mpi_datatype_c.o mpi_datatype.o \
 	      mpi_file_f.o mpi_file_c.o mpi_file.o \
 	      mpi_group_f.o mpi_group_c.o mpi_group.o \
@@ -37,9 +38,10 @@ libmpi_f08.a: mpi_f08.o mpi_handle_types.o mpi_global_constants.o \
 	$(AR) $(ARFLAGS) $@ $^
 
 mpi_f08.o: mpi_f08.F90 mpi_handle_types.o mpi_global_constants.o \
-	   mpi_core_f.o mpi_comm_f.o mpi_datatype_f.o mpi_file_f.o \
-	   mpi_group_f.o mpi_info_f.o mpi_message_f.o mpi_op_f.o \
-	   mpi_request_f.o mpi_status_f.o mpi_win_f.o
+	   mpi_core_f.o mpi_comm_f.o mpi_coll_f.o mpi_datatype_f.o \
+	   mpi_file_f.o mpi_group_f.o mpi_info_f.o mpi_message_f.o \
+	   mpi_p2p_f.o mpi_op_f.o mpi_request_f.o mpi_status_f.o \
+	   mpi_rma_f.o mpi_win_f.o
 	$(FC) $(FCFLAGS) -c $<
 
 mpi_handle_types.o: mpi_handle_types.F90
@@ -51,7 +53,7 @@ mpi_global_constants.o: mpi_global_constants.F90 mpi_handle_types.o
 # CORE
 
 mpi_core_f.o: mpi_core_f.F90 mpi_handle_types.o mpi_global_constants.o \
-              mpi_core_c.o mpi_comm_c.o mpi_datatype_c.o mpi_file_c.o \
+              mpi_core_c.o mpi_comm_c.o #mpi_datatype_c.o mpi_file_c.o \
 	      mpi_group_c.o mpi_info_c.o mpi_message_c.o mpi_op_c.o \
 	      mpi_request_c.o mpi_status_c.o mpi_win_c.o
 	$(FC) $(FCFLAGS) -c $<
@@ -71,6 +73,17 @@ mpi_comm_c.o: mpi_comm_c.F90 mpi_comm.o
 	$(FC) $(FCFLAGS) -c $<
 
 mpi_comm.o: mpi_comm.c
+	$(CC) $(CFLAGS) -c $<
+
+# COLLECTIVES
+
+mpi_coll_f.o: mpi_coll_f.F90 mpi_coll_c.o mpi_handle_types.o mpi_global_constants.o
+	$(FC) $(FCFLAGS) -c $<
+
+mpi_coll_c.o: mpi_coll_c.F90 mpi_coll.o
+	$(FC) $(FCFLAGS) -c $<
+
+mpi_coll.o: mpi_coll.c
 	$(CC) $(CFLAGS) -c $<
 
 # DATATYPE
@@ -174,6 +187,7 @@ mpi_win.o: mpi_win.c
 
 clean:
 	-rm -f test_core.x test_core.o
+	-rm -f test_collectives.x test_collectives.o
 	-rm -f libmpi_f08.a
 	-rm -f mpi_f08.mod mpi_f08.o
 	-rm -f mpi_handle_types.mod mpi_handle_types.o
@@ -181,6 +195,9 @@ clean:
 	-rm -f mpi_comm_f.mod mpi_comm_f.o
 	-rm -f mpi_comm_c.mod mpi_comm_c.o
 	-rm -f mpi_comm.o
+	-rm -f mpi_coll_f.mod mpi_coll_f.o
+	-rm -f mpi_coll_c.mod mpi_coll_c.o
+	-rm -f mpi_coll.o
 	-rm -f mpi_core_f.mod mpi_core_f.o
 	-rm -f mpi_core_c.mod mpi_core_c.o
 	-rm -f mpi_core.o
@@ -199,9 +216,15 @@ clean:
 	-rm -f mpi_message_f.mod mpi_message_f.o
 	-rm -f mpi_message_c.mod mpi_message_c.o
 	-rm -f mpi_message.o
+	-rm -f mpi_p2p_f.mod mpi_p2p_f.o
+	-rm -f mpi_p2p_c.mod mpi_p2p_c.o
+	-rm -f mpi_p2p.o
 	-rm -f mpi_request_f.mod mpi_request_f.o
 	-rm -f mpi_request_c.mod mpi_request_c.o
 	-rm -f mpi_request.o
+	-rm -f mpi_rma_f.mod mpi_rma_f.o
+	-rm -f mpi_rma_c.mod mpi_rma_c.o
+	-rm -f mpi_rma.o
 	-rm -f mpi_win_f.mod mpi_win_f.o
 	-rm -f mpi_win_c.mod mpi_win_c.o
 	-rm -f mpi_win.o
