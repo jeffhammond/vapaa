@@ -3,6 +3,8 @@ program test_core
     implicit none
     integer :: ierror
     integer :: i, me, np
+    integer :: b
+    integer, allocatable :: x(:)
 
     call MPI_Init(ierror)
 
@@ -13,6 +15,21 @@ program test_core
     do i=0,np
         if (me.eq.i) print*,'I am ',me,' of ',np,' of WORLD'
         call MPI_Barrier(MPI_COMM_WORLD)
+    enddo
+
+    do i=0,20
+        b = 2**i
+        allocate( x(b) )
+        if (me.eq.0) then
+            x = np
+        else
+            x = -1
+        endif
+        call MPI_Bcast(x, b, MPI_INTEGER, 0, MPI_COMM_WORLD)
+        if (any(x.ne.np)) then
+            print*,'an error has occurred'
+        endif
+        deallocate( x )
     enddo
 
     call MPI_Finalize(ierror)
