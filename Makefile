@@ -141,6 +141,17 @@ mpi_message_c.o: mpi_message_c.F90 mpi_message.o
 mpi_message.o: mpi_message.c
 	$(CC) $(CFLAGS) -c $<
 
+# P2P
+
+mpi_p2p_f.o: mpi_p2p_f.F90 mpi_p2p_c.o mpi_handle_types.o mpi_global_constants.o
+	$(FC) $(FCFLAGS) -c $<
+
+mpi_p2p_c.o: mpi_p2p_c.F90 mpi_p2p.o
+	$(FC) $(FCFLAGS) -c $<
+
+mpi_p2p.o: mpi_p2p.c
+	$(CC) $(CFLAGS) -c $<
+
 # OP
 
 mpi_op_f.o: mpi_op_f.F90 mpi_op_c.o mpi_handle_types.o mpi_global_constants.o
@@ -172,6 +183,17 @@ mpi_status_c.o: mpi_status_c.F90 mpi_status.o
 	$(FC) $(FCFLAGS) -c $<
 
 mpi_status.o: mpi_status.c
+	$(CC) $(CFLAGS) -c $<
+
+# RMA
+
+mpi_rma_f.o: mpi_rma_f.F90 mpi_rma_c.o mpi_handle_types.o mpi_global_constants.o
+	$(FC) $(FCFLAGS) -c $<
+
+mpi_rma_c.o: mpi_rma_c.F90 mpi_rma.o
+	$(FC) $(FCFLAGS) -c $<
+
+mpi_rma.o: mpi_rma.c
 	$(CC) $(CFLAGS) -c $<
 
 # WIN
