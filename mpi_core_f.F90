@@ -97,15 +97,18 @@ module mpi_core_f
 
         subroutine MPI_Init_f08(ierror) 
             use mpi_core_c, only: C_MPI_Init
+            use mpi_datatype_f, only: F_MPI_Init_datatypes
             integer, optional, intent(out) :: ierror
             integer(kind=c_int) :: ierror_c
             call C_MPI_Init(ierror_c)
             call F_MPI_Init_handles()
+            call F_MPI_Init_datatypes()
             if (present(ierror)) ierror = ierror_c
         end subroutine MPI_Init_f08
 
         subroutine MPI_Init_thread_f08(required, provided, ierror) 
             use mpi_core_c, only: C_MPI_Init_thread
+            use mpi_datatype_f, only: F_MPI_Init_datatypes
             integer, intent(in) :: required
             integer, intent(out) :: provided
             integer, optional, intent(out) :: ierror
@@ -114,6 +117,7 @@ module mpi_core_f
             call C_MPI_Init_thread(required_c, provided_c, ierror_c)
             provided = provided_c
             call F_MPI_Init_handles()
+            call F_MPI_Init_datatypes()
             if (present(ierror)) ierror = ierror_c
         end subroutine MPI_Init_thread_f08
 

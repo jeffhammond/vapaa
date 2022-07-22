@@ -19,6 +19,7 @@ program test_core
 
     do i=0,20
         b = 2**i
+        if (me.eq.0) print*,'b=',b
         allocate( x(b) )
         if (me.eq.0) then
             x = np
