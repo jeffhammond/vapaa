@@ -25,7 +25,7 @@ module mpi_coll_f
 
         subroutine MPI_Bcast_f08(buffer, count, datatype, root, comm, ierror) 
             use mpi_handle_types, only: MPI_Comm, MPI_Datatype
-            use mpi_coll_c, only: C_MPI_Bcast
+            use mpi_coll_c, only: C_MPI_Bcast, CFI_MPI_Bcast
             type(*), dimension(..), intent(inout) :: buffer
             integer, intent(in) :: count, root
             type(MPI_Datatype), intent(in) :: datatype
@@ -37,7 +37,11 @@ module mpi_coll_f
             datatype_c = datatype % MPI_VAL
             root_c = root
             comm_c = comm % MPI_VAL
-            call C_MPI_Bcast(buffer, count_c, datatype_c, root_c, comm_c, ierror_c)
+            if (is_contiguous(buffer)) then
+                call C_MPI_Bcast(buffer, count_c, datatype_c, root_c, comm_c, ierror_c)
+            else
+                call CFI_MPI_Bcast(buffer, count_c, datatype_c, root_c, comm_c, ierror_c)
+            endif
             if (present(ierror)) ierror = ierror_c
         end subroutine MPI_Bcast_f08
 

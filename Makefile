@@ -216,6 +216,7 @@ mpi_win.o: mpi_win.c
 	$(CC) $(CFLAGS) -c $<
 
 clean:
+	-rm -f test_cfi.x test_cfi.o foo_cfi.o
 	-rm -f test_core.x test_core.o
 	-rm -f test_collectives.x test_collectives.o
 	-rm -f libmpi_f08.a
@@ -240,12 +241,15 @@ clean:
 	-rm -f mpi_group_f.mod mpi_group_f.o
 	-rm -f mpi_group_c.mod mpi_group_c.o
 	-rm -f mpi_group.o
-	-rm -f mpi_info_f.mod mpi_datatype_f.o
-	-rm -f mpi_info_c.mod mpi_datatype_c.o
+	-rm -f mpi_info_f.mod mpi_info_f.o
+	-rm -f mpi_info_c.mod mpi_info_c.o
 	-rm -f mpi_info.o
 	-rm -f mpi_message_f.mod mpi_message_f.o
 	-rm -f mpi_message_c.mod mpi_message_c.o
 	-rm -f mpi_message.o
+	-rm -f mpi_op_f.mod mpi_op_f.o
+	-rm -f mpi_op_c.mod mpi_op_c.o
+	-rm -f mpi_op.o
 	-rm -f mpi_p2p_f.mod mpi_p2p_f.o
 	-rm -f mpi_p2p_c.mod mpi_p2p_c.o
 	-rm -f mpi_p2p.o
@@ -255,7 +259,10 @@ clean:
 	-rm -f mpi_rma_f.mod mpi_rma_f.o
 	-rm -f mpi_rma_c.mod mpi_rma_c.o
 	-rm -f mpi_rma.o
+	-rm -f mpi_status_f.mod mpi_status_f.o
+	-rm -f mpi_status_c.mod mpi_status_c.o
+	-rm -f mpi_status.o
 	-rm -f mpi_win_f.mod mpi_win_f.o
 	-rm -f mpi_win_c.mod mpi_win_c.o
 	-rm -f mpi_win.o
-	-rm -f *.o *.mod
+	#-rm -f *.o *.mod

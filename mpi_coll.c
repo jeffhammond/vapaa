@@ -29,5 +29,5 @@ void CFI_MPI_Bcast(CFI_cdesc_t * desc, int * count, int * datatype_f, int * root
 
     MPI_Datatype datatype = MPI_Type_f2c(*datatype_f);
     MPI_Comm comm = MPI_Comm_f2c(*comm_f);
-    *ierror = MPI_Bcast(buffer, *count, datatype, *root, comm);
+    *ierror = MPI_Bcast(desc->base_addr, *count, datatype, *root, comm);
 }
