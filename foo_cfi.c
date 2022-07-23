@@ -4,8 +4,8 @@
 
 void foo(CFI_cdesc_t * desc)
 {
-
-
+    printf("base_addr = %p\n", desc->base_addr);
+    printf("elem_len  = %zu\n", desc->elem_len);
 
 
 }

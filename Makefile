@@ -1,7 +1,12 @@
 WARNFLAGS = -Wall -Wextra -Werror -pedantic
 
+FORTRAN_DIR = /opt/homebrew/Cellar/gcc/11.3.0_2/lib/gcc/11
+FORTRAN_LIBS = -L$(FORTRAN_DIR) -lgfortran
+#FORTRAN_INCLUDE = -I$(FORTRAN_DIR)/gcc/aarch64-apple-darwin21/11/include
+FORTRAN_INCLUDE = -I.
+
 CC := /opt/ompi/git/bin/mpicc
-CFLAGS := -std=c11 $(WARNFLAGS)
+CFLAGS := -std=c11 $(WARNFLAGS) $(FORTRAN_INCLUDE)
 
 FC := gfortran-11
 FCFLAGS := -std=f2018 $(WARNFLAGS)
@@ -12,9 +17,11 @@ ABIFLAG = -DOPEN_MPI
 AR := ar
 ARFLAGS := -r
 
-FORTRAN_LIBS = -L/opt/homebrew/Cellar/gcc/11.3.0_2/lib/gcc/11 -lgfortran
-
 all: test_core.x test_collectives.x
+
+test_cfi.x: test_cfi.F90 foo_cfi.c
+	$(CC) $(CFLAGS) -c foo_cfi.c -o foo_cfi.o
+	$(FC) $(FCFLAGS) test_cfi.F90 foo_cfi.o -o test_cfi.x
 
 %.x: %.o libmpi_f08.a
 	$(CC) $(CFLAGS) $^ $(FORTRAN_LIBS) -o $@
@@ -53,6 +60,7 @@ mpi_global_constants.o: mpi_global_constants.F90 mpi_handle_types.o
 # CORE
 
 mpi_core_f.o: mpi_core_f.F90 mpi_handle_types.o mpi_global_constants.o \
+	      mpi_datatype_f.o \
               mpi_core_c.o mpi_comm_c.o mpi_datatype_c.o mpi_file_c.o \
 	      mpi_group_c.o mpi_info_c.o mpi_message_c.o mpi_op_c.o \
 	      mpi_request_c.o mpi_status_c.o mpi_win_c.o

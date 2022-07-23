@@ -2,7 +2,8 @@ module cfi
     interface
         subroutine foo(buffer) bind(C,name="foo")
             implicit none
-            type(*), dimension(*) :: buffer
+            ! dimension(*) will not pass a CFI_cdesc_t correctly
+            type(*), dimension(..) :: buffer
         end subroutine foo
     end interface
 end module cfi 
