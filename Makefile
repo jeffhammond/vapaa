@@ -17,7 +17,7 @@ ABIFLAG = -DOPEN_MPI
 AR := ar
 ARFLAGS := -r
 
-all: test_core.x test_collectives.x
+all: test_core.x test_collectives.x test_cfi.x
 
 test_cfi.x: test_cfi.F90 foo_cfi.c
 	$(CC) $(CFLAGS) -c foo_cfi.c -o foo_cfi.o
@@ -265,4 +265,3 @@ clean:
 	-rm -f mpi_win_f.mod mpi_win_f.o
 	-rm -f mpi_win_c.mod mpi_win_c.o
 	-rm -f mpi_win.o
-	#-rm -f *.o *.mod
