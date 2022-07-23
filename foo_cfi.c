@@ -51,4 +51,22 @@ void foo(CFI_cdesc_t * desc)
     print_type(desc->type);
     print_attribute(desc->attribute);
 
+    printf("dim.lowerbound = ");
+    for (CFI_rank_t i=0; i<desc->rank; i++) {
+        printf("%d",(int)desc->dim[i].lower_bound);
+    }
+    printf("\n");
+
+    printf("dim.extent     = ");
+    for (CFI_rank_t i=0; i<desc->rank; i++) {
+        printf("%d",(int)desc->dim[i].extent);
+    }
+    printf("\n");
+
+    printf("dim.sm         = ");
+    for (CFI_rank_t i=0; i<desc->rank; i++) {
+        printf("%d",(int)desc->dim[i].sm);
+    }
+    printf("\n");
+
 }
