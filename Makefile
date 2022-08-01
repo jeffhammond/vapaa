@@ -1,15 +1,26 @@
 WARNFLAGS = -Wall -Wextra -Werror -pedantic
 
-FORTRAN_DIR = /opt/homebrew/Cellar/gcc/11.3.0_2/lib/gcc/11
-FORTRAN_LIBS = -L$(FORTRAN_DIR) -lgfortran
-#FORTRAN_INCLUDE = -I$(FORTRAN_DIR)/gcc/aarch64-apple-darwin21/11/include
-FORTRAN_INCLUDE = -I.
+# M1
+#FORTRAN_DIR = /opt/homebrew/Cellar/gcc/11.3.0_2/lib/gcc/11
+# Linux x86_64
+FORTRAN_DIR = /usr/lib/gcc/x86_64-linux-gnu/11
 
-CC := /opt/ompi/git/bin/mpicc
+FORTRAN_LIBS = -L$(FORTRAN_DIR) -lgfortran
+# M1
+# symlink ISO_Fortran_binding.h from $(FORTRAN_DIR)/gcc/aarch64-apple-darwin21/11/include to . because reasons
+#FORTRAN_INCLUDE = -I.
+
+# M1
+#CC := /opt/ompi/git/bin/mpicc
+CC := mpicc
 CFLAGS := -std=c11 $(WARNFLAGS) $(FORTRAN_INCLUDE)
 
 FC := gfortran-11
-FCFLAGS := -std=f2018 $(WARNFLAGS)
+#FCFLAGS := -std=f2018 $(WARNFLAGS)
+
+# required on nuclear (x86_64)
+CFLAGS  += -fPIE
+FCFLAGS += -fPIE
 
 #ABIFLAG = -DMPICH
 ABIFLAG = -DOPEN_MPI
