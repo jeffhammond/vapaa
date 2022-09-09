@@ -15,7 +15,11 @@ module mpi_coll_c
                                ierror_c) bind(C,name="C_MPI_Bcast")
             use iso_c_binding, only: c_int
             implicit none
-            type(*), dimension(*) :: buffer
+#ifdef __NVCOMPILER
+            class(*), dimension(..), intent(inout) :: buffer
+#else
+            type(*), dimension(..), intent(inout) :: buffer
+#endif
             integer(kind=c_int) :: count_c, datatype_c, root_c, comm_c, ierror_c
         end subroutine C_MPI_Bcast
     end interface
@@ -25,7 +29,11 @@ module mpi_coll_c
                                  ierror_c) bind(C,name="CFI_MPI_Bcast")
             use iso_c_binding, only: c_int
             implicit none
-            type(*), dimension(..) :: buffer
+#ifdef __NVCOMPILER
+            class(*), dimension(..), intent(inout) :: buffer
+#else
+            type(*), dimension(..), intent(inout) :: buffer
+#endif
             integer(kind=c_int) :: count_c, datatype_c, root_c, comm_c, ierror_c
         end subroutine CFI_MPI_Bcast
     end interface
