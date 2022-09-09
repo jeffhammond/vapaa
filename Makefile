@@ -10,13 +10,17 @@ FORTRAN_LIBS = -L$(FORTRAN_DIR) -lgfortran
 # symlink ISO_Fortran_binding.h from $(FORTRAN_DIR)/gcc/aarch64-apple-darwin21/11/include to . because reasons
 #FORTRAN_INCLUDE = -I.
 
+#FORTRAN_LIBS  = -L/opt/nvidia/hpc_sdk/Linux_x86_64/22.7/compilers/lib -lnvf -lnvc -lnvcpumath
+#FORTRAN_LIBS += /opt/nvidia/hpc_sdk/Linux_x86_64/22.7/compilers/lib/f90main.o
+
 # M1
 #CC := /opt/ompi/git/bin/mpicc
 CC := mpicc
 CFLAGS := -std=c11 $(WARNFLAGS) $(FORTRAN_INCLUDE)
 
-FC := gfortran-11
-#FCFLAGS := -std=f2018 $(WARNFLAGS)
+#FC := nvfortran
+FC = gfortran-11
+FCFLAGS := -std=f2018 $(WARNFLAGS)
 
 # required on nuclear (x86_64)
 CFLAGS  += -fPIE
