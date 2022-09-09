@@ -3,7 +3,12 @@ module cfi
         subroutine foo(buffer) bind(C,name="foo")
             implicit none
             ! dimension(*) will not pass a CFI_cdesc_t correctly
+#ifdef __NVCOMPILER
+            !!!pgi$ ignore_tkr buffer
+            class(*), dimension(..) :: buffer
+#else
             type(*), dimension(..) :: buffer
+#endif
         end subroutine foo
     end interface
 end module cfi 
