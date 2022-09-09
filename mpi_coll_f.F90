@@ -26,7 +26,11 @@ module mpi_coll_f
         subroutine MPI_Bcast_f08(buffer, count, datatype, root, comm, ierror) 
             use mpi_handle_types, only: MPI_Comm, MPI_Datatype
             use mpi_coll_c, only: C_MPI_Bcast, CFI_MPI_Bcast
+#ifdef __NVCOMPILER
+            class(*), dimension(..), intent(inout) :: buffer
+#else
             type(*), dimension(..), intent(inout) :: buffer
+#endif
             integer, intent(in) :: count, root
             type(MPI_Datatype), intent(in) :: datatype
             type(MPI_Comm), intent(in) :: comm
