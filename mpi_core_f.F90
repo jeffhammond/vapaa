@@ -190,7 +190,7 @@ module mpi_core_f
             use mpi_handle_types, only: MPI_Comm
             use mpi_core_c, only: C_MPI_Abort
             type(MPI_Comm), intent(in) :: comm
-            integer, intent(out) :: errorcode
+            integer, intent(in) :: errorcode
             integer, optional, intent(out) :: ierror
             integer(kind=c_int) :: comm_c, errorcode_c, ierror_c
             comm_c = comm % MPI_VAL
