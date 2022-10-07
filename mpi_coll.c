@@ -29,7 +29,12 @@ void CFI_MPI_Bcast(CFI_cdesc_t * desc, int * count, int * datatype_f, int * root
 
     MPI_Datatype datatype = MPI_Type_f2c(*datatype_f);
     MPI_Comm comm = MPI_Comm_f2c(*comm_f);
-    *ierror = MPI_Bcast(desc->base_addr, *count, datatype, *root, comm);
+    if (1 == CFI_is_contiguous(desc)) {
+        *ierror = MPI_Bcast(desc->base_addr, *count, datatype, *root, comm);
+    } else {
+        fprintf(stderr, "FIXME: not contiguous case\n");
+        MPI_Abort(comm, 99);
+    }
 }
 
 void C_MPI_Reduce(const void * input, void * output, int * count, int * datatype_f, int * op_f, int * root,  int * comm_f, int * ierror)
@@ -50,7 +55,12 @@ void CFI_MPI_Reduce(CFI_cdesc_t * input, CFI_cdesc_t * output, int * count, int 
     MPI_Datatype datatype = MPI_Type_f2c(*datatype_f);
     MPI_Op op = MPI_Op_f2c(*op_f);
     MPI_Comm comm = MPI_Comm_f2c(*comm_f);
-    *ierror = MPI_Reduce(input->base_addr, output->base_addr, *count, datatype, op, *root, comm);
+    if ( (1 == CFI_is_contiguous(input)) && (1 == CFI_is_contiguous(input)) ) {
+        *ierror = MPI_Reduce(input->base_addr, output->base_addr, *count, datatype, op, *root, comm);
+    } else {
+        fprintf(stderr, "FIXME: not contiguous case\n");
+        MPI_Abort(comm, 99);
+    }
 }
 
 void C_MPI_Allreduce(const void * input, void * output, int * count, int * datatype_f, int * op_f, int * comm_f, int * ierror)
@@ -71,5 +81,10 @@ void CFI_MPI_Allreduce(CFI_cdesc_t * input, CFI_cdesc_t * output, int * count, i
     MPI_Datatype datatype = MPI_Type_f2c(*datatype_f);
     MPI_Op op = MPI_Op_f2c(*op_f);
     MPI_Comm comm = MPI_Comm_f2c(*comm_f);
-    *ierror = MPI_Allreduce(input->base_addr, output->base_addr, *count, datatype, op, comm);
+    if ( (1 == CFI_is_contiguous(input)) && (1 == CFI_is_contiguous(input)) ) {
+        *ierror = MPI_Allreduce(input->base_addr, output->base_addr, *count, datatype, op, comm);
+    } else {
+        fprintf(stderr, "FIXME: not contiguous case\n");
+        MPI_Abort(comm, 99);
+    }
 }
