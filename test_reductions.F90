@@ -1,4 +1,5 @@
 program test_reductions
+    use iso_c_binding, only: c_loc
     use mpi_f08
     implicit none
     integer :: ierror
@@ -20,14 +21,17 @@ program test_reductions
     do i=0,20
         b = 2**i
         if (me.eq.0) print*,'b=',b
-        allocate( x(b), y(b) )
+        allocate( x(b) )
+        allocate( y(b) )
         x =  1
         y = -1
         call MPI_Allreduce(x, y, b, MPI_INTEGER, MPI_SUM,  MPI_COMM_WORLD)
-        if (any(x.ne.np)) then
+        if (any(y.ne.np)) then
             print*,'an error has occurred'
+            print*,y
         endif
-        deallocate( x, y )
+        deallocate( x )
+        deallocate( y )
     enddo
 
     call MPI_Finalize(ierror)

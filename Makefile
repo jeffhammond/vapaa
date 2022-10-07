@@ -1,4 +1,4 @@
-WARNFLAGS = -Wall -Wextra -Werror -pedantic
+WARNFLAGS = -Wall -Wextra -Werror -pedantic -g3
 
 # M1
 FORTRAN_DIR = /opt/homebrew/Cellar/gcc/12.2.0/lib/gcc/current
@@ -231,9 +231,11 @@ mpi_win.o: mpi_win.c
 	$(CC) $(CFLAGS) -c $<
 
 clean:
+	-rm -fr *.dSYM
 	-rm -f test_cfi.x test_cfi.o foo_cfi.o
 	-rm -f test_core.x test_core.o
 	-rm -f test_collectives.x test_collectives.o
+	-rm -f test_reductions.x test_reductions.o
 	-rm -f libmpi_f08.a
 	-rm -f mpi_f08.mod mpi_f08.o
 	-rm -f mpi_handle_types.mod mpi_handle_types.o
