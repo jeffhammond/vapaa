@@ -59,4 +59,20 @@ module mpi_global_constants
     ! i do not know a compiler that does not support this...
     logical, parameter :: MPI_ASYNC_PROTECTS_NONBLOCKING = .true.
 
+    ! built-in datatypes
+    type(MPI_Op) :: MPI_MAX
+    type(MPI_Op) :: MPI_MIN
+    type(MPI_Op) :: MPI_SUM
+    type(MPI_Op) :: MPI_PROD
+    type(MPI_Op) :: MPI_MAXLOC
+    type(MPI_Op) :: MPI_MINLOC
+    type(MPI_Op) :: MPI_BAND
+    type(MPI_Op) :: MPI_BOR
+    type(MPI_Op) :: MPI_BXOR
+    type(MPI_Op) :: MPI_LAND
+    type(MPI_Op) :: MPI_LOR
+    type(MPI_Op) :: MPI_LXOR
+    type(MPI_Op) :: MPI_REPLACE
+    type(MPI_Op) :: MPI_NO_OP
+
 end module mpi_global_constants

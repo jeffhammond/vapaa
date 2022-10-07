@@ -37,17 +37,7 @@ module mpi_core_f
     contains
 
         subroutine F_MPI_Init_handles()
-            use mpi_global_constants, only: MPI_COMM_WORLD,    &
-                                            MPI_COMM_SELF,     &
-                                            MPI_COMM_NULL,     &
-                                            MPI_DATATYPE_NULL, &
-                                            MPI_FILE_NULL,     &
-                                            MPI_GROUP_NULL,    &
-                                            MPI_INFO_NULL,     &
-                                            MPI_MESSAGE_NULL,  &
-                                            MPI_OP_NULL,       &
-                                            MPI_REQUEST_NULL,  &
-                                            MPI_WIN_NULL
+            use mpi_global_constants
             use mpi_comm_c, only:     C_MPI_COMM_WORLD,    &
                                       C_MPI_COMM_SELF,     &
                                       C_MPI_COMM_NULL
@@ -56,12 +46,18 @@ module mpi_core_f
             use mpi_group_c, only:    C_MPI_GROUP_NULL
             use mpi_info_c, only:     C_MPI_INFO_NULL
             use mpi_message_c, only:  C_MPI_MESSAGE_NULL
-            use mpi_op_c, only:       C_MPI_OP_NULL
+            use mpi_op_c, only:       C_MPI_OP_NULL, C_MPI_OP_BUILTINS
             use mpi_request_c, only:  C_MPI_REQUEST_NULL
             use mpi_win_c, only:      C_MPI_WIN_NULL
             integer(kind=c_int) :: comm_c, datatype_c, file_c, group_c
             integer(kind=c_int) :: info_c, message_c, op_c, request_c
             integer(kind=c_int) :: win_c
+            integer(kind=c_int) :: MAX_c, MIN_c
+            integer(kind=c_int) :: SUM_c, PROD_c
+            integer(kind=c_int) :: MAXLOC_c, MINLOC_c
+            integer(kind=c_int) :: BAND_c, BOR_c, BXOR_c
+            integer(kind=c_int) :: LAND_c, LOR_c, LXOR_c
+            integer(kind=c_int) :: REPLACE_c, NO_OP_c
             ! comm
             call C_MPI_COMM_WORLD(comm_c)
             MPI_COMM_WORLD % MPI_VAL = comm_c
@@ -87,6 +83,26 @@ module mpi_core_f
             ! op
             call C_MPI_OP_NULL(op_c)
             MPI_OP_NULL % MPI_VAL = op_c
+            call C_MPI_OP_BUILTINS( MAX_c, MIN_c, &
+                                    SUM_c, PROD_c, &
+                                    MAXLOC_c, MINLOC_c, &
+                                    BAND_c, BOR_c, BXOR_c, &
+                                    LAND_c, LOR_c, LXOR_c, &
+                                    REPLACE_c, NO_OP_c)
+            MPI_MAX     % MPI_VAL = MAX_c
+            MPI_MIN     % MPI_VAL = MIN_c
+            MPI_SUM     % MPI_VAL = SUM_c
+            MPI_PROD    % MPI_VAL = PROD_c
+            MPI_MAXLOC  % MPI_VAL = MAXLOC_c
+            MPI_MINLOC  % MPI_VAL = MINLOC_c
+            MPI_BAND    % MPI_VAL = BAND_c
+            MPI_BOR     % MPI_VAL = BOR_c
+            MPI_BXOR    % MPI_VAL = BXOR_c
+            MPI_LAND    % MPI_VAL = LAND_c
+            MPI_LOR     % MPI_VAL = LOR_c
+            MPI_LXOR    % MPI_VAL = LXOR_c
+            MPI_REPLACE % MPI_VAL = REPLACE_c
+            MPI_NO_OP   % MPI_VAL = NO_OP_c
             ! request
             call C_MPI_REQUEST_NULL(request_c)
             MPI_REQUEST_NULL % MPI_VAL = request_c
