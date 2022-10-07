@@ -23,7 +23,7 @@ program test_reductions
         allocate( x(b), y(b) )
         x =  1
         y = -1
-        call MPI_Allreduce(x, y, b, MPI_INTEGER, MPI_COMM_WORLD)
+        call MPI_Allreduce(x, y, b, MPI_INTEGER, MPI_SUM,  MPI_COMM_WORLD)
         if (any(x.ne.np)) then
             print*,'an error has occurred'
         endif

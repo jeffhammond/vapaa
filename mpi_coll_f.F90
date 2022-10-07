@@ -10,6 +10,10 @@ module mpi_coll_f
         module procedure MPI_Bcast_f08
     end interface MPI_Bcast
 
+    interface MPI_Allreduce
+        module procedure MPI_Allreduce_f08
+    end interface MPI_Allreduce
+
     contains
 
         subroutine MPI_Barrier_f08(comm, ierror) 
@@ -48,6 +52,38 @@ module mpi_coll_f
             endif
             if (present(ierror)) ierror = ierror_c
         end subroutine MPI_Bcast_f08
+
+        subroutine MPI_Allreduce_f08(input, output, count, datatype, op, comm, ierror) 
+            use mpi_handle_types, only: MPI_Comm, MPI_Datatype, MPI_Op
+            use mpi_coll_c, only: C_MPI_Allreduce, CFI_MPI_Allreduce
+#ifdef __NVCOMPILER
+            class(*), dimension(..), intent(in)    :: input
+            class(*), dimension(..), intent(inout) :: output
+#else
+            type(*), dimension(..), intent(in)    :: input
+            type(*), dimension(..), intent(inout) :: output
+#endif
+            integer, intent(in) :: count
+            type(MPI_Datatype), intent(in) :: datatype
+            type(MPI_Op), intent(in) :: op
+            type(MPI_Comm), intent(in) :: comm
+            integer, optional, intent(out) :: ierror
+            integer(kind=c_int) :: count_c, datatype_c, op_c, comm_c, ierror_c
+            ! buffer
+            count_c = count
+            datatype_c = datatype % MPI_VAL
+            op_c = op % MPI_VAL
+            comm_c = comm % MPI_VAL
+            if (is_contiguous(input).and.is_contiguous(output)) then
+                call C_MPI_Allreduce(input, output, count_c, datatype_c, op_c, comm_c, ierror_c)
+            else if (.not.is_contiguous(input).and..not.is_contiguous(output)) then
+                call CFI_MPI_Allreduce(input, output, count_c, datatype_c, op_c, comm_c, ierror_c)
+            else
+                print*,'Allreduce input/output both contiguous or both not (FIXME)'
+                stop
+            endif
+            if (present(ierror)) ierror = ierror_c
+        end subroutine MPI_Allreduce_f08
 
 end module mpi_coll_f
 
