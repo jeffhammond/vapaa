@@ -1,9 +1,9 @@
 WARNFLAGS = -Wall -Wextra -Werror -pedantic
 
 # M1
-#FORTRAN_DIR = /opt/homebrew/Cellar/gcc/11.3.0_2/lib/gcc/11
+FORTRAN_DIR = /opt/homebrew/Cellar/gcc/12.2.0/lib/gcc/current
 # Linux x86_64
-FORTRAN_DIR = /usr/lib/gcc/x86_64-linux-gnu/11
+#FORTRAN_DIR = /usr/lib/gcc/x86_64-linux-gnu/11
 
 FORTRAN_LIBS = -L$(FORTRAN_DIR) -lgfortran
 # M1
@@ -19,7 +19,7 @@ CC := mpicc
 CFLAGS := -std=c11 $(WARNFLAGS) $(FORTRAN_INCLUDE)
 
 #FC := nvfortran
-FC = gfortran-11
+FC = gfortran
 FCFLAGS := -std=f2018 $(WARNFLAGS)
 
 # required on nuclear (x86_64)
