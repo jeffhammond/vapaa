@@ -39,6 +39,38 @@ module mpi_coll_c
     end interface
 
     interface
+        subroutine C_MPI_Reduce(input, output, count_c, datatype_c, op_c, root_c, comm_c, &
+                               ierror_c) bind(C,name="C_MPI_Reduce")
+            use iso_c_binding, only: c_int
+            implicit none
+#ifdef __NVCOMPILER
+            class(*), dimension(..), intent(in)    :: input
+            class(*), dimension(..), intent(inout) :: output
+#else
+            type(*), dimension(..), intent(in)    :: input
+            type(*), dimension(..), intent(inout) :: output
+#endif
+            integer(kind=c_int) :: count_c, datatype_c, op_c, root_c, comm_c, ierror_c
+        end subroutine C_MPI_Reduce
+    end interface
+
+    interface
+        subroutine CFI_MPI_Reduce(input, output, count_c, datatype_c, op_c, root_c, comm_c, &
+                                 ierror_c) bind(C,name="CFI_MPI_Reduce")
+            use iso_c_binding, only: c_int
+            implicit none
+#ifdef __NVCOMPILER
+            class(*), dimension(..), intent(in)    :: input
+            class(*), dimension(..), intent(inout) :: output
+#else
+            type(*), dimension(..), intent(in)    :: input
+            type(*), dimension(..), intent(inout) :: output
+#endif
+            integer(kind=c_int) :: count_c, datatype_c, op_c, root_c, comm_c, ierror_c
+        end subroutine CFI_MPI_Reduce
+    end interface
+
+    interface
         subroutine C_MPI_Allreduce(input, output, count_c, datatype_c, op_c, comm_c, &
                                ierror_c) bind(C,name="C_MPI_Allreduce")
             use iso_c_binding, only: c_int

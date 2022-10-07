@@ -11,6 +11,11 @@ module mpi_coll_f
         module procedure MPI_Bcast_f08ts
     end interface MPI_Bcast
 
+    interface MPI_Reduce
+        !module procedure MPI_Reduce_f08
+        module procedure MPI_Reduce_f08ts
+    end interface MPI_Reduce
+
     interface MPI_Allreduce
         !module procedure MPI_Allreduce_f08
         module procedure MPI_Allreduce_f08ts
@@ -31,7 +36,7 @@ module mpi_coll_f
 
         subroutine MPI_Bcast_f08(buffer, count, datatype, root, comm, ierror) 
             use mpi_handle_types, only: MPI_Comm, MPI_Datatype
-            use mpi_coll_c, only: C_MPI_Bcast, CFI_MPI_Bcast
+            use mpi_coll_c, only: C_MPI_Bcast
             integer, dimension(*), intent(inout) :: buffer
             integer, intent(in) :: count, root
             type(MPI_Datatype), intent(in) :: datatype
@@ -49,7 +54,7 @@ module mpi_coll_f
 
         subroutine MPI_Bcast_f08ts(buffer, count, datatype, root, comm, ierror)
             use mpi_handle_types, only: MPI_Comm, MPI_Datatype
-            use mpi_coll_c, only: C_MPI_Bcast, CFI_MPI_Bcast
+            use mpi_coll_c, only: CFI_MPI_Bcast
 #ifdef __NVCOMPILER
             class(*), dimension(..), intent(inout) :: buffer
 #else
@@ -69,14 +74,58 @@ module mpi_coll_f
             if (present(ierror)) ierror = ierror_c
         end subroutine MPI_Bcast_f08ts
 
+        subroutine MPI_Reduce_f08(input, output, count, datatype, op, root, comm, ierror) 
+            use mpi_handle_types, only: MPI_Comm, MPI_Datatype, MPI_Op
+            use mpi_coll_c, only: C_MPI_Reduce
+            integer, dimension(*), intent(in)    :: input
+            integer, dimension(*), intent(inout) :: output
+            integer, intent(in) :: count, root
+            type(MPI_Datatype), intent(in) :: datatype
+            type(MPI_Op), intent(in) :: op
+            type(MPI_Comm), intent(in) :: comm
+            integer, optional, intent(out) :: ierror
+            integer(kind=c_int) :: count_c, datatype_c, op_c, root_c, comm_c, ierror_c
+            ! buffer
+            count_c = count
+            datatype_c = datatype % MPI_VAL
+            op_c = op % MPI_VAL
+            root_c = root
+            comm_c = comm % MPI_VAL
+            call C_MPI_Reduce(input, output, count_c, datatype_c, op_c, root_c, comm_c, ierror_c)
+            if (present(ierror)) ierror = ierror_c
+        end subroutine MPI_Reduce_f08
+
+        subroutine MPI_Reduce_f08ts(input, output, count, datatype, op, root, comm, ierror)
+            use mpi_handle_types, only: MPI_Comm, MPI_Datatype, MPI_Op
+            use mpi_coll_c, only: CFI_MPI_Reduce
+#ifdef __NVCOMPILER
+            class(*), dimension(..), intent(in)    :: input
+            class(*), dimension(..), intent(inout) :: output
+#else
+            type(*), dimension(..), intent(in)    :: input
+            type(*), dimension(..), intent(inout) :: output
+#endif
+            integer, intent(in) :: count, root
+            type(MPI_Datatype), intent(in) :: datatype
+            type(MPI_Op), intent(in) :: op
+            type(MPI_Comm), intent(in) :: comm
+            integer, optional, intent(out) :: ierror
+            integer(kind=c_int) :: count_c, datatype_c, op_c, root_c, comm_c, ierror_c
+            ! buffer
+            count_c = count
+            datatype_c = datatype % MPI_VAL
+            op_c = op % MPI_VAL
+            root_c = root
+            comm_c = comm % MPI_VAL
+            call CFI_MPI_Reduce(input, output, count_c, datatype_c, op_c, root_c, comm_c, ierror_c)
+            if (present(ierror)) ierror = ierror_c
+        end subroutine MPI_Reduce_f08ts
+
         subroutine MPI_Allreduce_f08(input, output, count, datatype, op, comm, ierror) 
             use mpi_handle_types, only: MPI_Comm, MPI_Datatype, MPI_Op
-            use mpi_coll_c, only: C_MPI_Allreduce, CFI_MPI_Allreduce
-            !$PRAGMA IGNORE_TKR
+            use mpi_coll_c, only: C_MPI_Allreduce
             integer, dimension(*), intent(in)    :: input
-            !$PRAGMA IGNORE_TKR
             integer, dimension(*), intent(inout) :: output
-            !!!!!!!!!!!!!!!!!!!
             integer, intent(in) :: count
             type(MPI_Datatype), intent(in) :: datatype
             type(MPI_Op), intent(in) :: op
@@ -94,7 +143,7 @@ module mpi_coll_f
 
         subroutine MPI_Allreduce_f08ts(input, output, count, datatype, op, comm, ierror)
             use mpi_handle_types, only: MPI_Comm, MPI_Datatype, MPI_Op
-            use mpi_coll_c, only: C_MPI_Allreduce, CFI_MPI_Allreduce
+            use mpi_coll_c, only: CFI_MPI_Allreduce
 #ifdef __NVCOMPILER
             class(*), dimension(..), intent(in)    :: input
             class(*), dimension(..), intent(inout) :: output
