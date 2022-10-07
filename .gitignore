@@ -1,3 +1,4 @@
+make.inc
 ISO_Fortran_binding.h
 *.x
 *.swp

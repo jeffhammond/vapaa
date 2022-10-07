@@ -1,0 +1,14 @@
+WARNFLAGS = 
+
+#FORTRAN_LIBS  = -L/opt/nvidia/hpc_sdk/Linux_x86_64/22.7/compilers/lib -lnvf -lnvc -lnvcpumath
+#FORTRAN_LIBS += /opt/nvidia/hpc_sdk/Linux_x86_64/22.7/compilers/lib/f90main.o
+
+MPI_LIBS =  -L/proj/nv/libraries/Linux_x86_64/22.7/openmpi4/214657-rel-1/lib -Wl,-rpath -Wl,/proj/nv/libraries/Linux_x86_64/22.7/openmpi4/214657-rel-1/lib -Wl,-rpath -Wl,/opt/nvidia/hpc_sdk/Linux_x86_64/22.7/comm_libs/openmpi4/openmpi-4.0.5/lib -L/opt/nvidia/hpc_sdk/Linux_x86_64/22.7/comm_libs/openmpi4/openmpi-4.0.5/lib -lmpi
+
+CC = mpicc
+CFLAGS := --c11 -g -Wall -Wextra -Werror
+
+FC = nvfortran
+FCFLAGS = -g
+
+ABIFLAG = -DOPEN_MPI

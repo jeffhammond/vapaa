@@ -1,0 +1,9 @@
+WARNFLAGS = 
+
+CC = cc
+CFLAGS := -g
+
+FC = ftn
+FCFLAGS := -g
+
+ABIFLAG = -DMPICH

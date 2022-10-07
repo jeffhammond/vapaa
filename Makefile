@@ -1,33 +1,4 @@
-WARNFLAGS = -Wall -Wextra -Werror -pedantic -g3
-
-# M1
-FORTRAN_DIR = /opt/homebrew/Cellar/gcc/12.2.0/lib/gcc/current
-# Linux x86_64
-#FORTRAN_DIR = /usr/lib/gcc/x86_64-linux-gnu/11
-
-FORTRAN_LIBS = -L$(FORTRAN_DIR) -lgfortran
-# M1
-# symlink ISO_Fortran_binding.h from $(FORTRAN_DIR)/gcc/aarch64-apple-darwin21/11/include to . because reasons
-#FORTRAN_INCLUDE = -I.
-
-#FORTRAN_LIBS  = -L/opt/nvidia/hpc_sdk/Linux_x86_64/22.7/compilers/lib -lnvf -lnvc -lnvcpumath
-#FORTRAN_LIBS += /opt/nvidia/hpc_sdk/Linux_x86_64/22.7/compilers/lib/f90main.o
-
-# M1
-#CC := /opt/ompi/git/bin/mpicc
-CC := mpicc
-CFLAGS := -std=c11 $(WARNFLAGS) $(FORTRAN_INCLUDE)
-
-#FC := nvfortran
-FC = gfortran
-FCFLAGS := -std=f2018 $(WARNFLAGS)
-
-# required on nuclear (x86_64)
-CFLAGS  += -fPIE
-FCFLAGS += -fPIE
-
-#ABIFLAG = -DMPICH
-ABIFLAG = -DOPEN_MPI
+include make.inc
 
 AR := ar
 ARFLAGS := -r
@@ -39,7 +10,8 @@ test_cfi.x: test_cfi.F90 foo_cfi.c
 	$(FC) $(FCFLAGS) test_cfi.F90 foo_cfi.o -o test_cfi.x
 
 %.x: %.o libmpi_f08.a
-	$(CC) $(CFLAGS) $^ $(FORTRAN_LIBS) -o $@
+	$(FC) $(FCFLAGS) $^ $(MPI_LIBS) -o $@
+	#$(CC) $(CFLAGS) $^ $(FORTRAN_LIBS) -o $@
 
 %.o: %.F90 mpi_f08.o
 	$(FC) $(FCFLAGS) -c $<
