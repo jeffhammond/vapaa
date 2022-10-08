@@ -2,6 +2,8 @@ module mpi_core_f
     use iso_c_binding, only: c_int
     implicit none
 
+    logical :: global_handles_are_initialized = .false.
+
     interface MPI_Init
         module procedure MPI_Init_f08
     end interface MPI_Init
@@ -52,12 +54,6 @@ module mpi_core_f
             integer(kind=c_int) :: comm_c, datatype_c, file_c, group_c
             integer(kind=c_int) :: info_c, message_c, op_c, request_c
             integer(kind=c_int) :: win_c
-            integer(kind=c_int) :: MAX_c, MIN_c
-            integer(kind=c_int) :: SUM_c, PROD_c
-            integer(kind=c_int) :: MAXLOC_c, MINLOC_c
-            integer(kind=c_int) :: BAND_c, BOR_c, BXOR_c
-            integer(kind=c_int) :: LAND_c, LOR_c, LXOR_c
-            integer(kind=c_int) :: REPLACE_c, NO_OP_c
             ! comm
             call C_MPI_COMM_WORLD(comm_c)
             MPI_COMM_WORLD % MPI_VAL = comm_c
@@ -83,48 +79,35 @@ module mpi_core_f
             ! op
             call C_MPI_OP_NULL(op_c)
             MPI_OP_NULL % MPI_VAL = op_c
-            call C_MPI_OP_BUILTINS( MAX_c, MIN_c, &
-                                    SUM_c, PROD_c, &
-                                    MAXLOC_c, MINLOC_c, &
-                                    BAND_c, BOR_c, BXOR_c, &
-                                    LAND_c, LOR_c, LXOR_c, &
-                                    REPLACE_c, NO_OP_c)
-            MPI_MAX     % MPI_VAL = MAX_c
-            MPI_MIN     % MPI_VAL = MIN_c
-            MPI_SUM     % MPI_VAL = SUM_c
-            MPI_PROD    % MPI_VAL = PROD_c
-            MPI_MAXLOC  % MPI_VAL = MAXLOC_c
-            MPI_MINLOC  % MPI_VAL = MINLOC_c
-            MPI_BAND    % MPI_VAL = BAND_c
-            MPI_BOR     % MPI_VAL = BOR_c
-            MPI_BXOR    % MPI_VAL = BXOR_c
-            MPI_LAND    % MPI_VAL = LAND_c
-            MPI_LOR     % MPI_VAL = LOR_c
-            MPI_LXOR    % MPI_VAL = LXOR_c
-            MPI_REPLACE % MPI_VAL = REPLACE_c
-            MPI_NO_OP   % MPI_VAL = NO_OP_c
             ! request
             call C_MPI_REQUEST_NULL(request_c)
             MPI_REQUEST_NULL % MPI_VAL = request_c
             ! win
             call C_MPI_WIN_NULL(win_c)
             MPI_WIN_NULL % MPI_VAL = win_c
+            ! we need to be able to check if this function has been called
+            ! or else most things will not work.  user must initialize
+            ! _this_ library using its MPI_Init, and no other.
+            global_handles_are_initialized = .true.
         end subroutine F_MPI_Init_handles
 
         subroutine MPI_Init_f08(ierror) 
             use mpi_core_c, only: C_MPI_Init
             use mpi_datatype_f, only: F_MPI_Init_datatypes
+            use mpi_op_f, only: F_MPI_Init_ops
             integer, optional, intent(out) :: ierror
             integer(kind=c_int) :: ierror_c
             call C_MPI_Init(ierror_c)
             call F_MPI_Init_handles()
             call F_MPI_Init_datatypes()
+            call F_MPI_Init_ops()
             if (present(ierror)) ierror = ierror_c
         end subroutine MPI_Init_f08
 
         subroutine MPI_Init_thread_f08(required, provided, ierror) 
             use mpi_core_c, only: C_MPI_Init_thread
             use mpi_datatype_f, only: F_MPI_Init_datatypes
+            use mpi_op_f, only: F_MPI_Init_ops
             integer, intent(in) :: required
             integer, intent(out) :: provided
             integer, optional, intent(out) :: ierror
@@ -134,6 +117,7 @@ module mpi_core_f
             provided = provided_c
             call F_MPI_Init_handles()
             call F_MPI_Init_datatypes()
+            call F_MPI_Init_ops()
             if (present(ierror)) ierror = ierror_c
         end subroutine MPI_Init_thread_f08
 
