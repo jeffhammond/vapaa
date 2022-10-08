@@ -4,6 +4,13 @@
 
 // We assume MPI_Fint is C int. This is verified during initialization.
 
+static void * f08_mpi_in_place_address;
+
+void C_MPI_IN_PLACE(intptr_t * inplace)
+{
+    f08_mpi_in_place_address = inplace;
+}
+
 // STANDARD STUFF
 
 void C_MPI_Init(int * ierror)
@@ -19,9 +26,35 @@ void C_MPI_Finalize(int * ierror)
     *ierror = MPI_Finalize();
 }
 
-void C_MPI_Init_thread(int * required, int * provided, int * ierror)
+void C_MPI_Init_thread(int * required_f, int * provided_f, int * ierror)
 {
-    *ierror = MPI_Init_thread(NULL, NULL, *required, provided);
+    // We use the same values as MPICH but cannot be sure every MPI will,
+    // so we convert them here.
+
+    int required = -1, provided = -1;
+
+    if (*required_f == 0) {
+       required = MPI_THREAD_SINGLE; 
+    } else if (*required_f == 1) {
+       required = MPI_THREAD_FUNNELED; 
+    } else if (*required_f == 2) {
+       required = MPI_THREAD_SERIALIZED; 
+    } else if (*required_f == 3) {
+       required = MPI_THREAD_MULTIPLE;
+    }
+        
+    *ierror = MPI_Init_thread(NULL, NULL, required, &provided);
+
+    if (provided == MPI_THREAD_SINGLE) {
+       *provided_f = 0; 
+    } else if (provided == MPI_THREAD_FUNNELED) {
+       *provided_f = 1; 
+    } else if (provided == MPI_THREAD_SERIALIZED) {
+       *provided_f = 2; 
+    } else if (provided == MPI_THREAD_MULTIPLE) {
+       *provided_f = 3;
+    }
+
     if (sizeof(MPI_Fint) != sizeof(int)) {
         fprintf(stderr, "MPI_Fint is wider than C int, which violates our design assumptions.\n");
     }

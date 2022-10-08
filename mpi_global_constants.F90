@@ -2,6 +2,15 @@ module mpi_global_constants
     use iso_c_binding, only: c_int, c_size_t, c_intptr_t
     use mpi_handle_types
 
+    ! Buffer Address Constants
+    integer :: MPI_IN_PLACE = 1
+
+    ! thread levels
+    integer, parameter :: MPI_THREAD_SINGLE = 0
+    integer, parameter :: MPI_THREAD_FUNNELED = 1
+    integer, parameter :: MPI_THREAD_SERIALIZED = 2
+    integer, parameter :: MPI_THREAD_MULTIPLE = 3
+
     ! useful handles
     type(MPI_Comm)     :: MPI_COMM_WORLD
     type(MPI_Comm)     :: MPI_COMM_SELF

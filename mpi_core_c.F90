@@ -1,5 +1,15 @@
 module mpi_core_c
 
+    ! NONSTANDARD STUFF
+
+    interface
+        subroutine C_MPI_IN_PLACE(inplace) bind(C,name="C_MPI_IN_PLACE")
+            use iso_c_binding, only: c_intptr_t 
+            implicit none
+            integer(kind=c_intptr_t) :: inplace
+        end subroutine C_MPI_IN_PLACE
+    end interface
+
     ! STANDARD STUFF
 
     interface
