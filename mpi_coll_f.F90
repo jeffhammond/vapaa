@@ -7,26 +7,26 @@ module mpi_coll_f
     end interface MPI_Barrier
 
     interface MPI_Bcast
-#ifdef __NVCOMPILER
-        module procedure MPI_Bcast_f08
-#else
+#ifdef HAVE_CFI
         module procedure MPI_Bcast_f08ts
+#else
+        module procedure MPI_Bcast_f08
 #endif
     end interface MPI_Bcast
 
     interface MPI_Reduce
-#ifdef __NVCOMPILER
-        module procedure MPI_Reduce_f08
-#else
+#ifdef HAVE_CFI
         module procedure MPI_Reduce_f08ts
+#else
+        module procedure MPI_Reduce_f08
 #endif
     end interface MPI_Reduce
 
     interface MPI_Allreduce
-#ifdef __NVCOMPILER
-        module procedure MPI_Allreduce_f08
-#else
+#ifdef HAVE_CFI
         module procedure MPI_Allreduce_f08ts
+#else
+        module procedure MPI_Allreduce_f08
 #endif
     end interface MPI_Allreduce
 
@@ -61,7 +61,7 @@ module mpi_coll_f
             if (present(ierror)) ierror = ierror_c
         end subroutine MPI_Bcast_f08
 
-#ifndef __NVCOMPILER
+#ifdef HAVE_CFI
         subroutine MPI_Bcast_f08ts(buffer, count, datatype, root, comm, ierror)
             use mpi_handle_types, only: MPI_Comm, MPI_Datatype
             use mpi_coll_c, only: CFI_MPI_Bcast
@@ -102,7 +102,7 @@ module mpi_coll_f
             if (present(ierror)) ierror = ierror_c
         end subroutine MPI_Reduce_f08
 
-#ifndef __NVCOMPILER
+#ifdef HAVE_CFI
         subroutine MPI_Reduce_f08ts(input, output, count, datatype, op, root, comm, ierror)
             use mpi_handle_types, only: MPI_Comm, MPI_Datatype, MPI_Op
             use mpi_coll_c, only: CFI_MPI_Reduce
@@ -145,7 +145,7 @@ module mpi_coll_f
             if (present(ierror)) ierror = ierror_c
         end subroutine MPI_Allreduce_f08
 
-#ifndef __NVCOMPILER
+#ifdef HAVE_CFI
         subroutine MPI_Allreduce_f08ts(input, output, count, datatype, op, comm, ierror)
             use mpi_handle_types, only: MPI_Comm, MPI_Datatype, MPI_Op
             use mpi_coll_c, only: CFI_MPI_Allreduce

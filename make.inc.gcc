@@ -1,4 +1,4 @@
-WARNFLAGS = 
+WARNFLAGS = -Wall -Wextra -Werror
 
 # M1
 #FORTRAN_DIR = /opt/homebrew/Cellar/gcc/12.2.0/lib/gcc/current
@@ -14,10 +14,10 @@ MPI_LIBS = -g -Wl,-commons,use_dylibs -I/opt/homebrew/Cellar/mpich/4.0.2_1/inclu
 
 # M1
 CC = mpicc
-CFLAGS := -std=c11 -g -Wall -Wextra -Werror $(FORTRAN_INCLUDE)
+CFLAGS = $(WARNFLAGS) -g -std=c11 $(FORTRAN_INCLUDE)
 
 FC = gfortran
-FCFLAGS := $(WARNFLAGS) -g -Wall -Wextra -Werror -std=f2018
+FCFLAGS = $(WARNFLAGS) -g -std=f2018 -DHAVE_CFI
 
 # required on nuclear (x86_64)
 CFLAGS  += -fPIE

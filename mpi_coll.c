@@ -81,6 +81,9 @@ void CFI_MPI_Allreduce(CFI_cdesc_t * input, CFI_cdesc_t * output, int * count, i
     MPI_Datatype datatype = MPI_Type_f2c(*datatype_f);
     MPI_Op op = MPI_Op_f2c(*op_f);
     MPI_Comm comm = MPI_Comm_f2c(*comm_f);
+
+    // TODO optional count and datatype checking???
+
     if ( (1 == CFI_is_contiguous(input)) && (1 == CFI_is_contiguous(input)) ) {
         *ierror = MPI_Allreduce(input->base_addr, output->base_addr, *count, datatype, op, comm);
     } else {

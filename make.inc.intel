@@ -1,12 +1,12 @@
-WARNFLAGS = 
+WARNFLAGS = -Wall -Wextra -Werror
 
 MPI_LIBS = -L"/opt/intel/oneapi/mpi/2021.7.0/lib/release" -L"/opt/intel/oneapi/mpi/2021.7.0/lib" -Xlinker --enable-new-dtags -Xlinker -rpath -Xlinker "/opt/intel/oneapi/mpi/2021.7.0/lib/release" -Xlinker -rpath -Xlinker "/opt/intel/oneapi/mpi/2021.7.0/lib" -lmpifort -lmpi -lrt -lpthread -Wl,-z,now -Wl,-z,relro -Wl,-z,noexecstack -Xlinker --enable-new-dtags -ldl
 
 CC = /opt/intel/oneapi/mpi/latest/bin/mpicc
-CFLAGS := -std=c11 -g -Wall -Wextra -Werror $(FORTRAN_INCLUDE)
+CFLAGS = $(WARNFLAGS) -g -std=c11 $(FORTRAN_INCLUDE)
 
 FC = ifort
-FCFLAGS := $(WARNFLAGS) -g -warn all -std08
+FCFLAGS = -warn all -g -std08 -DHAVE_CFI
 
 # required on nuclear (x86_64)
 CFLAGS  += -fPIE

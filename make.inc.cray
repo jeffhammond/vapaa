@@ -4,6 +4,6 @@ CC = cc
 CFLAGS := -g
 
 FC = ftn
-FCFLAGS := -g
+FCFLAGS := -g -DHAVE_CFI
 
 ABIFLAG = -DMPICH
