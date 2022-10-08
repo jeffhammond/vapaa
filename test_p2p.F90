@@ -6,6 +6,7 @@ program test_reductions
     integer :: b
     integer, allocatable :: x(:)
     type(MPI_Status) :: s
+    type(MPI_Request) :: r
 
     call MPI_Init(ierror)
 
@@ -23,6 +24,9 @@ program test_reductions
         if (me.eq.i) print*,'I am ',me,' of ',np,' of WORLD'
         call MPI_Barrier(MPI_COMM_WORLD)
     enddo
+    call MPI_Barrier(MPI_COMM_WORLD)
+
+    if(me.eq.0) print*,'BLOCKING'
 
     do i=0,20
         b = 2**i
@@ -35,6 +39,32 @@ program test_reductions
             x = -1
             !call MPI_Recv(x,b,MPI_INTEGER,me-1,b,MPI_COMM_WORLD,MPI_STATUS_IGNORE)
             call MPI_Recv(x,b,MPI_INTEGER,me-1,b,MPI_COMM_WORLD,s)
+            if (any(x.ne.(me-1))) then
+                print*,'an error has occurred'
+                print*,x
+            endif
+            if (((s % MPI_SOURCE) .ne. me-1).or.((s % MPI_TAG).ne.b)) then
+                print*,'MPI_Status is wrong'
+                print*,'status = ',s % MPI_SOURCE,s % MPI_TAG,s % MPI_ERROR
+            endif
+        endif
+        deallocate( x )
+    enddo
+
+    if(me.eq.0) print*,'NONBLOCKING'
+
+    do i=0,20
+        b = 2**i
+        if (me.eq.0) print*,'b=',b
+        allocate( x(b) )
+        if (0.eq.MOD(me,2)) then
+            x = me
+            call MPI_Isend(x,b,MPI_INTEGER,me+1,b,MPI_COMM_WORLD,r)
+            call MPI_Wait(r,MPI_STATUS_IGNORE)
+        else
+            x = -1
+            call MPI_Irecv(x,b,MPI_INTEGER,me-1,b,MPI_COMM_WORLD,r)
+            call MPI_Wait(r,s)
             if (any(x.ne.(me-1))) then
                 print*,'an error has occurred'
                 print*,x
