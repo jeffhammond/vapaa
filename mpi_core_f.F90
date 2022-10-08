@@ -85,6 +85,13 @@ module mpi_core_f
             ! win
             call C_MPI_WIN_NULL(win_c)
             MPI_WIN_NULL % MPI_VAL = win_c
+            ! status ignore
+            MPI_STATUS_IGNORE % MPI_SOURCE   = -9119
+            MPI_STATUS_IGNORE % MPI_TAG      = -9119
+            MPI_STATUS_IGNORE % MPI_ERROR    = -9119
+            MPI_STATUSES_IGNORE % MPI_SOURCE = -9119
+            MPI_STATUSES_IGNORE % MPI_TAG    = -9119
+            MPI_STATUSES_IGNORE % MPI_ERROR  = -9119
             ! we need to be able to check if this function has been called
             ! or else most things will not work.  user must initialize
             ! _this_ library using its MPI_Init, and no other.
