@@ -4,8 +4,6 @@
 #include <mpi.h>
 #include "ISO_Fortran_binding.h"
 
-// We assume MPI_Fint is C int. This assumption should be verified somehow.
-
 // NONSTANDARD STUFF
 
 static inline bool C_MPI_IS_IGNORE(MPI_Status * input)
@@ -34,6 +32,29 @@ void CFI_MPI_Send(CFI_cdesc_t * desc, int * count, int * datatype_f, int * dest,
     }
 }
 
+void C_MPI_Isend(void * buffer, int * count, int * datatype_f, int * dest, int *tag, int * comm_f, int * request_f, int * ierror)
+{
+    MPI_Request request = MPI_REQUEST_NULL;
+    MPI_Datatype datatype = MPI_Type_f2c(*datatype_f);
+    MPI_Comm comm = MPI_Comm_f2c(*comm_f);
+    *ierror = MPI_Isend(buffer, *count, datatype, *dest, *tag, comm, &request);
+    *request_f = MPI_Request_c2f(request);
+}
+
+void CFI_MPI_Isend(CFI_cdesc_t * desc, int * count, int * datatype_f, int * dest, int * tag, int * comm_f, int * request_f, int * ierror)
+{
+    MPI_Request request = MPI_REQUEST_NULL;
+    MPI_Datatype datatype = MPI_Type_f2c(*datatype_f);
+    MPI_Comm comm = MPI_Comm_f2c(*comm_f);
+    if (1 == CFI_is_contiguous(desc)) {
+        *ierror = MPI_Isend(desc->base_addr, *count, datatype, *dest, *tag, comm, &request);
+    } else {
+        fprintf(stderr, "FIXME: not contiguous case\n");
+        MPI_Abort(comm, 99);
+    }
+    *request_f = MPI_Request_c2f(request);
+}
+
 /* DESIGN NOTE
  * We do not need to convert the status object because we define it
  * such that no conversion should be necessary.
@@ -58,5 +79,28 @@ void CFI_MPI_Recv(CFI_cdesc_t * desc, int * count, int * datatype_f, int * sourc
         fprintf(stderr, "FIXME: not contiguous case\n");
         MPI_Abort(comm, 99);
     }
+}
+
+void C_MPI_Irecv(void * buffer, int * count, int * datatype_f, int * source, int *tag, int * comm_f, int * request_f, int * ierror)
+{
+    MPI_Request request = MPI_REQUEST_NULL;
+    MPI_Datatype datatype = MPI_Type_f2c(*datatype_f);
+    MPI_Comm comm = MPI_Comm_f2c(*comm_f);
+    *ierror = MPI_Irecv(buffer, *count, datatype, *source, *tag, comm, &request);
+    *request_f = MPI_Request_c2f(request);
+}
+
+void CFI_MPI_Irecv(CFI_cdesc_t * desc, int * count, int * datatype_f, int * source, int * tag, int * comm_f, int * request_f, int * ierror)
+{
+    MPI_Request request = MPI_REQUEST_NULL;
+    MPI_Datatype datatype = MPI_Type_f2c(*datatype_f);
+    MPI_Comm comm = MPI_Comm_f2c(*comm_f);
+    if (1 == CFI_is_contiguous(desc)) {
+        *ierror = MPI_Irecv(desc->base_addr, *count, datatype, *source, *tag, comm, &request);
+    } else {
+        fprintf(stderr, "FIXME: not contiguous case\n");
+        MPI_Abort(comm, 99);
+    }
+    *request_f = MPI_Request_c2f(request);
 }
 

@@ -3,8 +3,6 @@
 #include <mpi.h>
 #include "ISO_Fortran_binding.h"
 
-// We assume MPI_Fint is C int. This assumption should be verified somehow.
-
 // STANDARD STUFF
 
 void C_MPI_Barrier(int * comm_f, int * ierror)

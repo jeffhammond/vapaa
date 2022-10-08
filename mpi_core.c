@@ -1,13 +1,17 @@
+#include <stdio.h>
 #include <stdlib.h> // NULL
 #include <mpi.h>
 
-// We assume MPI_Fint is C int. This assumption should be verified somehow.
+// We assume MPI_Fint is C int. This is verified during initialization.
 
 // STANDARD STUFF
 
 void C_MPI_Init(int * ierror)
 {
     *ierror = MPI_Init(NULL, NULL);
+    if (sizeof(MPI_Fint) != sizeof(int)) {
+        fprintf(stderr, "MPI_Fint is wider than C int, which violates our design assumptions.\n");
+    }
 }
 
 void C_MPI_Finalize(int * ierror)
@@ -18,6 +22,9 @@ void C_MPI_Finalize(int * ierror)
 void C_MPI_Init_thread(int * required, int * provided, int * ierror)
 {
     *ierror = MPI_Init_thread(NULL, NULL, *required, provided);
+    if (sizeof(MPI_Fint) != sizeof(int)) {
+        fprintf(stderr, "MPI_Fint is wider than C int, which violates our design assumptions.\n");
+    }
 }
 
 void C_MPI_Initialized(int * flag, int * ierror)
