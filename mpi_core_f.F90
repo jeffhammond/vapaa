@@ -49,7 +49,7 @@ module mpi_core_f
         subroutine F_MPI_IN_PLACE()
             use mpi_global_constants, only: MPI_IN_PLACE
             use mpi_core_c, only: C_MPI_IN_PLACE
-            call C_MPI_IN_PLACE(LOC(MPI_IN_PLACE))
+            call C_MPI_IN_PLACE(MPI_IN_PLACE)
         end subroutine F_MPI_IN_PLACE
 
         subroutine F_MPI_Init_handles()

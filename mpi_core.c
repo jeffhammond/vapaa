@@ -1,14 +1,16 @@
 #include <stdio.h>
 #include <stdlib.h> // NULL
 #include <mpi.h>
+#include "ISO_Fortran_binding.h"
 
 // We assume MPI_Fint is C int. This is verified during initialization.
 
 static void * f08_mpi_in_place_address;
 
-void C_MPI_IN_PLACE(intptr_t * inplace)
+void C_MPI_IN_PLACE(CFI_cdesc_t * desc)
 {
-    f08_mpi_in_place_address = inplace;
+    void * addr = desc->base_addr;
+    f08_mpi_in_place_address = addr;
 }
 
 // STANDARD STUFF
