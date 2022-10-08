@@ -5,6 +5,7 @@ program test_reductions
     integer :: i, me, np
     integer :: b
     integer, allocatable :: x(:)
+    type(MPI_Status) :: s
 
     call MPI_Init(ierror)
 
@@ -32,10 +33,15 @@ program test_reductions
             call MPI_Send(x,b,MPI_INTEGER,me+1,b,MPI_COMM_WORLD)
         else
             x = -1
-            call MPI_Recv(x,b,MPI_INTEGER,me-1,b,MPI_COMM_WORLD,MPI_STATUS_IGNORE)
+            !call MPI_Recv(x,b,MPI_INTEGER,me-1,b,MPI_COMM_WORLD,MPI_STATUS_IGNORE)
+            call MPI_Recv(x,b,MPI_INTEGER,me-1,b,MPI_COMM_WORLD,s)
             if (any(x.ne.(me-1))) then
                 print*,'an error has occurred'
                 print*,x
+            endif
+            if (((s % MPI_SOURCE) .ne. me-1).or.((s % MPI_TAG).ne.b)) then
+                print*,'MPI_Status is wrong'
+                print*,'status = ',s % MPI_SOURCE,s % MPI_TAG,s % MPI_ERROR
             endif
         endif
         deallocate( x )
