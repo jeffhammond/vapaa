@@ -30,6 +30,22 @@ module mpi_coll_f
 #endif
     end interface MPI_Allreduce
 
+    interface MPI_Gather
+#ifdef HAVE_CFI
+        module procedure MPI_Gather_f08ts
+#else
+        module procedure MPI_Gather_f08
+#endif
+    end interface MPI_Gather
+
+    interface MPI_Allgather
+#ifdef HAVE_CFI
+        module procedure MPI_Allgather_f08ts
+#else
+        module procedure MPI_Allgather_f08
+#endif
+    end interface MPI_Allgather
+
     contains
 
         subroutine MPI_Barrier_f08(comm, ierror) 
@@ -165,6 +181,92 @@ module mpi_coll_f
             call CFI_MPI_Allreduce(input, output, count_c, datatype_c, op_c, comm_c, ierror_c)
             if (present(ierror)) ierror = ierror_c
         end subroutine MPI_Allreduce_f08ts
+#endif
+
+        subroutine MPI_Gather_f08(input, scount, stype, output, rcount, rtype, root, comm, ierror) 
+            use mpi_handle_types, only: MPI_Comm, MPI_Datatype
+            use mpi_coll_c, only: C_MPI_Gather
+            integer, dimension(*), intent(in)    :: input
+            integer, dimension(*), intent(inout) :: output
+            integer, intent(in) :: scount, rcount, root
+            type(MPI_Datatype), intent(in) :: stype, rtype
+            type(MPI_Comm), intent(in) :: comm
+            integer, optional, intent(out) :: ierror
+            integer(kind=c_int) :: scount_c, stype_c, rcount_c, rtype_c,  root_c, comm_c, ierror_c
+            ! buffer
+            scount_c = scount
+            rcount_c = rcount
+            stype_c = stype % MPI_VAL
+            rtype_c = rtype % MPI_VAL
+            root_c = root
+            comm_c = comm % MPI_VAL
+            call C_MPI_Gather(input, scount_c, stype_c, output, rcount_c, rtype_c, root_c, comm_c, ierror_c)
+            if (present(ierror)) ierror = ierror_c
+        end subroutine MPI_Gather_f08
+
+#ifdef HAVE_CFI
+        subroutine MPI_Gather_f08ts(input, scount, stype, output, rcount, rtype, root, comm, ierror)
+            use mpi_handle_types, only: MPI_Comm, MPI_Datatype
+            use mpi_coll_c, only: CFI_MPI_Gather
+            type(*), dimension(..), intent(in)    :: input
+            type(*), dimension(..), intent(inout) :: output
+            integer, intent(in) :: scount, rcount, root
+            type(MPI_Datatype), intent(in) :: stype, rtype
+            type(MPI_Comm), intent(in) :: comm
+            integer, optional, intent(out) :: ierror
+            integer(kind=c_int) :: scount_c, stype_c, rcount_c, rtype_c,  root_c, comm_c, ierror_c
+            ! buffer
+            scount_c = scount
+            rcount_c = rcount
+            stype_c = stype % MPI_VAL
+            rtype_c = rtype % MPI_VAL
+            root_c = root
+            comm_c = comm % MPI_VAL
+            call CFI_MPI_Gather(input, scount_c, stype_c, output, rcount_c, rtype_c, root_c, comm_c, ierror_c)
+            if (present(ierror)) ierror = ierror_c
+        end subroutine MPI_Gather_f08ts
+#endif
+
+        subroutine MPI_Allgather_f08(input, scount, stype, output, rcount, rtype, comm, ierror) 
+            use mpi_handle_types, only: MPI_Comm, MPI_Datatype
+            use mpi_coll_c, only: C_MPI_Allgather
+            integer, dimension(*), intent(in)    :: input
+            integer, dimension(*), intent(inout) :: output
+            integer, intent(in) :: scount, rcount
+            type(MPI_Datatype), intent(in) :: stype, rtype
+            type(MPI_Comm), intent(in) :: comm
+            integer, optional, intent(out) :: ierror
+            integer(kind=c_int) :: scount_c, stype_c, rcount_c, rtype_c,  comm_c, ierror_c
+            ! buffer
+            scount_c = scount
+            rcount_c = rcount
+            stype_c = stype % MPI_VAL
+            rtype_c = rtype % MPI_VAL
+            comm_c = comm % MPI_VAL
+            call C_MPI_Allgather(input, scount_c, stype_c, output, rcount_c, rtype_c, comm_c, ierror_c)
+            if (present(ierror)) ierror = ierror_c
+        end subroutine MPI_Allgather_f08
+
+#ifdef HAVE_CFI
+        subroutine MPI_Allgather_f08ts(input, scount, stype, output, rcount, rtype, comm, ierror)
+            use mpi_handle_types, only: MPI_Comm, MPI_Datatype
+            use mpi_coll_c, only: CFI_MPI_Allgather
+            type(*), dimension(..), intent(in)    :: input
+            type(*), dimension(..), intent(inout) :: output
+            integer, intent(in) :: scount, rcount
+            type(MPI_Datatype), intent(in) :: stype, rtype
+            type(MPI_Comm), intent(in) :: comm
+            integer, optional, intent(out) :: ierror
+            integer(kind=c_int) :: scount_c, stype_c, rcount_c, rtype_c,  comm_c, ierror_c
+            ! buffer
+            scount_c = scount
+            rcount_c = rcount
+            stype_c = stype % MPI_VAL
+            rtype_c = rtype % MPI_VAL
+            comm_c = comm % MPI_VAL
+            call CFI_MPI_Allgather(input, scount_c, stype_c, output, rcount_c, rtype_c, comm_c, ierror_c)
+            if (present(ierror)) ierror = ierror_c
+        end subroutine MPI_Allgather_f08ts
 #endif
 
 end module mpi_coll_f
