@@ -128,4 +128,52 @@ module mpi_coll_c
     end interface
 #endif
 
+    interface
+        subroutine C_MPI_Scatter(input, scount_c, stype_c, output, rcount_c, rtype_c, root_c, comm_c, &
+                                ierror_c) bind(C,name="C_MPI_Scatter")
+            use iso_c_binding, only: c_int
+            implicit none
+            integer(kind=c_int), dimension(*), intent(in)    :: input
+            integer(kind=c_int), dimension(*), intent(inout) :: output
+            integer(kind=c_int) :: scount_c, stype_c, rcount_c, rtype_c, root_c, comm_c, ierror_c
+        end subroutine C_MPI_Scatter
+    end interface
+
+#ifdef HAVE_CFI
+    interface
+        subroutine CFI_MPI_Scatter(input, scount_c, stype_c, output, rcount_c, rtype_c, root_c, comm_c, &
+                                  ierror_c) bind(C,name="CFI_MPI_Scatter")
+            use iso_c_binding, only: c_int
+            implicit none
+            type(*), dimension(..), intent(in)    :: input
+            type(*), dimension(..), intent(inout) :: output
+            integer(kind=c_int) :: scount_c, stype_c, rcount_c, rtype_c, root_c, comm_c, ierror_c
+        end subroutine CFI_MPI_Scatter
+    end interface
+#endif
+
+    interface
+        subroutine C_MPI_Alltoall(input, scount_c, stype_c, output, rcount_c, rtype_c, comm_c, &
+                                   ierror_c) bind(C,name="C_MPI_Alltoall")
+            use iso_c_binding, only: c_int
+            implicit none
+            integer(kind=c_int), dimension(*), intent(in)    :: input
+            integer(kind=c_int), dimension(*), intent(inout) :: output
+            integer(kind=c_int) :: scount_c, stype_c, rcount_c, rtype_c, comm_c, ierror_c
+        end subroutine C_MPI_Alltoall
+    end interface
+
+#ifdef HAVE_CFI
+    interface
+        subroutine CFI_MPI_Alltoall(input, scount_c, stype_c, output, rcount_c, rtype_c, comm_c, &
+                                     ierror_c) bind(C,name="CFI_MPI_Alltoall")
+            use iso_c_binding, only: c_int
+            implicit none
+            type(*), dimension(..), intent(in)    :: input
+            type(*), dimension(..), intent(inout) :: output
+            integer(kind=c_int) :: scount_c, stype_c, rcount_c, rtype_c, comm_c, ierror_c
+        end subroutine CFI_MPI_Alltoall
+    end interface
+#endif
+
 end module mpi_coll_c

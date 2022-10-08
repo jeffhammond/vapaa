@@ -157,3 +157,65 @@ void CFI_MPI_Allgather(CFI_cdesc_t * input, int * scount, int * stype_f, CFI_cde
         MPI_Abort(comm, 99);
     }
 }
+
+void C_MPI_Scatter(const void * input, int * scount, int * stype_f, void * output, int * rcount, int * rtype_f, int * root, int * comm_f, int * ierror)
+{
+    MPI_Datatype stype = MPI_Type_f2c(*stype_f);
+    MPI_Datatype rtype = MPI_Type_f2c(*rtype_f);
+    MPI_Comm comm = MPI_Comm_f2c(*comm_f);
+    if (input  == f08_mpi_in_place_address) input  = MPI_IN_PLACE;
+    if (output == f08_mpi_in_place_address) output = MPI_IN_PLACE;
+    *ierror = MPI_Scatter(input, *scount, stype, output, *rcount, rtype, *root, comm);
+}
+
+void CFI_MPI_Scatter(CFI_cdesc_t * input, int * scount, int * stype_f, CFI_cdesc_t * output, int * rcount, int * rtype_f, int * root, int * comm_f, int * ierror)
+{
+    void * in_addr  = input->base_addr;
+    void * out_addr = output->base_addr;
+    if (in_addr  == f08_mpi_in_place_address) in_addr  = MPI_IN_PLACE;
+    if (out_addr == f08_mpi_in_place_address) out_addr = MPI_IN_PLACE;
+
+    MPI_Datatype stype = MPI_Type_f2c(*stype_f);
+    MPI_Datatype rtype = MPI_Type_f2c(*rtype_f);
+    MPI_Comm comm = MPI_Comm_f2c(*comm_f);
+
+    // TODO optional count and datatype checking???
+
+    if ( (1 == CFI_is_contiguous(input)) && (1 == CFI_is_contiguous(output)) ) {
+        *ierror = MPI_Scatter(in_addr, *scount, stype, out_addr, *rcount, rtype, *root, comm);
+    } else {
+        fprintf(stderr, "FIXME: not contiguous case\n");
+        MPI_Abort(comm, 99);
+    }
+}
+
+void C_MPI_Alltoall(const void * input, int * scount, int * stype_f, void * output, int * rcount, int * rtype_f, int * comm_f, int * ierror)
+{
+    MPI_Datatype stype = MPI_Type_f2c(*stype_f);
+    MPI_Datatype rtype = MPI_Type_f2c(*rtype_f);
+    MPI_Comm comm = MPI_Comm_f2c(*comm_f);
+    if (input  == f08_mpi_in_place_address) input  = MPI_IN_PLACE;
+    if (output == f08_mpi_in_place_address) output = MPI_IN_PLACE;
+    *ierror = MPI_Alltoall(input, *scount, stype, output, *rcount, rtype, comm);
+}
+
+void CFI_MPI_Alltoall(CFI_cdesc_t * input, int * scount, int * stype_f, CFI_cdesc_t * output, int * rcount, int * rtype_f, int * comm_f, int * ierror)
+{
+    void * in_addr  = input->base_addr;
+    void * out_addr = output->base_addr;
+    if (in_addr  == f08_mpi_in_place_address) in_addr  = MPI_IN_PLACE;
+    if (out_addr == f08_mpi_in_place_address) out_addr = MPI_IN_PLACE;
+
+    MPI_Datatype stype = MPI_Type_f2c(*stype_f);
+    MPI_Datatype rtype = MPI_Type_f2c(*rtype_f);
+    MPI_Comm comm = MPI_Comm_f2c(*comm_f);
+
+    // TODO optional count and datatype checking???
+
+    if ( (1 == CFI_is_contiguous(input)) && (1 == CFI_is_contiguous(output)) ) {
+        *ierror = MPI_Alltoall(in_addr, *scount, stype, out_addr, *rcount, rtype, comm);
+    } else {
+        fprintf(stderr, "FIXME: not contiguous case\n");
+        MPI_Abort(comm, 99);
+    }
+}
