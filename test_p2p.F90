@@ -4,12 +4,18 @@ program test_reductions
     integer :: ierror
     integer :: i, me, np
     integer :: b
-    integer, allocatable :: x(:), y(:)
+    integer, allocatable :: x(:)
 
     call MPI_Init(ierror)
 
     call MPI_Comm_rank(MPI_COMM_WORLD,me)
     call MPI_Comm_size(MPI_COMM_WORLD,np)
+
+    if (0.ne.MOD(np,2)) then
+        print*,'Run with an even number of processes'
+        call MPI_Abort(MPI_COMM_WORLD,np)
+    endif
+    
 
     call MPI_Barrier(MPI_COMM_WORLD)
     do i=0,np
@@ -21,16 +27,18 @@ program test_reductions
         b = 2**i
         if (me.eq.0) print*,'b=',b
         allocate( x(b) )
-        allocate( y(b) )
-        x =  1
-        y = -1
-        call MPI_Allreduce(x, y, b, MPI_INTEGER, MPI_SUM,  MPI_COMM_WORLD)
-        if (any(y.ne.np)) then
-            print*,'an error has occurred'
-            print*,y
+        if (0.eq.MOD(me,2)) then
+            x = me
+            call MPI_Send(x,b,MPI_INTEGER,me+1,b,MPI_COMM_WORLD)
+        else
+            x = -1
+            call MPI_Recv(x,b,MPI_INTEGER,me-1,b,MPI_COMM_WORLD,MPI_STATUS_IGNORE)
+            if (any(x.ne.(me-1))) then
+                print*,'an error has occurred'
+                print*,x
+            endif
         endif
         deallocate( x )
-        deallocate( y )
     enddo
 
     call MPI_Finalize(ierror)

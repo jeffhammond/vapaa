@@ -3,7 +3,7 @@ include make.inc
 AR := ar
 ARFLAGS := -r
 
-all: test_core.x test_collectives.x test_reductions.x test_cfi.x
+all: test_core.x test_collectives.x test_reductions.x test_p2p.x test_cfi.x
 
 test_cfi.x: test_cfi.F90 foo_cfi.c
 	$(CC) $(CFLAGS) -c foo_cfi.c -o foo_cfi.o
@@ -20,6 +20,7 @@ libmpi_f08.a: mpi_f08.o mpi_handle_types.o mpi_global_constants.o \
 	      mpi_core_f.o mpi_core_c.o mpi_core.o \
 	      mpi_comm_f.o mpi_comm_c.o mpi_comm.o \
 	      mpi_coll_f.o mpi_coll_c.o mpi_coll.o \
+	      mpi_p2p_f.o mpi_p2p_c.o mpi_p2p.o \
 	      mpi_datatype_f.o mpi_datatype_c.o mpi_datatype.o \
 	      mpi_file_f.o mpi_file_c.o mpi_file.o \
 	      mpi_group_f.o mpi_group_c.o mpi_group.o \
@@ -208,6 +209,7 @@ clean:
 	-rm -f test_core.x test_core.o
 	-rm -f test_collectives.x test_collectives.o
 	-rm -f test_reductions.x test_reductions.o
+	-rm -f test_p2p.x test_p2p.o
 	-rm -f libmpi_f08.a
 	-rm -f mpi_f08.mod mpi_f08.o
 	-rm -f mpi_handle_types.mod mpi_handle_types.o
