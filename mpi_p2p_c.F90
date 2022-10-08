@@ -3,6 +3,26 @@ module mpi_p2p_c
     ! STANDARD STUFF
 
     interface
+        subroutine C_MPI_Test(request_c, flag_c, status_c, ierror_c) bind(C,name="C_MPI_Test")
+            use iso_c_binding, only: c_int
+            use mpi_handle_types, only: MPI_Status
+            implicit none
+            integer(kind=c_int) :: request_c, flag_c, ierror_c
+            type(MPI_Status), intent(out) :: status_c
+        end subroutine C_MPI_Test
+    end interface
+
+    interface
+        subroutine C_MPI_Wait(request_c, status_c, ierror_c) bind(C,name="C_MPI_Wait")
+            use iso_c_binding, only: c_int
+            use mpi_handle_types, only: MPI_Status
+            implicit none
+            integer(kind=c_int) :: request_c, ierror_c
+            type(MPI_Status), intent(out) :: status_c
+        end subroutine C_MPI_Wait
+    end interface
+
+    interface
         subroutine C_MPI_Send(buffer, count_c, datatype_c, dest_c, tag_c, comm_c, &
                               ierror_c) bind(C,name="C_MPI_Send")
             use iso_c_binding, only: c_int

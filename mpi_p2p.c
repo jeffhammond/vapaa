@@ -13,6 +13,24 @@ static inline bool C_MPI_IS_IGNORE(MPI_Status * input)
 
 // STANDARD STUFF
 
+void C_MPI_Test(int * request_f, int * flag, MPI_Status * status_f, int * ierror)
+{
+    // Request is inout so we have to convert before and after
+    MPI_Request request = MPI_Request_f2c(*request_f);
+    *ierror = MPI_Test(&request, flag,
+                       C_MPI_IS_IGNORE(status_f) ? MPI_STATUS_IGNORE : status_f);
+    *request_f = MPI_Request_c2f(request);
+}
+
+void C_MPI_Wait(int * request_f, MPI_Status * status_f, int * ierror)
+{
+    // Request is inout so we have to convert before and after
+    MPI_Request request = MPI_Request_f2c(*request_f);
+    *ierror = MPI_Wait(&request, 
+                       C_MPI_IS_IGNORE(status_f) ? MPI_STATUS_IGNORE : status_f);
+    *request_f = MPI_Request_c2f(request);
+}
+
 void C_MPI_Send(void * buffer, int * count, int * datatype_f, int * dest, int *tag, int * comm_f, int * ierror)
 {
     MPI_Datatype datatype = MPI_Type_f2c(*datatype_f);
