@@ -18,8 +18,8 @@ An attempt to implement MPI Fortran 2018 support using only the MPI C API.
 
 Obviously, we want to support almost everything some day, but for now, we support only the following:
 
-* Management: ` `MPI_Init` `MPI_Finalize` `MPI_Init_thread` `MPI_Initialized` `MPI_Finalized`
-                `MPI_Query_thread` `MPI_Abort` `MPI_Get_version`
+* Management: `MPI_Init` `MPI_Finalize` `MPI_Init_thread` `MPI_Initialized` `MPI_Finalized`
+              `MPI_Query_thread` `MPI_Abort` `MPI_Get_version`
 * Collectives: `MPI_Barrier` `MPI_Bcast` `MPI_Reduce` `MPI_Allreduce,` `MPI_Gather,` `MPI_Allgather`
 * Utilities: `MPI_Comm_rank` `MPI_Comm_size`
 * Point-to-point: `MPI_Test` `MPI_Wait` `MPI_Send` `MPI_Irecv` `MPI_Recv` `MPI_Irecv`
