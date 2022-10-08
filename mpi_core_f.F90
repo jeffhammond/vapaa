@@ -36,6 +36,14 @@ module mpi_core_f
         module procedure MPI_Get_version_f08
     end interface MPI_Get_version
 
+    interface MPI_Wtime
+        module procedure MPI_Wtime_f08
+    end interface MPI_Wtime
+
+    interface MPI_Wtick
+        module procedure MPI_Wtick_f08
+    end interface MPI_Wtick
+
     contains
 
         subroutine F_MPI_Init_handles()
@@ -200,5 +208,17 @@ module mpi_core_f
             subversion = subversion_c
             if (present(ierror)) ierror = ierror_c
         end subroutine MPI_Get_version_f08
+
+        function MPI_Wtime_f08() result(time)
+            use mpi_core_c, only: C_MPI_Wtime
+            double precision :: time
+            time = C_MPI_Wtime()
+        end function MPI_Wtime_f08
+
+        function MPI_Wtick_f08() result(time)
+            use mpi_core_c, only: C_MPI_Wtick
+            double precision :: time
+            time = C_MPI_Wtick()
+        end function MPI_Wtick_f08
 
 end module mpi_core_f

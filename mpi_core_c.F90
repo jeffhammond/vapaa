@@ -66,5 +66,21 @@ module mpi_core_c
         end subroutine C_MPI_Get_version
     end interface
 
+    interface
+        function C_MPI_Wtime() result(time_c) bind(C,name="C_MPI_Wtime")
+            use iso_c_binding, only: c_double
+            implicit none
+            real(kind=c_double) :: time_c
+        end function C_MPI_Wtime
+    end interface
+
+    interface
+        function C_MPI_Wtick() result(time_c) bind(C,name="C_MPI_Wtick")
+            use iso_c_binding, only: c_double
+            implicit none
+            real(kind=c_double) :: time_c
+        end function C_MPI_Wtick
+    end interface
+
 end module mpi_core_c
 

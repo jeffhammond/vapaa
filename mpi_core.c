@@ -52,3 +52,13 @@ void C_MPI_Get_version(int * version, int * subversion, int * ierror)
 {
     *ierror = MPI_Get_version(version, subversion);
 }
+
+double C_MPI_Wtime(void)
+{
+    return MPI_Wtime();
+}
+
+double C_MPI_Wtick(void)
+{
+    return MPI_Wtick();
+}
