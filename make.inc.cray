@@ -1,7 +1,7 @@
 WARNFLAGS = 
 
 CC = cc
-CFLAGS := -g
+CFLAGS := -g -DHAVE_CFI
 
 FC = ftn
 FCFLAGS := -g -DHAVE_CFI
