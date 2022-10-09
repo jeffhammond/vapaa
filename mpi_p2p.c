@@ -38,6 +38,7 @@ void C_MPI_Send(void * buffer, int * count, int * datatype_f, int * dest, int *t
     *ierror = MPI_Send(buffer, *count, datatype, *dest, *tag, comm);
 }
 
+#ifdef HAVE_CFI
 void CFI_MPI_Send(CFI_cdesc_t * desc, int * count, int * datatype_f, int * dest, int * tag, int * comm_f, int * ierror)
 {
     MPI_Datatype datatype = MPI_Type_f2c(*datatype_f);
@@ -49,6 +50,7 @@ void CFI_MPI_Send(CFI_cdesc_t * desc, int * count, int * datatype_f, int * dest,
         MPI_Abort(comm, 99);
     }
 }
+#endif
 
 void C_MPI_Isend(void * buffer, int * count, int * datatype_f, int * dest, int *tag, int * comm_f, int * request_f, int * ierror)
 {
@@ -59,6 +61,7 @@ void C_MPI_Isend(void * buffer, int * count, int * datatype_f, int * dest, int *
     *request_f = MPI_Request_c2f(request);
 }
 
+#ifdef HAVE_CFI
 void CFI_MPI_Isend(CFI_cdesc_t * desc, int * count, int * datatype_f, int * dest, int * tag, int * comm_f, int * request_f, int * ierror)
 {
     MPI_Request request = MPI_REQUEST_NULL;
@@ -72,6 +75,7 @@ void CFI_MPI_Isend(CFI_cdesc_t * desc, int * count, int * datatype_f, int * dest
     }
     *request_f = MPI_Request_c2f(request);
 }
+#endif
 
 /* DESIGN NOTE
  * We do not need to convert the status object because we define it
@@ -86,6 +90,7 @@ void C_MPI_Recv(void * buffer, int * count, int * datatype_f, int * source, int 
                        C_MPI_IS_IGNORE(status_f) ? MPI_STATUS_IGNORE : status_f);
 }
 
+#ifdef HAVE_CFI
 void CFI_MPI_Recv(CFI_cdesc_t * desc, int * count, int * datatype_f, int * source, int * tag, int * comm_f, MPI_Status * status_f, int * ierror)
 {
     MPI_Datatype datatype = MPI_Type_f2c(*datatype_f);
@@ -98,6 +103,7 @@ void CFI_MPI_Recv(CFI_cdesc_t * desc, int * count, int * datatype_f, int * sourc
         MPI_Abort(comm, 99);
     }
 }
+#endif
 
 void C_MPI_Irecv(void * buffer, int * count, int * datatype_f, int * source, int *tag, int * comm_f, int * request_f, int * ierror)
 {
@@ -108,6 +114,7 @@ void C_MPI_Irecv(void * buffer, int * count, int * datatype_f, int * source, int
     *request_f = MPI_Request_c2f(request);
 }
 
+#ifdef HAVE_CFI
 void CFI_MPI_Irecv(CFI_cdesc_t * desc, int * count, int * datatype_f, int * source, int * tag, int * comm_f, int * request_f, int * ierror)
 {
     MPI_Request request = MPI_REQUEST_NULL;
@@ -121,4 +128,4 @@ void CFI_MPI_Irecv(CFI_cdesc_t * desc, int * count, int * datatype_f, int * sour
     }
     *request_f = MPI_Request_c2f(request);
 }
-
+#endif

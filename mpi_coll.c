@@ -20,6 +20,7 @@ void C_MPI_Bcast(void * buffer, int * count, int * datatype_f, int * root, int *
     *ierror = MPI_Bcast(buffer, *count, datatype, *root, comm);
 }
 
+#ifdef HAVE_CFI
 void CFI_MPI_Bcast(CFI_cdesc_t * desc, int * count, int * datatype_f, int * root, int * comm_f, int * ierror)
 {
     //void * buffer   = desc->base_addr;
@@ -36,6 +37,7 @@ void CFI_MPI_Bcast(CFI_cdesc_t * desc, int * count, int * datatype_f, int * root
         MPI_Abort(comm, 99);
     }
 }
+#endif
 
 void C_MPI_Reduce(const void * input, void * output, int * count, int * datatype_f, int * op_f, int * root,  int * comm_f, int * ierror)
 {
@@ -47,6 +49,7 @@ void C_MPI_Reduce(const void * input, void * output, int * count, int * datatype
     *ierror = MPI_Reduce(input, output, *count, datatype, op, *root, comm);
 }
 
+#ifdef HAVE_CFI
 void CFI_MPI_Reduce(CFI_cdesc_t * input, CFI_cdesc_t * output, int * count, int * datatype_f, int * op_f, int * root, int * comm_f, int * ierror)
 {
     void * in_addr  = input->base_addr;
@@ -64,6 +67,7 @@ void CFI_MPI_Reduce(CFI_cdesc_t * input, CFI_cdesc_t * output, int * count, int 
         MPI_Abort(comm, 99);
     }
 }
+#endif
 
 void C_MPI_Allreduce(const void * input, void * output, int * count, int * datatype_f, int * op_f, int * comm_f, int * ierror)
 {
@@ -75,6 +79,7 @@ void C_MPI_Allreduce(const void * input, void * output, int * count, int * datat
     *ierror = MPI_Allreduce(input, output, *count, datatype, op, comm);
 }
 
+#ifdef HAVE_CFI
 void CFI_MPI_Allreduce(CFI_cdesc_t * input, CFI_cdesc_t * output, int * count, int * datatype_f, int * op_f, int * comm_f, int * ierror)
 {
     void * in_addr  = input->base_addr;
@@ -95,6 +100,7 @@ void CFI_MPI_Allreduce(CFI_cdesc_t * input, CFI_cdesc_t * output, int * count, i
         MPI_Abort(comm, 99);
     }
 }
+#endif
 
 void C_MPI_Gather(const void * input, int * scount, int * stype_f, void * output, int * rcount, int * rtype_f, int * root, int * comm_f, int * ierror)
 {
@@ -106,6 +112,7 @@ void C_MPI_Gather(const void * input, int * scount, int * stype_f, void * output
     *ierror = MPI_Gather(input, *scount, stype, output, *rcount, rtype, *root, comm);
 }
 
+#ifdef HAVE_CFI
 void CFI_MPI_Gather(CFI_cdesc_t * input, int * scount, int * stype_f, CFI_cdesc_t * output, int * rcount, int * rtype_f, int * root, int * comm_f, int * ierror)
 {
     void * in_addr  = input->base_addr;
@@ -126,6 +133,7 @@ void CFI_MPI_Gather(CFI_cdesc_t * input, int * scount, int * stype_f, CFI_cdesc_
         MPI_Abort(comm, 99);
     }
 }
+#endif
 
 void C_MPI_Allgather(const void * input, int * scount, int * stype_f, void * output, int * rcount, int * rtype_f, int * comm_f, int * ierror)
 {
@@ -137,6 +145,7 @@ void C_MPI_Allgather(const void * input, int * scount, int * stype_f, void * out
     *ierror = MPI_Allgather(input, *scount, stype, output, *rcount, rtype, comm);
 }
 
+#ifdef HAVE_CFI
 void CFI_MPI_Allgather(CFI_cdesc_t * input, int * scount, int * stype_f, CFI_cdesc_t * output, int * rcount, int * rtype_f, int * comm_f, int * ierror)
 {
     void * in_addr  = input->base_addr;
@@ -157,6 +166,7 @@ void CFI_MPI_Allgather(CFI_cdesc_t * input, int * scount, int * stype_f, CFI_cde
         MPI_Abort(comm, 99);
     }
 }
+#endif
 
 void C_MPI_Scatter(const void * input, int * scount, int * stype_f, void * output, int * rcount, int * rtype_f, int * root, int * comm_f, int * ierror)
 {
@@ -168,6 +178,7 @@ void C_MPI_Scatter(const void * input, int * scount, int * stype_f, void * outpu
     *ierror = MPI_Scatter(input, *scount, stype, output, *rcount, rtype, *root, comm);
 }
 
+#ifdef HAVE_CFI
 void CFI_MPI_Scatter(CFI_cdesc_t * input, int * scount, int * stype_f, CFI_cdesc_t * output, int * rcount, int * rtype_f, int * root, int * comm_f, int * ierror)
 {
     void * in_addr  = input->base_addr;
@@ -188,6 +199,7 @@ void CFI_MPI_Scatter(CFI_cdesc_t * input, int * scount, int * stype_f, CFI_cdesc
         MPI_Abort(comm, 99);
     }
 }
+#endif
 
 void C_MPI_Alltoall(const void * input, int * scount, int * stype_f, void * output, int * rcount, int * rtype_f, int * comm_f, int * ierror)
 {
@@ -199,6 +211,7 @@ void C_MPI_Alltoall(const void * input, int * scount, int * stype_f, void * outp
     *ierror = MPI_Alltoall(input, *scount, stype, output, *rcount, rtype, comm);
 }
 
+#ifdef HAVE_CFI
 void CFI_MPI_Alltoall(CFI_cdesc_t * input, int * scount, int * stype_f, CFI_cdesc_t * output, int * rcount, int * rtype_f, int * comm_f, int * ierror)
 {
     void * in_addr  = input->base_addr;
@@ -219,6 +232,7 @@ void CFI_MPI_Alltoall(CFI_cdesc_t * input, int * scount, int * stype_f, CFI_cdes
         MPI_Abort(comm, 99);
     }
 }
+#endif
 
 /****************** v-collectives ******************/
 
@@ -234,6 +248,7 @@ void C_MPI_Gatherv(const void * input, int * scount, int * stype_f,
     *ierror = MPI_Gatherv(input, *scount, stype, output, rcounts, rdisps, rtype, *root, comm);
 }
 
+#ifdef HAVE_CFI
 void CFI_MPI_Gatherv(CFI_cdesc_t * input, int * scount, int * stype_f,
                      CFI_cdesc_t * output, const int rcounts[], const int rdisps[], int * rtype_f,
                      int * root, int * comm_f, int * ierror)
@@ -256,6 +271,7 @@ void CFI_MPI_Gatherv(CFI_cdesc_t * input, int * scount, int * stype_f,
         MPI_Abort(comm, 99);
     }
 }
+#endif
 
 void C_MPI_Allgatherv(const void * input, int * scount, int * stype_f,
                             void * output, const int rcounts[], const int rdisps[], int * rtype_f,
@@ -269,6 +285,7 @@ void C_MPI_Allgatherv(const void * input, int * scount, int * stype_f,
     *ierror = MPI_Allgatherv(input, *scount, stype, output, rcounts, rdisps, rtype, comm);
 }
 
+#ifdef HAVE_CFI
 void CFI_MPI_Allgatherv(CFI_cdesc_t * input, int * scount, int * stype_f,
                         CFI_cdesc_t * output, const int rcounts[], const int rdisps[], int * rtype_f,
                         int * comm_f, int * ierror)
@@ -291,6 +308,7 @@ void CFI_MPI_Allgatherv(CFI_cdesc_t * input, int * scount, int * stype_f,
         MPI_Abort(comm, 99);
     }
 }
+#endif
 
 void C_MPI_Scatterv(const void * input, const int scounts[], const int sdisps[], int * stype_f,
                           void * output, int * rcount, int * rtype_f,
@@ -304,6 +322,7 @@ void C_MPI_Scatterv(const void * input, const int scounts[], const int sdisps[],
     *ierror = MPI_Scatterv(input, scounts, sdisps, stype, output, *rcount, rtype, *root, comm);
 }
 
+#ifdef HAVE_CFI
 void CFI_MPI_Scatterv(CFI_cdesc_t * input, const int scounts[], const int sdisps[], int * stype_f,
                       CFI_cdesc_t * output, int * rcount, int * rtype_f,
                       int * root, int * comm_f, int * ierror)
@@ -326,6 +345,7 @@ void CFI_MPI_Scatterv(CFI_cdesc_t * input, const int scounts[], const int sdisps
         MPI_Abort(comm, 99);
     }
 }
+#endif
 
 void C_MPI_Alltoallv(const void * input, const int scounts[], const int sdisps[], int * stype_f,
                            void * output, const int rcounts[], const int rdisps[], int * rtype_f,
@@ -339,6 +359,7 @@ void C_MPI_Alltoallv(const void * input, const int scounts[], const int sdisps[]
     *ierror = MPI_Alltoallv(input, scounts, sdisps, stype, output, rcounts, rdisps, rtype, comm);
 }
 
+#ifdef HAVE_CFI
 void CFI_MPI_Alltoallv(CFI_cdesc_t * input, const int scounts[], const int sdisps[], int * stype_f,
                        CFI_cdesc_t * output, const int rcounts[], const int rdisps[], int * rtype_f,
                        int * comm_f, int * ierror)
@@ -361,3 +382,4 @@ void CFI_MPI_Alltoallv(CFI_cdesc_t * input, const int scounts[], const int sdisp
         MPI_Abort(comm, 99);
     }
 }
+#endif

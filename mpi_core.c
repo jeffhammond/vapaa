@@ -7,11 +7,18 @@
 
 static void * f08_mpi_in_place_address;
 
+#ifdef HAVE_CFI
 void C_MPI_IN_PLACE(CFI_cdesc_t * desc)
 {
     void * addr = desc->base_addr;
     f08_mpi_in_place_address = addr;
 }
+#else
+void C_MPI_IN_PLACE(void * class)
+{
+    f08_mpi_in_place_address = class;
+}
+#endif
 
 // STANDARD STUFF
 
