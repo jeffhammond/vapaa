@@ -9,12 +9,14 @@ WARNFLAGS = -Wall -Wextra -Werror
 # M1
 # symlink ISO_Fortran_binding.h from $(FORTRAN_DIR)/gcc/aarch64-apple-darwin21/11/include to . because reasons
 #FORTRAN_INCLUDE = -I.
+# Linux GCC-12
+#FORTRAN_INCLUDE = -I/usr/lib/gcc/x86_64-linux-gnu/12/include/
 
 MPI_LIBS = -g -Wl,-commons,use_dylibs -I/opt/homebrew/Cellar/mpich/4.0.2_1/include -L/opt/homebrew/Cellar/mpich/4.0.2_1/lib -lmpi -lpmpi
 
 # M1
 CC = mpicc
-CFLAGS = $(WARNFLAGS) -g -std=c11 $(FORTRAN_INCLUDE)
+CFLAGS = $(WARNFLAGS) -g -std=c11 $(FORTRAN_INCLUDE) -DHAVE_CFI
 
 FC = gfortran
 FCFLAGS = $(WARNFLAGS) -g -std=f2018 -DHAVE_CFI
