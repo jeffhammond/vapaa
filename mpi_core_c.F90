@@ -6,7 +6,11 @@ module mpi_core_c
         subroutine C_MPI_IN_PLACE(inplace) bind(C,name="C_MPI_IN_PLACE")
             use iso_c_binding, only: c_intptr_t 
             implicit none
+#ifdef HAVE_CFI
             type(*) :: inplace
+#else
+            class(*) :: inplace
+#endif
         end subroutine C_MPI_IN_PLACE
     end interface
 
