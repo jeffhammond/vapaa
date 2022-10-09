@@ -79,6 +79,7 @@ module mpi_p2p_f
         subroutine MPI_Send_f08(buffer, count, datatype, dest, tag, comm, ierror) 
             use mpi_handle_types, only: MPI_Comm, MPI_Datatype
             use mpi_p2p_c, only: C_MPI_Send
+!dir$ ignore_tkr buffer
             integer, dimension(*), intent(in) :: buffer
             integer, intent(in) :: count, dest, tag
             type(MPI_Datatype), intent(in) :: datatype
@@ -119,6 +120,7 @@ module mpi_p2p_f
         subroutine MPI_Isend_f08(buffer, count, datatype, dest, tag, comm, request, ierror) 
             use mpi_handle_types, only: MPI_Comm, MPI_Datatype, MPI_Request
             use mpi_p2p_c, only: C_MPI_Isend
+!dir$ ignore_tkr buffer
             integer, dimension(*), intent(in), asynchronous :: buffer
             integer, intent(in) :: count, dest, tag
             type(MPI_Datatype), intent(in) :: datatype
@@ -163,6 +165,7 @@ module mpi_p2p_f
         subroutine MPI_Recv_f08(buffer, count, datatype, source, tag, comm, stat, ierror) 
             use mpi_handle_types, only: MPI_Comm, MPI_Datatype, MPI_Status
             use mpi_p2p_c, only: C_MPI_Recv
+!dir$ ignore_tkr buffer
             integer, dimension(*), intent(out) :: buffer
             integer, intent(in) :: count, source, tag
             type(MPI_Datatype), intent(in) :: datatype
@@ -205,6 +208,7 @@ module mpi_p2p_f
         subroutine MPI_Irecv_f08(buffer, count, datatype, source, tag, comm, request, ierror) 
             use mpi_handle_types, only: MPI_Comm, MPI_Datatype, MPI_Request
             use mpi_p2p_c, only: C_MPI_Irecv
+!dir$ ignore_tkr buffer
             integer, dimension(*), intent(out), asynchronous :: buffer
             integer, intent(in) :: count, source, tag
             type(MPI_Datatype), intent(in) :: datatype

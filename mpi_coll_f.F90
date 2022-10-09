@@ -78,6 +78,7 @@ module mpi_coll_f
         subroutine MPI_Bcast_f08(buffer, count, datatype, root, comm, ierror) 
             use mpi_handle_types, only: MPI_Comm, MPI_Datatype
             use mpi_coll_c, only: C_MPI_Bcast
+!dir$ ignore_tkr buffer
             integer, dimension(*), intent(inout) :: buffer
             integer, intent(in) :: count, root
             type(MPI_Datatype), intent(in) :: datatype
@@ -114,6 +115,7 @@ module mpi_coll_f
         subroutine MPI_Reduce_f08(input, output, count, datatype, op, root, comm, ierror) 
             use mpi_handle_types, only: MPI_Comm, MPI_Datatype, MPI_Op
             use mpi_coll_c, only: C_MPI_Reduce
+!dir$ ignore_tkr input, output
             integer, dimension(*), intent(in)    :: input
             integer, dimension(*), intent(inout) :: output
             integer, intent(in) :: count, root
@@ -156,6 +158,7 @@ module mpi_coll_f
         subroutine MPI_Allreduce_f08(input, output, count, datatype, op, comm, ierror) 
             use mpi_handle_types, only: MPI_Comm, MPI_Datatype, MPI_Op
             use mpi_coll_c, only: C_MPI_Allreduce
+!dir$ ignore_tkr input, output
             integer, dimension(*), intent(in)    :: input
             integer, dimension(*), intent(inout) :: output
             integer, intent(in) :: count
@@ -196,6 +199,7 @@ module mpi_coll_f
         subroutine MPI_Gather_f08(input, scount, stype, output, rcount, rtype, root, comm, ierror) 
             use mpi_handle_types, only: MPI_Comm, MPI_Datatype
             use mpi_coll_c, only: C_MPI_Gather
+!dir$ ignore_tkr input, output
             integer, dimension(*), intent(in)    :: input
             integer, dimension(*), intent(inout) :: output
             integer, intent(in) :: scount, rcount, root
@@ -238,6 +242,7 @@ module mpi_coll_f
         subroutine MPI_Allgather_f08(input, scount, stype, output, rcount, rtype, comm, ierror) 
             use mpi_handle_types, only: MPI_Comm, MPI_Datatype
             use mpi_coll_c, only: C_MPI_Allgather
+!dir$ ignore_tkr input, output
             integer, dimension(*), intent(in)    :: input
             integer, dimension(*), intent(inout) :: output
             integer, intent(in) :: scount, rcount
@@ -278,6 +283,7 @@ module mpi_coll_f
         subroutine MPI_Scatter_f08(input, scount, stype, output, rcount, rtype, root, comm, ierror) 
             use mpi_handle_types, only: MPI_Comm, MPI_Datatype
             use mpi_coll_c, only: C_MPI_Scatter
+!dir$ ignore_tkr input, output
             integer, dimension(*), intent(in)    :: input
             integer, dimension(*), intent(inout) :: output
             integer, intent(in) :: scount, rcount, root
@@ -320,6 +326,7 @@ module mpi_coll_f
         subroutine MPI_Alltoall_f08(input, scount, stype, output, rcount, rtype, comm, ierror) 
             use mpi_handle_types, only: MPI_Comm, MPI_Datatype
             use mpi_coll_c, only: C_MPI_Alltoall
+!dir$ ignore_tkr input, output
             integer, dimension(*), intent(in)    :: input
             integer, dimension(*), intent(inout) :: output
             integer, intent(in) :: scount, rcount
