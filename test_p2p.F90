@@ -34,16 +34,16 @@ program test_reductions
         allocate( x(b) )
         if (0.eq.MOD(me,2)) then
             x = me
-            call MPI_Send(x,b,MPI_INTEGER,me+1,b,MPI_COMM_WORLD)
+            call MPI_Send(x,b,MPI_INTEGER,me+1,i,MPI_COMM_WORLD)
         else
             x = -1
-            !call MPI_Recv(x,b,MPI_INTEGER,me-1,b,MPI_COMM_WORLD,MPI_STATUS_IGNORE)
-            call MPI_Recv(x,b,MPI_INTEGER,me-1,b,MPI_COMM_WORLD,s)
+            !call MPI_Recv(x,b,MPI_INTEGER,me-1,i,MPI_COMM_WORLD,MPI_STATUS_IGNORE)
+            call MPI_Recv(x,b,MPI_INTEGER,me-1,i,MPI_COMM_WORLD,s)
             if (any(x.ne.(me-1))) then
                 print*,'an error has occurred'
                 print*,x
             endif
-            if (((s % MPI_SOURCE) .ne. me-1).or.((s % MPI_TAG).ne.b)) then
+            if (((s % MPI_SOURCE) .ne. me-1).or.((s % MPI_TAG).ne.i)) then
                 print*,'MPI_Status is wrong'
                 print*,'status = ',s % MPI_SOURCE,s % MPI_TAG,s % MPI_ERROR
             endif
@@ -59,17 +59,17 @@ program test_reductions
         allocate( x(b) )
         if (0.eq.MOD(me,2)) then
             x = me
-            call MPI_Isend(x,b,MPI_INTEGER,me+1,b,MPI_COMM_WORLD,r)
+            call MPI_Isend(x,b,MPI_INTEGER,me+1,i,MPI_COMM_WORLD,r)
             call MPI_Wait(r,MPI_STATUS_IGNORE)
         else
             x = -1
-            call MPI_Irecv(x,b,MPI_INTEGER,me-1,b,MPI_COMM_WORLD,r)
+            call MPI_Irecv(x,b,MPI_INTEGER,me-1,i,MPI_COMM_WORLD,r)
             call MPI_Wait(r,s)
             if (any(x.ne.(me-1))) then
                 print*,'an error has occurred'
                 print*,x
             endif
-            if (((s % MPI_SOURCE) .ne. me-1).or.((s % MPI_TAG).ne.b)) then
+            if (((s % MPI_SOURCE) .ne. me-1).or.((s % MPI_TAG).ne.i)) then
                 print*,'MPI_Status is wrong'
                 print*,'status = ',s % MPI_SOURCE,s % MPI_TAG,s % MPI_ERROR
             endif
