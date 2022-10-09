@@ -30,7 +30,11 @@ void C_MPI_DATATYPE_BUILTINS(int * AINT, int * OFFSET, int * COUNT,
     *INTEGER2         = MPI_Type_c2f(MPI_INTEGER2);
     *INTEGER4         = MPI_Type_c2f(MPI_INTEGER4);
     *INTEGER8         = MPI_Type_c2f(MPI_INTEGER8);
+#ifdef HAVE_MPI_INTEGER16
     *INTEGER16        = MPI_Type_c2f(MPI_INTEGER16);
+#else
+    *INTEGER16        = MPI_Type_c2f(MPI_DATATYPE_NULL);
+#endif
 #ifdef HAVE_MPI_REAL2
     *REAL2            = MPI_Type_c2f(MPI_REAL2);
 #else
