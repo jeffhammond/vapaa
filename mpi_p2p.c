@@ -31,6 +31,28 @@ void C_MPI_Wait(int * request_f, MPI_Status * status_f, int * ierror)
     *request_f = MPI_Request_c2f(request);
 }
 
+void C_MPI_Waitall(int * count_f, int requests_f[], MPI_Status statuses_f[], int * ierror)
+{
+    int count = *count_f;
+    MPI_Request * requests;
+
+    // this error mode may not be strictly consistent with the failure of Waitall...
+    int rc = MPI_Alloc_mem( count * sizeof(MPI_Request), MPI_INFO_NULL, &requests );
+    if (rc != MPI_SUCCESS) {
+        *ierror = rc;
+        return;
+    }
+
+    for (int i=0; i<count; i++) {
+        requests[i] = MPI_Request_f2c(requests_f[i]);
+    }
+    *ierror = MPI_Waitall(count, requests, 
+                          C_MPI_IS_IGNORE(statuses_f) ? MPI_STATUSES_IGNORE : statuses_f);
+    for (int i=0; i<count; i++) {
+        requests_f[i] = MPI_Request_c2f(requests[i]);
+    }
+}
+
 void C_MPI_Send(void * buffer, int * count, int * datatype_f, int * dest, int *tag, int * comm_f, int * ierror)
 {
     MPI_Datatype datatype = MPI_Type_f2c(*datatype_f);

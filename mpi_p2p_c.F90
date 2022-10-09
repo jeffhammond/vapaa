@@ -23,6 +23,16 @@ module mpi_p2p_c
     end interface
 
     interface
+        subroutine C_MPI_Waitall(count_c, requests_c, statuses_c, ierror_c) bind(C,name="C_MPI_Waitall")
+            use iso_c_binding, only: c_int
+            use mpi_handle_types, only: MPI_Status
+            implicit none
+            integer(kind=c_int) :: count_c, requests_c(*), ierror_c
+            type(MPI_Status), intent(out) :: statuses_c(*)
+        end subroutine C_MPI_Waitall
+    end interface
+
+    interface
         subroutine C_MPI_Send(buffer, count_c, datatype_c, dest_c, tag_c, comm_c, &
                               ierror_c) bind(C,name="C_MPI_Send")
             use iso_c_binding, only: c_int
