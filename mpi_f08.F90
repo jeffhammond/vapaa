@@ -12,6 +12,7 @@ module mpi_f08
     use mpi_p2p_f
     use mpi_op_f
     use mpi_request_f
+    use mpi_status_f
     use mpi_rma_f
     use mpi_win_f
 end module mpi_f08
