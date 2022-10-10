@@ -22,6 +22,10 @@ module mpi_handle_types
     ! MPI_VAL is supposed to be a Fortran integer
     ! but in practice it is a C int, and I do not want
     ! to deal with compiler warnings.
+    !
+    ! Also, this prevents people from breaking everything
+    ! by changing INTEGER to something that is not equivalent
+    ! to a C integer.
 
     type, bind(C) :: MPI_Comm
       integer(kind=c_int) :: MPI_VAL
