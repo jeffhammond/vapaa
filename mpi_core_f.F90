@@ -65,40 +65,26 @@ module mpi_core_f
             use mpi_op_c, only:       C_MPI_OP_NULL, C_MPI_OP_BUILTINS
             use mpi_request_c, only:  C_MPI_REQUEST_NULL
             use mpi_win_c, only:      C_MPI_WIN_NULL
-            integer(kind=c_int) :: comm_c, datatype_c, file_c, group_c
-            integer(kind=c_int) :: info_c, message_c, op_c, request_c
-            integer(kind=c_int) :: win_c
             ! comm
-            call C_MPI_COMM_WORLD(comm_c)
-            MPI_COMM_WORLD % MPI_VAL = comm_c
-            call C_MPI_COMM_SELF(comm_c)
-            MPI_COMM_SELF % MPI_VAL = comm_c
-            call C_MPI_COMM_NULL(comm_c)
-            MPI_COMM_NULL % MPI_VAL = comm_c
+            call C_MPI_COMM_WORLD(MPI_COMM_WORLD % MPI_VAL)
+            call C_MPI_COMM_SELF(MPI_COMM_SELF % MPI_VAL)
+            call C_MPI_COMM_NULL(MPI_COMM_NULL % MPI_VAL)
             ! datatype
-            call C_MPI_DATATYPE_NULL(datatype_c)
-            MPI_DATATYPE_NULL % MPI_VAL = datatype_c
+            call C_MPI_DATATYPE_NULL(MPI_DATATYPE_NULL % MPI_VAL)
             ! file
-            call C_MPI_FILE_NULL(file_c)
-            MPI_FILE_NULL % MPI_VAL = file_c
+            call C_MPI_FILE_NULL(MPI_FILE_NULL % MPI_VAL)
             ! group
-            call C_MPI_GROUP_NULL(group_c)
-            MPI_GROUP_NULL % MPI_VAL = group_c
+            call C_MPI_GROUP_NULL(MPI_GROUP_NULL % MPI_VAL)
             ! message
-            call C_MPI_MESSAGE_NULL(message_c)
-            MPI_MESSAGE_NULL % MPI_VAL = message_c
+            call C_MPI_MESSAGE_NULL(MPI_MESSAGE_NULL % MPI_VAL)
             ! info
-            call C_MPI_INFO_NULL(info_c)
-            MPI_INFO_NULL % MPI_VAL = info_c
+            call C_MPI_INFO_NULL(MPI_INFO_NULL % MPI_VAL)
             ! op
-            call C_MPI_OP_NULL(op_c)
-            MPI_OP_NULL % MPI_VAL = op_c
+            call C_MPI_OP_NULL(MPI_OP_NULL % MPI_VAL)
             ! request
-            call C_MPI_REQUEST_NULL(request_c)
-            MPI_REQUEST_NULL % MPI_VAL = request_c
+            call C_MPI_REQUEST_NULL(MPI_REQUEST_NULL % MPI_VAL)
             ! win
-            call C_MPI_WIN_NULL(win_c)
-            MPI_WIN_NULL % MPI_VAL = win_c
+            call C_MPI_WIN_NULL(MPI_WIN_NULL % MPI_VAL)
             ! status ignore
             MPI_STATUS_IGNORE % MPI_SOURCE   = -9119
             MPI_STATUS_IGNORE % MPI_TAG      = -9119
@@ -197,10 +183,9 @@ module mpi_core_f
             type(MPI_Comm), intent(in) :: comm
             integer, intent(in) :: errorcode
             integer, optional, intent(out) :: ierror
-            integer(kind=c_int) :: comm_c, errorcode_c, ierror_c
-            comm_c = comm % MPI_VAL
+            integer(kind=c_int) :: errorcode_c, ierror_c
             errorcode_c = errorcode
-            call C_MPI_Abort(comm_c, errorcode_c, ierror_c)
+            call C_MPI_Abort(comm % MPI_VAL, errorcode_c, ierror_c)
             if (present(ierror)) ierror = ierror_c
         end subroutine MPI_Abort_f08
 

@@ -18,9 +18,8 @@ module mpi_comm_f
             type(MPI_Comm), intent(in) :: comm
             integer, intent(out) :: rank
             integer, optional, intent(out) :: ierror
-            integer(kind=c_int) :: comm_c, rank_c, ierror_c
-            comm_c = comm % MPI_VAL
-            call C_MPI_Comm_rank(comm_c, rank_c, ierror_c)
+            integer(kind=c_int) :: rank_c, ierror_c
+            call C_MPI_Comm_rank(comm % MPI_VAL, rank_c, ierror_c)
             rank = rank_c
             if (present(ierror)) ierror = ierror_c
         end subroutine MPI_Comm_rank_f08
@@ -31,9 +30,8 @@ module mpi_comm_f
             type(MPI_Comm), intent(in) :: comm
             integer, intent(out) :: size
             integer, optional, intent(out) :: ierror
-            integer(kind=c_int) :: comm_c, size_c, ierror_c
-            comm_c = comm % MPI_VAL
-            call C_MPI_Comm_size(comm_c, size_c, ierror_c)
+            integer(kind=c_int) :: size_c, ierror_c
+            call C_MPI_Comm_size(comm % MPI_VAL, size_c, ierror_c)
             size = size_c
             if (present(ierror)) ierror = ierror_c
         end subroutine MPI_Comm_size_f08
