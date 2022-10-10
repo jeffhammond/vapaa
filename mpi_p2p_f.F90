@@ -75,6 +75,38 @@ module mpi_p2p_f
             if (present(ierror)) ierror = ierror_c
         end subroutine MPI_Test_f08
 
+        subroutine MPI_Testany_f08(count, requests, index, flag, statuses, ierror) 
+            use mpi_handle_types, only: MPI_Request, MPI_Status
+            use mpi_p2p_c, only: C_MPI_Testany
+            integer, intent(in) :: count
+            type(MPI_Request), intent(inout) :: requests(count)
+            integer, intent(out) :: index
+            logical, intent(out) :: flag
+            type(MPI_Status), intent(out) :: statuses(*)
+            integer, optional, intent(out) :: ierror
+            integer(kind=c_int), allocatable :: requests_c(:)
+            integer(kind=c_int) :: count_c, index_c, flag_c, ierror_c
+            integer :: i
+            ! no error checking - live dangerously
+            allocate( requests_c(count) )
+            do i=1,count
+              requests_c(i) = requests(i) % MPI_VAL
+            end do
+            count_c = count
+            call C_MPI_Testany(count_c, requests_c, index_c, flag_c, statuses, ierror_c)
+            index = index_c
+            do i=1,count
+              requests(i) % MPI_VAL = requests_c(i)
+            end do
+            deallocate( requests_c )
+            if (flag_c .eq. 0) then
+                flag = .false.
+            else
+                flag = .true.
+            endif
+            if (present(ierror)) ierror = ierror_c
+        end subroutine MPI_Testany_f08
+
         subroutine MPI_Wait_f08(request, stat, ierror) 
             use mpi_handle_types, only: MPI_Request, MPI_Status
             use mpi_p2p_c, only: C_MPI_Wait

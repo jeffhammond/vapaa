@@ -22,6 +22,32 @@ void C_MPI_Test(int * request_f, int * flag, MPI_Status * status, int * ierror)
     *request_f = MPI_Request_c2f(request);
 }
 
+void C_MPI_Testany(int * count_f, int requests_f[], int * index_f, int * flag_f, MPI_Status statuses[], int * ierror)
+{
+    const int count = *count_f;
+    int index, flag;
+
+    MPI_Request * requests = malloc( count * sizeof(MPI_Request) );
+    if (requests == NULL) {
+        *ierror = MPI_ERR_OTHER;
+        return;
+    }
+
+    for (int i=0; i<count; i++) {
+        requests[i] = MPI_Request_f2c(requests_f[i]);
+    }
+    *ierror = MPI_Testany(count, requests, &index, &flag,
+                          C_MPI_IS_IGNORE(statuses) ? MPI_STATUSES_IGNORE : statuses);
+    for (int i=0; i<count; i++) {
+        requests_f[i] = MPI_Request_c2f(requests[i]);
+    }
+
+    *index_f = index;
+    *flag_f  = flag;
+
+    free(requests);
+}
+
 void C_MPI_Wait(int * request_f, MPI_Status * status, int * ierror)
 {
     // Request is inout so we have to convert before and after
