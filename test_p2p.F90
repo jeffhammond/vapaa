@@ -105,6 +105,8 @@ program test_reductions
 
     if(me.eq.0) print*,'EVERYTHING IS OKAY'
 
+    !print*,'LOC:',LOC(r),LOC(r%MPI_VAL)
+
     call MPI_Finalize(ierror)
 
 end program test_reductions

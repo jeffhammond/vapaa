@@ -46,6 +46,47 @@ module mpi_core_f
 
     contains
 
+        subroutine F_Check_design_assumptions()
+            use iso_c_binding, only: c_sizeof, c_int
+            use mpi_handle_types
+            integer            :: i(4),j
+            type(MPI_Comm)     :: c
+            type(MPI_Datatype) :: d
+            type(MPI_Message)  :: m
+            type(MPI_Op)       :: o
+            type(MPI_Group)    :: g
+            type(MPI_Request)  :: r(4)
+            type(MPI_Win)      :: w
+            if (c_sizeof(c).ne.c_sizeof(j)) then
+                print*,'Design assumptions violated: MPI_Comm'
+                stop
+            endif
+            if (c_sizeof(d).ne.c_sizeof(j)) then
+                print*,'Design assumptions violated: MPI_Datatype'
+                stop
+            endif
+            if (c_sizeof(g).ne.c_sizeof(j)) then
+                print*,'Design assumptions violated: MPI_Group'
+                stop
+            endif
+            if (c_sizeof(m).ne.c_sizeof(j)) then
+                print*,'Design assumptions violated: MPI_Message'
+                stop
+            endif
+            if (c_sizeof(o).ne.c_sizeof(j)) then
+                print*,'Design assumptions violated: MPI_Op'
+                stop
+            endif
+            if (c_sizeof(r).ne.c_sizeof(i)) then
+                print*,'Design assumptions violated: MPI_Request'
+                stop
+            endif
+            if (c_sizeof(w).ne.c_sizeof(j)) then
+                print*,'Design assumptions violated: MPI_Win'
+                stop
+            endif
+        end subroutine F_Check_design_assumptions
+
         subroutine F_MPI_IN_PLACE()
             use mpi_global_constants, only: MPI_IN_PLACE
             use mpi_core_c, only: C_MPI_IN_PLACE
@@ -99,6 +140,7 @@ module mpi_core_f
         end subroutine F_MPI_Init_handles
 
         subroutine MPI_Init_f08(ierror) 
+            use iso_c_binding, only: c_sizeof, c_int
             use mpi_core_c, only: C_MPI_Init
             use mpi_datatype_f, only: F_MPI_Init_datatypes
             use mpi_op_f, only: F_MPI_Init_ops
@@ -108,6 +150,7 @@ module mpi_core_f
             call F_MPI_Init_handles()
             call F_MPI_Init_datatypes()
             call F_MPI_Init_ops()
+            call F_Check_design_assumptions()
             if (present(ierror)) ierror = ierror_c
         end subroutine MPI_Init_f08
 
@@ -125,6 +168,7 @@ module mpi_core_f
             call F_MPI_Init_handles()
             call F_MPI_Init_datatypes()
             call F_MPI_Init_ops()
+            call F_Check_design_assumptions()
             if (present(ierror)) ierror = ierror_c
         end subroutine MPI_Init_thread_f08
 

@@ -130,25 +130,26 @@ module mpi_p2p_f
             logical, intent(out) :: flag
             type(MPI_Status), intent(inout) :: statuses(*)
             integer, optional, intent(out) :: ierror
-            integer(kind=c_int), allocatable :: requests_c(:)
+            !integer(kind=c_int), allocatable :: requests_c(:)
             integer(kind=c_int) :: count_c, flag_c, ierror_c
-            integer :: i
+            !integer :: i
             ! no error checking - live dangerously
-            allocate( requests_c(count) )
-            do i=1,count
-              requests_c(i) = requests(i) % MPI_VAL
-            end do
+            !allocate( requests_c(count) )
+            !do i=1,count
+            !  requests_c(i) = requests(i) % MPI_VAL
+            !end do
             count_c = count
-            call C_MPI_Testall(count_c, requests_c, flag_c, statuses, ierror_c)
+            !call C_MPI_Testall(count_c, requests_c, flag_c, statuses, ierror_c)
+            call C_MPI_Testall(count_c, requests, flag_c, statuses, ierror_c)
             if (flag_c .eq. 0) then
                 flag = .false.
             else
                 flag = .true.
             endif
-            do i=1,count
-              requests(i) % MPI_VAL = requests_c(i)
-            end do
-            deallocate( requests_c )
+            !do i=1,count
+            !  requests(i) % MPI_VAL = requests_c(i)
+            !end do
+            !deallocate( requests_c )
             if (present(ierror)) ierror = ierror_c
         end subroutine MPI_Testall_f08
 
@@ -160,22 +161,22 @@ module mpi_p2p_f
             integer, intent(out) :: outcount, indices(*)
             type(MPI_Status), intent(inout) :: statuses(*)
             integer, optional, intent(out) :: ierror
-            integer(kind=c_int), allocatable :: indices_c(:), requests_c(:)
+            !integer(kind=c_int), allocatable :: indices_c(:), requests_c(:)
             integer(kind=c_int) :: incount_c, outcount_c, ierror_c
-            integer :: i
+            !integer :: i
             ! no error checking - live dangerously
-            allocate( indices_c(incount), requests_c(incount) )
-            do i=1,incount
-              requests_c(i) = requests(i) % MPI_VAL
-            end do
+            !allocate( indices_c(incount), requests_c(incount) )
+            !do i=1,incount
+            !  requests_c(i) = requests(i) % MPI_VAL
+            !end do
             incount_c = incount
-            call C_MPI_Testsome(incount_c, requests_c, outcount_c, indices_c, statuses, ierror_c)
+            call C_MPI_Testsome(incount_c, requests, outcount_c, indices, statuses, ierror_c)
             outcount = outcount_c
-            do i=1,incount
-              indices(i) = indices_c(i)
-              requests(i) % MPI_VAL = requests_c(i)
-            end do
-            deallocate( indices_c, requests_c )
+            !do i=1,incount
+            !  indices(i) = indices_c(i)
+            !  requests(i) % MPI_VAL = requests_c(i)
+            !end do
+            !deallocate( indices_c, requests_c )
             if (present(ierror)) ierror = ierror_c
         end subroutine MPI_Testsome_f08
 
@@ -188,26 +189,26 @@ module mpi_p2p_f
             logical, intent(out) :: flag
             type(MPI_Status), intent(inout) :: statuses(*)
             integer, optional, intent(out) :: ierror
-            integer(kind=c_int), allocatable :: requests_c(:)
+            !integer(kind=c_int), allocatable :: requests_c(:)
             integer(kind=c_int) :: count_c, index_c, flag_c, ierror_c
-            integer :: i
+            !integer :: i
             ! no error checking - live dangerously
-            allocate( requests_c(count) )
-            do i=1,count
-              requests_c(i) = requests(i) % MPI_VAL
-            end do
+            !allocate( requests_c(count) )
+            !do i=1,count
+            !  requests_c(i) = requests(i) % MPI_VAL
+            !end do
             count_c = count
-            call C_MPI_Testany(count_c, requests_c, index_c, flag_c, statuses, ierror_c)
+            call C_MPI_Testany(count_c, requests, index_c, flag_c, statuses, ierror_c)
             index = index_c
             if (flag_c .eq. 0) then
                 flag = .false.
             else
                 flag = .true.
             endif
-            do i=1,count
-              requests(i) % MPI_VAL = requests_c(i)
-            end do
-            deallocate( requests_c )
+            !do i=1,count
+            !  requests(i) % MPI_VAL = requests_c(i)
+            !end do
+            !deallocate( requests_c )
             if (present(ierror)) ierror = ierror_c
         end subroutine MPI_Testany_f08
 
@@ -229,20 +230,20 @@ module mpi_p2p_f
             type(MPI_Request), intent(inout) :: requests(count)
             type(MPI_Status), intent(inout) :: statuses(*)
             integer, optional, intent(out) :: ierror
-            integer(kind=c_int), allocatable :: requests_c(:)
+            !integer(kind=c_int), allocatable :: requests_c(:)
             integer(kind=c_int) :: count_c, ierror_c
-            integer :: i
+            !integer :: i
             ! no error checking - live dangerously
-            allocate( requests_c(count) )
-            do i=1,count
-              requests_c(i) = requests(i) % MPI_VAL
-            end do
+            !allocate( requests_c(count) )
+            !do i=1,count
+            !  requests_c(i) = requests(i) % MPI_VAL
+            !end do
             count_c = count
-            call C_MPI_Waitall(count_c, requests_c, statuses, ierror_c)
-            do i=1,count
-              requests(i) % MPI_VAL = requests_c(i)
-            end do
-            deallocate( requests_c )
+            call C_MPI_Waitall(count_c, requests, statuses, ierror_c)
+            !do i=1,count
+            !  requests(i) % MPI_VAL = requests_c(i)
+            !end do
+            !deallocate( requests_c )
             if (present(ierror)) ierror = ierror_c
         end subroutine MPI_Waitall_f08
 
@@ -254,22 +255,22 @@ module mpi_p2p_f
             integer, intent(out) :: outcount, indices(*)
             type(MPI_Status), intent(inout) :: statuses(*)
             integer, optional, intent(out) :: ierror
-            integer(kind=c_int), allocatable :: indices_c(:), requests_c(:)
+            !integer(kind=c_int), allocatable :: indices_c(:), requests_c(:)
             integer(kind=c_int) :: incount_c, outcount_c, ierror_c
-            integer :: i
+            !integer :: i
             ! no error checking - live dangerously
-            allocate( indices_c(incount), requests_c(incount) )
-            do i=1,incount
-              requests_c(i) = requests(i) % MPI_VAL
-            end do
+            !allocate( indices_c(incount), requests_c(incount) )
+            !do i=1,incount
+            !  requests_c(i) = requests(i) % MPI_VAL
+            !end do
             incount_c = incount
-            call C_MPI_Waitsome(incount_c, requests_c, outcount_c, indices_c, statuses, ierror_c)
+            call C_MPI_Waitsome(incount_c, requests, outcount_c, indices, statuses, ierror_c)
             outcount = outcount_c
-            do i=1,incount
-              indices(i) = indices_c(i)
-              requests(i) % MPI_VAL = requests_c(i)
-            end do
-            deallocate( indices_c, requests_c )
+            !do i=1,incount
+            !  indices(i) = indices_c(i)
+            !  requests(i) % MPI_VAL = requests_c(i)
+            !end do
+            !deallocate( indices_c, requests_c )
             if (present(ierror)) ierror = ierror_c
         end subroutine MPI_Waitsome_f08
 
@@ -281,21 +282,21 @@ module mpi_p2p_f
             integer, intent(out) :: index
             type(MPI_Status), intent(inout) :: statuses(*)
             integer, optional, intent(out) :: ierror
-            integer(kind=c_int), allocatable :: requests_c(:)
+            !integer(kind=c_int), allocatable :: requests_c(:)
             integer(kind=c_int) :: count_c, index_c, ierror_c
-            integer :: i
+            !integer :: i
             ! no error checking - live dangerously
-            allocate( requests_c(count) )
-            do i=1,count
-              requests_c(i) = requests(i) % MPI_VAL
-            end do
+            !allocate( requests_c(count) )
+            !do i=1,count
+            !  requests_c(i) = requests(i) % MPI_VAL
+            !end do
             count_c = count
-            call C_MPI_Waitany(count_c, requests_c, index_c, statuses, ierror_c)
+            call C_MPI_Waitany(count_c, requests, index_c, statuses, ierror_c)
             index = index_c
-            do i=1,count
-              requests(i) % MPI_VAL = requests_c(i)
-            end do
-            deallocate( requests_c )
+            !do i=1,count
+            !  requests(i) % MPI_VAL = requests_c(i)
+            !end do
+            !deallocate( requests_c )
             if (present(ierror)) ierror = ierror_c
         end subroutine MPI_Waitany_f08
 
