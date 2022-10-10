@@ -6,10 +6,16 @@ module mpi_global_constants
     integer :: MPI_IN_PLACE = 1
 
     ! thread levels
-    integer, parameter :: MPI_THREAD_SINGLE = 0
-    integer, parameter :: MPI_THREAD_FUNNELED = 1
+    integer, parameter :: MPI_THREAD_SINGLE     = 0
+    integer, parameter :: MPI_THREAD_FUNNELED   = 1
     integer, parameter :: MPI_THREAD_SERIALIZED = 2
-    integer, parameter :: MPI_THREAD_MULTIPLE = 3
+    integer, parameter :: MPI_THREAD_MULTIPLE   = 3
+
+    ! comparisons (communicators and groups)
+    integer, parameter :: MPI_IDENT     = 0
+    integer, parameter :: MPI_CONGRUENT = 1
+    integer, parameter :: MPI_SIMILAR   = 2
+    integer, parameter :: MPI_UNEQUAL   = 3
 
     ! useful handles
     type(MPI_Comm)     :: MPI_COMM_WORLD
@@ -48,10 +54,10 @@ module mpi_global_constants
     integer, parameter :: MPI_MAX_PORT_NAME              = (1024*1024)
 
     ! these must be queried out of the implementation, unfortunately,
-    ! but if we do not support them and force the user to query using
-    ! the library call, they will get the right answer.
-    !integer, parameter :: MPI_VERSION    = 3
-    !integer, parameter :: MPI_SUBVERSION = 1
+    ! but we can at least say this much, since MPI F08 was added
+    ! in MPI 3.0
+    integer, parameter :: MPI_VERSION    = 3
+    integer, parameter :: MPI_SUBVERSION = 0
 
     ! make this unusable, to force use of type(MPI_Status)
     integer, parameter :: MPI_STATUS_SIZE = -1
