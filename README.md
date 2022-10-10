@@ -14,6 +14,30 @@ An attempt to implement MPI Fortran 2018 support using only the MPI C API.
 
 5. The following optional datatypes are always defined, but are unusable (i.e. `MPI_DATATYPE_NULL`) unless explicitly enabled when the module is built: `MPI_REAL2`, `MPI_COMPLEX4`, `MPI_REAL16`, `MPI_COMPLEX32`.
 
+## Design assumptions
+
+This library relies on the following:
+
+### Fortran `INTEGER` is interoperable with C `int`
+
+If you change the default `INTEGER` size in Fortran to break this, the library will not work.
+
+### Fortran types are equivalent to C structs
+
+```fortran
+    type, bind(C) :: MPI_Request
+      integer(kind=c_int) :: MPI_VAL
+    end type MPI_Request
+```
+is equivalent to
+```c
+struct MPI_Request {
+    int MPI_VAL;
+};
+```
+and thus we can pass arrays of `type(MPI_Request)` to C interfaces expecting `int[]`.
+
+
 ## Supported functions
 
 Obviously, we want to support almost everything some day, but for now, we support only the following:
@@ -25,3 +49,4 @@ Obviously, we want to support almost everything some day, but for now, we suppor
                `MPI_Gather`, `MPI_Allgather`, `MPI_Scatter`, `MPI_Alltoall`
 * Utilities: `MPI_Comm_rank`, `MPI_Comm_size`, `MPI_Wtime`, `MPI_Wtick`
 * Point-to-point: `MPI_Test`, `MPI_Wait`, `MPI_Send`, `MPI_Isend`, `MPI_Recv`, `MPI_Irecv`
+
