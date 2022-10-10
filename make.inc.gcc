@@ -13,6 +13,7 @@ WARNFLAGS = -Wall -Wextra -Werror
 #FORTRAN_INCLUDE = -I/usr/lib/gcc/x86_64-linux-gnu/12/include/
 
 MPI_LIBS = -g -Wl,-commons,use_dylibs -I/opt/homebrew/Cellar/mpich/4.0.2_1/include -L/opt/homebrew/Cellar/mpich/4.0.2_1/lib -lmpi -lpmpi
+#MPI_LIBS = -g -L/opt/homebrew/Cellar/open-mpi/4.1.4_2/lib -L/opt/homebrew/opt/libevent/lib -lmpi
 
 # M1
 CC = mpicc
@@ -20,6 +21,7 @@ CFLAGS = $(WARNFLAGS) -g -std=c11 $(FORTRAN_INCLUDE) -DHAVE_CFI
 
 FC = gfortran
 FCFLAGS = $(WARNFLAGS) -g -std=f2018 -DHAVE_CFI
+#FCFLAGS += -fall-intrinsics # for when we use LOC()
 
 # required on nuclear (x86_64)
 CFLAGS  += -fPIE
