@@ -14,6 +14,14 @@ module mpi_p2p_f
         module procedure MPI_Waitall_f08
     end interface MPI_Waitall
 
+    interface MPI_Waitsome
+        module procedure MPI_Waitsome_f08
+    end interface MPI_Waitsome
+
+    interface MPI_Waitany
+        module procedure MPI_Waitany_f08
+    end interface MPI_Waitany
+
     interface MPI_Send
 #ifdef HAVE_CFI
         module procedure MPI_Send_f08ts
@@ -88,20 +96,74 @@ module mpi_p2p_f
             type(MPI_Status), intent(out) :: statuses(*)
             integer, optional, intent(out) :: ierror
             integer(kind=c_int), allocatable :: requests_c(:)
-            integer(kind=c_int) :: ierror_c
+            integer(kind=c_int) :: count_c, ierror_c
             integer :: i
             ! no error checking - live dangerously
             allocate( requests_c(count) )
             do i=1,count
               requests_c(i) = requests(i) % MPI_VAL
             end do
-            call C_MPI_Waitall(count, requests_c, statuses, ierror_c)
+            count_c = count
+            call C_MPI_Waitall(count_c, requests_c, statuses, ierror_c)
             do i=1,count
               requests(i) % MPI_VAL = requests_c(i)
             end do
             deallocate( requests_c )
             if (present(ierror)) ierror = ierror_c
         end subroutine MPI_Waitall_f08
+
+        subroutine MPI_Waitsome_f08(incount, requests, outcount, indices, statuses, ierror) 
+            use mpi_handle_types, only: MPI_Request, MPI_Status
+            use mpi_p2p_c, only: C_MPI_Waitsome
+            integer, intent(in) :: incount
+            type(MPI_Request), intent(inout) :: requests(incount)
+            integer, intent(out) :: outcount, indices(*)
+            type(MPI_Status), intent(out) :: statuses(*)
+            integer, optional, intent(out) :: ierror
+            integer(kind=c_int), allocatable :: indices_c(:), requests_c(:)
+            integer(kind=c_int) :: incount_c, outcount_c, ierror_c
+            integer :: i
+            ! no error checking - live dangerously
+            allocate( indices_c(incount), requests_c(incount) )
+            do i=1,incount
+              requests_c(i) = requests(i) % MPI_VAL
+            end do
+            incount_c = incount
+            call C_MPI_Waitsome(incount_c, requests_c, outcount_c, indices_c, statuses, ierror_c)
+            outcount = outcount_c
+            do i=1,incount
+              indices(i) = indices_c(i)
+              requests(i) % MPI_VAL = requests_c(i)
+            end do
+            deallocate( indices_c, requests_c )
+            if (present(ierror)) ierror = ierror_c
+        end subroutine MPI_Waitsome_f08
+
+        subroutine MPI_Waitany_f08(count, requests, index, statuses, ierror) 
+            use mpi_handle_types, only: MPI_Request, MPI_Status
+            use mpi_p2p_c, only: C_MPI_Waitany
+            integer, intent(in) :: count
+            type(MPI_Request), intent(inout) :: requests(count)
+            integer, intent(out) :: index
+            type(MPI_Status), intent(out) :: statuses(*)
+            integer, optional, intent(out) :: ierror
+            integer(kind=c_int), allocatable :: requests_c(:)
+            integer(kind=c_int) :: count_c, index_c, ierror_c
+            integer :: i
+            ! no error checking - live dangerously
+            allocate( requests_c(count) )
+            do i=1,count
+              requests_c(i) = requests(i) % MPI_VAL
+            end do
+            count_c = count
+            call C_MPI_Waitany(count_c, requests_c, index_c, statuses, ierror_c)
+            index = index_c
+            do i=1,count
+              requests(i) % MPI_VAL = requests_c(i)
+            end do
+            deallocate( requests_c )
+            if (present(ierror)) ierror = ierror_c
+        end subroutine MPI_Waitany_f08
 
         subroutine MPI_Send_f08(buffer, count, datatype, dest, tag, comm, ierror) 
             use mpi_handle_types, only: MPI_Comm, MPI_Datatype

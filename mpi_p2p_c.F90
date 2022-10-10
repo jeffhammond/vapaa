@@ -7,7 +7,8 @@ module mpi_p2p_c
             use iso_c_binding, only: c_int
             use mpi_handle_types, only: MPI_Status
             implicit none
-            integer(kind=c_int) :: request_c, flag_c, ierror_c
+            integer(kind=c_int), intent(inout) :: request_c
+            integer(kind=c_int), intent(out) :: flag_c, ierror_c
             type(MPI_Status), intent(out) :: status_c
         end subroutine C_MPI_Test
     end interface
@@ -17,7 +18,8 @@ module mpi_p2p_c
             use iso_c_binding, only: c_int
             use mpi_handle_types, only: MPI_Status
             implicit none
-            integer(kind=c_int) :: request_c, ierror_c
+            integer(kind=c_int), intent(inout) :: request_c
+            integer(kind=c_int), intent(out) :: ierror_c
             type(MPI_Status), intent(out) :: status_c
         end subroutine C_MPI_Wait
     end interface
@@ -27,9 +29,37 @@ module mpi_p2p_c
             use iso_c_binding, only: c_int
             use mpi_handle_types, only: MPI_Status
             implicit none
-            integer(kind=c_int) :: count_c, requests_c(*), ierror_c
+            integer(kind=c_int), intent(in) :: count_c
+            integer(kind=c_int), intent(inout) :: requests_c(*)
+            integer(kind=c_int), intent(out) :: ierror_c
             type(MPI_Status), intent(out) :: statuses_c(*)
         end subroutine C_MPI_Waitall
+    end interface
+
+    interface
+        subroutine C_MPI_Waitsome(incount_c, requests_c, outcount_c, indices, statuses_c, &
+                                  ierror_c) bind(C,name="C_MPI_Waitsome")
+            use iso_c_binding, only: c_int
+            use mpi_handle_types, only: MPI_Status
+            implicit none
+            integer(kind=c_int), intent(in) :: incount_c
+            integer(kind=c_int), intent(inout) :: requests_c(*)
+            integer(kind=c_int), intent(out) :: outcount_c, indices(*)
+            type(MPI_Status), intent(out) :: statuses_c(*)
+            integer(kind=c_int), intent(out) :: ierror_c
+        end subroutine C_MPI_Waitsome
+    end interface
+
+    interface
+        subroutine C_MPI_Waitany(count_c, requests_c, index_c, statuses_c, ierror_c) bind(C,name="C_MPI_Waitany")
+            use iso_c_binding, only: c_int
+            use mpi_handle_types, only: MPI_Status
+            implicit none
+            integer(kind=c_int), intent(in) :: count_c
+            integer(kind=c_int), intent(inout) :: requests_c(*)
+            integer(kind=c_int), intent(out) :: index_c, ierror_c
+            type(MPI_Status), intent(out) :: statuses_c(*)
+        end subroutine C_MPI_Waitany
     end interface
 
     interface
