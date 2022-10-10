@@ -301,7 +301,7 @@ void CFI_MPI_Irecv(CFI_cdesc_t * desc, int * count, int * datatype_f, int * sour
 void C_MPI_Mrecv(void * buffer, int * count, int * datatype_f, int * message_f, MPI_Status * status, int * ierror)
 {
     MPI_Datatype datatype = MPI_Type_f2c(*datatype_f);
-    MPI_Message  message  = MPI_Message_c2f(*message_f);
+    MPI_Message  message  = MPI_Message_f2c(*message_f);
     *ierror = MPI_Mrecv(buffer, *count, datatype, &message,
                         C_MPI_IS_IGNORE(status) ? MPI_STATUS_IGNORE : status);
 }
@@ -310,7 +310,7 @@ void C_MPI_Mrecv(void * buffer, int * count, int * datatype_f, int * message_f, 
 void CFI_MPI_Mrecv(CFI_cdesc_t * desc, int * count, int * datatype_f, int * message_f, MPI_Status * status, int * ierror)
 {
     MPI_Datatype datatype = MPI_Type_f2c(*datatype_f);
-    MPI_Message  message  = MPI_Message_c2f(*message_f);
+    MPI_Message  message  = MPI_Message_f2c(*message_f);
     if (1 == CFI_is_contiguous(desc)) {
         *ierror = MPI_Mrecv(desc->base_addr, *count, datatype, &message,
                             C_MPI_IS_IGNORE(status) ? MPI_STATUS_IGNORE : status);
@@ -318,6 +318,31 @@ void CFI_MPI_Mrecv(CFI_cdesc_t * desc, int * count, int * datatype_f, int * mess
         fprintf(stderr, "FIXME: not contiguous case\n");
         MPI_Abort(MPI_COMM_SELF, 99);
     }
+}
+#endif
+
+void C_MPI_Imrecv(void * buffer, int * count, int * datatype_f, int * message_f, int * request_f, int * ierror)
+{
+    MPI_Request  request  = MPI_REQUEST_NULL;
+    MPI_Datatype datatype = MPI_Type_f2c(*datatype_f);
+    MPI_Message  message  = MPI_Message_f2c(*message_f);
+    *ierror = MPI_Imrecv(buffer, *count, datatype, &message, &request);
+    *request_f = MPI_Request_c2f(request);
+}
+
+#ifdef HAVE_CFI
+void CFI_MPI_Imrecv(CFI_cdesc_t * desc, int * count, int * datatype_f, int * message_f, int * request_f, int * ierror)
+{
+    MPI_Request  request  = MPI_REQUEST_NULL;
+    MPI_Datatype datatype = MPI_Type_f2c(*datatype_f);
+    MPI_Message  message  = MPI_Message_f2c(*message_f);
+    if (1 == CFI_is_contiguous(desc)) {
+        *ierror = MPI_Imrecv(desc->base_addr, *count, datatype, &message, &request);
+    } else {
+        fprintf(stderr, "FIXME: not contiguous case\n");
+        MPI_Abort(MPI_COMM_SELF, 99);
+    }
+    *request_f = MPI_Request_c2f(request);
 }
 #endif
 
