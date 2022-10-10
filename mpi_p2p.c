@@ -22,7 +22,57 @@ void C_MPI_Test(int * request_f, int * flag, MPI_Status * status, int * ierror)
     *request_f = MPI_Request_c2f(request);
 }
 
-void C_MPI_Testany(int * count_f, int requests_f[], int * index_f, int * flag_f, MPI_Status statuses[], int * ierror)
+void C_MPI_Testall(const int * count_f, int requests_f[], int * flag_f, MPI_Status statuses[], int * ierror)
+{
+    const int count = *count_f;
+    int flag;
+
+    MPI_Request * requests = malloc( count * sizeof(MPI_Request) );
+    if (requests == NULL) {
+        *ierror = MPI_ERR_OTHER;
+        return;
+    }
+
+    for (int i=0; i<count; i++) {
+        requests[i] = MPI_Request_f2c(requests_f[i]);
+    }
+    *ierror = MPI_Testall(count, requests, &flag,
+                          C_MPI_IS_IGNORE(statuses) ? MPI_STATUSES_IGNORE : statuses);
+    for (int i=0; i<count; i++) {
+        requests_f[i] = MPI_Request_c2f(requests[i]);
+    }
+
+    *flag_f  = flag;
+
+    free(requests);
+}
+
+void C_MPI_Testsome(const int * incount_f, int requests_f[], int * outcount_f, int array_of_indices[], MPI_Status statuses[], int * ierror)
+{
+    const int incount = *incount_f;
+    int outcount;
+
+    MPI_Request * requests = malloc( incount * sizeof(MPI_Request) );
+    if (requests == NULL) {
+        *ierror = MPI_ERR_OTHER;
+        return;
+    }
+
+    for (int i=0; i<incount; i++) {
+        requests[i] = MPI_Request_f2c(requests_f[i]);
+    }
+    *ierror = MPI_Testsome(incount, requests, &outcount, array_of_indices,
+                           C_MPI_IS_IGNORE(statuses) ? MPI_STATUSES_IGNORE : statuses);
+    for (int i=0; i<incount; i++) {
+        requests_f[i] = MPI_Request_c2f(requests[i]);
+    }
+
+    *outcount_f = outcount;
+
+    free(requests);
+}
+
+void C_MPI_Testany(const int * count_f, int requests_f[], int * index_f, int * flag_f, MPI_Status statuses[], int * ierror)
 {
     const int count = *count_f;
     int index, flag;
@@ -57,7 +107,7 @@ void C_MPI_Wait(int * request_f, MPI_Status * status, int * ierror)
     *request_f = MPI_Request_c2f(request);
 }
 
-void C_MPI_Waitall(int * count_f, int requests_f[], MPI_Status statuses[], int * ierror)
+void C_MPI_Waitall(const int * count_f, int requests_f[], MPI_Status statuses[], int * ierror)
 {
     const int count = *count_f;
 
@@ -79,7 +129,7 @@ void C_MPI_Waitall(int * count_f, int requests_f[], MPI_Status statuses[], int *
     free(requests);
 }
 
-void C_MPI_Waitsome(int * incount_f, int requests_f[], int * outcount_f, int array_of_indices[], MPI_Status statuses[], int * ierror)
+void C_MPI_Waitsome(const int * incount_f, int requests_f[], int * outcount_f, int array_of_indices[], MPI_Status statuses[], int * ierror)
 {
     const int incount = *incount_f;
     int outcount;
@@ -104,7 +154,7 @@ void C_MPI_Waitsome(int * incount_f, int requests_f[], int * outcount_f, int arr
     free(requests);
 }
 
-void C_MPI_Waitany(int * count_f, int requests_f[], int * index_f, MPI_Status statuses[], int * ierror)
+void C_MPI_Waitany(const int * count_f, int requests_f[], int * index_f, MPI_Status statuses[], int * ierror)
 {
     const int count = *count_f;
     int index;
