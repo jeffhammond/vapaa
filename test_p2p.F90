@@ -7,6 +7,7 @@ program test_reductions
     integer, allocatable :: x(:)
     type(MPI_Status) :: s
     type(MPI_Request) :: r
+    type(MPI_Request), allocatable :: vr(:)
 
     call MPI_Init(ierror)
 
@@ -37,15 +38,19 @@ program test_reductions
             call MPI_Send(x,b,MPI_INTEGER,me+1,i,MPI_COMM_WORLD)
         else
             x = -1
-            !call MPI_Recv(x,b,MPI_INTEGER,me-1,i,MPI_COMM_WORLD,MPI_STATUS_IGNORE)
+#if 1
+            call MPI_Recv(x,b,MPI_INTEGER,me-1,i,MPI_COMM_WORLD,MPI_STATUS_IGNORE)
+            s = s
+#else
             call MPI_Recv(x,b,MPI_INTEGER,me-1,i,MPI_COMM_WORLD,s)
-            if (any(x.ne.(me-1))) then
-                print*,'an error has occurred'
-                print*,x
-            endif
             if (((s % MPI_SOURCE) .ne. me-1).or.((s % MPI_TAG).ne.i)) then
                 print*,'MPI_Status is wrong'
                 print*,'status = ',s % MPI_SOURCE,s % MPI_TAG,s % MPI_ERROR
+            endif
+#endif
+            if (any(x.ne.(me-1))) then
+                print*,'an error has occurred'
+                print*,x
             endif
         endif
         deallocate( x )
@@ -64,18 +69,39 @@ program test_reductions
         else
             x = -1
             call MPI_Irecv(x,b,MPI_INTEGER,me-1,i,MPI_COMM_WORLD,r)
+#if 1
+            call MPI_Wait(r,MPI_STATUS_IGNORE)
+#else
             call MPI_Wait(r,s)
-            if (any(x.ne.(me-1))) then
-                print*,'an error has occurred'
-                print*,x
-            endif
             if (((s % MPI_SOURCE) .ne. me-1).or.((s % MPI_TAG).ne.i)) then
                 print*,'MPI_Status is wrong'
                 print*,'status = ',s % MPI_SOURCE,s % MPI_TAG,s % MPI_ERROR
             endif
+#endif
+            if (any(x.ne.(me-1))) then
+                print*,'an error has occurred'
+                print*,x
+            endif
         endif
         deallocate( x )
     enddo
+
+    if(me.eq.0) print*,'WAITALL'
+
+    allocate( vr(2*np) , x(2*np) )
+    x = me
+    do i=0,np-1
+        call MPI_Isend(x(i+1),1,MPI_INTEGER,i,0,MPI_COMM_WORLD,vr(i+1))
+        call MPI_Irecv(x(np+i+1),1,MPI_INTEGER,i,0,MPI_COMM_WORLD,vr(np+i+1))
+    enddo
+    call MPI_Waitall(2*np,vr,MPI_STATUSES_IGNORE)
+    do i=0,np-1
+      if(x(np+i+1).ne.(i)) then
+        print*,'an error has occurred'
+        print*,x(np+i)
+      endif
+    enddo
+    deallocate( vr , x )
 
     call MPI_Finalize(ierror)
 
