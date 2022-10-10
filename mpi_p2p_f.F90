@@ -6,6 +6,18 @@ module mpi_p2p_f
         module procedure MPI_Test_f08
     end interface MPI_Test
 
+    interface MPI_Testall
+        module procedure MPI_Testall_f08
+    end interface MPI_Testall
+
+    interface MPI_Testsome
+        module procedure MPI_Testsome_f08
+    end interface MPI_Testsome
+
+    interface MPI_Testany
+        module procedure MPI_Testany_f08
+    end interface MPI_Testany
+
     interface MPI_Wait
         module procedure MPI_Wait_f08
     end interface MPI_Wait
@@ -75,6 +87,63 @@ module mpi_p2p_f
             if (present(ierror)) ierror = ierror_c
         end subroutine MPI_Test_f08
 
+        subroutine MPI_Testall_f08(count, requests, flag, statuses, ierror) 
+            use mpi_handle_types, only: MPI_Request, MPI_Status
+            use mpi_p2p_c, only: C_MPI_Testall
+            integer, intent(in) :: count
+            type(MPI_Request), intent(inout) :: requests(count)
+            logical, intent(out) :: flag
+            type(MPI_Status), intent(out) :: statuses(*)
+            integer, optional, intent(out) :: ierror
+            integer(kind=c_int), allocatable :: requests_c(:)
+            integer(kind=c_int) :: count_c, flag_c, ierror_c
+            integer :: i
+            ! no error checking - live dangerously
+            allocate( requests_c(count) )
+            do i=1,count
+              requests_c(i) = requests(i) % MPI_VAL
+            end do
+            count_c = count
+            call C_MPI_Testall(count_c, requests_c, flag_c, statuses, ierror_c)
+            if (flag_c .eq. 0) then
+                flag = .false.
+            else
+                flag = .true.
+            endif
+            do i=1,count
+              requests(i) % MPI_VAL = requests_c(i)
+            end do
+            deallocate( requests_c )
+            if (present(ierror)) ierror = ierror_c
+        end subroutine MPI_Testall_f08
+
+        subroutine MPI_Testsome_f08(incount, requests, outcount, indices, statuses, ierror) 
+            use mpi_handle_types, only: MPI_Request, MPI_Status
+            use mpi_p2p_c, only: C_MPI_Testsome
+            integer, intent(in) :: incount
+            type(MPI_Request), intent(inout) :: requests(incount)
+            integer, intent(out) :: outcount, indices(*)
+            type(MPI_Status), intent(out) :: statuses(*)
+            integer, optional, intent(out) :: ierror
+            integer(kind=c_int), allocatable :: indices_c(:), requests_c(:)
+            integer(kind=c_int) :: incount_c, outcount_c, ierror_c
+            integer :: i
+            ! no error checking - live dangerously
+            allocate( indices_c(incount), requests_c(incount) )
+            do i=1,incount
+              requests_c(i) = requests(i) % MPI_VAL
+            end do
+            incount_c = incount
+            call C_MPI_Testsome(incount_c, requests_c, outcount_c, indices_c, statuses, ierror_c)
+            outcount = outcount_c
+            do i=1,incount
+              indices(i) = indices_c(i)
+              requests(i) % MPI_VAL = requests_c(i)
+            end do
+            deallocate( indices_c, requests_c )
+            if (present(ierror)) ierror = ierror_c
+        end subroutine MPI_Testsome_f08
+
         subroutine MPI_Testany_f08(count, requests, index, flag, statuses, ierror) 
             use mpi_handle_types, only: MPI_Request, MPI_Status
             use mpi_p2p_c, only: C_MPI_Testany
@@ -95,15 +164,15 @@ module mpi_p2p_f
             count_c = count
             call C_MPI_Testany(count_c, requests_c, index_c, flag_c, statuses, ierror_c)
             index = index_c
-            do i=1,count
-              requests(i) % MPI_VAL = requests_c(i)
-            end do
-            deallocate( requests_c )
             if (flag_c .eq. 0) then
                 flag = .false.
             else
                 flag = .true.
             endif
+            do i=1,count
+              requests(i) % MPI_VAL = requests_c(i)
+            end do
+            deallocate( requests_c )
             if (present(ierror)) ierror = ierror_c
         end subroutine MPI_Testany_f08
 
