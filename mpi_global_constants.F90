@@ -28,7 +28,7 @@ module mpi_global_constants
 
     ! IGNORE sentinels
     type(MPI_Status)   :: MPI_STATUS_IGNORE
-    type(MPI_Status)   :: MPI_STATUSES_IGNORE
+    type(MPI_Status)   :: MPI_STATUSES_IGNORE(1)
 
     ! 2.5.4 Named Constants
     ! The constants that are required to be compile-time constants

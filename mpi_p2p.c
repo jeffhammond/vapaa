@@ -46,7 +46,7 @@ void C_MPI_Waitall(int * count_f, int requests_f[], MPI_Status statuses_f[], int
     for (int i=0; i<count; i++) {
         requests[i] = MPI_Request_f2c(requests_f[i]);
     }
-    *ierror = MPI_Waitall(count, requests, 
+    *ierror = MPI_Waitall(count, requests,
                           C_MPI_IS_IGNORE(statuses_f) ? MPI_STATUSES_IGNORE : statuses_f);
     for (int i=0; i<count; i++) {
         requests_f[i] = MPI_Request_c2f(requests[i]);

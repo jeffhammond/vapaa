@@ -103,6 +103,8 @@ program test_reductions
     enddo
     deallocate( vr , x )
 
+    if(me.eq.0) print*,'EVERYTHING IS OKAY'
+
     call MPI_Finalize(ierror)
 
 end program test_reductions

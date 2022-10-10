@@ -10,6 +10,10 @@ module mpi_p2p_f
         module procedure MPI_Wait_f08
     end interface MPI_Wait
 
+    interface MPI_Waitall
+        module procedure MPI_Waitall_f08
+    end interface MPI_Waitall
+
     interface MPI_Send
 #ifdef HAVE_CFI
         module procedure MPI_Send_f08ts
@@ -75,6 +79,29 @@ module mpi_p2p_f
             request % MPI_VAL = request_c
             if (present(ierror)) ierror = ierror_c
         end subroutine MPI_Wait_f08
+
+        subroutine MPI_Waitall_f08(count, requests, statuses, ierror) 
+            use mpi_handle_types, only: MPI_Request, MPI_Status
+            use mpi_p2p_c, only: C_MPI_Waitall
+            integer, intent(in) :: count
+            type(MPI_Request), intent(inout) :: requests(count)
+            type(MPI_Status), intent(out) :: statuses(*)
+            integer, optional, intent(out) :: ierror
+            integer(kind=c_int), allocatable :: requests_c(:)
+            integer(kind=c_int) :: ierror_c
+            integer :: i
+            ! no error checking - live dangerously
+            allocate( requests_c(count) )
+            do i=1,count
+              requests_c(i) = requests(i) % MPI_VAL
+            end do
+            call C_MPI_Waitall(count, requests_c, statuses, ierror_c)
+            do i=1,count
+              requests(i) % MPI_VAL = requests_c(i)
+            end do
+            deallocate( requests_c )
+            if (present(ierror)) ierror = ierror_c
+        end subroutine MPI_Waitall_f08
 
         subroutine MPI_Send_f08(buffer, count, datatype, dest, tag, comm, ierror) 
             use mpi_handle_types, only: MPI_Comm, MPI_Datatype

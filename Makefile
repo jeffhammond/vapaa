@@ -142,7 +142,7 @@ mpi_message.o: mpi_message.c
 mpi_p2p_f.o: mpi_p2p_f.F90 mpi_p2p_c.o mpi_handle_types.o mpi_global_constants.o
 	$(FC) $(FCFLAGS) -c $<
 
-mpi_p2p_c.o: mpi_p2p_c.F90 mpi_p2p.o
+mpi_p2p_c.o: mpi_p2p_c.F90 mpi_p2p.o mpi_handle_types.o
 	$(FC) $(FCFLAGS) -c $<
 
 mpi_p2p.o: mpi_p2p.c
