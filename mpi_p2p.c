@@ -13,6 +13,26 @@ static inline bool C_MPI_IS_IGNORE(MPI_Status * input)
 
 // STANDARD STUFF
 
+void C_MPI_Probe(const int * source_f, const int * tag_f, const int * comm_f, MPI_Status * status, int * ierror)
+{
+    const int source = *source_f;
+    const int tag    = *tag_f;
+    MPI_Comm comm = MPI_Comm_f2c(*comm_f);
+    *ierror = MPI_Probe(source, tag, comm,
+                        C_MPI_IS_IGNORE(status) ? MPI_STATUS_IGNORE : status);
+}
+
+void C_MPI_Mprobe(const int * source_f, const int * tag_f, const int * comm_f, int * message_f, MPI_Status * status, int * ierror)
+{
+    const int source = *source_f;
+    const int tag    = *tag_f;
+    MPI_Message message;
+    MPI_Comm comm = MPI_Comm_f2c(*comm_f);
+    *ierror = MPI_Mprobe(source, tag, comm, &message,
+                         C_MPI_IS_IGNORE(status) ? MPI_STATUS_IGNORE : status);
+    *message_f = MPI_Message_c2f(message);
+}
+
 void C_MPI_Test(int * request_f, int * flag, MPI_Status * status, int * ierror)
 {
     // Request is inout so we have to convert before and after
@@ -277,3 +297,27 @@ void CFI_MPI_Irecv(CFI_cdesc_t * desc, int * count, int * datatype_f, int * sour
     *request_f = MPI_Request_c2f(request);
 }
 #endif
+
+void C_MPI_Mrecv(void * buffer, int * count, int * datatype_f, int * message_f, MPI_Status * status, int * ierror)
+{
+    MPI_Datatype datatype = MPI_Type_f2c(*datatype_f);
+    MPI_Message  message  = MPI_Message_c2f(*message_f);
+    *ierror = MPI_Mrecv(buffer, *count, datatype, &message,
+                        C_MPI_IS_IGNORE(status) ? MPI_STATUS_IGNORE : status);
+}
+
+#ifdef HAVE_CFI
+void CFI_MPI_Mrecv(CFI_cdesc_t * desc, int * count, int * datatype_f, int * message_f, MPI_Status * status, int * ierror)
+{
+    MPI_Datatype datatype = MPI_Type_f2c(*datatype_f);
+    MPI_Message  message  = MPI_Message_c2f(*message_f);
+    if (1 == CFI_is_contiguous(desc)) {
+        *ierror = MPI_Mrecv(desc->base_addr, *count, datatype, &message,
+                            C_MPI_IS_IGNORE(status) ? MPI_STATUS_IGNORE : status);
+    } else {
+        fprintf(stderr, "FIXME: not contiguous case\n");
+        MPI_Abort(MPI_COMM_SELF, 99);
+    }
+}
+#endif
+
