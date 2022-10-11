@@ -5,7 +5,7 @@
 
 // We assume MPI_Fint is C int. This is verified during initialization.
 
-static void * f08_mpi_in_place_address;
+void * f08_mpi_in_place_address = {0};
 
 #ifdef HAVE_CFI
 void C_MPI_IN_PLACE(CFI_cdesc_t * desc)
