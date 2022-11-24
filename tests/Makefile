@@ -5,7 +5,9 @@ ARFLAGS := -r
 
 FCFLAGS += -I../source -L../source -lmpi_f08
 
-all: test_core.x test_collectives.x test_reductions.x test_p2p.x test_cfi.x
+all: test_core.x test_collectives.x test_reductions.x test_p2p.x
+
+#test_cfi.x
 
 test_cfi.x: test_cfi.F90 foo_cfi.c
 	$(CC) $(CFLAGS) -c foo_cfi.c -o foo_cfi.o
@@ -13,7 +15,8 @@ test_cfi.x: test_cfi.F90 foo_cfi.c
 
 %.x: %.o #libmpi_f08.a
 	$(FC) $(FCFLAGS) $^ $(MPI_LIBS) -o $@
-	#$(CC) $(CFLAGS) $^ $(FORTRAN_LIBS) -o $@
+
+#$(CC) $(CFLAGS) $^ $(FORTRAN_LIBS) -o $@
 
 %.o: %.F90
 	$(FC) $(FCFLAGS) -c $<
