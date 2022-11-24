@@ -1,17 +1,9 @@
-include make.inc
+include ../make.inc
 
 AR := ar
 ARFLAGS := -r
 
-all: test_core.x test_collectives.x test_reductions.x test_p2p.x test_cfi.x
-
-test_cfi.x: test_cfi.F90 foo_cfi.c
-	$(CC) $(CFLAGS) -c foo_cfi.c -o foo_cfi.o
-	$(FC) $(FCFLAGS) test_cfi.F90 foo_cfi.o -o test_cfi.x
-
-%.x: %.o libmpi_f08.a
-	$(FC) $(FCFLAGS) $^ $(MPI_LIBS) -o $@
-	#$(CC) $(CFLAGS) $^ $(FORTRAN_LIBS) -o $@
+all: libmpi_f08.a
 
 %.o: %.F90 mpi_f08.o
 	$(FC) $(FCFLAGS) -c $<
