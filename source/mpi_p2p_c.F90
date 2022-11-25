@@ -3,7 +3,8 @@ module mpi_p2p_c
     ! STANDARD STUFF
 
     interface
-        subroutine C_MPI_Probe(source_c, tag_c, comm_c, status_c, ierror_c) bind(C,name="C_MPI_Probe")
+        subroutine C_MPI_Probe(source_c, tag_c, comm_c, status_c, ierror_c) &
+                   bind(C,name="C_MPI_Probe")
             use iso_c_binding, only: c_int
             use mpi_handle_types, only: MPI_Status
             implicit none
@@ -14,7 +15,8 @@ module mpi_p2p_c
     end interface
 
     interface
-        subroutine C_MPI_Mprobe(source_c, tag_c, comm_c, message_c, status_c, ierror_c) bind(C,name="C_MPI_Mprobe")
+        subroutine C_MPI_Mprobe(source_c, tag_c, comm_c, message_c, status_c, ierror_c) &
+                   bind(C,name="C_MPI_Mprobe")
             use iso_c_binding, only: c_int
             use mpi_handle_types, only: MPI_Status
             implicit none
@@ -25,7 +27,8 @@ module mpi_p2p_c
     end interface
 
     interface
-        subroutine C_MPI_Test(request_c, flag_c, status_c, ierror_c) bind(C,name="C_MPI_Test")
+        subroutine C_MPI_Test(request_c, flag_c, status_c, ierror_c) &
+                   bind(C,name="C_MPI_Test")
             use iso_c_binding, only: c_int
             use mpi_handle_types, only: MPI_Status
             implicit none
@@ -36,7 +39,8 @@ module mpi_p2p_c
     end interface
 
     interface
-        subroutine C_MPI_Testall(count_c, requests_c, flag_c, statuses_c, ierror_c) bind(C,name="C_MPI_Testall")
+        subroutine C_MPI_Testall(count_c, requests_c, flag_c, statuses_c, ierror_c) &
+                   bind(C,name="C_MPI_Testall")
             use iso_c_binding, only: c_int
             use mpi_handle_types, only: MPI_Status, MPI_Request
             implicit none
@@ -50,7 +54,8 @@ module mpi_p2p_c
 
     interface
         subroutine C_MPI_Testsome(incount_c, requests_c, outcount_c, indices, statuses_c, &
-                                  ierror_c) bind(C,name="C_MPI_Testsome")
+                                  ierror_c) &
+                   bind(C,name="C_MPI_Testsome")
             use iso_c_binding, only: c_int
             use mpi_handle_types, only: MPI_Status, MPI_Request
             implicit none
@@ -64,7 +69,8 @@ module mpi_p2p_c
     end interface
 
     interface
-        subroutine C_MPI_Testany(count_c, requests_c, index_c, flag_c, statuses_c, ierror_c) bind(C,name="C_MPI_Testany")
+        subroutine C_MPI_Testany(count_c, requests_c, index_c, flag_c, statuses_c, ierror_c) &
+                   bind(C,name="C_MPI_Testany")
             use iso_c_binding, only: c_int
             use mpi_handle_types, only: MPI_Status, MPI_Request
             implicit none
@@ -77,7 +83,8 @@ module mpi_p2p_c
     end interface
 
     interface
-        subroutine C_MPI_Wait(request_c, status_c, ierror_c) bind(C,name="C_MPI_Wait")
+        subroutine C_MPI_Wait(request_c, status_c, ierror_c) &
+                   bind(C,name="C_MPI_Wait")
             use iso_c_binding, only: c_int
             use mpi_handle_types, only: MPI_Status
             implicit none
@@ -88,7 +95,8 @@ module mpi_p2p_c
     end interface
 
     interface
-        subroutine C_MPI_Waitall(count_c, requests_c, statuses_c, ierror_c) bind(C,name="C_MPI_Waitall")
+        subroutine C_MPI_Waitall(count_c, requests_c, statuses_c, ierror_c) &
+                   bind(C,name="C_MPI_Waitall")
             use iso_c_binding, only: c_int
             use mpi_handle_types, only: MPI_Status, MPI_Request
             implicit none
@@ -102,7 +110,8 @@ module mpi_p2p_c
 
     interface
         subroutine C_MPI_Waitsome(incount_c, requests_c, outcount_c, indices, statuses_c, &
-                                  ierror_c) bind(C,name="C_MPI_Waitsome")
+                                  ierror_c) &
+                   bind(C,name="C_MPI_Waitsome")
             use iso_c_binding, only: c_int
             use mpi_handle_types, only: MPI_Status, MPI_Request
             implicit none
@@ -116,7 +125,8 @@ module mpi_p2p_c
     end interface
 
     interface
-        subroutine C_MPI_Waitany(count_c, requests_c, index_c, statuses_c, ierror_c) bind(C,name="C_MPI_Waitany")
+        subroutine C_MPI_Waitany(count_c, requests_c, index_c, statuses_c, ierror_c) &
+                   bind(C,name="C_MPI_Waitany")
             use iso_c_binding, only: c_int
             use mpi_handle_types, only: MPI_Status, MPI_Request
             implicit none
@@ -130,7 +140,8 @@ module mpi_p2p_c
 
     interface
         subroutine C_MPI_Send(buffer, count_c, datatype_c, dest_c, tag_c, comm_c, &
-                              ierror_c) bind(C,name="C_MPI_Send")
+                              ierror_c) &
+                   bind(C,name="C_MPI_Send")
             use iso_c_binding, only: c_int
             implicit none
             integer(kind=c_int), dimension(*), intent(in) :: buffer
@@ -141,7 +152,8 @@ module mpi_p2p_c
 #ifdef HAVE_CFI
     interface
         subroutine CFI_MPI_Send(buffer, count_c, datatype_c, dest_c, tag_c, comm_c, &
-                                ierror_c) bind(C,name="CFI_MPI_Send")
+                                ierror_c) &
+                   bind(C,name="CFI_MPI_Send")
             use iso_c_binding, only: c_int
             implicit none
             type(*), dimension(..), intent(in) :: buffer
@@ -152,7 +164,8 @@ module mpi_p2p_c
 
     interface
         subroutine C_MPI_Isend(buffer, count_c, datatype_c, dest_c, tag_c, comm_c, request_c, &
-                              ierror_c) bind(C,name="C_MPI_Isend")
+                              ierror_c) &
+                   bind(C,name="C_MPI_Isend")
             use iso_c_binding, only: c_int
             implicit none
             integer(kind=c_int), dimension(*), intent(in), asynchronous :: buffer
@@ -164,7 +177,8 @@ module mpi_p2p_c
 #ifdef HAVE_CFI
     interface
         subroutine CFI_MPI_Isend(buffer, count_c, datatype_c, dest_c, tag_c, comm_c, request_c, &
-                                 ierror_c) bind(C,name="CFI_MPI_Isend")
+                                 ierror_c) &
+                   bind(C,name="CFI_MPI_Isend")
             use iso_c_binding, only: c_int
             implicit none
             type(*), dimension(..), intent(in), asynchronous :: buffer
@@ -175,7 +189,8 @@ module mpi_p2p_c
 
     interface
         subroutine C_MPI_Recv(buffer, count_c, datatype_c, source_c, tag_c, comm_c, status_c, &
-                              ierror_c) bind(C,name="C_MPI_Recv")
+                              ierror_c) &
+                   bind(C,name="C_MPI_Recv")
             use iso_c_binding, only: c_int
             use mpi_handle_types, only: MPI_Status
             implicit none
@@ -188,7 +203,8 @@ module mpi_p2p_c
 #ifdef HAVE_CFI
     interface
         subroutine CFI_MPI_Recv(buffer, count_c, datatype_c, source_c, tag_c, comm_c, status_c, &
-                                ierror_c) bind(C,name="CFI_MPI_Recv")
+                                ierror_c) &
+                   bind(C,name="CFI_MPI_Recv")
             use iso_c_binding, only: c_int
             use mpi_handle_types, only: MPI_Status
             implicit none
@@ -201,7 +217,8 @@ module mpi_p2p_c
 
     interface
         subroutine C_MPI_Irecv(buffer, count_c, datatype_c, source_c, tag_c, comm_c, request_c, &
-                              ierror_c) bind(C,name="C_MPI_Irecv")
+                              ierror_c) &
+                   bind(C,name="C_MPI_Irecv")
             use iso_c_binding, only: c_int
             implicit none
             integer(kind=c_int), dimension(*), intent(out), asynchronous :: buffer
@@ -212,7 +229,8 @@ module mpi_p2p_c
 #ifdef HAVE_CFI
     interface
         subroutine CFI_MPI_Irecv(buffer, count_c, datatype_c, source_c, tag_c, comm_c, request_c, &
-                                ierror_c) bind(C,name="CFI_MPI_Irecv")
+                                ierror_c) &
+                   bind(C,name="CFI_MPI_Irecv")
             use iso_c_binding, only: c_int
             implicit none
             type(*), dimension(..), intent(inout), asynchronous :: buffer

@@ -3,7 +3,8 @@ module mpi_core_c
     ! NONSTANDARD STUFF
 
     interface
-        subroutine C_MPI_IN_PLACE(inplace) bind(C,name="C_MPI_IN_PLACE")
+        subroutine C_MPI_IN_PLACE(inplace) &
+                   bind(C,name="C_MPI_IN_PLACE")
             use iso_c_binding, only: c_intptr_t 
             implicit none
 #ifdef HAVE_CFI
@@ -17,7 +18,8 @@ module mpi_core_c
     ! STANDARD STUFF
 
     interface
-        subroutine C_MPI_Init(ierror_c) bind(C,name="C_MPI_Init")
+        subroutine C_MPI_Init(ierror_c) &
+                   bind(C,name="C_MPI_Init")
             use iso_c_binding, only: c_int
             implicit none
             integer(kind=c_int) :: ierror_c
@@ -25,7 +27,8 @@ module mpi_core_c
     end interface
 
     interface
-        subroutine C_MPI_Finalize(ierror_c) bind(C,name="C_MPI_Finalize")
+        subroutine C_MPI_Finalize(ierror_c) &
+                   bind(C,name="C_MPI_Finalize")
             use iso_c_binding, only: c_int
             implicit none
             integer(kind=c_int) :: ierror_c
@@ -33,7 +36,8 @@ module mpi_core_c
     end interface
 
     interface
-        subroutine C_MPI_Init_thread(required_c, provided_c, ierror_c) bind(C,name="C_MPI_Init_thread")
+        subroutine C_MPI_Init_thread(required_c, provided_c, ierror_c) &
+                   bind(C,name="C_MPI_Init_thread")
             use iso_c_binding, only: c_int
             implicit none
             integer(kind=c_int) :: required_c, provided_c, ierror_c
@@ -41,7 +45,8 @@ module mpi_core_c
     end interface
 
     interface
-        subroutine C_MPI_Initialized(flag_c, ierror_c) bind(C,name="C_MPI_Initialized")
+        subroutine C_MPI_Initialized(flag_c, ierror_c) &
+                   bind(C,name="C_MPI_Initialized")
             use iso_c_binding, only: c_int
             implicit none
             integer(kind=c_int) :: flag_c, ierror_c
@@ -49,7 +54,8 @@ module mpi_core_c
     end interface
 
     interface
-        subroutine C_MPI_Finalized(flag_c, ierror_c) bind(C,name="C_MPI_Finalize")
+        subroutine C_MPI_Finalized(flag_c, ierror_c) &
+                   bind(C,name="C_MPI_Finalize")
             use iso_c_binding, only: c_int
             implicit none
             integer(kind=c_int) :: flag_c, ierror_c
@@ -57,7 +63,8 @@ module mpi_core_c
     end interface
 
     interface
-        subroutine C_MPI_Query_thread(provided_c, ierror_c) bind(C,name="C_MPI_Query_thread")
+        subroutine C_MPI_Query_thread(provided_c, ierror_c) &
+                   bind(C,name="C_MPI_Query_thread")
             use iso_c_binding, only: c_int
             implicit none
             integer(kind=c_int) :: provided_c, ierror_c
@@ -65,7 +72,8 @@ module mpi_core_c
     end interface
 
     interface
-        subroutine C_MPI_Abort(comm_c, errorcode_c, ierror_c) bind(C,name="C_MPI_Abort")
+        subroutine C_MPI_Abort(comm_c, errorcode_c, ierror_c) &
+                   bind(C,name="C_MPI_Abort")
             use iso_c_binding, only: c_int
             implicit none
             integer(kind=c_int) :: comm_c, errorcode_c, ierror_c
@@ -73,7 +81,8 @@ module mpi_core_c
     end interface
 
     interface
-        subroutine C_MPI_Get_version(version_c, subversion_c, ierror_c) bind(C,name="C_MPI_Get_version")
+        subroutine C_MPI_Get_version(version_c, subversion_c, ierror_c) &
+                   bind(C,name="C_MPI_Get_version")
             use iso_c_binding, only: c_int
             implicit none
             integer(kind=c_int) :: version_c, subversion_c, ierror_c
@@ -81,7 +90,8 @@ module mpi_core_c
     end interface
 
     interface
-        subroutine C_MPI_Get_library_version(version_c, resultlen_c, ierror_c) bind(C,name="C_MPI_Get_library_version")
+        subroutine C_MPI_Get_library_version(version_c, resultlen_c, ierror_c) &
+                   bind(C,name="C_MPI_Get_library_version")
             use iso_c_binding, only: c_int, c_char
             implicit none
             character(kind=c_char), dimension(:) :: version_c
@@ -90,7 +100,8 @@ module mpi_core_c
     end interface
 
     interface
-        function C_MPI_Wtime() result(time_c) bind(C,name="C_MPI_Wtime")
+        function C_MPI_Wtime() result(time_c) &
+                 bind(C,name="C_MPI_Wtime")
             use iso_c_binding, only: c_double
             implicit none
             real(kind=c_double) :: time_c
@@ -98,7 +109,8 @@ module mpi_core_c
     end interface
 
     interface
-        function C_MPI_Wtick() result(time_c) bind(C,name="C_MPI_Wtick")
+        function C_MPI_Wtick() result(time_c) &
+                 bind(C,name="C_MPI_Wtick")
             use iso_c_binding, only: c_double
             implicit none
             real(kind=c_double) :: time_c

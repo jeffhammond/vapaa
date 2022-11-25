@@ -3,7 +3,8 @@ module mpi_coll_c
     ! STANDARD STUFF
 
     interface
-        subroutine C_MPI_Barrier(comm_c, ierror_c) bind(C,name="C_MPI_Barrier")
+        subroutine C_MPI_Barrier(comm_c, ierror_c) &
+                   bind(C,name="C_MPI_Barrier")
             use iso_c_binding, only: c_int
             implicit none
             integer(kind=c_int) :: comm_c, ierror_c
@@ -12,7 +13,8 @@ module mpi_coll_c
 
     interface
         subroutine C_MPI_Bcast(buffer, count_c, datatype_c, root_c, comm_c, &
-                               ierror_c) bind(C,name="C_MPI_Bcast")
+                               ierror_c) &
+                   bind(C,name="C_MPI_Bcast")
             use iso_c_binding, only: c_int
             implicit none
             integer(kind=c_int), dimension(*), intent(inout) :: buffer
@@ -23,7 +25,8 @@ module mpi_coll_c
 #ifdef HAVE_CFI
     interface
         subroutine CFI_MPI_Bcast(buffer, count_c, datatype_c, root_c, comm_c, &
-                                 ierror_c) bind(C,name="CFI_MPI_Bcast")
+                                 ierror_c) &
+                   bind(C,name="CFI_MPI_Bcast")
             use iso_c_binding, only: c_int
             implicit none
             type(*), dimension(..), intent(inout) :: buffer
@@ -34,7 +37,8 @@ module mpi_coll_c
 
     interface
         subroutine C_MPI_Reduce(input, output, count_c, datatype_c, op_c, root_c, comm_c, &
-                               ierror_c) bind(C,name="C_MPI_Reduce")
+                                ierror_c) &
+                   bind(C,name="C_MPI_Reduce")
             use iso_c_binding, only: c_int
             implicit none
             integer(kind=c_int), dimension(*), intent(in)    :: input
@@ -46,7 +50,8 @@ module mpi_coll_c
 #ifdef HAVE_CFI
     interface
         subroutine CFI_MPI_Reduce(input, output, count_c, datatype_c, op_c, root_c, comm_c, &
-                                 ierror_c) bind(C,name="CFI_MPI_Reduce")
+                                  ierror_c) &
+                   bind(C,name="CFI_MPI_Reduce")
             use iso_c_binding, only: c_int
             implicit none
             type(*), dimension(..), intent(in)    :: input
@@ -58,7 +63,8 @@ module mpi_coll_c
 
     interface
         subroutine C_MPI_Allreduce(input, output, count_c, datatype_c, op_c, comm_c, &
-                               ierror_c) bind(C,name="C_MPI_Allreduce")
+                                   ierror_c) &
+                   bind(C,name="C_MPI_Allreduce")
             use iso_c_binding, only: c_int
             implicit none
             integer(kind=c_int), dimension(*), intent(in)    :: input
@@ -70,7 +76,8 @@ module mpi_coll_c
 #ifdef HAVE_CFI
     interface
         subroutine CFI_MPI_Allreduce(input, output, count_c, datatype_c, op_c, comm_c, &
-                                 ierror_c) bind(C,name="CFI_MPI_Allreduce")
+                                     ierror_c) &
+                   bind(C,name="CFI_MPI_Allreduce")
             use iso_c_binding, only: c_int
             implicit none
             type(*), dimension(..), intent(in)    :: input
@@ -82,7 +89,8 @@ module mpi_coll_c
 
     interface
         subroutine C_MPI_Gather(input, scount_c, stype_c, output, rcount_c, rtype_c, root_c, comm_c, &
-                                ierror_c) bind(C,name="C_MPI_Gather")
+                                ierror_c) &
+                   bind(C,name="C_MPI_Gather")
             use iso_c_binding, only: c_int
             implicit none
             integer(kind=c_int), dimension(*), intent(in)    :: input
@@ -94,7 +102,8 @@ module mpi_coll_c
 #ifdef HAVE_CFI
     interface
         subroutine CFI_MPI_Gather(input, scount_c, stype_c, output, rcount_c, rtype_c, root_c, comm_c, &
-                                  ierror_c) bind(C,name="CFI_MPI_Gather")
+                                  ierror_c) &
+                   bind(C,name="CFI_MPI_Gather")
             use iso_c_binding, only: c_int
             implicit none
             type(*), dimension(..), intent(in)    :: input
@@ -106,7 +115,8 @@ module mpi_coll_c
 
     interface
         subroutine C_MPI_Allgather(input, scount_c, stype_c, output, rcount_c, rtype_c, comm_c, &
-                                   ierror_c) bind(C,name="C_MPI_Allgather")
+                                   ierror_c) &
+                   bind(C,name="C_MPI_Allgather")
             use iso_c_binding, only: c_int
             implicit none
             integer(kind=c_int), dimension(*), intent(in)    :: input
@@ -118,7 +128,8 @@ module mpi_coll_c
 #ifdef HAVE_CFI
     interface
         subroutine CFI_MPI_Allgather(input, scount_c, stype_c, output, rcount_c, rtype_c, comm_c, &
-                                     ierror_c) bind(C,name="CFI_MPI_Allgather")
+                                     ierror_c) &
+                   bind(C,name="CFI_MPI_Allgather")
             use iso_c_binding, only: c_int
             implicit none
             type(*), dimension(..), intent(in)    :: input
@@ -130,7 +141,8 @@ module mpi_coll_c
 
     interface
         subroutine C_MPI_Scatter(input, scount_c, stype_c, output, rcount_c, rtype_c, root_c, comm_c, &
-                                ierror_c) bind(C,name="C_MPI_Scatter")
+                                ierror_c) &
+                   bind(C,name="C_MPI_Scatter")
             use iso_c_binding, only: c_int
             implicit none
             integer(kind=c_int), dimension(*), intent(in)    :: input
@@ -142,7 +154,8 @@ module mpi_coll_c
 #ifdef HAVE_CFI
     interface
         subroutine CFI_MPI_Scatter(input, scount_c, stype_c, output, rcount_c, rtype_c, root_c, comm_c, &
-                                  ierror_c) bind(C,name="CFI_MPI_Scatter")
+                                  ierror_c) &
+                   bind(C,name="CFI_MPI_Scatter")
             use iso_c_binding, only: c_int
             implicit none
             type(*), dimension(..), intent(in)    :: input
@@ -154,7 +167,8 @@ module mpi_coll_c
 
     interface
         subroutine C_MPI_Alltoall(input, scount_c, stype_c, output, rcount_c, rtype_c, comm_c, &
-                                   ierror_c) bind(C,name="C_MPI_Alltoall")
+                                  ierror_c) &
+                   bind(C,name="C_MPI_Alltoall")
             use iso_c_binding, only: c_int
             implicit none
             integer(kind=c_int), dimension(*), intent(in)    :: input
@@ -166,7 +180,8 @@ module mpi_coll_c
 #ifdef HAVE_CFI
     interface
         subroutine CFI_MPI_Alltoall(input, scount_c, stype_c, output, rcount_c, rtype_c, comm_c, &
-                                     ierror_c) bind(C,name="CFI_MPI_Alltoall")
+                                     ierror_c) &
+                   bind(C,name="CFI_MPI_Alltoall")
             use iso_c_binding, only: c_int
             implicit none
             type(*), dimension(..), intent(in)    :: input

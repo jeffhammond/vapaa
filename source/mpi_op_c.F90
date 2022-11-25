@@ -3,7 +3,8 @@ module mpi_op_c
     ! NOT STANDARD STUFF
 
     interface
-        subroutine C_MPI_OP_NULL(op_f) bind(C,name="C_MPI_OP_NULL")
+        subroutine C_MPI_OP_NULL(op_f) &
+                   bind(C,name="C_MPI_OP_NULL")
             use iso_c_binding, only: c_int
             implicit none
             integer(kind=c_int) :: op_f
@@ -13,7 +14,8 @@ module mpi_op_c
     interface
         subroutine C_MPI_OP_BUILTINS( MAXf, MINf, SUMf, PRODf, MAXLOCf, MINLOCf, &
                                       BANDf, BORf, BXORf, LANDf, LORf, LXORf, &
-                                      REPLACEf, NO_OPf) bind(C,name="C_MPI_OP_BUILTINS")
+                                      REPLACEf, NO_OPf) &
+                   bind(C,name="C_MPI_OP_BUILTINS")
             use iso_c_binding, only: c_int
             implicit none
             integer(kind=c_int) :: MAXf

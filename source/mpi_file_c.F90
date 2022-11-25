@@ -3,7 +3,8 @@ module mpi_file_c
     ! NOT STANDARD STUFF
 
     interface
-        subroutine C_MPI_FILE_NULL(file_f) bind(C,name="C_MPI_FILE_NULL")
+        subroutine C_MPI_FILE_NULL(file_f) &
+                   bind(C,name="C_MPI_FILE_NULL")
             use iso_c_binding, only: c_int
             implicit none
             integer(kind=c_int) :: file_f
@@ -13,7 +14,8 @@ module mpi_file_c
     ! STANDARD STUFF
 
     interface
-        subroutine C_MPI_File_open(comm_c, filename_c, amode_c, info_c, file_c, ierror_c) bind(C,name="C_MPI_File_open")
+        subroutine C_MPI_File_open(comm_c, filename_c, amode_c, info_c, file_c, ierror_c) &
+                   bind(C,name="C_MPI_File_open")
             use iso_c_binding, only: c_int, c_char
             implicit none
             integer(kind=c_int) :: comm_c, amode_c, info_c, file_c, ierror_c
@@ -22,7 +24,8 @@ module mpi_file_c
     end interface
 
     interface
-        subroutine C_MPI_File_close(file_c, ierror_c) bind(C,name="C_MPI_File_close")
+        subroutine C_MPI_File_close(file_c, ierror_c) &
+                   bind(C,name="C_MPI_File_close")
             use iso_c_binding, only: c_int
             implicit none
             integer(kind=c_int) :: file_c, ierror_c
@@ -30,7 +33,8 @@ module mpi_file_c
     end interface
 
     interface
-        subroutine C_MPI_File_delete(filename_c, info_c, ierror_c) bind(C,name="C_MPI_File_delete")
+        subroutine C_MPI_File_delete(filename_c, info_c, ierror_c) &
+                   bind(C,name="C_MPI_File_delete")
             use iso_c_binding, only: c_int, c_char
             implicit none
             integer(kind=c_int) :: info_c, ierror_c
@@ -39,7 +43,8 @@ module mpi_file_c
     end interface
 
     interface
-        subroutine C_MPI_File_set_size(file_c, size_c, ierror_c) bind(C,name="C_MPI_File_set_size")
+        subroutine C_MPI_File_set_size(file_c, size_c, ierror_c) &
+                   bind(C,name="C_MPI_File_set_size")
             use iso_c_binding, only: c_int, c_intptr_t
             implicit none
             integer(kind=c_int) :: file_c, ierror_c
@@ -48,7 +53,8 @@ module mpi_file_c
     end interface
 
     interface
-        subroutine C_MPI_File_preallocate(file_c, size_c, ierror_c) bind(C,name="C_MPI_File_preallocate")
+        subroutine C_MPI_File_preallocate(file_c, size_c, ierror_c) &
+                   bind(C,name="C_MPI_File_preallocate")
             use iso_c_binding, only: c_int, c_intptr_t
             implicit none
             integer(kind=c_int) :: file_c, ierror_c
@@ -57,7 +63,8 @@ module mpi_file_c
     end interface
 
     interface
-        subroutine C_MPI_File_get_size(file_c, size_c, ierror_c) bind(C,name="C_MPI_File_get_size")
+        subroutine C_MPI_File_get_size(file_c, size_c, ierror_c) &
+                   bind(C,name="C_MPI_File_get_size")
             use iso_c_binding, only: c_int, c_intptr_t
             implicit none
             integer(kind=c_int) :: file_c, ierror_c
