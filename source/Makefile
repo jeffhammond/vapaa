@@ -92,7 +92,7 @@ mpi_datatype.o: mpi_datatype.c
 mpi_file_f.o: mpi_file_f.F90 mpi_file_c.o mpi_handle_types.o mpi_global_constants.o
 	$(FC) $(FCFLAGS) -c $<
 
-mpi_file_c.o: mpi_file_c.F90 mpi_file.o
+mpi_file_c.o: mpi_file_c.F90 mpi_file.o mpi_handle_types.o
 	$(FC) $(FCFLAGS) -c $<
 
 mpi_file.o: mpi_file.c
@@ -169,7 +169,7 @@ mpi_request.o: mpi_request.c
 mpi_status_f.o: mpi_status_f.F90 mpi_status_c.o mpi_handle_types.o mpi_global_constants.o
 	$(FC) $(FCFLAGS) -c $<
 
-mpi_status_c.o: mpi_status_c.F90 mpi_status.o
+mpi_status_c.o: mpi_status_c.F90 mpi_status.o mpi_handle_types.o
 	$(FC) $(FCFLAGS) -c $<
 
 mpi_status.o: mpi_status.c
