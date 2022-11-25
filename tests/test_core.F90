@@ -4,6 +4,8 @@ program test_core
     integer :: ierror
     integer :: me, np
     integer :: v, sv
+    character(len=MPI_MAX_LIBRARY_VERSION_STRING) :: lib
+    integer :: liblen
 
     call MPI_Init(ierror)
 
@@ -13,6 +15,9 @@ program test_core
 
     call MPI_Get_version(v,sv)
     if (me.eq.0) print*,'MPI ',v,'.',sv
+
+    call MPI_Get_library_version(lib, liblen)
+    if (me.eq.0) print*,'MPI library: ',lib
 
     call MPI_Comm_rank(MPI_COMM_SELF,me)
     call MPI_Comm_size(MPI_COMM_SELF,np)

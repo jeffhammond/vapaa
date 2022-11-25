@@ -36,6 +36,10 @@ module mpi_core_f
         module procedure MPI_Get_version_f08
     end interface MPI_Get_version
 
+    interface MPI_Get_library_version
+        module procedure MPI_Get_library_version_f08
+    end interface MPI_Get_library_version
+
     interface MPI_Wtime
         module procedure MPI_Wtime_f08
     end interface MPI_Wtime
@@ -243,6 +247,27 @@ module mpi_core_f
             subversion = subversion_c
             if (present(ierror)) ierror = ierror_c
         end subroutine MPI_Get_version_f08
+
+        subroutine MPI_Get_library_version_f08(version, resultlen, ierror) 
+            use iso_c_binding, only: c_char, c_null_char
+            use mpi_core_c, only: C_MPI_Get_library_version
+            use mpi_global_constants, only: MPI_MAX_LIBRARY_VERSION_STRING
+            character(len=MPI_MAX_LIBRARY_VERSION_STRING), intent(out) :: version
+            integer, intent(out) :: resultlen
+            integer, optional, intent(out) :: ierror
+            character(c_char), dimension(:), allocatable :: version_c
+            integer(kind=c_int) :: resultlen_c, ierror_c
+            integer :: i
+            allocate( version_c(MPI_MAX_LIBRARY_VERSION_STRING) )
+            version_c = c_null_char
+            call C_MPI_Get_library_version(version_c, resultlen_c, ierror_c)
+            resultlen = resultlen_c
+            do i = 1, min(resultlen+1,MPI_MAX_LIBRARY_VERSION_STRING)
+              version(i:i) = version_c(i)
+            end do
+            deallocate( version_c )
+            if (present(ierror)) ierror = ierror_c
+        end subroutine MPI_Get_library_version_f08
 
         function MPI_Wtime_f08() result(time)
             use mpi_core_c, only: C_MPI_Wtime

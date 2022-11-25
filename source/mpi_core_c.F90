@@ -81,6 +81,15 @@ module mpi_core_c
     end interface
 
     interface
+        subroutine C_MPI_Get_library_version(version_c, resultlen_c, ierror_c) bind(C,name="C_MPI_Get_library_version")
+            use iso_c_binding, only: c_int, c_char, c_ptr
+            implicit none
+            character(kind=c_char), dimension(:) :: version_c
+            integer(kind=c_int) :: resultlen_c, ierror_c
+        end subroutine C_MPI_Get_library_version
+    end interface
+
+    interface
         function C_MPI_Wtime() result(time_c) bind(C,name="C_MPI_Wtime")
             use iso_c_binding, only: c_double
             implicit none
