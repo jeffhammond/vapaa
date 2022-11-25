@@ -47,4 +47,13 @@ module mpi_file_c
         end subroutine C_MPI_File_set_size
     end interface
 
+    interface
+        subroutine C_MPI_File_preallocate(file_c, size_c, ierror_c) bind(C,name="C_MPI_File_preallocate")
+            use iso_c_binding, only: c_int, c_intptr_t
+            implicit none
+            integer(kind=c_int) :: file_c, ierror_c
+            integer(kind=c_intptr_t) :: size_c
+        end subroutine C_MPI_File_preallocate
+    end interface
+
 end module mpi_file_c

@@ -69,3 +69,10 @@ void C_MPI_File_set_size(int * file_f, intptr_t * size_f, int * ierror)
     MPI_Offset size = *size_f;
     *ierror = MPI_File_set_size(file, size);
 }
+
+void C_MPI_File_preallocate(int * file_f, intptr_t * size_f, int * ierror)
+{
+    MPI_File file = MPI_File_f2c(*file_f);
+    MPI_Offset size = *size_f;
+    *ierror = MPI_File_preallocate(file, size);
+}
