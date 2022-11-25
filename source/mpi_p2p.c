@@ -1,15 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <stdbool.h>
 #include <mpi.h>
 #include "ISO_Fortran_binding.h"
-
-// NONSTANDARD STUFF
-
-static inline bool C_MPI_IS_IGNORE(MPI_Status * input)
-{
-    return ((input->MPI_SOURCE == -9119) && (input->MPI_TAG == -9119) && (input->MPI_ERROR == -9119));
-}
+#include "mpi_status_ignore.h"
 
 // STANDARD STUFF
 

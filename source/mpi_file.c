@@ -1,5 +1,7 @@
+#include <stdio.h>
 #include <mpi.h>
 #include "ISO_Fortran_binding.h"
+#include "mpi_status_ignore.h"
 
 /*******************************
 ! MPI I/O file mode constants
@@ -84,3 +86,31 @@ void C_MPI_File_get_size(int * file_f, intptr_t * size_f, int * ierror)
     *ierror = MPI_File_get_size(file, &size);
     *size_f = size;
 }
+
+void C_MPI_File_read_at(int * file_f, intptr_t * offset_f, void * buffer, int * count_f, int * datatype_f, MPI_Status * status, int * ierror)
+{
+    MPI_File file = MPI_File_f2c(*file_f);
+    MPI_Offset offset = *offset_f;
+    int count = *count_f;
+    MPI_Datatype datatype = MPI_Type_f2c(*datatype_f);
+    *ierror = MPI_File_read_at(file, offset, buffer, count, datatype,
+                               C_MPI_IS_IGNORE(status) ? MPI_STATUS_IGNORE : status);
+}
+
+#ifdef HAVE_CFI
+void CFI_MPI_File_read_at(int * file_f, intptr_t * offset_f, CFI_cdesc_t * desc, int * count_f, int * datatype_f, MPI_Status * status, int * ierror)
+{
+    MPI_File file = MPI_File_f2c(*file_f);
+    MPI_Offset offset = *offset_f;
+    int count = *count_f;
+    MPI_Datatype datatype = MPI_Type_f2c(*datatype_f);
+    if (1 == CFI_is_contiguous(desc)) {
+        *ierror = MPI_File_read_at(file, offset, desc->base_addr, count, datatype,
+                                   C_MPI_IS_IGNORE(status) ? MPI_STATUS_IGNORE : status);
+    } else {
+        fprintf(stderr, "FIXME: not contiguous case\n");
+        MPI_Abort(MPI_COMM_SELF, 99);
+    }
+}
+#endif
+

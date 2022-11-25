@@ -65,4 +65,17 @@ module mpi_file_c
         end subroutine C_MPI_File_get_size
     end interface
 
+    interface
+        subroutine C_MPI_File_read_at(file_c, offset_c, buf, count_c, datatype_c, status, ierror_c) &
+                   bind(C,name="C_MPI_File_read_at")
+            use iso_c_binding, only: c_int, c_intptr_t
+            use mpi_handle_types, only: MPI_Status
+            implicit none
+            integer(kind=c_int) :: file_c, count_c, datatype_c, ierror_c
+            integer(kind=c_intptr_t) :: offset_c
+            type(*), dimension(..) :: buf
+            type(MPI_Status) :: status
+        end subroutine C_MPI_File_read_at
+    end interface
+
 end module mpi_file_c
