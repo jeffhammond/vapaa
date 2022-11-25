@@ -42,11 +42,30 @@ and thus we can pass arrays of `type(MPI_Request)` to C interfaces expecting `in
 
 Obviously, we want to support almost everything some day, but for now, we support only the following:
 
-* Management: `MPI_Init`, `MPI_Init_thread`,`MPI_Finalize`, 
-              `MPI_Initialized` `MPI_Finalized`, `MPI_Abort`,
-              `MPI_Query_thread`, `MPI_Get_version`
+* Management: `MPI_Init`, `MPI_Finalize`, `MPI_Abort`,
+              `MPI_Initialized`, `MPI_Finalized`, 
+              `MPI_Init_therad`, `MPI_Query_thread`, 
+              `MPI_Get_version`, `MPI_Get_library_version'
+* Utilities: `MPI_Comm_rank`, `MPI_Comm_size`, 
+             `MPI_Wtime`, `MPI_Wtick`
 * Collectives: `MPI_Barrier`, `MPI_Bcast`, `MPI_Reduce`, `MPI_Allreduce,`
                `MPI_Gather`, `MPI_Allgather`, `MPI_Scatter`, `MPI_Alltoall`
-* Utilities: `MPI_Comm_rank`, `MPI_Comm_size`, `MPI_Wtime`, `MPI_Wtick`
-* Point-to-point: `MPI_Test`, `MPI_Wait`, `MPI_Send`, `MPI_Isend`, `MPI_Recv`, `MPI_Irecv`
+* Point-to-point: `MPI_Send`, `MPI_Isend`, `MPI_Recv`, `MPI_Irecv`,
+                  `MPI_Test`, `MPI_Wait`, `MPI_Testall`, `MPI_Waitall`
 
+### Tested Functions
+
+* Management: `MPI_Init`, `MPI_Finalize`, `MPI_Abort`,
+              `MPI_Initialized`, `MPI_Finalized` (problem), 
+              `MPI_Init_therad`, `MPI_Query_thread`, 
+              `MPI_Get_version`, `MPI_Get_library_version'
+* Utilities: `MPI_Wtime`, `MPI_Wtick`,
+             `MPI_Comm_rank`, `MPI_Comm_size`
+* Collectives: `MPI_Barrier`, `MPI_Bcast`, `MPI_Allreduce`
+* Point-to-point: `MPI_Send`, `MPI_Isend`, `MPI_Recv`, `MPI_Irecv`,
+                  `MPI_Test`, `MPI_Wait`, `MPI_Testall`, `MPI_Waitall`
+
+### Unested Functions
+
+* Collectives: `MPI_Reduce`,
+               `MPI_Gather`, `MPI_Allgather`, `MPI_Scatter`, `MPI_Alltoall`
