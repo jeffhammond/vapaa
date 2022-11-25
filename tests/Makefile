@@ -6,7 +6,8 @@ ARFLAGS := -r
 # obviously, you have to compile in ../source first
 FCFLAGS += -I../source -L../source -lmpi_f08
 
-all: test_core.x test_collectives.x test_reductions.x test_p2p.x
+all: test_core.x test_collectives.x test_reductions.x test_p2p.x \
+     test_thread.x
 
 %.x: %.o
 	$(FC) $(FCFLAGS) $^ $(MPI_LIBS) -o $@
@@ -16,7 +17,4 @@ all: test_core.x test_collectives.x test_reductions.x test_p2p.x
 
 clean:
 	-rm -fr *.dSYM
-	-rm -f test_core.x test_core.o
-	-rm -f test_collectives.x test_collectives.o
-	-rm -f test_reductions.x test_reductions.o
-	-rm -f test_p2p.x test_p2p.o
+	-rm -f *.x *.o

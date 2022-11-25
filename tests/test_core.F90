@@ -22,6 +22,8 @@ program test_core
     call MPI_Comm_size(MPI_COMM_WORLD,np)
     print*,'I am ',me,' of ',np,' of WORLD'
 
+    if (np.eq.3) call MPI_Abort(MPI_COMM_WORLD,3)
+
     call MPI_Get_version(v,sv)
     if (me.eq.0) print*,'MPI ',v,'.',sv
 
