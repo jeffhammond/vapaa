@@ -77,3 +77,46 @@ void C_MPI_Comm_idup_with_info(int * comm_f, int * info_f, int * newcomm_f, int 
     *newcomm_f = MPI_Comm_c2f(newcomm);
     *request_f = MPI_Request_c2f(request);
 }
+
+void C_MPI_Comm_create(int * comm_f, int * group_f, int * newcomm_f, int * ierror)
+{
+    MPI_Comm newcomm = MPI_COMM_NULL;
+    MPI_Comm comm = MPI_Comm_f2c(*comm_f);
+    MPI_Group group = MPI_Group_f2c(*group_f);
+    *ierror = MPI_Comm_create(comm, group, &newcomm);
+    *newcomm_f = MPI_Comm_c2f(newcomm);
+}
+
+void C_MPI_Comm_create_group(int * comm_f, int * group_f, int * tag_f, int * newcomm_f, int * ierror)
+{
+    MPI_Comm newcomm = MPI_COMM_NULL;
+    MPI_Comm comm = MPI_Comm_f2c(*comm_f);
+    MPI_Group group = MPI_Group_f2c(*group_f);
+    *ierror = MPI_Comm_create_group(comm, group, *tag_f, &newcomm);
+    *newcomm_f = MPI_Comm_c2f(newcomm);
+}
+
+void C_MPI_Comm_split(int * comm_f, int * color_f, int * key_f, int * newcomm_f, int * ierror)
+{
+    MPI_Comm newcomm = MPI_COMM_NULL;
+    MPI_Comm comm = MPI_Comm_f2c(*comm_f);
+    *ierror = MPI_Comm_split(comm, *color_f, *key_f, &newcomm);
+    *newcomm_f = MPI_Comm_c2f(newcomm);
+}
+
+void C_MPI_Comm_split_type(int * comm_f, int * type_f, int * key_f, int * info_f, int * newcomm_f, int * ierror)
+{
+    MPI_Comm newcomm = MPI_COMM_NULL;
+    MPI_Comm comm = MPI_Comm_f2c(*comm_f);
+    MPI_Info info = MPI_Info_f2c(*info_f);
+    *ierror = MPI_Comm_split_type(comm, *type_f, *key_f, info, &newcomm);
+    *newcomm_f = MPI_Comm_c2f(newcomm);
+}
+
+void C_MPI_Comm_free(int * comm_f, int * ierror)
+{
+    MPI_Comm comm = MPI_Comm_f2c(*comm_f);
+    *ierror = MPI_Comm_free(&comm);
+    *comm_f = MPI_Comm_c2f(comm);
+}
+
