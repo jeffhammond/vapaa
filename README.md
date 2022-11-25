@@ -58,7 +58,7 @@ Obviously, we want to support almost everything some day, but for now, we suppor
 * Management: `MPI_Init`, `MPI_Finalize`, `MPI_Abort`,
               `MPI_Initialized`, `MPI_Finalized` (problem), 
               `MPI_Init_therad`, `MPI_Query_thread`, 
-              `MPI_Get_version`, `MPI_Get_library_version'
+              `MPI_Get_version`, `MPI_Get_library_version`
 * Utilities: `MPI_Wtime`, `MPI_Wtick`,
              `MPI_Comm_rank`, `MPI_Comm_size`
 * Collectives: `MPI_Barrier`, `MPI_Bcast`, `MPI_Allreduce`
