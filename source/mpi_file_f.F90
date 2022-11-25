@@ -2,6 +2,17 @@ module mpi_file_f
     use iso_c_binding, only: c_int
     implicit none
 
+    ! I/O file mode constants
+    integer, parameter :: MPI_MODE_APPEND           =   1
+    integer, parameter :: MPI_MODE_CREATE           =   2
+    integer, parameter :: MPI_MODE_DELETE_ON_CLOSE  =   4
+    integer, parameter :: MPI_MODE_EXCL             =   8
+    integer, parameter :: MPI_MODE_RDONLY           =  16
+    integer, parameter :: MPI_MODE_RDWR             =  32
+    integer, parameter :: MPI_MODE_SEQUENTIAL       =  64
+    integer, parameter :: MPI_MODE_UNIQUE_OPEN      = 128
+    integer, parameter :: MPI_MODE_WRONLY           = 256
+
     interface MPI_File_open
         module procedure MPI_File_open_f08
     end interface MPI_File_open
