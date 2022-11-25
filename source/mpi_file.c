@@ -62,3 +62,10 @@ void C_MPI_File_delete(CFI_cdesc_t * filename_d, int * info_f, int * ierror)
     char * filename = filename_d -> base_addr;
     *ierror = MPI_File_delete(filename, info);
 }
+
+void C_MPI_File_set_size(int * file_f, intptr_t * size_f, int * ierror)
+{
+    MPI_File file = MPI_File_f2c(*file_f);
+    MPI_Offset size = *size_f;
+    *ierror = MPI_File_set_size(file, size);
+}
