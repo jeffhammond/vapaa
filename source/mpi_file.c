@@ -55,3 +55,10 @@ void C_MPI_File_close(int * file_f, int * ierror)
     *ierror = MPI_File_close(&file);
     *file_f = MPI_File_c2f(file);
 }
+
+void C_MPI_File_delete(CFI_cdesc_t * filename_d, int * info_f, int * ierror)
+{
+    MPI_Info info = MPI_Info_f2c(*info_f);
+    char * filename = filename_d -> base_addr;
+    *ierror = MPI_File_delete(filename, info);
+}

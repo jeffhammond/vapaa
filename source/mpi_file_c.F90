@@ -29,4 +29,13 @@ module mpi_file_c
         end subroutine C_MPI_File_close
     end interface
 
+    interface
+        subroutine C_MPI_File_delete(filename_c, info_c, ierror_c) bind(C,name="C_MPI_File_delete")
+            use iso_c_binding, only: c_int, c_char
+            implicit none
+            integer(kind=c_int) :: info_c, ierror_c
+            character(kind=c_char), dimension(:) :: filename_c
+        end subroutine C_MPI_File_delete
+    end interface
+
 end module mpi_file_c

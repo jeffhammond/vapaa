@@ -58,4 +58,25 @@ module mpi_file_f
             if (present(ierror)) ierror = ierror_c
         end subroutine MPI_File_close_f08
 
+        subroutine MPI_File_delete_f08(filename, info, ierror) 
+            use iso_c_binding, only: c_char, c_null_char
+            use mpi_handle_types, only: MPI_Info
+            use mpi_file_c, only: C_MPI_File_delete
+            character(len=*), intent(in) :: filename
+            type(MPI_info), intent(in) :: info
+            integer, optional, intent(out) :: ierror
+            character(c_char), dimension(:), allocatable :: filename_c
+            integer(kind=c_int) :: ierror_c
+            integer :: i, ls
+            ls = len(filename)
+            allocate( filename_c(ls+1) )
+            filename_c = c_null_char
+            do i = 1, ls
+              filename_c(i) = filename(i:i)
+            end do
+            call C_MPI_File_delete(filename_c, info % MPI_VAL, ierror_c)
+            deallocate( filename_c )
+            if (present(ierror)) ierror = ierror_c
+        end subroutine MPI_File_delete_f08
+
 end module mpi_file_f
