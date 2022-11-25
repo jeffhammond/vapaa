@@ -83,4 +83,50 @@ module mpi_error_f
     integer, parameter :: MPI_T_ERR_PVAR_NO_ATOMIC                   = 78
     integer, parameter :: MPI_ERR_LASTCODE                           = 79
 
+    interface MPI_Error_string
+        module procedure MPI_Error_string_f08
+    end interface MPI_Error_string
+
+    interface MPI_Error_class
+        module procedure MPI_Error_class_f08
+    end interface MPI_Error_class
+
+    contains
+
+        subroutine MPI_Error_string_f08(errorcode, string, resultlen, ierror)
+            use iso_c_binding, only: c_int, c_char, c_null_char
+            use mpi_global_constants, only: MPI_MAX_ERROR_STRING
+            use mpi_error_c, only: C_MPI_Error_string
+            integer, intent(in) :: errorcode
+            character(len=MPI_MAX_ERROR_STRING), intent(out) :: string
+            integer, intent(out) :: resultlen
+            integer, optional, intent(out) :: ierror
+            integer(c_int) :: errorcode_c, resultlen_c, ierror_c
+            character(c_char), dimension(:), allocatable :: string_c
+            integer :: i
+            errorcode_c = errorcode
+            allocate( string_c(MPI_MAX_ERROR_STRING) )
+            string_c = c_null_char
+            call C_MPI_Error_string(errorcode_c, string_c, resultlen_c, ierror_c)
+            resultlen = resultlen_c
+            do i = 1, min(resultlen+1,MPI_MAX_ERROR_STRING)
+              string(i:i) = string_c(i)
+            end do
+            deallocate( string_c )
+            if (present(ierror)) ierror = ierror_c
+        end subroutine MPI_Error_string_f08
+
+        subroutine MPI_Error_class_f08(errorcode, errorclass, ierror)
+            use iso_c_binding, only: c_int
+            use mpi_error_c, only: C_MPI_Error_class
+            integer, intent(in) :: errorcode
+            integer, intent(out) :: errorclass
+            integer, optional, intent(out) :: ierror
+            integer(c_int) :: errorcode_c, errorclass_c, ierror_c
+            errorcode_c = errorcode
+            call C_MPI_Error_class(errorcode_c, errorclass_c, ierror_c)
+            errorclass = errorclass_c
+            if (present(ierror)) ierror = ierror_c
+        end subroutine MPI_Error_class_f08
+
 end module mpi_error_f

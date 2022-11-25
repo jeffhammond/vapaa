@@ -82,7 +82,7 @@ module mpi_core_c
 
     interface
         subroutine C_MPI_Get_library_version(version_c, resultlen_c, ierror_c) bind(C,name="C_MPI_Get_library_version")
-            use iso_c_binding, only: c_int, c_char, c_ptr
+            use iso_c_binding, only: c_int, c_char
             implicit none
             character(kind=c_char), dimension(:) :: version_c
             integer(kind=c_int) :: resultlen_c, ierror_c
