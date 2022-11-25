@@ -116,4 +116,68 @@ module mpi_comm_f
             if (present(ierror)) ierror = ierror_c
         end subroutine MPI_Comm_idup_with_info_f08
 
+        subroutine MPI_Comm_create_f08(comm, group, newcomm, ierror)
+            use mpi_handle_types, only: MPI_Comm, MPI_Group
+            use mpi_comm_c, only: C_MPI_Comm_create
+            type(MPI_Comm), intent(in) :: comm
+            type(MPI_Group), intent(in) :: group
+            type(MPI_Comm), intent(out) :: newcomm
+            integer, optional, intent(out) :: ierror
+            integer(kind=c_int) :: ierror_c
+            call C_MPI_Comm_create(comm % MPI_VAL, group % MPI_VAL, newcomm % MPI_VAL, ierror_c)
+            if (present(ierror)) ierror = ierror_c
+        end subroutine MPI_Comm_create_f08
+
+        subroutine MPI_Comm_create_group_f08(comm, group, tag, newcomm, ierror)
+            use mpi_handle_types, only: MPI_Comm, MPI_Group
+            use mpi_comm_c, only: C_MPI_Comm_create_group
+            type(MPI_Comm), intent(in) :: comm
+            type(MPI_Group), intent(in) :: group
+            integer, intent(in) :: tag
+            type(MPI_Comm), intent(out) :: newcomm
+            integer, optional, intent(out) :: ierror
+            integer(kind=c_int) :: tag_c, ierror_c
+            tag_c = tag
+            call C_MPI_Comm_create(comm % MPI_VAL, group % MPI_VAL, tag_c, newcomm % MPI_VAL, ierror_c)
+            if (present(ierror)) ierror = ierror_c
+        end subroutine MPI_Comm_create_group_f08
+
+        subroutine MPI_Comm_split_f08(comm, color, key, newcomm, ierror)
+            use mpi_handle_types, only: MPI_Comm
+            use mpi_comm_c, only: C_MPI_Comm_split
+            type(MPI_Comm), intent(in) :: comm
+            integer, intent(in) :: color, key
+            type(MPI_Comm), intent(out) :: newcomm
+            integer, optional, intent(out) :: ierror
+            integer(kind=c_int) :: color_c, key_c, ierror_c
+            color_c = color
+            key_c = key
+            call C_MPI_Comm_split(comm % MPI_VAL, color_c, key_c, newcomm % MPI_VAL, ierror_c)
+            if (present(ierror)) ierror = ierror_c
+        end subroutine MPI_Comm_split_f08
+
+        subroutine MPI_Comm_split_type_f08(comm, type, info, newcomm, ierror)
+            use mpi_handle_types, only: MPI_Comm, MPI_Info
+            use mpi_comm_c, only: C_MPI_Comm_split
+            type(MPI_Comm), intent(in) :: comm
+            integer, intent(in) :: type
+            type(MPI_Info), intent(in) :: info
+            type(MPI_Comm), intent(out) :: newcomm
+            integer, optional, intent(out) :: ierror
+            integer(kind=c_int) :: type_c, ierror_c
+            type_c = type
+            call C_MPI_Comm_split_type(comm % MPI_VAL, type_c, info % MPI_VAL, newcomm % MPI_VAL, ierror_c)
+            if (present(ierror)) ierror = ierror_c
+        end subroutine MPI_Comm_split_type_f08
+
+        subroutine MPI_Comm_free_f08(comm, ierror)
+            use mpi_handle_types, only: MPI_Comm
+            use mpi_comm_c, only: C_MPI_Comm_free
+            type(MPI_Comm), intent(inout) :: comm
+            integer, optional, intent(out) :: ierror
+            integer(kind=c_int) :: ierror_c
+            call C_MPI_Comm_free(comm % MPI_VAL, ierror_c)
+            if (present(ierror)) ierror = ierror_c
+        end subroutine MPI_Comm_free_f08
+
 end module mpi_comm_f
