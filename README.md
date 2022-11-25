@@ -42,17 +42,6 @@ and thus we can pass arrays of `type(MPI_Request)` to C interfaces expecting `in
 
 Obviously, we want to support almost everything some day, but for now, we support only the following:
 
-* Management: `MPI_Init`, `MPI_Finalize`, `MPI_Abort`,
-              `MPI_Initialized`, `MPI_Finalized`, 
-              `MPI_Init_therad`, `MPI_Query_thread`, 
-              `MPI_Get_version`, `MPI_Get_library_version`
-* Utilities: `MPI_Comm_rank`, `MPI_Comm_size`, 
-             `MPI_Wtime`, `MPI_Wtick`
-* Collectives: `MPI_Barrier`, `MPI_Bcast`, `MPI_Reduce`, `MPI_Allreduce,`
-               `MPI_Gather`, `MPI_Allgather`, `MPI_Scatter`, `MPI_Alltoall`
-* Point-to-point: `MPI_Send`, `MPI_Isend`, `MPI_Recv`, `MPI_Irecv`,
-                  `MPI_Test`, `MPI_Wait`, `MPI_Testall`, `MPI_Waitall`
-
 ### Tested Functions
 
 * Management: `MPI_Init`, `MPI_Finalize`, `MPI_Abort`,
@@ -64,12 +53,15 @@ Obviously, we want to support almost everything some day, but for now, we suppor
 * Collectives: `MPI_Barrier`, `MPI_Bcast`, `MPI_Allreduce`
 * Point-to-point: `MPI_Send`, `MPI_Isend`, `MPI_Recv`, `MPI_Irecv`,
                   `MPI_Test`, `MPI_Wait`, `MPI_Testall`, `MPI_Waitall`
+* I/O: `MPI_File_open`, `MPI_File_close`
+* Errors: `MPI_Error_string`
 
 ### Unested Functions
 
 * Collectives: `MPI_Reduce`,
                `MPI_Gather`, `MPI_Allgather`, `MPI_Scatter`, `MPI_Alltoall`
-
+* Errors: `MPI_Error_class`
+* 
 ### Known Issues
 
 * `MPI_COMM_WORLD` cannot be used for initializatin:
