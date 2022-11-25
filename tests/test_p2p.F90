@@ -8,6 +8,7 @@ program test_reductions
     type(MPI_Status) :: s
     type(MPI_Request) :: r
     type(MPI_Request), allocatable :: vr(:)
+    logical :: flag
 
     call MPI_Init(ierror)
 
@@ -18,7 +19,6 @@ program test_reductions
         print*,'Run with an even number of processes'
         call MPI_Abort(MPI_COMM_WORLD,np)
     endif
-    
 
     call MPI_Barrier(MPI_COMM_WORLD)
     do i=0,np
@@ -95,6 +95,26 @@ program test_reductions
         call MPI_Irecv(x(np+i+1),1,MPI_INTEGER,i,0,MPI_COMM_WORLD,vr(np+i+1))
     enddo
     call MPI_Waitall(2*np,vr,MPI_STATUSES_IGNORE)
+    do i=0,np-1
+      if(x(np+i+1).ne.(i)) then
+        print*,'an error has occurred'
+        print*,x(np+i)
+      endif
+    enddo
+    deallocate( vr , x )
+
+    if(me.eq.0) print*,'TESTALL'
+
+    allocate( vr(2*np) , x(2*np) )
+    x = me
+    do i=0,np-1
+        call MPI_Isend(x(i+1),1,MPI_INTEGER,i,0,MPI_COMM_WORLD,vr(i+1))
+        call MPI_Irecv(x(np+i+1),1,MPI_INTEGER,i,0,MPI_COMM_WORLD,vr(np+i+1))
+    enddo
+    flag = .false.
+    do while (.not.flag)
+        call MPI_Testall(2*np,vr,flag,MPI_STATUSES_IGNORE)
+    end do
     do i=0,np-1
       if(x(np+i+1).ne.(i)) then
         print*,'an error has occurred'
