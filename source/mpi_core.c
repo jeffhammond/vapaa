@@ -37,10 +37,10 @@ void C_MPI_Finalize(int * ierror)
 
 void C_MPI_Init_thread(int * required_f, int * provided_f, int * ierror)
 {
-    // We use the same values as MPICH but cannot be sure every MPI will,
-    // so we convert them here.
-
     int required = -1, provided = -1;
+
+    // We use the same values as MPICH but cannot be sure every MPI will,
+    // so we convert them here.  See mpi_global_constants.F90 for our values.
 
     if (*required_f == 0) {
        required = MPI_THREAD_SINGLE; 
@@ -79,9 +79,23 @@ void C_MPI_Finalized(int * flag, int * ierror)
     *ierror = MPI_Finalized(flag);
 }
 
-void C_MPI_Query_thread(int * provided, int * ierror)
+void C_MPI_Query_thread(int * provided_f, int * ierror)
 {
-    *ierror = MPI_Query_thread(provided);
+    int provided = -1;
+    *ierror = MPI_Query_thread(&provided);
+
+    // We use the same values as MPICH but cannot be sure every MPI will,
+    // so we convert them here.  See mpi_global_constants.F90 for our values.
+
+    if (provided == MPI_THREAD_SINGLE) {
+       *provided_f = 0;
+    } else if (provided == MPI_THREAD_FUNNELED) {
+       *provided_f = 1;
+    } else if (provided == MPI_THREAD_SERIALIZED) {
+       *provided_f = 2;
+    } else if (provided == MPI_THREAD_MULTIPLE) {
+       *provided_f = 3;
+    }
 }
 
 void C_MPI_Abort(int * comm_f, int * errorcode, int * ierror)
