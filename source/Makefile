@@ -158,7 +158,7 @@ mpi_op.o: mpi_op.c
 mpi_request_f.o: mpi_request_f.F90 mpi_request_c.o mpi_handle_types.o mpi_global_constants.o
 	$(FC) $(FCFLAGS) -c $<
 
-mpi_request_c.o: mpi_request_c.F90 mpi_request.o
+mpi_request_c.o: mpi_request_c.F90 mpi_request.o mpi_handle_types.o
 	$(FC) $(FCFLAGS) -c $<
 
 mpi_request.o: mpi_request.c
