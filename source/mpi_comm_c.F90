@@ -84,5 +84,44 @@ module mpi_comm_c
         end subroutine C_MPI_Comm_idup_with_info
     end interface
 
-end module mpi_comm_c
+    interface
+        subroutine C_MPI_Comm_create(comm_c, group_c, newcomm_c, ierror_c) bind(C)
+            use iso_c_binding, only: c_int
+            implicit none
+            integer(kind=c_int) :: comm_c, group_c, newcomm_c, ierror_c
+        end subroutine C_MPI_Comm_create
+    end interface
 
+    interface
+        subroutine C_MPI_Comm_create_group(comm_c, group_c, tag_c, newcomm_c, ierror_c) bind(C)
+            use iso_c_binding, only: c_int
+            implicit none
+            integer(kind=c_int) :: comm_c, group_c, tag_c, newcomm_c, ierror_c
+        end subroutine C_MPI_Comm_create_group
+    end interface
+
+    interface
+        subroutine C_MPI_Comm_split(comm_c, color_c, key_c, newcomm_c, ierror_c) bind(C)
+            use iso_c_binding, only: c_int
+            implicit none
+            integer(kind=c_int) :: comm_c, color_c, key_c, newcomm_c, ierror_c
+        end subroutine C_MPI_Comm_split
+    end interface
+
+    interface
+        subroutine C_MPI_Comm_split_type(comm_c, type_c, key_c, info_c, newcomm_c, ierror_c) bind(C)
+            use iso_c_binding, only: c_int
+            implicit none
+            integer(kind=c_int) :: comm_c, type_c, key_c, info_c, newcomm_c, ierror_c
+        end subroutine C_MPI_Comm_split_type
+    end interface
+
+    interface
+        subroutine C_MPI_Comm_free(comm_c, ierror_c) bind(C)
+            use iso_c_binding, only: c_int
+            implicit none
+            integer(kind=c_int) :: comm_c, ierror_c
+        end subroutine C_MPI_Comm_free
+    end interface
+
+end module mpi_comm_c
