@@ -69,3 +69,11 @@ Obviously, we want to support almost everything some day, but for now, we suppor
 
 * Collectives: `MPI_Reduce`,
                `MPI_Gather`, `MPI_Allgather`, `MPI_Scatter`, `MPI_Alltoall`
+
+### Known Issues
+
+* `MPI_COMM_WORLD` cannot be used for initializatin:
+```
+Error: Parameter 'mpi_comm_world' at (1) has not been declared or is a variable, which does not reduce to a constant expression
+test_handles.F90:7:26:
+```
