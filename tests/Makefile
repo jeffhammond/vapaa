@@ -7,7 +7,7 @@ ARFLAGS := -r
 FCFLAGS += -I../source -L../source -lmpi_f08
 
 all: test_core.x test_collectives.x test_reductions.x test_p2p.x \
-     test_thread.x
+     test_thread.x test_handles.x
 
 %.x: %.o
 	$(FC) $(FCFLAGS) $^ $(MPI_LIBS) -o $@
