@@ -30,3 +30,50 @@ void C_MPI_Comm_size(int * comm_f, int * size, int * ierror)
     MPI_Comm comm = MPI_Comm_f2c(*comm_f);
     *ierror = MPI_Comm_size(comm, size);
 }
+
+void C_MPI_Comm_compare(int * comm1_f, int * comm2_f, int * result_f, int * ierror)
+{
+    MPI_Comm comm1 = MPI_Comm_f2c(*comm1_f);
+    MPI_Comm comm2 = MPI_Comm_f2c(*comm2_f);
+    int result;
+    *ierror = MPI_Comm_compare(comm1, comm2, &result);
+    *result_f = result;
+}
+
+void C_MPI_Comm_dup(int * comm_f, int * newcomm_f, int * ierror)
+{
+    MPI_Comm newcomm = MPI_COMM_NULL;
+    MPI_Comm comm = MPI_Comm_f2c(*comm_f);
+    *ierror = MPI_Comm_dup(comm, &newcomm);
+    *newcomm_f = MPI_Comm_c2f(newcomm);
+}
+
+void C_MPI_Comm_dup_with_info(int * comm_f, int * info_f, int * newcomm_f, int * ierror)
+{
+    MPI_Comm newcomm = MPI_COMM_NULL;
+    MPI_Comm comm = MPI_Comm_f2c(*comm_f);
+    MPI_Info info = MPI_Info_f2c(*info_f);
+    *ierror = MPI_Comm_dup_with_info(comm, info, &newcomm);
+    *newcomm_f = MPI_Comm_c2f(newcomm);
+}
+
+void C_MPI_Comm_idup(int * comm_f, int * newcomm_f, int * request_f, int * ierror)
+{
+    MPI_Comm newcomm = MPI_COMM_NULL;
+    MPI_Comm comm = MPI_Comm_f2c(*comm_f);
+    MPI_Request request = MPI_REQUEST_NULL;
+    *ierror = MPI_Comm_idup(comm, &newcomm, &request);
+    *newcomm_f = MPI_Comm_c2f(newcomm);
+    *request_f = MPI_Request_c2f(request);
+}
+
+void C_MPI_Comm_idup_with_info(int * comm_f, int * info_f, int * newcomm_f, int * request_f, int * ierror)
+{
+    MPI_Request request = MPI_REQUEST_NULL;
+    MPI_Comm newcomm = MPI_COMM_NULL;
+    MPI_Comm comm = MPI_Comm_f2c(*comm_f);
+    MPI_Info info = MPI_Info_f2c(*info_f);
+    *ierror = MPI_Comm_idup_with_info(comm, info, &newcomm, &request);
+    *newcomm_f = MPI_Comm_c2f(newcomm);
+    *request_f = MPI_Request_c2f(request);
+}
