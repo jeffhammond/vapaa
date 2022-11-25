@@ -7,6 +7,7 @@ program test_core
     character(len=MPI_MAX_LIBRARY_VERSION_STRING) :: lib
     integer :: liblen
     logical :: flags(3,2)
+    double precision :: t0,t1
 
     flags = .false.
 
@@ -14,6 +15,8 @@ program test_core
     !call MPI_Finalized(flags(1,2))
 
     call MPI_Init(ierror)
+
+    t0 = MPI_Wtime()
 
     call MPI_Initialized(flags(2,1))
     !call MPI_Finalized(flags(2,2))
@@ -33,6 +36,10 @@ program test_core
     call MPI_Comm_rank(MPI_COMM_SELF,me)
     call MPI_Comm_size(MPI_COMM_SELF,np)
     print*,'I am ',me,' of ',np,' of SELF'
+
+    t1 = MPI_Wtime()
+
+    print*,'time,tick=',t1-t0,MPI_Wtick()
 
     call MPI_Finalize(ierror)
 
