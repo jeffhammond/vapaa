@@ -139,4 +139,22 @@ module mpi_comm_c
         end subroutine C_MPI_Comm_free
     end interface
 
+    interface
+        subroutine C_MPI_Cart_create(comm_c, ndims_c, dims_c, periods_c, reorder_c, newcomm_c, ierror_c) &
+                   bind(C,name="C_MPI_Cart_create")
+            use iso_c_binding, only: c_int
+            implicit none
+            integer(kind=c_int) :: comm_c, ndims_c, dims_c, periods_c, reorder_c, newcomm_c, ierror_c
+        end subroutine C_MPI_Cart_create
+    end interface
+
+    interface
+        subroutine C_MPI_Dims_create(nnodes_c, ndims_c, dims_c, ierror_c) &
+                   bind(C,name="C_MPI_Dims_create")
+            use iso_c_binding, only: c_int
+            implicit none
+            integer(kind=c_int) :: nnodes_c, ndims_c, dims_c, ierror_c
+        end subroutine C_MPI_Dims_create
+    end interface
+
 end module mpi_comm_c
