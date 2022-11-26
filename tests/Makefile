@@ -11,7 +11,7 @@ FCFLAGS += -Wno-unused-variable
 all: test_core.x test_collectives.x test_reductions.x test_p2p.x \
      test_thread.x test_file.x test_handles.x
 
-%.x: %.o
+%.x: %.o ../source/libmpi_f08.a
 	$(FC) $(FCFLAGS) $^ $(MPI_LIBS) -o $@
 
 %.o: %.F90

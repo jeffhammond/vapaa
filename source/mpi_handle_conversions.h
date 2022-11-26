@@ -135,22 +135,42 @@ static MPI_Info C_MPI_INFO_F2C(int info_f)
 }
 
 MAYBE_UNUSED
-static MPI_Op C_MPI_OP_F2C(int op_f)
-{
-    if (op_f == -911) {
-        return MPI_OP_NULL;
-    } else {
-        return MPI_Op_f2c(op_f);
-    } 
-}
-
-MAYBE_UNUSED
 static MPI_Message C_MPI_MESSAGE_F2C(int message_f)
 {
     if (message_f == -911) {
         return MPI_MESSAGE_NULL;
     } else {
         return MPI_Message_f2c(message_f);
+    } 
+}
+
+#define OP_ELIF(op,num) \
+    else if (op_f == (num)) { \
+        return op; \
+    }
+
+MAYBE_UNUSED
+static MPI_Op C_MPI_OP_F2C(int op_f)
+{
+    if (op_f == -911) {
+        return MPI_OP_NULL;
+    }
+    OP_ELIF(MPI_MAX                  ,-10001)
+    OP_ELIF(MPI_MIN                  ,-10002)
+    OP_ELIF(MPI_SUM                  ,-10003)
+    OP_ELIF(MPI_PROD                 ,-10004)
+    OP_ELIF(MPI_MAXLOC               ,-10005)
+    OP_ELIF(MPI_MINLOC               ,-10006)
+    OP_ELIF(MPI_BAND                 ,-10007)
+    OP_ELIF(MPI_BOR                  ,-10008)
+    OP_ELIF(MPI_BXOR                 ,-10009)
+    OP_ELIF(MPI_LAND                 ,-10010)
+    OP_ELIF(MPI_LOR                  ,-10011)
+    OP_ELIF(MPI_LXOR                 ,-10012)
+    OP_ELIF(MPI_REPLACE              ,-10013)
+    OP_ELIF(MPI_NO_OP                ,-10014)
+    else {
+        return MPI_Op_f2c(op_f);
     } 
 }
 
