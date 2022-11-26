@@ -1,7 +1,5 @@
 module mpi_p2p_c
 
-    ! STANDARD STUFF
-
     interface
         subroutine C_MPI_Probe(source_c, tag_c, comm_c, status_c, ierror_c) &
                    bind(C,name="C_MPI_Probe")

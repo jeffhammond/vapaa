@@ -1,10 +1,5 @@
 module mpi_error_c
 
-    ! NOT STANDARD STUFF
-
-
-    ! STANDARD STUFF
-
     interface
         subroutine CFI_MPI_Error_string(errorcode_c, string_c, resultlen_c, ierror_c) &
                    bind(C,name="CFI_MPI_Error_string")

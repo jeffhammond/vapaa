@@ -1,7 +1,5 @@
 module mpi_coll_c
 
-    ! STANDARD STUFF
-
     interface
         subroutine C_MPI_Barrier(comm_c, ierror_c) &
                    bind(C,name="C_MPI_Barrier")

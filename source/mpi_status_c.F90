@@ -1,9 +1,5 @@
 module mpi_status_c
 
-    ! NOT STANDARD STUFF
-
-    ! STANDARD STUFF
-
     interface
         subroutine C_MPI_Status_set_elements(status, datatype_c, count_c, ierror_c) &
                    bind(C,name="C_MPI_Status_set_elements")
