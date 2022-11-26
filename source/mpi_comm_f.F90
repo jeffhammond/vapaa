@@ -170,7 +170,7 @@ module mpi_comm_f
             integer, optional, intent(out) :: ierror
             integer(kind=c_int) :: tag_c, ierror_c
             tag_c = tag
-            call C_MPI_Comm_create(comm % MPI_VAL, group % MPI_VAL, tag_c, newcomm % MPI_VAL, ierror_c)
+            call C_MPI_Comm_create_group(comm % MPI_VAL, group % MPI_VAL, tag_c, newcomm % MPI_VAL, ierror_c)
             if (present(ierror)) ierror = ierror_c
         end subroutine MPI_Comm_create_group_f08
 
@@ -188,17 +188,18 @@ module mpi_comm_f
             if (present(ierror)) ierror = ierror_c
         end subroutine MPI_Comm_split_f08
 
-        subroutine MPI_Comm_split_type_f08(comm, type, info, newcomm, ierror)
+        subroutine MPI_Comm_split_type_f08(comm, type, key, info, newcomm, ierror)
             use mpi_handle_types, only: MPI_Comm, MPI_Info
-            use mpi_comm_c, only: C_MPI_Comm_split
+            use mpi_comm_c, only: C_MPI_Comm_split_type
             type(MPI_Comm), intent(in) :: comm
-            integer, intent(in) :: type
+            integer, intent(in) :: type, key
             type(MPI_Info), intent(in) :: info
             type(MPI_Comm), intent(out) :: newcomm
             integer, optional, intent(out) :: ierror
-            integer(kind=c_int) :: type_c, ierror_c
+            integer(kind=c_int) :: type_c, key_c, ierror_c
             type_c = type
-            call C_MPI_Comm_split_type(comm % MPI_VAL, type_c, info % MPI_VAL, newcomm % MPI_VAL, ierror_c)
+            key_c = key
+            call C_MPI_Comm_split_type(comm % MPI_VAL, type_c, key_c, info % MPI_VAL, newcomm % MPI_VAL, ierror_c)
             if (present(ierror)) ierror = ierror_c
         end subroutine MPI_Comm_split_type_f08
 

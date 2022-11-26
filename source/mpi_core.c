@@ -2,10 +2,12 @@
 #include <stdlib.h> // NULL
 #include <mpi.h>
 #include "ISO_Fortran_binding.h"
+#include "mpi_handle_conversions.h"
 
 // We assume MPI_Fint is C int. This is verified during initialization.
 
 void * f08_mpi_in_place_address = {0};
+void * f08_mpi_bottom_address = {0};
 
 #ifdef HAVE_CFI
 void C_MPI_IN_PLACE(CFI_cdesc_t * desc)
@@ -17,6 +19,19 @@ void C_MPI_IN_PLACE(CFI_cdesc_t * desc)
 void C_MPI_IN_PLACE(void * class)
 {
     f08_mpi_in_place_address = class;
+}
+#endif
+
+#ifdef HAVE_CFI
+void C_MPI_BOTTOM(CFI_cdesc_t * desc)
+{
+    void * addr = desc->base_addr;
+    f08_mpi_bottom_address = addr;
+}
+#else
+void C_MPI_BOTTOM(void * class)
+{
+    f08_mpi_bottom_address = class;
 }
 #endif
 
@@ -100,7 +115,7 @@ void C_MPI_Query_thread(int * provided_f, int * ierror)
 
 void C_MPI_Abort(int * comm_f, int * errorcode, int * ierror)
 {
-    MPI_Comm comm = MPI_Comm_f2c(*comm_f);
+    MPI_Comm comm = C_MPI_COMM_F2C(*comm_f);
     *ierror = MPI_Abort(comm, *errorcode);
 }
 

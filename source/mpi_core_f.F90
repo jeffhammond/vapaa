@@ -91,77 +91,28 @@ module mpi_core_f
             endif
         end subroutine F_Check_design_assumptions
 
-        subroutine F_MPI_IN_PLACE()
-            use mpi_global_constants, only: MPI_IN_PLACE
-            use mpi_core_c, only: C_MPI_IN_PLACE
+        subroutine F_MPI_INIT_ADDRESS_SENTINELS()
+            use mpi_global_constants, only: MPI_IN_PLACE, MPI_BOTTOM
+            use mpi_core_c, only: C_MPI_IN_PLACE, C_MPI_BOTTOM
             call C_MPI_IN_PLACE(MPI_IN_PLACE)
-        end subroutine F_MPI_IN_PLACE
-
-        subroutine F_MPI_Init_handles()
-            use mpi_global_constants
-            use mpi_comm_c, only:     C_MPI_COMM_WORLD,    &
-                                      C_MPI_COMM_SELF,     &
-                                      C_MPI_COMM_NULL
-            use mpi_datatype_c, only: C_MPI_DATATYPE_NULL
-            use mpi_file_c, only:     C_MPI_FILE_NULL
-            use mpi_group_c, only:    C_MPI_GROUP_NULL
-            use mpi_info_c, only:     C_MPI_INFO_NULL
-            use mpi_message_c, only:  C_MPI_MESSAGE_NULL
-            use mpi_op_c, only:       C_MPI_OP_NULL, C_MPI_OP_BUILTINS
-            use mpi_request_c, only:  C_MPI_REQUEST_NULL
-            use mpi_win_c, only:      C_MPI_WIN_NULL
-            ! comm
-            call C_MPI_COMM_WORLD(MPI_COMM_WORLD % MPI_VAL)
-            call C_MPI_COMM_SELF(MPI_COMM_SELF % MPI_VAL)
-            call C_MPI_COMM_NULL(MPI_COMM_NULL % MPI_VAL)
-            ! datatype
-            call C_MPI_DATATYPE_NULL(MPI_DATATYPE_NULL % MPI_VAL)
-            ! file
-            call C_MPI_FILE_NULL(MPI_FILE_NULL % MPI_VAL)
-            ! group
-            call C_MPI_GROUP_NULL(MPI_GROUP_NULL % MPI_VAL)
-            ! message
-            call C_MPI_MESSAGE_NULL(MPI_MESSAGE_NULL % MPI_VAL)
-            ! info
-            call C_MPI_INFO_NULL(MPI_INFO_NULL % MPI_VAL)
-            ! op
-            call C_MPI_OP_NULL(MPI_OP_NULL % MPI_VAL)
-            ! request
-            call C_MPI_REQUEST_NULL(MPI_REQUEST_NULL % MPI_VAL)
-            ! win
-            call C_MPI_WIN_NULL(MPI_WIN_NULL % MPI_VAL)
-            ! status ignore
-            MPI_STATUS_IGNORE % MPI_SOURCE   = -9119
-            MPI_STATUS_IGNORE % MPI_TAG      = -9119
-            MPI_STATUS_IGNORE % MPI_ERROR    = -9119
-            MPI_STATUSES_IGNORE % MPI_SOURCE = -9119
-            MPI_STATUSES_IGNORE % MPI_TAG    = -9119
-            MPI_STATUSES_IGNORE % MPI_ERROR  = -9119
-            ! we need to be able to check if this function has been called
-            ! or else most things will not work.  user must initialize
-            ! _this_ library using its MPI_Init, and no other.
-            global_handles_are_initialized = .true.
-        end subroutine F_MPI_Init_handles
+            call C_MPI_BOTTOM(MPI_BOTTOM)
+        end subroutine F_MPI_INIT_ADDRESS_SENTINELS
 
         subroutine MPI_Init_f08(ierror) 
             use iso_c_binding, only: c_sizeof, c_int
             use mpi_core_c, only: C_MPI_Init
-            use mpi_datatype_f, only: F_MPI_Init_datatypes
-            use mpi_op_f, only: F_MPI_Init_ops
+            use mpi_status_f, only: F_MPI_Init_status
             integer, optional, intent(out) :: ierror
             integer(kind=c_int) :: ierror_c
             call C_MPI_Init(ierror_c)
-            call F_MPI_Init_handles()
-            call F_MPI_Init_datatypes()
-            call F_MPI_Init_ops()
+            call F_MPI_Init_status()
             call F_Check_design_assumptions()
             if (present(ierror)) ierror = ierror_c
         end subroutine MPI_Init_f08
 
         subroutine MPI_Init_thread_f08(required, provided, ierror) 
             use mpi_core_c, only: C_MPI_Init_thread
-            use mpi_datatype_f, only: F_MPI_Init_datatypes
-            use mpi_op_f, only: F_MPI_Init_ops
+            use mpi_status_f, only: F_MPI_Init_status
             integer, intent(in) :: required
             integer, intent(out) :: provided
             integer, optional, intent(out) :: ierror
@@ -169,9 +120,7 @@ module mpi_core_f
             required_c = required
             call C_MPI_Init_thread(required_c, provided_c, ierror_c)
             provided = provided_c
-            call F_MPI_Init_handles()
-            call F_MPI_Init_datatypes()
-            call F_MPI_Init_ops()
+            call F_MPI_Init_status()
             call F_Check_design_assumptions()
             if (present(ierror)) ierror = ierror_c
         end subroutine MPI_Init_thread_f08

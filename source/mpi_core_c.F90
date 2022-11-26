@@ -15,6 +15,19 @@ module mpi_core_c
         end subroutine C_MPI_IN_PLACE
     end interface
 
+    interface
+        subroutine C_MPI_BOTTOM(bottom) &
+                   bind(C,name="C_MPI_BOTTOM")
+            use iso_c_binding, only: c_intptr_t 
+            implicit none
+#ifdef HAVE_CFI
+            type(*) :: bottom
+#else
+            class(*) :: bottom
+#endif
+        end subroutine C_MPI_BOTTOM
+    end interface
+
     ! STANDARD STUFF
 
     interface

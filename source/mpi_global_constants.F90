@@ -14,20 +14,23 @@ module mpi_global_constants
     integer, parameter :: MPI_SIMILAR   = 2
     integer, parameter :: MPI_UNEQUAL   = 3
 
+    ! TODO: These now work as initializers, but they need to be handled
+    !       everywhere they can be used.  That will be tedious...
+
     ! useful handles
-    type(MPI_Comm)     :: MPI_COMM_WORLD
-    type(MPI_Comm)     :: MPI_COMM_SELF
+    type(MPI_Comm), parameter     :: MPI_COMM_WORLD    = MPI_Comm(MPI_VAL     = -1000000)
+    type(MPI_Comm), parameter     :: MPI_COMM_SELF     = MPI_Comm(MPI_VAL     = -1)
 
     ! NULL handles
-    type(MPI_Comm)     :: MPI_COMM_NULL
-    type(MPI_Datatype) :: MPI_DATATYPE_NULL
-    type(MPI_File)     :: MPI_FILE_NULL
-    type(MPI_Group)    :: MPI_GROUP_NULL
-    type(MPI_Info)     :: MPI_INFO_NULL
-    type(MPI_Message)  :: MPI_MESSAGE_NULL
-    type(MPI_Op)       :: MPI_OP_NULL
-    type(MPI_Request)  :: MPI_REQUEST_NULL
-    type(MPI_Win)      :: MPI_WIN_NULL
+    type(MPI_Comm), parameter     :: MPI_COMM_NULL     = MPI_Comm(MPI_VAL     = -911)
+    type(MPI_Datatype), parameter :: MPI_DATATYPE_NULL = MPI_Datatype(MPI_VAL = -911)
+    type(MPI_File), parameter     :: MPI_FILE_NULL     = MPI_File(MPI_VAL     = -911)
+    type(MPI_Group), parameter    :: MPI_GROUP_NULL    = MPI_Group(MPI_VAL    = -911)
+    type(MPI_Info), parameter     :: MPI_INFO_NULL     = MPI_Info(MPI_VAL     = -911)
+    type(MPI_Message), parameter  :: MPI_MESSAGE_NULL  = MPI_Message(MPI_VAL  = -911)
+    type(MPI_Op), parameter       :: MPI_OP_NULL       = MPI_Op(MPI_VAL       = -911)
+    type(MPI_Request), parameter  :: MPI_REQUEST_NULL  = MPI_Request(MPI_VAL  = -911)
+    type(MPI_Win), parameter      :: MPI_WIN_NULL      = MPI_Win(MPI_VAL      = -911)
 
     ! Magic sentinels
     !  The constants that cannot be used in initialization expressions or assignments in Fortran are as follows:
