@@ -30,6 +30,34 @@ module mpi_comm_f
         module procedure MPI_Comm_idup_with_info_f08
     end interface MPI_Comm_idup_with_info
 
+    interface MPI_Comm_create
+        module procedure MPI_Comm_create_f08
+    end interface MPI_Comm_create
+
+    interface MPI_Comm_create_group
+        module procedure MPI_Comm_create_group_f08
+    end interface MPI_Comm_create_group
+
+    interface MPI_Comm_split
+        module procedure MPI_Comm_split_f08
+    end interface MPI_Comm_split
+
+    interface MPI_Comm_split_type
+        module procedure MPI_Comm_split_type_f08
+    end interface MPI_Comm_split_type
+
+    interface MPI_Comm_free
+        module procedure MPI_Comm_free_f08
+    end interface MPI_Comm_free
+
+    interface MPI_Cart_create
+        module procedure MPI_Cart_create_f08
+    end interface MPI_Cart_create
+
+    interface MPI_Dims_create
+        module procedure MPI_Dims_create_f08
+    end interface MPI_Dims_create
+
     contains
 
         subroutine MPI_Comm_rank_f08(comm, rank, ierror)
@@ -179,5 +207,58 @@ module mpi_comm_f
             call C_MPI_Comm_free(comm % MPI_VAL, ierror_c)
             if (present(ierror)) ierror = ierror_c
         end subroutine MPI_Comm_free_f08
+
+        subroutine MPI_Cart_create_f08(comm, ndims, dims, periods, reorder, newcomm, ierror)
+            use mpi_handle_types, only: MPI_Comm
+            use mpi_comm_c, only: C_MPI_Cart_create
+            use mpi_error_f, only: MPI_ERR_UNSUPPORTED_OPERATION
+            type(MPI_Comm), intent(in) :: comm
+            integer, intent(in) :: ndims, dims(ndims)
+            logical, intent(in) :: periods(ndims), reorder
+            type(MPI_Comm), intent(out) :: newcomm
+            integer, optional, intent(out) :: ierror
+            integer(kind=c_int) :: ndims_c, reorder_c, ierror_c
+            integer, parameter :: max_dims = 16
+            integer(kind=c_int), dimension(max_dims) :: dims_c, periods_c
+            if ( ndims > max_dims ) then
+                print*,'Sorry, only 16 cartesian dimensions are supported.'
+                ierror = MPI_ERR_UNSUPPORTED_OPERATION
+                return
+            end if
+            ndims_c = ndims
+            if (reorder) then
+                reorder_c = 1
+            else
+                reorder_c = 0
+            end if
+            dims_c(1:ndims) = dims(1:ndims)
+            where (periods)
+                periods_c = 1
+            elsewhere
+                periods_c = 0
+            end where
+            call C_MPI_Cart_create(comm % MPI_VAL, ndims_c, dims_c, periods_c, reorder_c, newcomm % MPI_VAL, ierror_c)
+            if (present(ierror)) ierror = ierror_c
+        end subroutine MPI_Cart_create_f08
+
+        subroutine MPI_Dims_create_f08(nnodes, ndims, dims, ierror)
+            use mpi_comm_c, only: C_MPI_Dims_create
+            use mpi_error_f, only: MPI_ERR_UNSUPPORTED_OPERATION
+            integer, intent(in) :: nnodes, ndims, dims(ndims)
+            integer, optional, intent(out) :: ierror
+            integer(kind=c_int) :: nnodes_c, ndims_c, ierror_c
+            integer, parameter :: max_dims = 16
+            integer(kind=c_int), dimension(max_dims) :: dims_c
+            if ( ndims > max_dims ) then
+                print*,'Sorry, only 16 cartesian dimensions are supported.'
+                ierror = MPI_ERR_UNSUPPORTED_OPERATION
+                return
+            end if
+            nnodes_c = nnodes
+            ndims_c = ndims
+            dims_c(1:ndims) = dims(1:ndims)
+            call C_MPI_Dims_create(nnodes_c, ndims_c, dims_c, ierror_c)
+            if (present(ierror)) ierror = ierror_c
+        end subroutine MPI_Dims_create_f08
 
 end module mpi_comm_f
