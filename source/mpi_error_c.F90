@@ -6,13 +6,13 @@ module mpi_error_c
     ! STANDARD STUFF
 
     interface
-        subroutine C_MPI_Error_string(errorcode_c, string_c, resultlen_c, ierror_c) &
-                   bind(C,name="C_MPI_Error_string")
+        subroutine CFI_MPI_Error_string(errorcode_c, string_c, resultlen_c, ierror_c) &
+                   bind(C,name="CFI_MPI_Error_string")
             use iso_c_binding, only: c_int, c_char
             implicit none
             integer(kind=c_int) :: errorcode_c, resultlen_c, ierror_c
             character(kind=c_char), dimension(:) :: string_c
-        end subroutine C_MPI_Error_string
+        end subroutine CFI_MPI_Error_string
     end interface
 
     interface

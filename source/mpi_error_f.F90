@@ -96,7 +96,7 @@ module mpi_error_f
         subroutine MPI_Error_string_f08(errorcode, string, resultlen, ierror)
             use iso_c_binding, only: c_int, c_char, c_null_char
             use mpi_global_constants, only: MPI_MAX_ERROR_STRING
-            use mpi_error_c, only: C_MPI_Error_string
+            use mpi_error_c, only: CFI_MPI_Error_string
             integer, intent(in) :: errorcode
             character(len=MPI_MAX_ERROR_STRING), intent(out) :: string
             integer, intent(out) :: resultlen
@@ -107,7 +107,7 @@ module mpi_error_f
             errorcode_c = errorcode
             allocate( string_c(MPI_MAX_ERROR_STRING) )
             string_c = c_null_char
-            call C_MPI_Error_string(errorcode_c, string_c, resultlen_c, ierror_c)
+            call CFI_MPI_Error_string(errorcode_c, string_c, resultlen_c, ierror_c)
             resultlen = resultlen_c
             do i = 1, min(resultlen+1,MPI_MAX_ERROR_STRING)
               string(i:i) = string_c(i)
