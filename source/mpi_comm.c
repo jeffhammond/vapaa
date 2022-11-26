@@ -133,3 +133,17 @@ void C_MPI_Comm_free(int * comm_f, int * ierror)
     *comm_f = MPI_Comm_c2f(comm);
 }
 
+void C_MPI_Cart_create(int * comm_f, int * ndims, int * dims, int * periods, int * reorder, int * newcomm_f, int * ierror)
+{
+    MPI_Comm newcomm = MPI_COMM_NULL;
+    MPI_Comm comm = MPI_Comm_f2c(*comm_f);
+    *ierror = MPI_Cart_create(comm, *ndims, dims, periods, *reorder, &newcomm);
+    *newcomm_f = MPI_Comm_c2f(newcomm);
+}
+
+void C_MPI_Dims_create(int * nnodes, int * ndims, int * dims, int * ierror)
+{
+    *ierror = MPI_Dims_create(*nnodes, *ndims, dims);
+}
+
+
