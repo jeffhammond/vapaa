@@ -146,4 +146,9 @@ void C_MPI_Dims_create(int * nnodes, int * ndims, int * dims, int * ierror)
     *ierror = MPI_Dims_create(*nnodes, *ndims, dims);
 }
 
+void C_MPI_Cart_coords(int * comm_f, int * rank, int * maxdims, int * coords, int * ierror)
+{
+    MPI_Comm comm = MPI_Comm_f2c(*comm_f);
+    *ierror = MPI_Cart_coords(comm, *rank, *maxdims, coords);
+}
 

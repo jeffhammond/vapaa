@@ -145,8 +145,7 @@ module mpi_comm_c
             use iso_c_binding, only: c_int
             implicit none
             integer(kind=c_int) :: comm_c, ndims_c, reorder_c, newcomm_c, ierror_c
-            ! 16 must match MPI_Cart_create_f08 in mpi_comm_f.F90
-            integer(kind=c_int), dimension(16) :: dims_c, periods_c
+            integer(kind=c_int) :: dims_c(*), periods_c(*)
         end subroutine C_MPI_Cart_create
     end interface
 
@@ -156,9 +155,18 @@ module mpi_comm_c
             use iso_c_binding, only: c_int
             implicit none
             integer(kind=c_int) :: nnodes_c, ndims_c, ierror_c
-            ! 16 must match MPI_Dims_create_f08 in mpi_comm_f.F90
-            integer(kind=c_int), dimension(16) :: dims_c
+            integer(kind=c_int) :: dims_c(*)
         end subroutine C_MPI_Dims_create
+    end interface
+
+    interface
+        subroutine C_MPI_Cart_coords(comm_c, rank_c, maxdims_c, coords_c, ierror_c) &
+                   bind(C,name="C_MPI_Cart_coords")
+            use iso_c_binding, only: c_int
+            implicit none
+            integer(kind=c_int) :: comm_c, rank_c, maxdims_c, ierror_c
+            integer(kind=c_int) :: coords_c(*)
+        end subroutine C_MPI_Cart_coords
     end interface
 
 end module mpi_comm_c
