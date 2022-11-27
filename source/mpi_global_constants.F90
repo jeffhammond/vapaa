@@ -33,7 +33,7 @@ module mpi_global_constants
     type(MPI_Win), parameter      :: MPI_WIN_NULL      = MPI_Win(MPI_VAL      = -911)
 
     ! Magic sentinels
-    !  The constants that cannot be used in initialization expressions or assignments in Fortran are as follows:
+    ! The constants that cannot be used in initialization expressions or assignments in Fortran are as follows:
     ! Buffer address sentinels
     integer :: MPI_BOTTOM          =  0
     integer :: MPI_IN_PLACE        =  1
@@ -52,6 +52,9 @@ module mpi_global_constants
     ! The constants that are required to be compile-time constants
     ! (and can thus be used for array length declarations and labels 
     ! in C switch and Fortran case/select statements) are:
+
+    integer, parameter :: MPI_ORDER_C       = 321
+    integer, parameter :: MPI_ORDER_FORTRAN = 123
 
     ! use a ridiculously large value that will always be larger than
     ! what any implementation uses, to avoid having to query the
