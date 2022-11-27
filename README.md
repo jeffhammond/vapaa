@@ -6,9 +6,9 @@ An attempt to implement MPI Fortran 2018 support using only the MPI C API.
 
 1. The Fortran MPI profiling interface is not supported.  All Fortran MPI procedures call their C MPI counterparts, so all profiling information will be obtained as if the application calls MPI from C directly.
 
-2. All of the predefined/built-in handles are initiatlized at runtime during library initialization. Nothing is a compile-time or link-time constant.
+2. ~All of the predefined/built-in handles are initiatlized at runtime during library initialization. Nothing is a compile-time or link-time constant.~ This is fixed.
 
-3. Applications must initiatlize MPI using the initialization procedures in this library, because of 2.
+3. Applications must initiatlize MPI using the initialization procedures in this library.
 
 4. Fortran 2018 C interoperability features (i.e. _Technical Specification (TS) 29113 on Further Interoperability of Fortran with C_) are currently required.  This requirement will be relaxed in the future.
 
@@ -37,7 +37,6 @@ struct MPI_Request {
 ```
 and thus we can pass arrays of `type(MPI_Request)` to C interfaces expecting `int[]`.
 
-
 ## Supported functions
 
 Obviously, we want to support almost everything some day, but for now, we support only the following:
@@ -56,16 +55,10 @@ Obviously, we want to support almost everything some day, but for now, we suppor
 * I/O: `MPI_File_open`, `MPI_File_close`
 * Errors: `MPI_Error_string`
 
-### Unested Functions
+### Untested Functions
 
 * Collectives: `MPI_Reduce`,
                `MPI_Gather`, `MPI_Allgather`, `MPI_Scatter`, `MPI_Alltoall`
 * Errors: `MPI_Error_class`
-* 
-### Known Issues
 
-* `MPI_COMM_WORLD` cannot be used for initializatin:
-```
-Error: Parameter 'mpi_comm_world' at (1) has not been declared or is a variable, which does not reduce to a constant expression
-test_handles.F90:7:26:
-```
+### Known Issues
