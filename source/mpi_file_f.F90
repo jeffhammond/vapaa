@@ -224,8 +224,8 @@ module mpi_file_f
             do i = 1, ls
               datarep_c(i) = datarep(i:i)
             end do
-            call C_MPI_File_set_size(file % MPI_VAL, disp_c, etype % MPI_VAL, filetype % MPI_VAL, &
-                                     datarep_c, info % MPI_VAL, ierror_c)
+            call CFI_MPI_File_set_view(file % MPI_VAL, disp_c, etype % MPI_VAL, filetype % MPI_VAL, &
+                                       datarep_c, info % MPI_VAL, ierror_c)
             deallocate( datarep_c )
             if (present(ierror)) ierror = ierror_c
         end subroutine MPI_File_set_view_f08
