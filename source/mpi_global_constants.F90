@@ -72,7 +72,7 @@ module mpi_global_constants
     ! but we can at least say this much, since MPI F08 was added
     ! in MPI 3.0
     integer, parameter :: MPI_VERSION    = 3
-    integer, parameter :: MPI_SUBVERSION = 0
+    integer, parameter :: MPI_SUBVERSION = 1
 
     ! make this unusable, to force use of type(MPI_Status)
     integer, parameter :: MPI_STATUS_SIZE = -1

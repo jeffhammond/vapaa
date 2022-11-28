@@ -61,6 +61,7 @@ module mpi_comm_c
         end subroutine C_MPI_Comm_idup
     end interface
 
+#if 0
     interface
         subroutine C_MPI_Comm_idup_with_info(comm_c, info_c, newcomm_c, request_c, ierror_c) &
                    bind(C,name="C_MPI_Comm_idup_with_info")
@@ -71,6 +72,7 @@ module mpi_comm_c
             integer(kind=c_int), intent(out) :: request_c, ierror_c
         end subroutine C_MPI_Comm_idup_with_info
     end interface
+#endif
 
     interface
         subroutine C_MPI_Comm_create(comm_c, group_c, newcomm_c, ierror_c) &

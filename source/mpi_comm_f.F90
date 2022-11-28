@@ -26,9 +26,11 @@ module mpi_comm_f
         module procedure MPI_Comm_idup_f08
     end interface MPI_Comm_idup
 
+#if 0
     interface MPI_Comm_idup_with_info
         module procedure MPI_Comm_idup_with_info_f08
     end interface MPI_Comm_idup_with_info
+#endif
 
     interface MPI_Comm_create
         module procedure MPI_Comm_create_f08
@@ -135,6 +137,7 @@ module mpi_comm_f
             if (present(ierror)) ierror = ierror_c
         end subroutine MPI_Comm_idup_f08
 
+#if MPI_VERSION >= 4
         subroutine MPI_Comm_idup_with_info_f08(comm, info, newcomm, request, ierror)
             use mpi_handle_types, only: MPI_Comm, MPI_Info, MPI_Request
             use mpi_comm_c, only: C_MPI_Comm_idup_with_info
@@ -147,6 +150,7 @@ module mpi_comm_f
             call C_MPI_Comm_idup_with_info(comm % MPI_VAL, info % MPI_VAL, newcomm % MPI_VAL, request % MPI_VAL, ierror_c)
             if (present(ierror)) ierror = ierror_c
         end subroutine MPI_Comm_idup_with_info_f08
+#endif
 
         subroutine MPI_Comm_create_f08(comm, group, newcomm, ierror)
             use mpi_handle_types, only: MPI_Comm, MPI_Group

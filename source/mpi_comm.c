@@ -62,6 +62,7 @@ void C_MPI_Comm_idup(int * comm_f, int * newcomm_f, int * request_f, int * ierro
     *request_f = MPI_Request_c2f(request);
 }
 
+#if MPI_VERSION >= 4
 void C_MPI_Comm_idup_with_info(int * comm_f, int * info_f, int * newcomm_f, int * request_f, int * ierror)
 {
     MPI_Request request = MPI_REQUEST_NULL;
@@ -72,6 +73,7 @@ void C_MPI_Comm_idup_with_info(int * comm_f, int * info_f, int * newcomm_f, int 
     *newcomm_f = MPI_Comm_c2f(newcomm);
     *request_f = MPI_Request_c2f(request);
 }
+#endif
 
 void C_MPI_Comm_create(int * comm_f, int * group_f, int * newcomm_f, int * ierror)
 {
