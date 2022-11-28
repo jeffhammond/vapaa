@@ -35,7 +35,7 @@ module mpi_core_c
                    bind(C,name="C_MPI_Init")
             use iso_c_binding, only: c_int
             implicit none
-            integer(kind=c_int) :: ierror_c
+            integer(kind=c_int), intent(out) :: ierror_c
         end subroutine C_MPI_Init
     end interface
 
@@ -44,7 +44,7 @@ module mpi_core_c
                    bind(C,name="C_MPI_Finalize")
             use iso_c_binding, only: c_int
             implicit none
-            integer(kind=c_int) :: ierror_c
+            integer(kind=c_int), intent(out) :: ierror_c
         end subroutine C_MPI_Finalize
     end interface
 
@@ -53,7 +53,8 @@ module mpi_core_c
                    bind(C,name="C_MPI_Init_thread")
             use iso_c_binding, only: c_int
             implicit none
-            integer(kind=c_int) :: required_c, provided_c, ierror_c
+            integer(kind=c_int), intent(in) :: required_c
+            integer(kind=c_int), intent(out) :: provided_c, ierror_c
         end subroutine C_MPI_Init_thread
     end interface
 
@@ -62,7 +63,7 @@ module mpi_core_c
                    bind(C,name="C_MPI_Initialized")
             use iso_c_binding, only: c_int
             implicit none
-            integer(kind=c_int) :: flag_c, ierror_c
+            integer(kind=c_int), intent(out) :: flag_c, ierror_c
         end subroutine C_MPI_Initialized
     end interface
 
@@ -71,7 +72,7 @@ module mpi_core_c
                    bind(C,name="C_MPI_Finalize")
             use iso_c_binding, only: c_int
             implicit none
-            integer(kind=c_int) :: flag_c, ierror_c
+            integer(kind=c_int), intent(out) :: flag_c, ierror_c
         end subroutine C_MPI_Finalized
     end interface
 
@@ -80,7 +81,7 @@ module mpi_core_c
                    bind(C,name="C_MPI_Query_thread")
             use iso_c_binding, only: c_int
             implicit none
-            integer(kind=c_int) :: provided_c, ierror_c
+            integer(kind=c_int), intent(out) :: provided_c, ierror_c
         end subroutine C_MPI_Query_thread
     end interface
 
@@ -89,7 +90,8 @@ module mpi_core_c
                    bind(C,name="C_MPI_Abort")
             use iso_c_binding, only: c_int
             implicit none
-            integer(kind=c_int) :: comm_c, errorcode_c, ierror_c
+            integer(kind=c_int), intent(in) :: comm_c, errorcode_c
+            integer(kind=c_int), intent(out) :: ierror_c
         end subroutine C_MPI_Abort
     end interface
 
@@ -98,7 +100,7 @@ module mpi_core_c
                    bind(C,name="C_MPI_Get_version")
             use iso_c_binding, only: c_int
             implicit none
-            integer(kind=c_int) :: version_c, subversion_c, ierror_c
+            integer(kind=c_int), intent(out) :: version_c, subversion_c, ierror_c
         end subroutine C_MPI_Get_version
     end interface
 
@@ -107,8 +109,8 @@ module mpi_core_c
                    bind(C,name="C_MPI_Get_library_version")
             use iso_c_binding, only: c_int, c_char
             implicit none
-            character(kind=c_char), dimension(:) :: version_c
-            integer(kind=c_int) :: resultlen_c, ierror_c
+            character(kind=c_char), dimension(:), intent(out) :: version_c
+            integer(kind=c_int), intent(out) :: resultlen_c, ierror_c
         end subroutine C_MPI_Get_library_version
     end interface
 
