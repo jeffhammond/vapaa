@@ -66,6 +66,32 @@ module mpi_file_c
     end interface
 
     interface
+        subroutine C_MPI_File_set_view(file_c, disp_c, etype_c, filetype_c, datarep_c,  ierror_c) &
+                   bind(C,name="C_MPI_File_set_view")
+            use iso_c_binding, only: c_int, c_intptr_t, c_char
+            implicit none
+            integer(kind=c_int), intent(in) :: file_c, etype_c, filetype_c
+            integer(kind=c_intptr_t), intent(in) :: disp_c
+            character(kind=c_char), dimension(:) :: datarep_c
+            integer(kind=c_int), intent(out) :: ierror_c
+        end subroutine C_MPI_File_set_view
+    end interface
+
+#ifdef HAVE_CFI
+    interface
+        subroutine CFI_MPI_File_set_view(file_c, disp_c, etype_c, filetype_c, datarep,  ierror_c) &
+                   bind(C,name="CFI_MPI_File_set_view")
+            use iso_c_binding, only: c_int, c_intptr_t, c_char
+            implicit none
+            integer(kind=c_int), intent(in) :: file_c, etype_c, filetype_c
+            integer(kind=c_intptr_t), intent(in) :: disp_c
+            type(*), dimension(..) :: datarep
+            integer(kind=c_int), intent(out) :: ierror_c
+        end subroutine CFI_MPI_File_set_view
+    end interface
+#endif
+
+    interface
         subroutine C_MPI_File_read_at(file_c, offset_c, buf, count_c, datatype_c, status, ierror_c) &
                    bind(C,name="C_MPI_File_read_at")
             use iso_c_binding, only: c_int, c_intptr_t

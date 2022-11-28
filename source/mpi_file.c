@@ -79,16 +79,29 @@ void C_MPI_File_get_size(int * file_f, intptr_t * size_f, int * ierror)
     *size_f = size;
 }
 
+// THIS MAY NOT WORK
+void C_MPI_File_set_view(int * file_f, intptr_t * disp_f, int * etype_f, int * filetype_f, char * datarep, int * info_f, int * ierror)
+{
+    MPI_File file = C_MPI_FILE_F2C(*file_f);
+    MPI_Offset disp = *disp_f;
+    MPI_Datatype etype = C_MPI_TYPE_F2C(*etype_f);
+    MPI_Datatype filetype = C_MPI_TYPE_F2C(*filetype_f);
+    MPI_Info info = C_MPI_INFO_F2C(*info_f);
+    *ierror = MPI_File_set_view(file, disp, etype, filetype, datarep, info);
+}
+
+#ifdef HAVE_CFI
 void CFI_MPI_File_set_view(int * file_f, intptr_t * disp_f, int * etype_f, int * filetype_f, CFI_cdesc_t * datarep_d, int * info_f, int * ierror)
 {
     MPI_File file = C_MPI_FILE_F2C(*file_f);
     MPI_Offset disp = *disp_f;
     MPI_Datatype etype = C_MPI_TYPE_F2C(*etype_f);
-    char * datarep = datarep_d -> base_addr;
     MPI_Datatype filetype = C_MPI_TYPE_F2C(*filetype_f);
+    char * datarep = datarep_d -> base_addr;
     MPI_Info info = C_MPI_INFO_F2C(*info_f);
     *ierror = MPI_File_set_view(file, disp, etype, filetype, datarep, info);
 }
+#endif
 
 void C_MPI_File_read_at(int * file_f, intptr_t * offset_f, void * buffer, int * count_f, int * datatype_f, MPI_Status * status, int * ierror)
 {
