@@ -244,13 +244,15 @@ module mpi_comm_f
 
         subroutine MPI_Dims_create_f08(nnodes, ndims, dims, ierror)
             use mpi_comm_c, only: C_MPI_Dims_create
-            integer, intent(in) :: nnodes, ndims, dims(ndims)
+            integer, intent(in) :: nnodes, ndims
+            integer, intent(inout) :: dims(ndims)
             integer, optional, intent(out) :: ierror
             integer(kind=c_int) :: nnodes_c, ndims_c, dims_c(ndims), ierror_c
             nnodes_c = nnodes
             ndims_c = ndims
             dims_c = dims
             call C_MPI_Dims_create(nnodes_c, ndims_c, dims_c, ierror_c)
+            dims = dims_c
             if (present(ierror)) ierror = ierror_c
         end subroutine MPI_Dims_create_f08
 

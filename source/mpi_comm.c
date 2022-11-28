@@ -125,6 +125,7 @@ void C_MPI_Cart_create(int * comm_f, int * ndims, int * dims, int * periods, int
     *newcomm_f = MPI_Comm_c2f(newcomm);
 }
 
+#include <stdio.h>
 void C_MPI_Dims_create(int * nnodes, int * ndims, int * dims, int * ierror)
 {
     *ierror = MPI_Dims_create(*nnodes, *ndims, dims);

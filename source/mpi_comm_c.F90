@@ -141,7 +141,7 @@ module mpi_comm_c
             use iso_c_binding, only: c_int
             implicit none
             integer(kind=c_int), intent(in) :: nnodes_c, ndims_c, ierror_c
-            integer(kind=c_int), intent(out) :: dims_c(*)
+            integer(kind=c_int), intent(inout) :: dims_c(ndims_c)
         end subroutine C_MPI_Dims_create
     end interface
 

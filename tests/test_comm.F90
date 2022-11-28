@@ -19,28 +19,35 @@ program test_comm
     call MPI_Comm_idup(MPI_COMM_WORLD,dw(2),r)
     call MPI_Wait(r,MPI_STATUS_IGNORE)
 
-    call MPI_Comm_dup_with_info(MPI_COMM_WORLD,MPI_INFO_NULL,dw(2))
+    call MPI_Comm_dup_with_info(MPI_COMM_WORLD,MPI_INFO_NULL,dw(3))
 
 #if MPI_VERSION >= 4
-    call MPI_Comm_idup_with_info(MPI_COMM_WORLD,MPI_INFO_NULL,dw(2),r)
+    call MPI_Comm_idup_with_info(MPI_COMM_WORLD,MPI_INFO_NULL,dw(4),r)
     call MPI_Wait(r,MPI_STATUS_IGNORE)
 #endif
 
-    call MPI_Comm_compare(w,dw(1),res)
-
     !if (np.eq.3) call MPI_Abort(MPI_COMM_WORLD,3)
 
-    do i=1,size(dw)
+    do i=1,3
+        call MPI_Comm_compare(w,dw(i),res)
+        !print*,'compare result(',i,')=',res
+        !print*,me,': barrier ',i
+        call MPI_Barrier(dw(i))
+        !print*,me,': free ',i
         call MPI_Comm_free(dw(i))
     end do
 
+#if 1
     block
-        integer :: dims(2)
-        call MPI_Dims_create(np, size(shape(dims)), dims)
-        call MPI_Cart_create(MPI_COMM_WORLD, size(shape(dims)), dims, [.false.,.false.], .true., cart)
+        integer :: dims(2) = 0
+        logical :: periods(2) = .false.
+        call MPI_Dims_create(np, 2, dims)
+        if (me.eq.0) print*,'dims=',dims
+        call MPI_Cart_create(MPI_COMM_WORLD, 2, dims, periods, .true., cart, ierror)
         call MPI_Barrier(cart)
         call MPI_Comm_free(cart)
     end block
+#endif
 
     call MPI_Finalize(ierror)
 
