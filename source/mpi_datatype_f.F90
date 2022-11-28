@@ -61,6 +61,95 @@ module mpi_datatype_f
     type(MPI_Datatype), parameter :: MPI_C_DOUBLE_COMPLEX            = MPI_Datatype(MPI_VAL = -3038)
     type(MPI_Datatype), parameter :: MPI_C_LONG_DOUBLE_COMPLEX       = MPI_Datatype(MPI_VAL = -3039)
 
+    interface MPI_Type_commit
+        module procedure MPI_Type_commit_f08
+    end interface MPI_Type_commit
+
+    interface MPI_Type_free
+        module procedure MPI_Type_free_f08
+    end interface MPI_Type_free
+
+    interface MPI_Type_contiguous
+        module procedure MPI_Type_contiguous_f08
+    end interface MPI_Type_contiguous
+
+    interface MPI_Type_vector
+        module procedure MPI_Type_vector_f08
+    end interface MPI_Type_vector
+
+    interface MPI_Type_create_subarray
+        module procedure MPI_Type_create_subarray_f08
+    end interface MPI_Type_create_subarray
+
     contains
+
+        subroutine MPI_Type_commit_f08(datatype, ierror) 
+            use mpi_handle_types, only: MPI_Datatype
+            use mpi_datatype_c, only: C_MPI_Type_commit
+            type(MPI_Datatype), intent(inout) :: datatype
+            integer, optional, intent(out) :: ierror
+            integer(kind=c_int) :: ierror_c
+            call C_MPI_Type_commit(datatype % MPI_VAL, ierror_c)
+            if (present(ierror)) ierror = ierror_c
+        end subroutine MPI_Type_commit_f08
+
+        subroutine MPI_Type_free_f08(datatype, ierror) 
+            use mpi_handle_types, only: MPI_Datatype
+            use mpi_datatype_c, only: C_MPI_Type_free
+            type(MPI_Datatype), intent(inout) :: datatype
+            integer, optional, intent(out) :: ierror
+            integer(kind=c_int) :: ierror_c
+            call C_MPI_Type_free(datatype % MPI_VAL, ierror_c)
+            if (present(ierror)) ierror = ierror_c
+        end subroutine MPI_Type_free_f08
+
+        subroutine MPI_Type_contiguous_f08(count, oldtype, newtype, ierror) 
+            use mpi_handle_types, only: MPI_Datatype
+            use mpi_datatype_c, only: C_MPI_Type_contiguous
+            integer, intent(in) :: count
+            type(MPI_Datatype), intent(in) :: oldtype
+            type(MPI_Datatype), intent(out) :: newtype
+            integer, optional, intent(out) :: ierror
+            integer(kind=c_int) :: count_c, ierror_c
+            count_c = count
+            call C_MPI_Type_contiguous(count_c, oldtype % MPI_VAL, newtype % MPI_VAL, ierror_c)
+            if (present(ierror)) ierror = ierror_c
+        end subroutine MPI_Type_contiguous_f08
+
+        subroutine MPI_Type_vector_f08(count, blocklength, stride, oldtype, newtype, ierror) 
+            use mpi_handle_types, only: MPI_Datatype
+            use mpi_datatype_c, only: C_MPI_Type_vector
+            integer, intent(in) :: count, blocklength, stride
+            type(MPI_Datatype), intent(in) :: oldtype
+            type(MPI_Datatype), intent(out) :: newtype
+            integer, optional, intent(out) :: ierror
+            integer(kind=c_int) :: count_c, blocklength_c, stride_c, ierror_c
+            count_c = count
+            blocklength_c = blocklength
+            stride_c = stride
+            call C_MPI_Type_vector(count_c, blocklength_c, stride_c,  oldtype % MPI_VAL, newtype % MPI_VAL, ierror_c)
+            if (present(ierror)) ierror = ierror_c
+        end subroutine MPI_Type_vector_f08
+
+        subroutine MPI_Type_create_subarray_f08(ndims, array_of_sizes, array_of_subsizes, array_of_starts, &
+                                                order, oldtype, newtype, ierror) 
+            use mpi_handle_types, only: MPI_Datatype
+            use mpi_datatype_c, only: C_MPI_Type_create_subarray
+            integer, intent(in) :: ndims, order
+            integer, dimension(ndims) :: array_of_sizes, array_of_subsizes, array_of_starts
+            type(MPI_Datatype), intent(in) :: oldtype
+            type(MPI_Datatype), intent(out) :: newtype
+            integer, optional, intent(out) :: ierror
+            integer(kind=c_int) :: ndims_c, order_c, ierror_c
+            integer(kind=c_int), dimension(ndims) :: array_of_sizes_c, array_of_subsizes_c, array_of_starts_c
+            ndims_c = ndims
+            array_of_sizes_c    = array_of_sizes
+            array_of_subsizes_c = array_of_subsizes
+            array_of_starts_c   = array_of_starts
+            order_c = order
+            call C_MPI_Type_create_subarray(ndims_c, array_of_sizes_c, array_of_subsizes_c, array_of_starts_c, &
+                                            order_c, oldtype % MPI_VAL, newtype % MPI_VAL, ierror_c)
+            if (present(ierror)) ierror = ierror_c
+        end subroutine MPI_Type_create_subarray_f08
 
 end module mpi_datatype_f
