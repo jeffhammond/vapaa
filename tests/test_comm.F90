@@ -37,7 +37,6 @@ program test_comm
         call MPI_Comm_free(dw(i))
     end do
 
-#if 1
     block
         integer :: dims(2) = 0
         logical :: periods(2) = .false.
@@ -47,7 +46,6 @@ program test_comm
         call MPI_Barrier(cart)
         call MPI_Comm_free(cart)
     end block
-#endif
 
     call MPI_Finalize(ierror)
 
