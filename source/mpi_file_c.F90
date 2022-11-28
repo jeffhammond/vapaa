@@ -5,8 +5,9 @@ module mpi_file_c
                    bind(C,name="C_MPI_File_open")
             use iso_c_binding, only: c_int, c_char
             implicit none
-            integer(kind=c_int) :: comm_c, amode_c, info_c, file_c, ierror_c
+            integer(kind=c_int), intent(in) :: comm_c, amode_c, info_c
             character(kind=c_char), dimension(:) :: filename_c
+            integer(kind=c_int), intent(out) :: file_c, ierror_c
         end subroutine C_MPI_File_open
     end interface
 
@@ -15,7 +16,8 @@ module mpi_file_c
                    bind(C,name="C_MPI_File_close")
             use iso_c_binding, only: c_int
             implicit none
-            integer(kind=c_int) :: file_c, ierror_c
+            integer(kind=c_int), intent(inout) :: file_c
+            integer(kind=c_int), intent(out) :: ierror_c
         end subroutine C_MPI_File_close
     end interface
 
@@ -24,8 +26,9 @@ module mpi_file_c
                    bind(C,name="C_MPI_File_delete")
             use iso_c_binding, only: c_int, c_char
             implicit none
-            integer(kind=c_int) :: info_c, ierror_c
-            character(kind=c_char), dimension(:) :: filename_c
+            integer(kind=c_int), intent(in) :: info_c
+            character(kind=c_char), dimension(:), intent(in) :: filename_c
+            integer(kind=c_int), intent(out) :: ierror_c
         end subroutine C_MPI_File_delete
     end interface
 
@@ -34,8 +37,9 @@ module mpi_file_c
                    bind(C,name="C_MPI_File_set_size")
             use iso_c_binding, only: c_int, c_intptr_t
             implicit none
-            integer(kind=c_int) :: file_c, ierror_c
-            integer(kind=c_intptr_t) :: size_c
+            integer(kind=c_int), intent(in) :: file_c
+            integer(kind=c_intptr_t), intent(in) :: size_c
+            integer(kind=c_int), intent(out) :: ierror_c
         end subroutine C_MPI_File_set_size
     end interface
 
@@ -44,8 +48,9 @@ module mpi_file_c
                    bind(C,name="C_MPI_File_preallocate")
             use iso_c_binding, only: c_int, c_intptr_t
             implicit none
-            integer(kind=c_int) :: file_c, ierror_c
-            integer(kind=c_intptr_t) :: size_c
+            integer(kind=c_int), intent(in) :: file_c
+            integer(kind=c_intptr_t), intent(in) :: size_c
+            integer(kind=c_int), intent(out) :: ierror_c
         end subroutine C_MPI_File_preallocate
     end interface
 
@@ -54,8 +59,9 @@ module mpi_file_c
                    bind(C,name="C_MPI_File_get_size")
             use iso_c_binding, only: c_int, c_intptr_t
             implicit none
-            integer(kind=c_int) :: file_c, ierror_c
-            integer(kind=c_intptr_t) :: size_c
+            integer(kind=c_int), intent(in) :: file_c
+            integer(kind=c_intptr_t), intent(in) :: size_c
+            integer(kind=c_int), intent(out) :: ierror_c
         end subroutine C_MPI_File_get_size
     end interface
 
@@ -65,9 +71,10 @@ module mpi_file_c
             use iso_c_binding, only: c_int, c_intptr_t
             use mpi_handle_types, only: MPI_Status
             implicit none
-            integer(kind=c_int) :: file_c, count_c, datatype_c, ierror_c
-            integer(kind=c_intptr_t) :: offset_c
-            integer(kind=c_int), dimension(*) :: buf
+            integer(kind=c_int), intent(in) :: file_c, count_c, datatype_c
+            integer(kind=c_intptr_t), intent(in) :: offset_c
+            integer(kind=c_int), dimension(*), intent(in) :: buf
+            integer(kind=c_int), intent(out) :: ierror_c
             type(MPI_Status) :: status
         end subroutine C_MPI_File_read_at
     end interface
@@ -79,10 +86,11 @@ module mpi_file_c
             use iso_c_binding, only: c_int, c_intptr_t
             use mpi_handle_types, only: MPI_Status
             implicit none
-            integer(kind=c_int) :: file_c, count_c, datatype_c, ierror_c
-            integer(kind=c_intptr_t) :: offset_c
+            integer(kind=c_int), intent(in) :: file_c, count_c, datatype_c
+            integer(kind=c_intptr_t), intent(in) :: offset_c
             type(*), dimension(..) :: buf
             type(MPI_Status) :: status
+            integer(kind=c_int), intent(out) :: ierror_c
         end subroutine CFI_MPI_File_read_at
     end interface
 #endif
@@ -93,10 +101,11 @@ module mpi_file_c
             use iso_c_binding, only: c_int, c_intptr_t
             use mpi_handle_types, only: MPI_Status
             implicit none
-            integer(kind=c_int) :: file_c, count_c, datatype_c, ierror_c
-            integer(kind=c_intptr_t) :: offset_c
+            integer(kind=c_int), intent(in) :: file_c, count_c, datatype_c
+            integer(kind=c_intptr_t), intent(in) :: offset_c
             integer(kind=c_int), dimension(*) :: buf
             type(MPI_Status) :: status
+            integer(kind=c_int), intent(out) :: ierror_c
         end subroutine C_MPI_File_read_at_all
     end interface
 
@@ -107,10 +116,11 @@ module mpi_file_c
             use iso_c_binding, only: c_int, c_intptr_t
             use mpi_handle_types, only: MPI_Status
             implicit none
-            integer(kind=c_int) :: file_c, count_c, datatype_c, ierror_c
-            integer(kind=c_intptr_t) :: offset_c
+            integer(kind=c_int), intent(in) :: file_c, count_c, datatype_c
+            integer(kind=c_intptr_t), intent(in) :: offset_c
             type(*), dimension(..) :: buf
             type(MPI_Status) :: status
+            integer(kind=c_int), intent(out) :: ierror_c
         end subroutine CFI_MPI_File_read_at_all
     end interface
 #endif
@@ -121,9 +131,10 @@ module mpi_file_c
             use iso_c_binding, only: c_int, c_intptr_t
             use mpi_handle_types, only: MPI_Status
             implicit none
-            integer(kind=c_int) :: file_c, count_c, datatype_c, ierror_c
+            integer(kind=c_int), intent(in) :: file_c, count_c, datatype_c
             integer(kind=c_int), dimension(*) :: buf
             type(MPI_Status) :: status
+            integer(kind=c_int), intent(out) :: ierror_c
         end subroutine C_MPI_File_read
     end interface
 
@@ -134,9 +145,10 @@ module mpi_file_c
             use iso_c_binding, only: c_int, c_intptr_t
             use mpi_handle_types, only: MPI_Status
             implicit none
-            integer(kind=c_int) :: file_c, count_c, datatype_c, ierror_c
+            integer(kind=c_int), intent(in) :: file_c, count_c, datatype_c
             type(*), dimension(..) :: buf
             type(MPI_Status) :: status
+            integer(kind=c_int), intent(out) :: ierror_c
         end subroutine CFI_MPI_File_read
     end interface
 #endif
@@ -147,9 +159,10 @@ module mpi_file_c
             use iso_c_binding, only: c_int, c_intptr_t
             use mpi_handle_types, only: MPI_Status
             implicit none
-            integer(kind=c_int) :: file_c, count_c, datatype_c, ierror_c
+            integer(kind=c_int), intent(in) :: file_c, count_c, datatype_c
             integer(kind=c_int), dimension(*) :: buf
             type(MPI_Status) :: status
+            integer(kind=c_int), intent(out) :: ierror_c
         end subroutine C_MPI_File_read_all
     end interface
 
@@ -160,9 +173,10 @@ module mpi_file_c
             use iso_c_binding, only: c_int, c_intptr_t
             use mpi_handle_types, only: MPI_Status
             implicit none
-            integer(kind=c_int) :: file_c, count_c, datatype_c, ierror_c
+            integer(kind=c_int), intent(in) :: file_c, count_c, datatype_c
             type(*), dimension(..) :: buf
             type(MPI_Status) :: status
+            integer(kind=c_int), intent(out) :: ierror_c
         end subroutine CFI_MPI_File_read_all
     end interface
 #endif

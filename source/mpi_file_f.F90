@@ -55,7 +55,7 @@ module mpi_file_f
             character(len=*), intent(in) :: filename
             integer, intent(in) :: amode
             type(MPI_info), intent(in) :: info
-            type(MPI_File), intent(in) :: file
+            type(MPI_File), intent(out) :: file
             integer, optional, intent(out) :: ierror
             character(c_char), dimension(:), allocatable :: filename_c
             integer(kind=c_int) :: amode_c, ierror_c
@@ -75,7 +75,7 @@ module mpi_file_f
         subroutine MPI_File_close_f08(file, ierror) 
             use mpi_handle_types, only: MPI_File
             use mpi_file_c, only: C_MPI_File_close
-            type(MPI_File), intent(in) :: file
+            type(MPI_File), intent(inout) :: file
             integer, optional, intent(out) :: ierror
             integer(kind=c_int) :: ierror_c
             call C_MPI_File_close(file % MPI_VAL, ierror_c)
@@ -150,7 +150,7 @@ module mpi_file_f
             type(MPI_File), intent(in) :: file
             integer(kind=MPI_OFFSET_KIND), intent(in) :: offset
 !dir$ ignore_tkr buffer
-            integer, dimension(*), intent(in) :: buf
+            integer, dimension(*) :: buf
             integer, intent(in) :: count
             type(MPI_Datatype), intent(in) :: datatype
             type(MPI_Status) :: status
@@ -189,7 +189,7 @@ module mpi_file_f
             type(MPI_File), intent(in) :: file
             integer(kind=MPI_OFFSET_KIND), intent(in) :: offset
 !dir$ ignore_tkr buffer
-            integer, dimension(*), intent(in) :: buf
+            integer, dimension(*) :: buf
             integer, intent(in) :: count
             type(MPI_Datatype), intent(in) :: datatype
             type(MPI_Status) :: status
