@@ -5,7 +5,8 @@ module mpi_comm_c
                    bind(C,name="C_MPI_Comm_rank")
             use iso_c_binding, only: c_int
             implicit none
-            integer(kind=c_int) :: comm_c, rank_c, ierror_c
+            integer(kind=c_int), intent(in) :: comm_c
+            integer(kind=c_int), intent(out) :: rank_c, ierror_c
         end subroutine C_MPI_Comm_rank
     end interface
 
@@ -14,7 +15,8 @@ module mpi_comm_c
                    bind(C,name="C_MPI_Comm_size")
             use iso_c_binding, only: c_int
             implicit none
-            integer(kind=c_int) :: comm_c, size_c, ierror_c
+            integer(kind=c_int), intent(in) :: comm_c
+            integer(kind=c_int), intent(out) :: size_c, ierror_c
         end subroutine C_MPI_Comm_size
     end interface
 
@@ -23,7 +25,8 @@ module mpi_comm_c
                    bind(C,name="C_MPI_Comm_compare")
             use iso_c_binding, only: c_int
             implicit none
-            integer(kind=c_int) :: comm1_c, comm2_c, result_c, ierror_c
+            integer(kind=c_int), intent(in) :: comm1_c, comm2_c
+            integer(kind=c_int), intent(out) :: result_c, ierror_c
         end subroutine C_MPI_Comm_compare
     end interface
 
@@ -32,7 +35,8 @@ module mpi_comm_c
                    bind(C,name="C_MPI_Comm_dup")
             use iso_c_binding, only: c_int
             implicit none
-            integer(kind=c_int) :: comm_c, newcomm_c, ierror_c
+            integer(kind=c_int), intent(in) :: comm_c
+            integer(kind=c_int), intent(out) :: newcomm_c, ierror_c
         end subroutine C_MPI_Comm_dup
     end interface
 
@@ -41,7 +45,8 @@ module mpi_comm_c
                    bind(C,name="C_MPI_Comm_dup_with_info")
             use iso_c_binding, only: c_int
             implicit none
-            integer(kind=c_int) :: comm_c, info_c, newcomm_c, ierror_c
+            integer(kind=c_int), intent(in) :: comm_c, info_c
+            integer(kind=c_int), intent(out) :: newcomm_c, ierror_c
         end subroutine C_MPI_Comm_dup_with_info
     end interface
 
@@ -50,7 +55,9 @@ module mpi_comm_c
                    bind(C,name="C_MPI_Comm_idup")
             use iso_c_binding, only: c_int
             implicit none
-            integer(kind=c_int) :: comm_c, newcomm_c, request_c, ierror_c
+            integer(kind=c_int), intent(in) :: comm_c
+            integer(kind=c_int), intent(out), asynchronous :: newcomm_c
+            integer(kind=c_int), intent(out) :: request_c, ierror_c
         end subroutine C_MPI_Comm_idup
     end interface
 
@@ -59,7 +66,9 @@ module mpi_comm_c
                    bind(C,name="C_MPI_Comm_idup_with_info")
             use iso_c_binding, only: c_int
             implicit none
-            integer(kind=c_int) :: comm_c, info_c, newcomm_c, request_c, ierror_c
+            integer(kind=c_int), intent(in) :: comm_c, info_c
+            integer(kind=c_int), intent(out), asynchronous :: newcomm_c
+            integer(kind=c_int), intent(out) :: request_c, ierror_c
         end subroutine C_MPI_Comm_idup_with_info
     end interface
 
@@ -68,7 +77,8 @@ module mpi_comm_c
                    bind(C,name="C_MPI_Comm_create")
             use iso_c_binding, only: c_int
             implicit none
-            integer(kind=c_int) :: comm_c, group_c, newcomm_c, ierror_c
+            integer(kind=c_int), intent(in) :: comm_c, group_c
+            integer(kind=c_int), intent(out) :: newcomm_c, ierror_c
         end subroutine C_MPI_Comm_create
     end interface
 
@@ -77,7 +87,8 @@ module mpi_comm_c
                    bind(C,name="C_MPI_Comm_create_group")
             use iso_c_binding, only: c_int
             implicit none
-            integer(kind=c_int) :: comm_c, group_c, tag_c, newcomm_c, ierror_c
+            integer(kind=c_int), intent(in) :: comm_c, group_c, tag_c
+            integer(kind=c_int), intent(out) :: newcomm_c, ierror_c
         end subroutine C_MPI_Comm_create_group
     end interface
 
@@ -86,7 +97,8 @@ module mpi_comm_c
                    bind(C,name="C_MPI_Comm_split")
             use iso_c_binding, only: c_int
             implicit none
-            integer(kind=c_int) :: comm_c, color_c, key_c, newcomm_c, ierror_c
+            integer(kind=c_int), intent(in) :: comm_c, color_c, key_c
+            integer(kind=c_int), intent(out) :: newcomm_c, ierror_c
         end subroutine C_MPI_Comm_split
     end interface
 
@@ -95,7 +107,8 @@ module mpi_comm_c
                    bind(C,name="C_MPI_Comm_split_type")
             use iso_c_binding, only: c_int
             implicit none
-            integer(kind=c_int) :: comm_c, type_c, key_c, info_c, newcomm_c, ierror_c
+            integer(kind=c_int), intent(in) :: comm_c, type_c, key_c, info_c
+            integer(kind=c_int), intent(out) :: newcomm_c, ierror_c
         end subroutine C_MPI_Comm_split_type
     end interface
 
@@ -104,7 +117,8 @@ module mpi_comm_c
                    bind(C,name="C_MPI_Comm_free")
             use iso_c_binding, only: c_int
             implicit none
-            integer(kind=c_int) :: comm_c, ierror_c
+            integer(kind=c_int), intent(inout) :: comm_c
+            integer(kind=c_int), intent(out) :: ierror_c
         end subroutine C_MPI_Comm_free
     end interface
 
@@ -113,8 +127,9 @@ module mpi_comm_c
                    bind(C,name="C_MPI_Cart_create")
             use iso_c_binding, only: c_int
             implicit none
-            integer(kind=c_int) :: comm_c, ndims_c, reorder_c, newcomm_c, ierror_c
-            integer(kind=c_int) :: dims_c(*), periods_c(*)
+            integer(kind=c_int), intent(in) :: comm_c, ndims_c, reorder_c
+            integer(kind=c_int), intent(in) :: dims_c(*), periods_c(*)
+            integer(kind=c_int), intent(out) :: newcomm_c, ierror_c
         end subroutine C_MPI_Cart_create
     end interface
 
@@ -123,8 +138,8 @@ module mpi_comm_c
                    bind(C,name="C_MPI_Dims_create")
             use iso_c_binding, only: c_int
             implicit none
-            integer(kind=c_int) :: nnodes_c, ndims_c, ierror_c
-            integer(kind=c_int) :: dims_c(*)
+            integer(kind=c_int), intent(in) :: nnodes_c, ndims_c, ierror_c
+            integer(kind=c_int), intent(out) :: dims_c(*)
         end subroutine C_MPI_Dims_create
     end interface
 
@@ -133,8 +148,8 @@ module mpi_comm_c
                    bind(C,name="C_MPI_Cart_coords")
             use iso_c_binding, only: c_int
             implicit none
-            integer(kind=c_int) :: comm_c, rank_c, maxdims_c, ierror_c
-            integer(kind=c_int) :: coords_c(*)
+            integer(kind=c_int), intent(in) :: comm_c, rank_c, maxdims_c
+            integer(kind=c_int), intent(out) :: coords_c(*), ierror_c
         end subroutine C_MPI_Cart_coords
     end interface
 
