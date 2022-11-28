@@ -14,6 +14,11 @@ program test_handles
     type(MPI_Win)      :: w = MPI_WIN_NULL     
     integer :: ierror
     call MPI_Init(ierror)
+    print*,self.eq.self
+    print*,world.eq.self
+    print*,world.eq.world
+    print*,world.eq.cnull
     call MPI_Barrier(world)
+    print*,d.eq.MPI_DATATYPE_NULL
     call MPI_Finalize(ierror)
 end program test_handles

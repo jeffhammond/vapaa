@@ -1,5 +1,6 @@
 module mpi_f08
     use mpi_handle_types
+    use mpi_handle_operators
     use mpi_global_constants
     use mpi_core_f
     use mpi_coll_f

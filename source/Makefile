@@ -8,7 +8,9 @@ all: libmpi_f08.a
 %.o: %.F90 mpi_f08.o
 	$(FC) $(FCFLAGS) -c $<
 
-libmpi_f08.a: mpi_f08.o mpi_handle_types.o mpi_global_constants.o \
+libmpi_f08.a: mpi_f08.o \
+	      mpi_handle_types.o mpi_handle_operators.o \
+	      mpi_global_constants.o \
 	      mpi_core_f.o mpi_core_c.o mpi_core.o \
 	      mpi_comm_f.o mpi_comm_c.o mpi_comm.o \
 	      mpi_coll_f.o mpi_coll_c.o mpi_coll.o \
@@ -25,7 +27,9 @@ libmpi_f08.a: mpi_f08.o mpi_handle_types.o mpi_global_constants.o \
 	      mpi_error_f.o mpi_error_c.o mpi_error.o
 	$(AR) $(ARFLAGS) $@ $^
 
-mpi_f08.o: mpi_f08.F90 mpi_handle_types.o mpi_global_constants.o \
+mpi_f08.o: mpi_f08.F90 \
+	   mpi_handle_types.o mpi_handle_operators.o \
+	   mpi_global_constants.o \
 	   mpi_core_f.o mpi_comm_f.o mpi_coll_f.o mpi_datatype_f.o \
 	   mpi_file_f.o mpi_group_f.o mpi_info_f.o mpi_message_f.o \
 	   mpi_file_f.o mpi_group_f.o mpi_info_f.o mpi_message_f.o \
@@ -35,6 +39,9 @@ mpi_f08.o: mpi_f08.F90 mpi_handle_types.o mpi_global_constants.o \
 
 mpi_handle_types.o: mpi_handle_types.F90
 	$(FC) $(FCFLAGS) $(ABIFLAG) -c $<
+
+mpi_handle_operators.o: mpi_handle_operators.F90 mpi_handle_types.o
+	$(FC) $(FCFLAGS) -c $<
 
 mpi_global_constants.o: mpi_global_constants.F90 mpi_handle_types.o
 	$(FC) $(FCFLAGS) -c $<
