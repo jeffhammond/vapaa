@@ -73,7 +73,7 @@ module mpi_file_c
             implicit none
             integer(kind=c_int), intent(in) :: file_c, count_c, datatype_c
             integer(kind=c_intptr_t), intent(in) :: offset_c
-            integer(kind=c_int), dimension(*), intent(in) :: buf
+            integer(kind=c_int), dimension(*) :: buf
             integer(kind=c_int), intent(out) :: ierror_c
             type(MPI_Status) :: status
         end subroutine C_MPI_File_read_at
@@ -178,6 +178,122 @@ module mpi_file_c
             type(MPI_Status) :: status
             integer(kind=c_int), intent(out) :: ierror_c
         end subroutine CFI_MPI_File_read_all
+    end interface
+#endif
+
+    interface
+        subroutine C_MPI_File_write_at(file_c, offset_c, buf, count_c, datatype_c, status, ierror_c) &
+                   bind(C,name="C_MPI_File_write_at")
+            use iso_c_binding, only: c_int, c_intptr_t
+            use mpi_handle_types, only: MPI_Status
+            implicit none
+            integer(kind=c_int), intent(in) :: file_c, count_c, datatype_c
+            integer(kind=c_intptr_t), intent(in) :: offset_c
+            integer(kind=c_int), dimension(*), intent(in) :: buf
+            integer(kind=c_int), intent(out) :: ierror_c
+            type(MPI_Status) :: status
+        end subroutine C_MPI_File_write_at
+    end interface
+
+#ifdef HAVE_CFI
+    interface
+        subroutine CFI_MPI_File_write_at(file_c, offset_c, buf, count_c, datatype_c, status, ierror_c) &
+                   bind(C,name="CFI_MPI_File_write_at")
+            use iso_c_binding, only: c_int, c_intptr_t
+            use mpi_handle_types, only: MPI_Status
+            implicit none
+            integer(kind=c_int), intent(in) :: file_c, count_c, datatype_c
+            integer(kind=c_intptr_t), intent(in) :: offset_c
+            type(*), dimension(..) :: buf
+            type(MPI_Status) :: status
+            integer(kind=c_int), intent(out) :: ierror_c
+        end subroutine CFI_MPI_File_write_at
+    end interface
+#endif
+
+    interface
+        subroutine C_MPI_File_write_at_all(file_c, offset_c, buf, count_c, datatype_c, status, ierror_c) &
+                   bind(C,name="C_MPI_File_write_at_all")
+            use iso_c_binding, only: c_int, c_intptr_t
+            use mpi_handle_types, only: MPI_Status
+            implicit none
+            integer(kind=c_int), intent(in) :: file_c, count_c, datatype_c
+            integer(kind=c_intptr_t), intent(in) :: offset_c
+            integer(kind=c_int), dimension(*) :: buf
+            type(MPI_Status) :: status
+            integer(kind=c_int), intent(out) :: ierror_c
+        end subroutine C_MPI_File_write_at_all
+    end interface
+
+#ifdef HAVE_CFI
+    interface
+        subroutine CFI_MPI_File_write_at_all(file_c, offset_c, buf, count_c, datatype_c, status, ierror_c) &
+                   bind(C,name="CFI_MPI_File_write_at_all")
+            use iso_c_binding, only: c_int, c_intptr_t
+            use mpi_handle_types, only: MPI_Status
+            implicit none
+            integer(kind=c_int), intent(in) :: file_c, count_c, datatype_c
+            integer(kind=c_intptr_t), intent(in) :: offset_c
+            type(*), dimension(..), intent(in) :: buf
+            type(MPI_Status) :: status
+            integer(kind=c_int), intent(out) :: ierror_c
+        end subroutine CFI_MPI_File_write_at_all
+    end interface
+#endif
+
+    interface
+        subroutine C_MPI_File_write(file_c, buf, count_c, datatype_c, status, ierror_c) &
+                   bind(C,name="C_MPI_File_write")
+            use iso_c_binding, only: c_int, c_intptr_t
+            use mpi_handle_types, only: MPI_Status
+            implicit none
+            integer(kind=c_int), intent(in) :: file_c, count_c, datatype_c
+            integer(kind=c_int), dimension(*), intent(in) :: buf
+            type(MPI_Status) :: status
+            integer(kind=c_int), intent(out) :: ierror_c
+        end subroutine C_MPI_File_write
+    end interface
+
+#ifdef HAVE_CFI
+    interface
+        subroutine CFI_MPI_File_write(file_c, buf, count_c, datatype_c, status, ierror_c) &
+                   bind(C,name="CFI_MPI_File_write")
+            use iso_c_binding, only: c_int, c_intptr_t
+            use mpi_handle_types, only: MPI_Status
+            implicit none
+            integer(kind=c_int), intent(in) :: file_c, count_c, datatype_c
+            type(*), dimension(..), intent(in) :: buf
+            type(MPI_Status) :: status
+            integer(kind=c_int), intent(out) :: ierror_c
+        end subroutine CFI_MPI_File_write
+    end interface
+#endif
+
+    interface
+        subroutine C_MPI_File_write_all(file_c, buf, count_c, datatype_c, status, ierror_c) &
+                   bind(C,name="C_MPI_File_write_all")
+            use iso_c_binding, only: c_int, c_intptr_t
+            use mpi_handle_types, only: MPI_Status
+            implicit none
+            integer(kind=c_int), intent(in) :: file_c, count_c, datatype_c
+            integer(kind=c_int), dimension(*), intent(in) :: buf
+            type(MPI_Status) :: status
+            integer(kind=c_int), intent(out) :: ierror_c
+        end subroutine C_MPI_File_write_all
+    end interface
+
+#ifdef HAVE_CFI
+    interface
+        subroutine CFI_MPI_File_write_all(file_c, buf, count_c, datatype_c, status, ierror_c) &
+                   bind(C,name="CFI_MPI_File_write_all")
+            use iso_c_binding, only: c_int, c_intptr_t
+            use mpi_handle_types, only: MPI_Status
+            implicit none
+            integer(kind=c_int), intent(in) :: file_c, count_c, datatype_c
+            type(*), dimension(..), intent(in) :: buf
+            type(MPI_Status) :: status
+            integer(kind=c_int), intent(out) :: ierror_c
+        end subroutine CFI_MPI_File_write_all
     end interface
 #endif
 

@@ -220,4 +220,82 @@ module mpi_file_f
         end subroutine MPI_File_read_at_all_f08ts
 #endif
 
+        subroutine MPI_File_write_at_f08(file, offset, buf, count, datatype, status, ierror)
+            use iso_c_binding, only: c_intptr_t
+            use mpi_global_constants, only: MPI_OFFSET_KIND
+            use mpi_handle_types, only: MPI_File, MPI_Datatype, MPI_Status
+            use mpi_file_c, only: C_MPI_File_write_at
+            type(MPI_File), intent(in) :: file
+            integer(kind=MPI_OFFSET_KIND), intent(in) :: offset
+!dir$ ignore_tkr buffer
+            integer, dimension(*), intent(in) :: buf
+            integer, intent(in) :: count
+            type(MPI_Datatype), intent(in) :: datatype
+            type(MPI_Status) :: status
+            integer, optional, intent(out) :: ierror
+            integer(c_int) :: count_c, ierror_c
+            count_c = count
+            call C_MPI_File_write_at(file % MPI_VAL, offset, buf, count_c, datatype % MPI_VAL, status, ierror_c)
+            if (present(ierror)) ierror = ierror_c
+        end subroutine MPI_File_write_at_f08
+
+#ifdef HAVE_CFI
+        subroutine MPI_File_write_at_f08ts(file, offset, buf, count, datatype, status, ierror)
+            use iso_c_binding, only: c_intptr_t
+            use mpi_global_constants, only: MPI_OFFSET_KIND
+            use mpi_handle_types, only: MPI_File, MPI_Datatype, MPI_Status
+            use mpi_file_c, only: CFI_MPI_File_write_at
+            type(MPI_File), intent(in) :: file
+            integer(kind=MPI_OFFSET_KIND), intent(in) :: offset
+            type(*), dimension(..), intent(in) :: buf
+            integer, intent(in) :: count
+            type(MPI_Datatype), intent(in) :: datatype
+            type(MPI_Status) :: status
+            integer, optional, intent(out) :: ierror
+            integer(c_int) :: count_c, ierror_c
+            count_c = count
+            call CFI_MPI_File_write_at(file % MPI_VAL, offset, buf, count_c, datatype % MPI_VAL, status, ierror_c)
+            if (present(ierror)) ierror = ierror_c
+        end subroutine MPI_File_write_at_f08ts
+#endif
+
+        subroutine MPI_File_write_at_all_f08(file, offset, buf, count, datatype, status, ierror)
+            use iso_c_binding, only: c_intptr_t
+            use mpi_global_constants, only: MPI_OFFSET_KIND
+            use mpi_handle_types, only: MPI_File, MPI_Datatype, MPI_Status
+            use mpi_file_c, only: C_MPI_File_write_at_all
+            type(MPI_File), intent(in) :: file
+            integer(kind=MPI_OFFSET_KIND), intent(in) :: offset
+!dir$ ignore_tkr buffer
+            integer, dimension(*), intent(in) :: buf
+            integer, intent(in) :: count
+            type(MPI_Datatype), intent(in) :: datatype
+            type(MPI_Status) :: status
+            integer, optional, intent(out) :: ierror
+            integer(c_int) :: count_c, ierror_c
+            count_c = count
+            call C_MPI_File_write_at_all(file % MPI_VAL, offset, buf, count_c, datatype % MPI_VAL, status, ierror_c)
+            if (present(ierror)) ierror = ierror_c
+        end subroutine MPI_File_write_at_all_f08
+
+#ifdef HAVE_CFI
+        subroutine MPI_File_write_at_all_f08ts(file, offset, buf, count, datatype, status, ierror)
+            use iso_c_binding, only: c_intptr_t
+            use mpi_global_constants, only: MPI_OFFSET_KIND
+            use mpi_handle_types, only: MPI_File, MPI_Datatype, MPI_Status
+            use mpi_file_c, only: CFI_MPI_File_write_at_all
+            type(MPI_File), intent(in) :: file
+            integer(kind=MPI_OFFSET_KIND), intent(in) :: offset
+            type(*), dimension(..), intent(in) :: buf
+            integer, intent(in) :: count
+            type(MPI_Datatype), intent(in) :: datatype
+            type(MPI_Status) :: status
+            integer, optional, intent(out) :: ierror
+            integer(c_int) :: count_c, ierror_c
+            count_c = count
+            call CFI_MPI_File_write_at_all(file % MPI_VAL, offset, buf, count_c, datatype % MPI_VAL, status, ierror_c)
+            if (present(ierror)) ierror = ierror_c
+        end subroutine MPI_File_write_at_all_f08ts
+#endif
+
 end module mpi_file_f
