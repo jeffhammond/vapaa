@@ -14,11 +14,12 @@ program test_handles
     type(MPI_Win)      :: w = MPI_WIN_NULL     
     integer :: ierror
     call MPI_Init(ierror)
-    print*,self.eq.self
-    print*,world.eq.self
-    print*,world.eq.world
-    print*,world.eq.cnull
+    print*,self .eq.self ,self ==self ,self .ne.self ,self /=self
+    print*,world.eq.self ,world==self ,world.ne.self ,world/=self
+    print*,world.eq.world,world==world,world.ne.world,world/=world
+    print*,world.eq.cnull,world==cnull,world.ne.cnull,world/=cnull
     call MPI_Barrier(world)
-    print*,d.eq.MPI_DATATYPE_NULL
+    print*,d.eq.MPI_DATATYPE_NULL,d==MPI_DATATYPE_NULL
+    print*,d.ne.MPI_DATATYPE_NULL,d/=MPI_DATATYPE_NULL
     call MPI_Finalize(ierror)
 end program test_handles
