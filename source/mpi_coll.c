@@ -45,6 +45,9 @@ void C_MPI_Reduce(const void * input, void * output, int * count, int * datatype
 {
     MPI_Datatype datatype = C_MPI_TYPE_F2C(*datatype_f);
     MPI_Op op = C_MPI_OP_F2C(*op_f);
+    if ( ! C_MPI_OP_IS_BUILTIN(op) && C_MPI_TYPE_IS_BUILTIN(datatype) ) {
+        fprintf(stderr,"MPI F08: user-def reduce op with built-in type is not supported. See docs.\n");
+    }
     MPI_Comm comm = C_MPI_COMM_F2C(*comm_f);
     if (input  == f08_mpi_in_place_address) input  = MPI_IN_PLACE;
     if (output == f08_mpi_in_place_address) output = MPI_IN_PLACE;
@@ -61,6 +64,9 @@ void CFI_MPI_Reduce(CFI_cdesc_t * input, CFI_cdesc_t * output, int * count, int 
 
     MPI_Datatype datatype = C_MPI_TYPE_F2C(*datatype_f);
     MPI_Op op = C_MPI_OP_F2C(*op_f);
+    if ( ! C_MPI_OP_IS_BUILTIN(op) && C_MPI_TYPE_IS_BUILTIN(datatype) ) {
+        fprintf(stderr,"MPI F08: user-def reduce op with built-in type is not supported. See docs.\n");
+    }
     MPI_Comm comm = C_MPI_COMM_F2C(*comm_f);
     if ( (1 == CFI_is_contiguous(input)) && (1 == CFI_is_contiguous(output)) ) {
         *ierror = MPI_Reduce(in_addr, out_addr, *count, datatype, op, *root, comm);
@@ -75,15 +81,14 @@ void C_MPI_Allreduce(const void * input, void * output, int * count, int * datat
 {
     MPI_Datatype datatype = C_MPI_TYPE_F2C(*datatype_f);
     MPI_Op op = C_MPI_OP_F2C(*op_f);
+    if ( ! C_MPI_OP_IS_BUILTIN(op) && C_MPI_TYPE_IS_BUILTIN(datatype) ) {
+        fprintf(stderr,"MPI F08: user-def reduce op with built-in type is not supported. See docs.\n");
+    }
     MPI_Comm comm = C_MPI_COMM_F2C(*comm_f);
     if (input  == f08_mpi_in_place_address) input  = MPI_IN_PLACE;
     if (output == f08_mpi_in_place_address) output = MPI_IN_PLACE;
     *ierror = MPI_Allreduce(input, output, *count, datatype, op, comm);
 }
-
-#ifdef JEFF_DEBUG
-#include <stdio.h>
-#endif
 
 #ifdef HAVE_CFI
 void CFI_MPI_Allreduce(CFI_cdesc_t * input, CFI_cdesc_t * output, int * count, int * datatype_f, int * op_f, int * comm_f, int * ierror)
@@ -110,6 +115,10 @@ void CFI_MPI_Allreduce(CFI_cdesc_t * input, CFI_cdesc_t * output, int * count, i
             MPI_Type_contiguous(1, datatype, &temptype);
             MPI_Type_commit(&temptype);
         }
+    }
+#else
+    if ( ! C_MPI_OP_IS_BUILTIN(op) && C_MPI_TYPE_IS_BUILTIN(datatype) ) {
+        fprintf(stderr,"MPI F08: user-def reduce op with built-in type is not supported. See docs.\n");
     }
 #endif
 
