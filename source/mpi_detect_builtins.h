@@ -87,3 +87,29 @@ static bool C_MPI_TYPE_IS_BUILTIN(MPI_Datatype type_c)
 
 #undef DT_ELIF
 
+#define OP_ELIF(op) \
+    else if (op_c == (op)) { \
+        return true; \
+    }
+
+MAYBE_UNUSED
+static bool C_MPI_OP_IS_BUILTIN(int op_c)
+{
+    if (false) { return false; }
+    OP_ELIF(MPI_MAX)
+    OP_ELIF(MPI_MIN)
+    OP_ELIF(MPI_SUM)
+    OP_ELIF(MPI_PROD)
+    OP_ELIF(MPI_MAXLOC)
+    OP_ELIF(MPI_MINLOC)
+    OP_ELIF(MPI_BAND)
+    OP_ELIF(MPI_BOR)
+    OP_ELIF(MPI_BXOR)
+    OP_ELIF(MPI_LAND)
+    OP_ELIF(MPI_LOR)
+    OP_ELIF(MPI_LXOR)
+    return false;
+}
+
+#undef OP_ELIF
+

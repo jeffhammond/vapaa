@@ -1,5 +1,6 @@
 #include <mpi.h>
 #include "mpi_handle_conversions.h"
+#include "mpi_detect_builtins.h"
 
 void C_MPI_Comm_rank(int * comm_f, int * rank, int * ierror)
 {
