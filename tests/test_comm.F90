@@ -2,7 +2,7 @@ program test_comm
     use mpi_f08
     implicit none
     type(MPI_Comm) :: w = MPI_COMM_WORLD
-    type(MPI_Comm) :: dw(4), cart
+    type(MPI_Comm) :: dw(4), cart, node
     integer :: ierror
     integer :: me, np
     integer :: i,res
@@ -45,6 +45,15 @@ program test_comm
         call MPI_Cart_create(MPI_COMM_WORLD, 2, dims, periods, .true., cart, ierror)
         call MPI_Barrier(cart)
         call MPI_Comm_free(cart)
+    end block
+
+    block
+        integer :: xme, xnp
+        call MPI_Comm_split_type(MPI_COMM_WORLD, MPI_COMM_TYPE_SHARED, me, MPI_INFO_NULL, node)
+        call MPI_Comm_rank(node,xme)
+        call MPI_Comm_size(node,xnp)
+        print*,'I am ',xme,' of ',xnp,' of this node'
+        call MPI_Comm_free(node)
     end block
 
     call MPI_Finalize(ierror)
