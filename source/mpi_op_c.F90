@@ -1,4 +1,25 @@
 module mpi_op_c
 
+    interface
+        subroutine C_MPI_Op_create(user_fn_c, commute_c, op_c, ierror_c) &
+                   bind(C,name="C_MPI_Op_create")
+            use iso_c_binding, only: c_int, c_funptr
+            implicit none
+            type(c_funptr), intent(in), value :: user_fn_c
+            integer(kind=c_int), intent(in) :: commute_c
+            integer(kind=c_int), intent(out) :: op_c, ierror_c
+        end subroutine C_MPI_Op_create
+    end interface
+
+    interface
+        subroutine C_MPI_Op_free(op_c, ierror_c) &
+                   bind(C,name="C_MPI_Op_free")
+            use iso_c_binding, only: c_int
+            implicit none
+            integer(kind=c_int), intent(inout) :: op_c
+            integer(kind=c_int), intent(out) :: ierror_c
+        end subroutine C_MPI_Op_free
+    end interface
+
 
 end module mpi_op_c
