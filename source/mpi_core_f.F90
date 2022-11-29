@@ -61,6 +61,10 @@ module mpi_core_f
             type(MPI_Group)    :: g
             type(MPI_Request)  :: r(4)
             type(MPI_Win)      :: w
+            if (c_sizeof(int(0,c_int)).ne.c_sizeof(int(0))) then
+                print*,'Design assumptions violated: INTEGER'
+                stop
+            endif
             if (c_sizeof(c).ne.c_sizeof(j)) then
                 print*,'Design assumptions violated: MPI_Comm'
                 stop
