@@ -6,13 +6,13 @@ An attempt to implement MPI Fortran 2018 support using only the MPI C API.
 
 1. The Fortran MPI profiling interface is not supported.  All Fortran MPI procedures call their C MPI counterparts, so all profiling information will be obtained as if the application calls MPI from C directly.
 
-2. ~All of the predefined/built-in handles are initiatlized at runtime during library initialization. Nothing is a compile-time or link-time constant.~ This is fixed.
+2. Applications must initiatlize MPI using the initialization procedures in this library.
 
-3. Applications must initiatlize MPI using the initialization procedures in this library.
+3. Fortran 2018 C interoperability features (i.e. _Technical Specification (TS) 29113 on Further Interoperability of Fortran with C_) are currently required.  This requirement will be relaxed in the future.
 
-4. Fortran 2018 C interoperability features (i.e. _Technical Specification (TS) 29113 on Further Interoperability of Fortran with C_) are currently required.  This requirement will be relaxed in the future.
+4. The following optional datatypes are always defined, but are unusable (i.e. `MPI_DATATYPE_NULL`) unless explicitly enabled when the module is built: `MPI_REAL2`, `MPI_COMPLEX4`, `MPI_REAL16`, `MPI_COMPLEX32`.
 
-5. The following optional datatypes are always defined, but are unusable (i.e. `MPI_DATATYPE_NULL`) unless explicitly enabled when the module is built: `MPI_REAL2`, `MPI_COMPLEX4`, `MPI_REAL16`, `MPI_COMPLEX32`.
+5. User-defined reduction operations will not receive the correct value of the `MPI_Datatype` argument.  This is not solvable ([details](https://github.com/mpi-forum/mpi-issues/issues/654)) without hard-coding the built-in datatype compile-time constants for the implementation, which is impractical.
 
 ## Design assumptions
 
@@ -35,9 +35,11 @@ struct MPI_Request {
     int MPI_VAL;
 };
 ```
-and thus we can pass arrays of `type(MPI_Request)` to C interfaces expecting `int[]`.
+and thus we can pass arrays of `type(MPI_Request)` to C interfaces expecting `int[]` (although we don't do this right now, it seems).
 
 ## Supported functions
+
+The following list is likely incorrect.  Please use `git grep` to get the latest information.
 
 Obviously, we want to support almost everything some day, but for now, we support only the following:
 
