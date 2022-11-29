@@ -31,6 +31,13 @@ program test_core
         print*,'why? ',string
     endif
 
+    call MPI_File_delete(trim(adjustl(filename)),MPI_INFO_NULL)
+    if (ierror.ne.MPI_SUCCESS) then
+        print*,'delete failed'
+        call MPI_Error_string(ierror, string, slen)    
+        print*,'why? ',string
+    endif
+
     call MPI_Finalize(ierror)
 
 end program test_core
