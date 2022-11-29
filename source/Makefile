@@ -58,7 +58,7 @@ mpi_core_f.o: mpi_core_f.F90 mpi_handle_types.o mpi_global_constants.o \
 mpi_core_c.o: mpi_core_c.F90 mpi_core.o
 	$(FC) $(FCFLAGS) -c $<
 
-mpi_core.o: mpi_core.c mpi_handle_conversions.h
+mpi_core.o: mpi_core.c mpi_handle_conversions.h mpi_constant_conversions.h
 	$(CC) $(CFLAGS) -c $<
 
 # COMM
