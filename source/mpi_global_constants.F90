@@ -53,8 +53,14 @@ module mpi_global_constants
     ! (and can thus be used for array length declarations and labels 
     ! in C switch and Fortran case/select statements) are:
 
+    ! 5.1.3 MPI_TYPE_CREATE_SUBARRAY
     integer, parameter :: MPI_ORDER_C       = 321
     integer, parameter :: MPI_ORDER_FORTRAN = 123
+
+    ! 7.4 MPI_COMM_SPLIT_TYPE
+    integer, parameter :: MPI_COMM_TYPE_SHARED      = 5300
+    integer, parameter :: MPI_COMM_TYPE_HW_UNGUIDED = 5400
+    integer, parameter :: MPI_COMM_TYPE_HW_GUIDED   = 5500
 
     ! use a ridiculously large value that will always be larger than
     ! what any implementation uses, to avoid having to query the

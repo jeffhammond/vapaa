@@ -1,6 +1,28 @@
 #include <mpi.h>
 #include "mpi_handle_conversions.h"
 
+/*******************************
+! 7.4 MPI_COMM_SPLIT_TYPE
+integer, parameter :: MPI_COMM_TYPE_SHARED      = 5300
+integer, parameter :: MPI_COMM_TYPE_HW_UNGUIDED = 5400
+integer, parameter :: MPI_COMM_TYPE_HW_GUIDED   = 5500
+*******************************/
+
+static int C_MPI_TRANSLATE_SPLIT_TYPE(int f)
+{
+    if (f == 5300) {
+        return MPI_COMM_TYPE_SHARED;
+    } else if (f == 5400) {
+        return MPI_COMM_TYPE_HW_UNGUIDED;
+    } else if (f == 5500) {
+        return MPI_COMM_TYPE_HW_GUIDED;
+    } else {
+        // impossible
+        MPI_Abort(MPI_COMM_WORLD,f);
+        return -1;
+    }
+}
+
 void C_MPI_Comm_rank(int * comm_f, int * rank, int * ierror)
 {
     MPI_Comm comm = C_MPI_COMM_F2C(*comm_f);
@@ -106,7 +128,8 @@ void C_MPI_Comm_split_type(int * comm_f, int * type_f, int * key_f, int * info_f
     MPI_Comm newcomm = MPI_COMM_NULL;
     MPI_Comm comm = C_MPI_COMM_F2C(*comm_f);
     MPI_Info info = C_MPI_INFO_F2C(*info_f);
-    *ierror = MPI_Comm_split_type(comm, *type_f, *key_f, info, &newcomm);
+    int type = C_MPI_TRANSLATE_SPLIT_TYPE(*type_f);
+    *ierror = MPI_Comm_split_type(comm, type, *key_f, info, &newcomm);
     *newcomm_f = MPI_Comm_c2f(newcomm);
 }
 
