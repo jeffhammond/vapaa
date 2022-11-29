@@ -3,6 +3,7 @@
 #include <mpi.h>
 #include "ISO_Fortran_binding.h"
 #include "mpi_handle_conversions.h"
+#include "mpi_detect_builtins.h"
 
 extern void * f08_mpi_in_place_address;
 
@@ -95,6 +96,22 @@ void CFI_MPI_Allreduce(CFI_cdesc_t * input, CFI_cdesc_t * output, int * count, i
     MPI_Datatype datatype = C_MPI_TYPE_F2C(*datatype_f);
     MPI_Op op = C_MPI_OP_F2C(*op_f);
     MPI_Comm comm = C_MPI_COMM_F2C(*comm_f);
+
+#if 0
+    // thanks to https://github.com/mpi-forum/mpi-issues/issues/654,
+    // we can only a user-defined type with a user-defined reduction.
+    // however, we cannot fix this by creating a user-defined type
+    // on-the-fly, because then the user reduction code will not see
+    // the type passed to the reduction call.
+
+    MPI_Datatype temptype = MPI_DATATYPE_NULL;
+    if ( ! C_MPI_OP_IS_BUILTIN(op) ) {
+        if ( C_MPI_TYPE_IS_BUILTIN(datatype) ) {
+            MPI_Type_contiguous(1, datatype, &temptype);
+            MPI_Type_commit(&temptype);
+        }
+    }
+#endif
 
 #ifdef JEFF_DEBUG
     printf("dt=%d (F), %d (C)\n", *datatype_f, datatype);
