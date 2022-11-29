@@ -9,6 +9,7 @@ module mpi_info_c
         end subroutine C_MPI_Info_create
     end interface
 
+#if 0
     interface
         subroutine C_MPI_Info_create_env(info_c, ierror_c) &
                    bind(C,name="C_MPI_Info_create_env")
@@ -17,6 +18,7 @@ module mpi_info_c
             integer(kind=c_int), intent(out) :: info_c, ierror_c
         end subroutine C_MPI_Info_create_env
     end interface
+#endif
 
     interface
         subroutine C_MPI_Info_delete(info_c, key_c, ierror_c) &

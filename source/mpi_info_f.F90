@@ -6,9 +6,11 @@ module mpi_info_f
         module procedure MPI_Info_create_f08
     end interface MPI_Info_create
 
+#if 0
     interface MPI_Info_create_env
         module procedure MPI_Info_create_env_f08
     end interface MPI_Info_create_env
+#endif
 
     interface MPI_Info_delete
         module procedure MPI_Info_delete_f08
@@ -51,6 +53,7 @@ module mpi_info_f
             if (present(ierror)) ierror = ierror_c
         end subroutine  MPI_Info_create_f08
 
+#if 0
         subroutine MPI_Info_create_env_f08(info, ierror)
             use iso_c_binding, only: c_int
             use mpi_handle_types, only: MPI_Info
@@ -61,6 +64,7 @@ module mpi_info_f
             call C_MPI_Info_create_env(info % MPI_VAL, ierror_c)
             if (present(ierror)) ierror = ierror_c
         end subroutine  MPI_Info_create_env_f08
+#endif
 
         subroutine MPI_Info_delete_f08(info, key, ierror)
             use iso_c_binding, only: c_int, c_char, c_null_char
