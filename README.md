@@ -1,4 +1,4 @@
-# A standlone MPI Fortran 2008 module
+# A standalone MPI Fortran 2008 module
 
 An attempt to implement MPI Fortran 2018 support using only the MPI C API.
 
