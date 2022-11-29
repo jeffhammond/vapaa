@@ -6,7 +6,7 @@ ARFLAGS := -r
 # obviously, you have to compile in ../source first
 FCFLAGS += -I../source -L../source -lmpi_f08
 
-FCFLAGS += -Wno-unused-variable
+FCFLAGS += -Wno-unused-variable -Wno-unused-dummy-argument
 
 all: test_core.x test_collectives.x test_reductions.x test_p2p.x \
      test_thread.x test_file.x test_handles.x test_vector_noncontig.x \

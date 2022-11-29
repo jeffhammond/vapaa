@@ -4,19 +4,28 @@ module m
             use, intrinsic :: iso_c_binding, only : c_ptr, c_f_pointer
             use mpi_f08
             type(c_ptr), value :: invec, inoutvec
-            integer :: len
+            integer :: len, i
             type(MPI_Datatype) :: type
             integer, pointer :: invec_r(:), inoutvec_r(:)
-            print*,'HERE'
-            !if (type == MPI_INTEGER) then
-                call c_f_pointer(invec, invec_r, [len])
-                call c_f_pointer(inoutvec, inoutvec_r, [len])
-                print*,invec_r,inoutvec_r
-                inoutvec_r = invec_r + inoutvec_r
-            !else
-                print*,'OOPS ',type % MPI_VAL
-            !end if
+            print*,'HERE', type % MPI_VAL, type == MPI_INTEGER
+            call c_f_pointer(invec, invec_r, [len])
+            call c_f_pointer(inoutvec, inoutvec_r, [len])
+            print*,invec_r,inoutvec_r
+            inoutvec_r = invec_r + inoutvec_r
         end subroutine f
+#if 0
+        subroutine g(invec, inoutvec, len, type)
+            use, intrinsic :: iso_c_binding, only : c_ptr, c_f_pointer
+            use mpi_f08
+            integer, dimension(*) :: invec, inoutvec
+            integer :: len, i
+            type(MPI_Datatype) :: type
+            print*,'G'
+            do i = 1, len
+                inoutvec(i) = invec(i) + inoutvec(i)
+            end do
+        end subroutine g
+#endif
 end module m
 
 program main
