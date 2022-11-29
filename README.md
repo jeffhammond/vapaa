@@ -18,24 +18,26 @@ An attempt to implement MPI Fortran 2018 support using only the MPI C API.
 
 This library relies on the following:
 
-### Fortran `INTEGER` is interoperable with C `int`
+### C and Fortran default integers are the same size
 
-If you change the default `INTEGER` size in Fortran to break this, the library will not work.
+Users must not modify the default Fortran `INTEGER` size.  It must match C `int`.
+The library verifies this assumption on initialization.
 
 ### Fortran types are equivalent to C structs
 
 ```fortran
     type, bind(C) :: MPI_Request
-      integer(kind=c_int) :: MPI_VAL
+      integer(kind=c_int) :: MPI_VAL // not the default Fortran integer
     end type MPI_Request
 ```
 is equivalent to
 ```c
 struct MPI_Request {
-    int MPI_VAL;
+    int MPI_VAL; // not MPI_Fint
 };
 ```
-and thus we can pass arrays of `type(MPI_Request)` to C interfaces expecting `int[]` (although we don't do this right now, it seems).
+and thus we can pass arrays of `type(MPI_Request)` to C interfaces expecting `int[]`.
+We are not using this right now, but reserve the right to implement it later.
 
 ## Supported functions
 
