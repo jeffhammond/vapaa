@@ -14,16 +14,13 @@
       integer :: count
       TYPE(MPI_Datatype) :: datatype
       integer, pointer :: cin_r(:), cout_r(:)
-
-      if (datatype .ne. MPI_INTEGER) then
-         print *, 'Invalid datatype (',datatype,') passed to user_op()'
-         return
-      endif
-
+      !if (datatype .ne. MPI_INTEGER) then
+      !   print *, 'Invalid datatype (',datatype,') passed to user_op()'
+      !   return
+      !endif
       call c_f_pointer(cin, cin_r, [count])
       call c_f_pointer(cout, cout_r, [count])
       cout_r = cin_r + cout_r
-
       end
 
       subroutine uop( cin, cout, count, datatype )
@@ -32,12 +29,10 @@
       integer :: count
       TYPE(MPI_Datatype) :: datatype
       integer :: i
-
       if (datatype .ne. MPI_INTEGER) then
          print *, 'Invalid datatype (',datatype,') passed to user_op()'
-         return
+         stop
       endif
-
       do i=1, count
          cout(i) = cin(i) + cout(i)
       enddo
@@ -79,5 +74,6 @@
 
       call mpi_op_free( sumop, ierr )
 
+      print*,errs
       call mpi_finalize(errs)
       end

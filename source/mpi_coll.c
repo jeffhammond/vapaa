@@ -80,6 +80,10 @@ void C_MPI_Allreduce(const void * input, void * output, int * count, int * datat
     *ierror = MPI_Allreduce(input, output, *count, datatype, op, comm);
 }
 
+#ifdef JEFF_DEBUG
+#include <stdio.h>
+#endif
+
 #ifdef HAVE_CFI
 void CFI_MPI_Allreduce(CFI_cdesc_t * input, CFI_cdesc_t * output, int * count, int * datatype_f, int * op_f, int * comm_f, int * ierror)
 {
@@ -91,6 +95,10 @@ void CFI_MPI_Allreduce(CFI_cdesc_t * input, CFI_cdesc_t * output, int * count, i
     MPI_Datatype datatype = C_MPI_TYPE_F2C(*datatype_f);
     MPI_Op op = C_MPI_OP_F2C(*op_f);
     MPI_Comm comm = C_MPI_COMM_F2C(*comm_f);
+
+#ifdef JEFF_DEBUG
+    printf("dt=%d (F), %d (C)\n", *datatype_f, datatype);
+#endif
 
     // TODO optional count and datatype checking???
 

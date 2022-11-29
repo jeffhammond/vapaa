@@ -1,5 +1,5 @@
-module m
-    contains
+!module m
+!    contains
         subroutine f(invec, inoutvec, len, type)
             use, intrinsic :: iso_c_binding, only : c_ptr, c_f_pointer
             use mpi_f08
@@ -26,12 +26,13 @@ module m
             end do
         end subroutine g
 #endif
-end module m
+!end module m
 
 program main
     use mpi_f08
-    use m
+!    use m
     implicit none
+    external :: f
     integer :: ierror
     integer :: i, me, np, ref
     integer, parameter :: b = 10
