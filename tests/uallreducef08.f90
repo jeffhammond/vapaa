@@ -11,9 +11,8 @@
       use iso_c_binding, only: c_ptr, c_f_pointer
       use mpi_f08
       type(c_ptr), value :: cin, cout
-      integer count
-      TYPE(MPI_Datatype) datatype
-      integer i
+      integer :: count
+      TYPE(MPI_Datatype) :: datatype
       integer, pointer :: cin_r(:), cout_r(:)
 
       if (datatype .ne. MPI_INTEGER) then
@@ -29,10 +28,10 @@
 
       subroutine uop( cin, cout, count, datatype )
       use mpi_f08
-      integer cin(*), cout(*)
-      integer count
-      TYPE(MPI_Datatype) datatype
-      integer i
+      integer, dimension(*) :: cin, cout
+      integer :: count
+      TYPE(MPI_Datatype) :: datatype
+      integer :: i
 
       if (datatype .ne. MPI_INTEGER) then
          print *, 'Invalid datatype (',datatype,') passed to user_op()'
