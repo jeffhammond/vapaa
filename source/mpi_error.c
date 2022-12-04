@@ -194,7 +194,7 @@ void CFI_MPI_Error_string(int * errorcode_f, CFI_cdesc_t * string_d, int * resul
     C_MPI_RC_FIX(*ierror);
 }
 
-void C_MPI_error_flass(int * errorcode_f, int * errorclass, int * ierror)
+void C_MPI_Error_class(int * errorcode_f, int * errorclass, int * ierror)
 {
     int errorcode_c = C_MPI_ERROR_CODE_C2F(*errorcode_f);
     *ierror = MPI_Error_class(errorcode_c, errorclass);
