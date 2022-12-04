@@ -31,15 +31,17 @@ program main
     call MPI_Info_get_nkeys(dup,nkeys)
     print*,'nkeys=',nkeys
 
+    buflen=MPI_MAX_INFO_VAL
     call MPI_Info_get_string(dup,'key1',buflen,string,flag)
     print*,'key1=',string,' buflen=',buflen,' flag=',flag,' (should be true)'
 
+    buflen=MPI_MAX_INFO_VAL
     call MPI_Info_get_string(dup,'key2',buflen,string,flag)
-    print*,'key2=',string,' buflen=',buflen,' flag=',flag,' (should be false)'
+    print*,'flag=',flag,' (should be false)'
 
-    do i=0,nkeys
+    do i=0,nkeys-1
         call MPI_Info_get_nthkey(dup, i, string)
-        print*,'key ',i,'=',string
+        print*,'key(',i,')=',string
     end do
 
     call MPI_Info_free(dup)
