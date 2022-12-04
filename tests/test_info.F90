@@ -1,12 +1,11 @@
 program main
     use mpi_f08
     implicit none
-    integer :: ierror, slen
+    integer :: ierror, buflen, nkeys, i
     integer :: me, np
-    integer :: amode
-    type(MPI_File) :: f
-    character(len=9) :: filename
-    character(len=MPI_MAX_ERROR_STRING) :: string
+    type(MPI_Info) :: info,dup
+    logical :: flag
+    character(len=MPI_MAX_INFO_VAL) :: string
 
     call MPI_Init(ierror)
 
@@ -14,29 +13,36 @@ program main
     call MPI_Comm_size(MPI_COMM_WORLD,np)
     print*,'I am ',me,' of ',np,' of WORLD'
 
-    write(filename,'(i8)') me
-    amode = IOR( MPI_MODE_CREATE, MPI_MODE_RDWR )
+    call MPI_Info_create(info)
 
-    call MPI_File_open(MPI_COMM_SELF,trim(adjustl(filename)),amode,MPI_INFO_NULL,f,ierror)
-    if (ierror.ne.MPI_SUCCESS) then
-        print*,'open failed'
-        call MPI_Error_string(ierror, string, slen)    
-        print*,'why? ',string
-    endif
+    call MPI_Info_set(info,'key1','val1')
+    call MPI_Info_set(info,'key2','val2')
+    call MPI_Info_set(info,'key3','val3')
 
-    call MPI_File_close(f,ierror)
-    if (ierror.ne.MPI_SUCCESS) then
-        print*,'close failed'
-        call MPI_Error_string(ierror, string, slen)    
-        print*,'why? ',string
-    endif
+    call MPI_Info_get_nkeys(info,nkeys)
+    print*,'nkeys=',nkeys
 
-    call MPI_File_delete(trim(adjustl(filename)),MPI_INFO_NULL)
-    if (ierror.ne.MPI_SUCCESS) then
-        print*,'delete failed'
-        call MPI_Error_string(ierror, string, slen)    
-        print*,'why? ',string
-    endif
+    call MPI_Info_delete(info,'key2')
+
+    call MPI_Info_dup(info,dup)
+
+    call MPI_Info_free(info)
+
+    call MPI_Info_get_nkeys(dup,nkeys)
+    print*,'nkeys=',nkeys
+
+    call MPI_Info_get_string(dup,'key1',buflen,string,flag)
+    print*,'key1=',string,' buflen=',buflen,' flag=',flag,' (should be true)'
+
+    call MPI_Info_get_string(dup,'key2',buflen,string,flag)
+    print*,'key2=',string,' buflen=',buflen,' flag=',flag,' (should be false)'
+
+    do i=0,nkeys
+        call MPI_Info_get_nthkey(dup, i, string)
+        print*,'key ',i,'=',string
+    end do
+
+    call MPI_Info_free(dup)
 
     call MPI_Finalize(ierror)
 
