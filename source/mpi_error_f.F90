@@ -9,7 +9,7 @@ module mpi_error_f
     integer, parameter :: MPI_ERR_TAG                                =  4
     integer, parameter :: MPI_ERR_COMM                               =  5
     integer, parameter :: MPI_ERR_RANK                               =  6
-    integer, parameter :: MPI_ERR_REQUEST                            =  7 
+    integer, parameter :: MPI_ERR_REQUEST                            =  7
     integer, parameter :: MPI_ERR_ROOT                               =  8
     integer, parameter :: MPI_ERR_GROUP                              =  9
     integer, parameter :: MPI_ERR_OP                                 = 10
