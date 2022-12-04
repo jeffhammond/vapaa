@@ -1,6 +1,8 @@
-# A standalone MPI Fortran 2008 module
+# vapaa: A standalone MPI Fortran 2008 module
 
-An attempt to implement MPI Fortran 2018 support using only the MPI C API.
+Implementing MPI Fortran 2018 support using only the MPI C API, mostly.
+
+The name cames from the Finnish word, vapaa, which means "free" in the sense of "free-range chickens" or "Dobby is a free elf".
 
 ## Design limitations
 
