@@ -1,4 +1,4 @@
-program test_collectives
+program main
     use mpi_f08
     implicit none
     integer :: ierror
@@ -35,4 +35,4 @@ program test_collectives
 
     call MPI_Finalize(ierror)
 
-end program test_collectives
+end program main

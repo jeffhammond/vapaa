@@ -1,4 +1,4 @@
-program test_core
+program main
     use mpi_f08
     implicit none
     integer :: requested = MPI_THREAD_MULTIPLE
@@ -21,4 +21,4 @@ program test_core
 
     call MPI_Finalize()
 
-end program test_core
+end program main

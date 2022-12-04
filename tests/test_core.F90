@@ -1,4 +1,4 @@
-program test_core
+program main
     use mpi_f08
     implicit none
     integer :: ierror
@@ -48,4 +48,4 @@ program test_core
 
     if (me.eq.0) print*,'init=',flags(:,1)!,' final=',flags(:,2)
 
-end program test_core
+end program main

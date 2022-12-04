@@ -1,4 +1,4 @@
-program test_handles
+program main
     use mpi_f08
     implicit none
     type(MPI_Comm) :: world = MPI_COMM_WORLD
@@ -22,4 +22,4 @@ program test_handles
     print*,d.eq.MPI_DATATYPE_NULL,d==MPI_DATATYPE_NULL
     print*,d.ne.MPI_DATATYPE_NULL,d/=MPI_DATATYPE_NULL
     call MPI_Finalize(ierror)
-end program test_handles
+end program main

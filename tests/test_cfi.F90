@@ -13,7 +13,7 @@ module cfi
     end interface
 end module cfi 
 
-program test
+program main
     use iso_c_binding
     use cfi
     implicit none
@@ -33,4 +33,4 @@ program test
     call foo(a(1:5,1:5))
     call foo(a(6:10,6:10))
 
-end program test
+end program main

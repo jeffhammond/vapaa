@@ -1,4 +1,4 @@
-program test_comm
+program main
     use mpi_f08
     implicit none
     type(MPI_Comm) :: w = MPI_COMM_WORLD
@@ -58,4 +58,4 @@ program test_comm
 
     call MPI_Finalize(ierror)
 
-end program test_comm
+end program main
