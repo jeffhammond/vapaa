@@ -34,7 +34,7 @@ static int C_MPI_THREAD_LEVEL_C2F(int level_c)
 /* see mpi_error_f.F90 for the source of these values */
 
 MAYBE_UNUSED
-static int C_MPI_ERROR_CODE_C2F(int level_c)
+static int C_MPI_ERROR_CODE_C2F(int error_c)
 {
          if (error_c == MPI_SUCCESS                                ) { return  0; }
     else if (error_c == MPI_ERR_BUFFER                             ) { return  1; }
@@ -98,7 +98,7 @@ static int C_MPI_ERROR_CODE_C2F(int level_c)
     else if (error_c == MPI_ERR_VALUE_TOO_LARGE                    ) { return 59; }
     else if (error_c == MPI_ERR_WIN                                ) { return 60; }
     else if (error_c == MPI_T_ERR_CANNOT_INIT                      ) { return 61; }
-    else if (error_c == MPI_T_ERR_NOT_ACCESSIBLE                   ) { return 62; }
+    //else if (error_c == MPI_T_ERR_NOT_ACCESSIBLE                   ) { return 62; }
     else if (error_c == MPI_T_ERR_NOT_INITIALIZED                  ) { return 63; }
     else if (error_c == MPI_T_ERR_NOT_SUPPORTED                    ) { return 64; }
     else if (error_c == MPI_T_ERR_MEMORY                           ) { return 65; }
@@ -121,3 +121,8 @@ static int C_MPI_ERROR_CODE_C2F(int level_c)
         return 14; /* MPI_ERR_UNKNOWN */
     }
 }
+
+#define C_MPI_RC_FIX(rc) \
+    do { \
+        if ((rc) != MPI_SUCCESS) { (rc) = C_MPI_ERROR_CODE_C2F((rc)); } \
+    } while (0) 
