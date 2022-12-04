@@ -32,20 +32,7 @@ void C_MPI_Group_compare(int * group1_f, int * group2_f, int * result_f, int * i
     MPI_Group group2 = C_MPI_GROUP_F2C(*group2_f);
     int result;
     *ierror = MPI_Group_compare(group1, group2, &result);
-    // translate from the values in the C library
-    // to the ones we use (mpi_global_constants.F90)
-    if (result == MPI_IDENT) {
-        *result_f = 0;
-    } else
-    if (result == MPI_CONGRUENT) {
-        *result_f = 1;
-    } else
-    if (result == MPI_SIMILAR) {
-        *result_f = 2;
-    } else
-    if (result == MPI_UNEQUAL) {
-        *result_f = 3;
-    }
+    *result_f = C_MPI_COMPARE_RESULT_F2C(result);
     C_MPI_RC_FIX(*ierror);
 }
 

@@ -44,20 +44,7 @@ void C_MPI_Comm_compare(int * comm1_f, int * comm2_f, int * result_f, int * ierr
     MPI_Comm comm2 = C_MPI_COMM_F2C(*comm2_f);
     int result;
     *ierror = MPI_Comm_compare(comm1, comm2, &result);
-    // translate from the values in the C library
-    // to the ones we use (mpi_global_constants.F90)
-    if (result == MPI_IDENT) {
-        *result_f = 0;
-    } else
-    if (result == MPI_CONGRUENT) {
-        *result_f = 1;
-    } else
-    if (result == MPI_SIMILAR) {
-        *result_f = 2;
-    } else
-    if (result == MPI_UNEQUAL) {
-        *result_f = 3;
-    }
+    *result_f = C_MPI_COMPARE_RESULT_C2F(result);
     C_MPI_RC_FIX(*ierror);
 }
 
