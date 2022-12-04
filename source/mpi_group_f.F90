@@ -10,17 +10,14 @@ module mpi_group_f
         module procedure MPI_Group_size_f08
     end interface MPI_Group_size
 
-#if 0
     interface MPI_Group_translate_ranks
         module procedure MPI_Group_translate_ranks_f08
     end interface MPI_Group_translate_ranks
-#endif
 
     interface MPI_Group_compare
         module procedure MPI_Group_compare_f08
     end interface MPI_Group_compare
 
-#if 0
     interface MPI_Group_union
         module procedure MPI_Group_union_f08
     end interface MPI_Group_union
@@ -44,7 +41,6 @@ module mpi_group_f
     interface MPI_Group_free
         module procedure MPI_Group_free_f08
     end interface MPI_Group_free
-#endif
 
     contains
 
@@ -72,6 +68,29 @@ module mpi_group_f
             if (present(ierror)) ierror = ierror_c
         end subroutine MPI_Group_size_f08
 
+        subroutine MPI_Group_translate_ranks_f08(group1, n, ranks1, group2, ranks2, ierror)
+            use mpi_handle_types, only: MPI_Group
+            use mpi_group_c, only: C_MPI_Group_translate_ranks
+            type(MPI_Group), intent(in) :: group1, group2
+            integer, intent(in) :: n, ranks1(n)
+            integer, intent(out) :: ranks2(n)
+            integer, optional, intent(out) :: ierror
+            integer(kind=c_int) :: n_c, ranks1_c(n), ranks2_c(n), ierror_c
+            ! in theory, if n is large, this routine will segfault due to stackoverflow
+            ! so we will issue a warning if n is potentially problematic
+            if (n.gt.500) then
+                write(*,'(a37,i6,a50)') 'MPI_Group_translate_ranks: vector of ',n, &
+                                        ' elements may cause segfault due to stack overflow'
+            end if
+            ! of course, i could also allocate the temporary or just pass it through
+            ! because i assume F integer = C int, but whatever.
+            n_c = n
+            ranks1_c = ranks1
+            call C_MPI_Group_translate_ranks(group1 % MPI_VAL, n_c, ranks1_c, group2 % MPI_VAL, ranks2_c, ierror_c)
+            ranks2 = ranks2_c
+            if (present(ierror)) ierror = ierror_c
+        end subroutine MPI_Group_translate_ranks_f08
+
         subroutine MPI_Group_compare_f08(group1, group2, result, ierror)
             use mpi_handle_types, only: MPI_Group
             use mpi_group_c, only: C_MPI_Group_compare
@@ -84,8 +103,82 @@ module mpi_group_f
             if (present(ierror)) ierror = ierror_c
         end subroutine MPI_Group_compare_f08
 
+        subroutine MPI_Group_union_f08(group1, group2, newgroup, ierror)
+            use mpi_handle_types, only: MPI_Group
+            use mpi_group_c, only: C_MPI_Group_union
+            type(MPI_Group), intent(in) :: group1, group2
+            type(MPI_Group), intent(out) :: newgroup
+            integer, optional, intent(out) :: ierror
+            integer(kind=c_int) :: ierror_c
+            call C_MPI_Group_union(group1 % MPI_VAL, group2 % MPI_VAL, newgroup % MPI_VAL, ierror_c)
+            if (present(ierror)) ierror = ierror_c
+        end subroutine MPI_Group_union_f08
 
+        subroutine MPI_Group_intersection_f08(group1, group2, newgroup, ierror)
+            use mpi_handle_types, only: MPI_Group
+            use mpi_group_c, only: C_MPI_Group_intersection
+            type(MPI_Group), intent(in) :: group1, group2
+            type(MPI_Group), intent(out) :: newgroup
+            integer, optional, intent(out) :: ierror
+            integer(kind=c_int) :: ierror_c
+            call C_MPI_Group_intersection(group1 % MPI_VAL, group2 % MPI_VAL, newgroup % MPI_VAL, ierror_c)
+            if (present(ierror)) ierror = ierror_c
+        end subroutine MPI_Group_intersection_f08
 
+        subroutine MPI_Group_difference_f08(group1, group2, newgroup, ierror)
+            use mpi_handle_types, only: MPI_Group
+            use mpi_group_c, only: C_MPI_Group_difference
+            type(MPI_Group), intent(in) :: group1, group2
+            type(MPI_Group), intent(out) :: newgroup
+            integer, optional, intent(out) :: ierror
+            integer(kind=c_int) :: ierror_c
+            call C_MPI_Group_difference(group1 % MPI_VAL, group2 % MPI_VAL, newgroup % MPI_VAL, ierror_c)
+            if (present(ierror)) ierror = ierror_c
+        end subroutine MPI_Group_difference_f08
+
+        subroutine MPI_Group_incl_f08(group, n, ranks, newgroup, ierror)
+            use mpi_handle_types, only: MPI_Group
+            use mpi_group_c, only: C_MPI_Group_incl
+            type(MPI_Group), intent(in) :: group
+            type(MPI_Group), intent(out) :: newgroup
+            integer, intent(in) :: n, ranks(n)
+            integer, optional, intent(out) :: ierror
+            integer(kind=c_int) :: n_c, ranks_c(n), ierror_c
+            ! in theory, if n is large, this routine will segfault due to stackoverflow
+            ! so we will issue a warning if n is potentially problematic.
+            if (n.gt.500) then
+                write(*,'(a37,i6,a50)') 'MPI_Group_incl: vector of ',n, &
+                                        ' elements may cause segfault due to stack overflow'
+            end if
+            ! of course, i could also allocate the temporary or just pass it through
+            ! because i assume F integer = C int, but whatever.
+            n_c = n
+            ranks_c = ranks
+            call C_MPI_Group_incl(group % MPI_VAL, n_c, ranks_c, newgroup % MPI_VAL, ierror_c)
+            if (present(ierror)) ierror = ierror_c
+        end subroutine MPI_Group_incl_f08
+
+        subroutine MPI_Group_excl_f08(group, n, ranks, newgroup, ierror)
+            use mpi_handle_types, only: MPI_Group
+            use mpi_group_c, only: C_MPI_Group_excl
+            type(MPI_Group), intent(in) :: group
+            type(MPI_Group), intent(out) :: newgroup
+            integer, intent(in) :: n, ranks(n)
+            integer, optional, intent(out) :: ierror
+            integer(kind=c_int) :: n_c, ranks_c(n), ierror_c
+            ! in theory, if n is large, this routine will segfault due to stackoverflow
+            ! so we will issue a warning if n is potentially problematic.
+            if (n.gt.500) then
+                write(*,'(a37,i6,a50)') 'MPI_Group_excl: vector of ',n, &
+                                        ' elements may cause segfault due to stack overflow'
+            end if
+            ! of course, i could also allocate the temporary or just pass it through
+            ! because i assume F integer = C int, but whatever.
+            n_c = n
+            ranks_c = ranks
+            call C_MPI_Group_excl(group % MPI_VAL, n_c, ranks_c, newgroup % MPI_VAL, ierror_c)
+            if (present(ierror)) ierror = ierror_c
+        end subroutine MPI_Group_excl_f08
 
         subroutine MPI_Group_free_f08(group, ierror)
             use mpi_handle_types, only: MPI_Group
