@@ -67,4 +67,14 @@ Obviously, we want to support almost everything some day, but for now, we suppor
                `MPI_Gather`, `MPI_Allgather`, `MPI_Scatter`, `MPI_Alltoall`
 * Errors: `MPI_Error_class`
 
-### Known Issues
+## Known Issues
+
+### User-defined reductions
+
+It is impossible to obtain the correct value of a built-in datatype handle in a user-defined reduction.
+See https://github.com/mpi-forum/mpi-issues/issues/654 for details.
+If you want to use user-defined reductions, you must either _also_ use user-defined datatypes,
+or not rely on the datatype argument to figure out what the type of the buffer argument is.
+
+I may at some point implement an extension that supports modern Fortran better,
+similar to what is descrbied in https://github.com/jeffhammond/mpi_f08_userdef_reductions.
