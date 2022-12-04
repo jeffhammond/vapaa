@@ -102,9 +102,11 @@ void CFI_MPI_Error_string(int * errorcode, CFI_cdesc_t * string_d, int * resultl
 {
     char * string = string_d -> base_addr;
     *ierror = MPI_Error_string(*errorcode, string, resultlen);
+    C_MPI_RC_FIX(*ierror);
 }
 
 void C_MPI_Error_class(int * errorcode, int * errorclass, int * ierror)
 {
     *ierror = MPI_Error_class(*errorcode, errorclass);
+    C_MPI_RC_FIX(*ierror);
 }

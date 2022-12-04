@@ -3,6 +3,7 @@
 #include "ISO_Fortran_binding.h"
 #include "mpi_status_ignore.h"
 #include "mpi_handle_conversions.h"
+#include "mpi_constant_conversions.h"
 
 /*******************************
 ! MPI I/O file mode constants
@@ -41,6 +42,7 @@ void C_MPI_File_open(int * comm_f, CFI_cdesc_t * filename_d, int * amode_f, int 
     int amode = C_MPI_TRANSLATE_AMODE(*amode_f);
     *ierror = MPI_File_open(comm, filename, amode, info, &file);
     *file_f = MPI_File_c2f(file);
+    C_MPI_RC_FIX(*ierror);
 }
 
 void C_MPI_File_close(int * file_f, int * ierror)
@@ -48,6 +50,7 @@ void C_MPI_File_close(int * file_f, int * ierror)
     MPI_File file = C_MPI_FILE_F2C(*file_f);
     *ierror = MPI_File_close(&file);
     *file_f = MPI_File_c2f(file);
+    C_MPI_RC_FIX(*ierror);
 }
 
 void C_MPI_File_delete(CFI_cdesc_t * filename_d, int * info_f, int * ierror)
@@ -55,6 +58,7 @@ void C_MPI_File_delete(CFI_cdesc_t * filename_d, int * info_f, int * ierror)
     MPI_Info info = C_MPI_INFO_F2C(*info_f);
     char * filename = filename_d -> base_addr;
     *ierror = MPI_File_delete(filename, info);
+    C_MPI_RC_FIX(*ierror);
 }
 
 void C_MPI_File_set_size(int * file_f, intptr_t * size_f, int * ierror)
@@ -62,6 +66,7 @@ void C_MPI_File_set_size(int * file_f, intptr_t * size_f, int * ierror)
     MPI_File file = C_MPI_FILE_F2C(*file_f);
     MPI_Offset size = *size_f;
     *ierror = MPI_File_set_size(file, size);
+    C_MPI_RC_FIX(*ierror);
 }
 
 void C_MPI_File_preallocate(int * file_f, intptr_t * size_f, int * ierror)
@@ -69,6 +74,7 @@ void C_MPI_File_preallocate(int * file_f, intptr_t * size_f, int * ierror)
     MPI_File file = C_MPI_FILE_F2C(*file_f);
     MPI_Offset size = *size_f;
     *ierror = MPI_File_preallocate(file, size);
+    C_MPI_RC_FIX(*ierror);
 }
 
 void C_MPI_File_get_size(int * file_f, intptr_t * size_f, int * ierror)
@@ -77,6 +83,7 @@ void C_MPI_File_get_size(int * file_f, intptr_t * size_f, int * ierror)
     MPI_File file = C_MPI_FILE_F2C(*file_f);
     *ierror = MPI_File_get_size(file, &size);
     *size_f = size;
+    C_MPI_RC_FIX(*ierror);
 }
 
 // THIS MAY NOT WORK
@@ -88,6 +95,7 @@ void C_MPI_File_set_view(int * file_f, intptr_t * disp_f, int * etype_f, int * f
     MPI_Datatype filetype = C_MPI_TYPE_F2C(*filetype_f);
     MPI_Info info = C_MPI_INFO_F2C(*info_f);
     *ierror = MPI_File_set_view(file, disp, etype, filetype, datarep, info);
+    C_MPI_RC_FIX(*ierror);
 }
 
 #ifdef HAVE_CFI
@@ -100,6 +108,7 @@ void CFI_MPI_File_set_view(int * file_f, intptr_t * disp_f, int * etype_f, int *
     char * datarep = datarep_d -> base_addr;
     MPI_Info info = C_MPI_INFO_F2C(*info_f);
     *ierror = MPI_File_set_view(file, disp, etype, filetype, datarep, info);
+    C_MPI_RC_FIX(*ierror);
 }
 #endif
 
@@ -111,6 +120,7 @@ void C_MPI_File_read_at(int * file_f, intptr_t * offset_f, void * buffer, int * 
     MPI_Datatype datatype = C_MPI_TYPE_F2C(*datatype_f);
     *ierror = MPI_File_read_at(file, offset, buffer, count, datatype,
                                C_MPI_IS_IGNORE(status) ? MPI_STATUS_IGNORE : status);
+    C_MPI_RC_FIX(*ierror);
 }
 
 #ifdef HAVE_CFI
@@ -127,6 +137,7 @@ void CFI_MPI_File_read_at(int * file_f, intptr_t * offset_f, CFI_cdesc_t * desc,
         fprintf(stderr, "FIXME: not contiguous case\n");
         MPI_Abort(MPI_COMM_SELF, 99);
     }
+    C_MPI_RC_FIX(*ierror);
 }
 #endif
 
@@ -138,6 +149,7 @@ void C_MPI_File_read_at_all(int * file_f, intptr_t * offset_f, void * buffer, in
     MPI_Datatype datatype = C_MPI_TYPE_F2C(*datatype_f);
     *ierror = MPI_File_read_at_all(file, offset, buffer, count, datatype,
                                    C_MPI_IS_IGNORE(status) ? MPI_STATUS_IGNORE : status);
+    C_MPI_RC_FIX(*ierror);
 }
 
 #ifdef HAVE_CFI
@@ -154,6 +166,7 @@ void CFI_MPI_File_read_at_all(int * file_f, intptr_t * offset_f, CFI_cdesc_t * d
         fprintf(stderr, "FIXME: not contiguous case\n");
         MPI_Abort(MPI_COMM_SELF, 99);
     }
+    C_MPI_RC_FIX(*ierror);
 }
 #endif
 
@@ -165,6 +178,7 @@ void C_MPI_File_write_at(int * file_f, intptr_t * offset_f, void * buffer, int *
     MPI_Datatype datatype = C_MPI_TYPE_F2C(*datatype_f);
     *ierror = MPI_File_write_at(file, offset, buffer, count, datatype,
                                 C_MPI_IS_IGNORE(status) ? MPI_STATUS_IGNORE : status);
+    C_MPI_RC_FIX(*ierror);
 }
 
 #ifdef HAVE_CFI
@@ -181,6 +195,7 @@ void CFI_MPI_File_write_at(int * file_f, intptr_t * offset_f, CFI_cdesc_t * desc
         fprintf(stderr, "FIXME: not contiguous case\n");
         MPI_Abort(MPI_COMM_SELF, 99);
     }
+    C_MPI_RC_FIX(*ierror);
 }
 #endif
 
@@ -192,6 +207,7 @@ void C_MPI_File_write_at_all(int * file_f, intptr_t * offset_f, void * buffer, i
     MPI_Datatype datatype = C_MPI_TYPE_F2C(*datatype_f);
     *ierror = MPI_File_write_at_all(file, offset, buffer, count, datatype,
                                     C_MPI_IS_IGNORE(status) ? MPI_STATUS_IGNORE : status);
+    C_MPI_RC_FIX(*ierror);
 }
 
 #ifdef HAVE_CFI
@@ -208,6 +224,7 @@ void CFI_MPI_File_write_at_all(int * file_f, intptr_t * offset_f, CFI_cdesc_t * 
         fprintf(stderr, "FIXME: not contiguous case\n");
         MPI_Abort(MPI_COMM_SELF, 99);
     }
+    C_MPI_RC_FIX(*ierror);
 }
 #endif
 
@@ -218,6 +235,7 @@ void C_MPI_File_read(int * file_f, void * buffer, int * count_f, int * datatype_
     MPI_Datatype datatype = C_MPI_TYPE_F2C(*datatype_f);
     *ierror = MPI_File_read(file, buffer, count, datatype,
                             C_MPI_IS_IGNORE(status) ? MPI_STATUS_IGNORE : status);
+    C_MPI_RC_FIX(*ierror);
 }
 
 #ifdef HAVE_CFI
@@ -233,6 +251,7 @@ void CFI_MPI_File_read(int * file_f, CFI_cdesc_t * desc, int * count_f, int * da
         fprintf(stderr, "FIXME: not contiguous case\n");
         MPI_Abort(MPI_COMM_SELF, 99);
     }
+    C_MPI_RC_FIX(*ierror);
 }
 #endif
 
@@ -243,6 +262,7 @@ void C_MPI_File_read_all(int * file_f, void * buffer, int * count_f, int * datat
     MPI_Datatype datatype = C_MPI_TYPE_F2C(*datatype_f);
     *ierror = MPI_File_read_all(file, buffer, count, datatype,
                                 C_MPI_IS_IGNORE(status) ? MPI_STATUS_IGNORE : status);
+    C_MPI_RC_FIX(*ierror);
 }
 
 #ifdef HAVE_CFI
@@ -258,6 +278,7 @@ void CFI_MPI_File_read_all(int * file_f, CFI_cdesc_t * desc, int * count_f, int 
         fprintf(stderr, "FIXME: not contiguous case\n");
         MPI_Abort(MPI_COMM_SELF, 99);
     }
+    C_MPI_RC_FIX(*ierror);
 }
 #endif
 
@@ -268,6 +289,7 @@ void C_MPI_File_write(int * file_f, void * buffer, int * count_f, int * datatype
     MPI_Datatype datatype = C_MPI_TYPE_F2C(*datatype_f);
     *ierror = MPI_File_write(file, buffer, count, datatype,
                              C_MPI_IS_IGNORE(status) ? MPI_STATUS_IGNORE : status);
+    C_MPI_RC_FIX(*ierror);
 }
 
 #ifdef HAVE_CFI
@@ -283,6 +305,7 @@ void CFI_MPI_File_write(int * file_f, CFI_cdesc_t * desc, int * count_f, int * d
         fprintf(stderr, "FIXME: not contiguous case\n");
         MPI_Abort(MPI_COMM_SELF, 99);
     }
+    C_MPI_RC_FIX(*ierror);
 }
 #endif
 
@@ -293,6 +316,7 @@ void C_MPI_File_write_all(int * file_f, void * buffer, int * count_f, int * data
     MPI_Datatype datatype = C_MPI_TYPE_F2C(*datatype_f);
     *ierror = MPI_File_write_all(file, buffer, count, datatype,
                                  C_MPI_IS_IGNORE(status) ? MPI_STATUS_IGNORE : status);
+    C_MPI_RC_FIX(*ierror);
 }
 
 #ifdef HAVE_CFI
@@ -308,5 +332,6 @@ void CFI_MPI_File_write_all(int * file_f, CFI_cdesc_t * desc, int * count_f, int
         fprintf(stderr, "FIXME: not contiguous case\n");
         MPI_Abort(MPI_COMM_SELF, 99);
     }
+    C_MPI_RC_FIX(*ierror);
 }
 #endif

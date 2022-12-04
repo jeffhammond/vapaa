@@ -4,6 +4,7 @@
 #include "ISO_Fortran_binding.h"
 #include "mpi_status_ignore.h"
 #include "mpi_handle_conversions.h"
+#include "mpi_constant_conversions.h"
 
 // STANDARD STUFF
 
@@ -14,6 +15,7 @@ void C_MPI_Probe(const int * source_f, const int * tag_f, const int * comm_f, MP
     MPI_Comm comm = C_MPI_COMM_F2C(*comm_f);
     *ierror = MPI_Probe(source, tag, comm,
                         C_MPI_IS_IGNORE(status) ? MPI_STATUS_IGNORE : status);
+    C_MPI_RC_FIX(*ierror);
 }
 
 void C_MPI_Mprobe(const int * source_f, const int * tag_f, const int * comm_f, int * message_f, MPI_Status * status, int * ierror)
@@ -25,6 +27,7 @@ void C_MPI_Mprobe(const int * source_f, const int * tag_f, const int * comm_f, i
     *ierror = MPI_Mprobe(source, tag, comm, &message,
                          C_MPI_IS_IGNORE(status) ? MPI_STATUS_IGNORE : status);
     *message_f = MPI_Message_c2f(message);
+    C_MPI_RC_FIX(*ierror);
 }
 
 void C_MPI_Test(int * request_f, int * flag, MPI_Status * status, int * ierror)
@@ -34,6 +37,7 @@ void C_MPI_Test(int * request_f, int * flag, MPI_Status * status, int * ierror)
     *ierror = MPI_Test(&request, flag,
                        C_MPI_IS_IGNORE(status) ? MPI_STATUS_IGNORE : status);
     *request_f = MPI_Request_c2f(request);
+    C_MPI_RC_FIX(*ierror);
 }
 
 void C_MPI_Testall(const int * count_f, int requests_f[], int * flag_f, MPI_Status statuses[], int * ierror)
@@ -44,6 +48,7 @@ void C_MPI_Testall(const int * count_f, int requests_f[], int * flag_f, MPI_Stat
     MPI_Request * requests = malloc( count * sizeof(MPI_Request) );
     if (requests == NULL) {
         *ierror = MPI_ERR_OTHER;
+        C_MPI_RC_FIX(*ierror);
         return;
     }
 
@@ -59,6 +64,7 @@ void C_MPI_Testall(const int * count_f, int requests_f[], int * flag_f, MPI_Stat
     *flag_f  = flag;
 
     free(requests);
+    C_MPI_RC_FIX(*ierror);
 }
 
 void C_MPI_Testsome(const int * incount_f, int requests_f[], int * outcount_f, int array_of_indices[], MPI_Status statuses[], int * ierror)
@@ -69,6 +75,7 @@ void C_MPI_Testsome(const int * incount_f, int requests_f[], int * outcount_f, i
     MPI_Request * requests = malloc( incount * sizeof(MPI_Request) );
     if (requests == NULL) {
         *ierror = MPI_ERR_OTHER;
+        C_MPI_RC_FIX(*ierror);
         return;
     }
 
@@ -84,6 +91,7 @@ void C_MPI_Testsome(const int * incount_f, int requests_f[], int * outcount_f, i
     *outcount_f = outcount;
 
     free(requests);
+    C_MPI_RC_FIX(*ierror);
 }
 
 void C_MPI_Testany(const int * count_f, int requests_f[], int * index_f, int * flag_f, MPI_Status statuses[], int * ierror)
@@ -119,6 +127,7 @@ void C_MPI_Wait(int * request_f, MPI_Status * status, int * ierror)
     *ierror = MPI_Wait(&request, 
                        C_MPI_IS_IGNORE(status) ? MPI_STATUS_IGNORE : status);
     *request_f = MPI_Request_c2f(request);
+    C_MPI_RC_FIX(*ierror);
 }
 
 void C_MPI_Waitall(const int * count_f, int requests_f[], MPI_Status statuses[], int * ierror)
@@ -128,6 +137,7 @@ void C_MPI_Waitall(const int * count_f, int requests_f[], MPI_Status statuses[],
     MPI_Request * requests = malloc( count * sizeof(MPI_Request) );
     if (requests == NULL) {
         *ierror = MPI_ERR_OTHER;
+        C_MPI_RC_FIX(*ierror);
         return;
     }
 
@@ -141,6 +151,7 @@ void C_MPI_Waitall(const int * count_f, int requests_f[], MPI_Status statuses[],
     }
 
     free(requests);
+    C_MPI_RC_FIX(*ierror);
 }
 
 void C_MPI_Waitsome(const int * incount_f, int requests_f[], int * outcount_f, int array_of_indices[], MPI_Status statuses[], int * ierror)
@@ -151,6 +162,7 @@ void C_MPI_Waitsome(const int * incount_f, int requests_f[], int * outcount_f, i
     MPI_Request * requests = malloc( incount * sizeof(MPI_Request) );
     if (requests == NULL) {
         *ierror = MPI_ERR_OTHER;
+        C_MPI_RC_FIX(*ierror);
         return;
     }
 
@@ -166,6 +178,7 @@ void C_MPI_Waitsome(const int * incount_f, int requests_f[], int * outcount_f, i
     *outcount_f = outcount;
 
     free(requests);
+    C_MPI_RC_FIX(*ierror);
 }
 
 void C_MPI_Waitany(const int * count_f, int requests_f[], int * index_f, MPI_Status statuses[], int * ierror)
@@ -176,6 +189,7 @@ void C_MPI_Waitany(const int * count_f, int requests_f[], int * index_f, MPI_Sta
     MPI_Request * requests = malloc( count * sizeof(MPI_Request) );
     if (requests == NULL) {
         *ierror = MPI_ERR_OTHER;
+        C_MPI_RC_FIX(*ierror);
         return;
     }
 
@@ -191,6 +205,7 @@ void C_MPI_Waitany(const int * count_f, int requests_f[], int * index_f, MPI_Sta
     *index_f = index;
 
     free(requests);
+    C_MPI_RC_FIX(*ierror);
 }
 
 void C_MPI_Send(void * buffer, int * count, int * datatype_f, int * dest, int *tag, int * comm_f, int * ierror)
@@ -198,6 +213,7 @@ void C_MPI_Send(void * buffer, int * count, int * datatype_f, int * dest, int *t
     MPI_Datatype datatype = C_MPI_TYPE_F2C(*datatype_f);
     MPI_Comm comm = C_MPI_COMM_F2C(*comm_f);
     *ierror = MPI_Send(buffer, *count, datatype, *dest, *tag, comm);
+    C_MPI_RC_FIX(*ierror);
 }
 
 #ifdef HAVE_CFI
@@ -211,6 +227,7 @@ void CFI_MPI_Send(CFI_cdesc_t * desc, int * count, int * datatype_f, int * dest,
         fprintf(stderr, "FIXME: not contiguous case\n");
         MPI_Abort(comm, 99);
     }
+    C_MPI_RC_FIX(*ierror);
 }
 #endif
 
@@ -221,6 +238,7 @@ void C_MPI_Isend(void * buffer, int * count, int * datatype_f, int * dest, int *
     MPI_Comm comm = C_MPI_COMM_F2C(*comm_f);
     *ierror = MPI_Isend(buffer, *count, datatype, *dest, *tag, comm, &request);
     *request_f = MPI_Request_c2f(request);
+    C_MPI_RC_FIX(*ierror);
 }
 
 #ifdef HAVE_CFI
@@ -236,6 +254,7 @@ void CFI_MPI_Isend(CFI_cdesc_t * desc, int * count, int * datatype_f, int * dest
         MPI_Abort(comm, 99);
     }
     *request_f = MPI_Request_c2f(request);
+    C_MPI_RC_FIX(*ierror);
 }
 #endif
 
@@ -250,6 +269,7 @@ void C_MPI_Recv(void * buffer, int * count, int * datatype_f, int * source, int 
     MPI_Comm comm = C_MPI_COMM_F2C(*comm_f);
     *ierror = MPI_Recv(buffer, *count, datatype, *source, *tag, comm,
                        C_MPI_IS_IGNORE(status) ? MPI_STATUS_IGNORE : status);
+    C_MPI_RC_FIX(*ierror);
 }
 
 #ifdef HAVE_CFI
@@ -264,6 +284,7 @@ void CFI_MPI_Recv(CFI_cdesc_t * desc, int * count, int * datatype_f, int * sourc
         fprintf(stderr, "FIXME: not contiguous case\n");
         MPI_Abort(comm, 99);
     }
+    C_MPI_RC_FIX(*ierror);
 }
 #endif
 
@@ -274,6 +295,7 @@ void C_MPI_Irecv(void * buffer, int * count, int * datatype_f, int * source, int
     MPI_Comm comm = C_MPI_COMM_F2C(*comm_f);
     *ierror = MPI_Irecv(buffer, *count, datatype, *source, *tag, comm, &request);
     *request_f = MPI_Request_c2f(request);
+    C_MPI_RC_FIX(*ierror);
 }
 
 #ifdef HAVE_CFI
@@ -289,6 +311,7 @@ void CFI_MPI_Irecv(CFI_cdesc_t * desc, int * count, int * datatype_f, int * sour
         MPI_Abort(comm, 99);
     }
     *request_f = MPI_Request_c2f(request);
+    C_MPI_RC_FIX(*ierror);
 }
 #endif
 
@@ -298,6 +321,7 @@ void C_MPI_Mrecv(void * buffer, int * count, int * datatype_f, int * message_f, 
     MPI_Message  message  = C_MPI_MESSAGE_F2C(*message_f);
     *ierror = MPI_Mrecv(buffer, *count, datatype, &message,
                         C_MPI_IS_IGNORE(status) ? MPI_STATUS_IGNORE : status);
+    C_MPI_RC_FIX(*ierror);
 }
 
 #ifdef HAVE_CFI
@@ -312,6 +336,7 @@ void CFI_MPI_Mrecv(CFI_cdesc_t * desc, int * count, int * datatype_f, int * mess
         fprintf(stderr, "FIXME: not contiguous case\n");
         MPI_Abort(MPI_COMM_SELF, 99);
     }
+    C_MPI_RC_FIX(*ierror);
 }
 #endif
 
@@ -322,6 +347,7 @@ void C_MPI_Imrecv(void * buffer, int * count, int * datatype_f, int * message_f,
     MPI_Message  message  = C_MPI_MESSAGE_F2C(*message_f);
     *ierror = MPI_Imrecv(buffer, *count, datatype, &message, &request);
     *request_f = MPI_Request_c2f(request);
+    C_MPI_RC_FIX(*ierror);
 }
 
 #ifdef HAVE_CFI
@@ -337,6 +363,7 @@ void CFI_MPI_Imrecv(CFI_cdesc_t * desc, int * count, int * datatype_f, int * mes
         MPI_Abort(MPI_COMM_SELF, 99);
     }
     *request_f = MPI_Request_c2f(request);
+    C_MPI_RC_FIX(*ierror);
 }
 #endif
 
