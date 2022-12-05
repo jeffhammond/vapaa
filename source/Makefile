@@ -220,7 +220,7 @@ mpi_error_f.o: mpi_error_f.F90 mpi_error_c.o mpi_handle_types.o mpi_global_const
 mpi_error_c.o: mpi_error_c.F90 mpi_error.o
 	$(FC) $(FCFLAGS) -c $<
 
-mpi_error.o: mpi_error.c mpi_handle_conversions.h mpi_constant_conversions.h
+mpi_error.o: mpi_error.c mpi_handle_conversions.h mpi_constant_conversions.h vapaa_constants.h
 	$(CC) $(CFLAGS) -c $<
 
 clean:

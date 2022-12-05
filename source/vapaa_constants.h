@@ -40,6 +40,21 @@
 #define VAPAA_MPI_MAX_OBJECT_NAME            1024
 #define VAPAA_MPI_MAX_PORT_NAME              1024
 
+#define VAPAA_MPI_MAX           -40000
+#define VAPAA_MPI_MIN           -40001
+#define VAPAA_MPI_SUM           -40002
+#define VAPAA_MPI_PROD          -40003
+#define VAPAA_MPI_MAXLOC        -40004
+#define VAPAA_MPI_MINLOC        -40005
+#define VAPAA_MPI_BAND          -40006
+#define VAPAA_MPI_BOR           -40007
+#define VAPAA_MPI_BXOR          -40008
+#define VAPAA_MPI_LAND          -40009
+#define VAPAA_MPI_LOR           -40010
+#define VAPAA_MPI_LXOR          -40011
+#define VAPAA_MPI_REPLACE       -40012
+#define VAPAA_MPI_NO_OP         -40013
+
 #define VAPAA_MPI_CHARACTER                 -10000
 #define VAPAA_MPI_LOGICAL                   -10001
 #define VAPAA_MPI_INTEGER                   -10002
