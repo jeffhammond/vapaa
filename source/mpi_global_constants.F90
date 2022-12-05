@@ -48,6 +48,8 @@ module mpi_global_constants
     type(MPI_Status) :: MPI_STATUS_IGNORE
     type(MPI_Status) :: MPI_STATUSES_IGNORE(1)
 
+    integer, parameter :: MPI_PROC_NULL = -1000
+
     ! 2.5.4 Named Constants
     ! The constants that are required to be compile-time constants
     ! (and can thus be used for array length declarations and labels 
