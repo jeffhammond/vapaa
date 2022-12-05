@@ -1,0 +1,56 @@
+#include <stdbool.h>
+
+extern void * f08_MPI_BOTTOM_address;          // MPI_BOTTOM
+extern void * f08_MPI_STATUS_IGNORE_address;   // MPI_STATUS_IGNORE
+extern void * f08_MPI_STATUSES_IGNORE_address; // MPI_STATUSES_IGNORE
+extern void * f08_MPI_ERRCODES_IGNORE_address; // MPI_ERRCODES_IGNORE
+extern void * f08_MPI_IN_PLACE_address;        // MPI_IN_PLACE
+extern void * f08_MPI_ARGV_NULL_address;       // MPI_ARGV_NULL
+extern void * f08_MPI_ARGVS_NULL_address;      // MPI_ARGVS_NULL
+extern void * f08_MPI_UNWEIGHTED_address;      // MPI_UNWEIGHTED
+extern void * f08_MPI_WEIGHTS_EMPTY_address;   // MPI_WEIGHTS_EMPTY
+
+bool C_IS_MPI_BOTTOM(const void * address)
+{
+    return (address == f08_MPI_BOTTOM_address);
+}
+
+bool C_IS_MPI_STATUS_IGNORE(const void * address)
+{
+    return (address == f08_MPI_STATUS_IGNORE_address);
+}
+
+bool C_IS_MPI_STATUSES_IGNORE(const void * address)
+{
+    return (address == f08_MPI_STATUSES_IGNORE_address);
+}
+
+bool C_IS_MPI_ERRCODES_IGNORE(const void * address)
+{
+    return (address == f08_MPI_ERRCODES_IGNORE_address);
+}
+
+bool C_IS_MPI_IN_PLACE(const void * address)
+{
+    return (address == f08_MPI_IN_PLACE_address);
+}
+
+bool C_IS_MPI_ARGV_NULL(const void * address)
+{
+    return (address == f08_MPI_ARGV_NULL_address);
+}
+
+bool C_IS_MPI_ARGVS_NULL(const void * address)
+{
+    return (address == f08_MPI_ARGVS_NULL_address);
+}
+
+bool C_IS_MPI_UNWEIGHTED(const void * address)
+{
+    return (address == f08_MPI_UNWEIGHTED_address);
+}
+
+bool C_IS_MPI_WEIGHTS_EMPTY(const void * address)
+{
+    return (address == f08_MPI_WEIGHTS_EMPTY_address);
+}
