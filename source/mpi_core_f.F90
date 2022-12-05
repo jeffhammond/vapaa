@@ -96,10 +96,17 @@ module mpi_core_f
         end subroutine F_Check_design_assumptions
 
         subroutine F_MPI_INIT_ADDRESS_SENTINELS()
-            use mpi_global_constants, only: MPI_IN_PLACE, MPI_BOTTOM
-            use mpi_detect_sentinels_c, only: C_MPI_IN_PLACE, C_MPI_BOTTOM
-            call C_MPI_IN_PLACE(MPI_IN_PLACE)
+            use mpi_global_constants
+            use mpi_detect_sentinels_c
             call C_MPI_BOTTOM(MPI_BOTTOM)
+            call C_MPI_STATUS_IGNORE(MPI_STATUS_IGNORE)
+            call C_MPI_STATUSES_IGNORE(MPI_STATUSES_IGNORE)
+            call C_MPI_ERRCODES_IGNORE(MPI_ERRCODES_IGNORE)
+            call C_MPI_IN_PLACE(MPI_IN_PLACE)
+            call C_MPI_ARGV_NULL(MPI_ARGV_NULL)
+            call C_MPI_ARGVS_NULL(MPI_ARGVS_NULL)
+            call C_MPI_UNWEIGHTED(MPI_UNWEIGHTED)
+            call C_MPI_WEIGHTS_EMPTY(MPI_WEIGHTS_EMPTY)
         end subroutine F_MPI_INIT_ADDRESS_SENTINELS
 
         subroutine MPI_Init_f08(ierror) 
