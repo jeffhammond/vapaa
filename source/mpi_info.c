@@ -1,7 +1,7 @@
 #include <mpi.h>
 #include "ISO_Fortran_binding.h"
-#include "mpi_handle_conversions.h"
-#include "mpi_constant_conversions.h"
+#include "convert_handles.h"
+#include "convert_constants.h"
 
 void C_MPI_Info_create(int * info_f, int * ierror)
 {

@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <mpi.h>
 #include "ISO_Fortran_binding.h"
-#include "mpi_constant_conversions.h"
+#include "convert_constants.h"
 
 // see mpi_error_f.F90 for the source of these values
 

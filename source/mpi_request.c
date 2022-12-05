@@ -1,6 +1,6 @@
 #include <mpi.h>
-#include "mpi_handle_conversions.h"
-#include "mpi_constant_conversions.h"
+#include "convert_handles.h"
+#include "convert_constants.h"
 
 void C_MPI_Request_get_status(const int * request_f, int * flag_f, MPI_Status status, int * ierror)
 {

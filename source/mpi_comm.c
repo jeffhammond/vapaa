@@ -1,6 +1,6 @@
 #include <mpi.h>
-#include "mpi_handle_conversions.h"
-#include "mpi_constant_conversions.h"
+#include "convert_handles.h"
+#include "convert_constants.h"
 #include "vapaa_constants.h"
 
 static int C_MPI_TRANSLATE_SPLIT_TYPE(int f)

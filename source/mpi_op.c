@@ -1,6 +1,6 @@
 #include <mpi.h>
-#include "mpi_handle_conversions.h"
-#include "mpi_constant_conversions.h"
+#include "convert_handles.h"
+#include "convert_constants.h"
 
 // we use the F2C/C2F functions directly here because these functions
 // will never have built-in op handles as arguments

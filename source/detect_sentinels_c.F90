@@ -1,4 +1,4 @@
-module mpi_detect_sentinels_c
+module detect_sentinels_c
 
     interface
         subroutine C_MPI_BOTTOM(inplace) &
@@ -108,4 +108,4 @@ module mpi_detect_sentinels_c
         end subroutine C_MPI_WEIGHTS_EMPTY
     end interface
 
-end module mpi_detect_sentinels_c
+end module detect_sentinels_c

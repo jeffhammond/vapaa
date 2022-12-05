@@ -2,10 +2,10 @@
 #include <stdlib.h>
 #include <mpi.h>
 #include "ISO_Fortran_binding.h"
-#include "mpi_handle_conversions.h"
-#include "mpi_constant_conversions.h"
-#include "mpi_detect_builtins.h"
-#include "mpi_detect_sentinels.h"
+#include "convert_handles.h"
+#include "convert_constants.h"
+#include "detect_builtins.h"
+#include "detect_sentinels.h"
 
 extern void * f08_mpi_in_place_address;
 
