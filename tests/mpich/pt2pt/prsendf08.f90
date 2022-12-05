@@ -18,14 +18,14 @@
       errs = 0
       verbose = .false.
 !      verbose = .true.
-      call MTest_Init( ierr )
+      call mpi_Init( ierr )
 
       do while ( mtestGetIntraComm( comm, 2, .false. ) )
          call test_pair_prsend( comm, errs )
          call mtestFreeComm( comm )
       enddo
 !
-      call MTest_Finalize( errs )
+      call mpi_Finalize( errs )
 !
       end
 !

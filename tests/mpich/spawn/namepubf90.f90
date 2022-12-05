@@ -15,7 +15,7 @@
       integer ierr
 
       errs = 0
-      call MTest_Init( ierr )
+      call mpi_Init( ierr )
       call MPI_Comm_rank(MPI_COMM_WORLD, rank, ierr )
 
 !       Note that according to the MPI standard, port_name must
@@ -90,5 +90,5 @@
          endif
       endif
 
-      call MTest_Finalize( errs )
+      call mpi_Finalize( errs )
       end

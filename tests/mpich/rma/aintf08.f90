@@ -69,5 +69,5 @@ program main
     call MPI_Win_detach(win, array, ierr)
     call MPI_Win_free(win, ierr)
 
-    call MTest_Finalize(errs)
+    call mpi_Finalize(errs)
 end

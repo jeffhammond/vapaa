@@ -51,7 +51,7 @@
          endif
       endif
 
-      call MTest_Finalize( errs )
+      call mpi_Finalize( errs )
 
       end
 

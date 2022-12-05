@@ -21,7 +21,7 @@ remain_dims(1) = .TRUE.
 remain_dims(2) = .FALSE.
 errs = 0
 
-call MTEST_Init(ierr)
+call mpi_Init(ierr)
 call MPI_Comm_rank(MPI_COMM_WORLD, rank)
 call MPI_Comm_size(MPI_COMM_WORLD, size)
 call MPI_Dims_create(size, 2, dims)
@@ -35,6 +35,6 @@ call MPI_Comm_size(comm_new, size)
 call MPI_Comm_free(comm_cart)
 call MPI_Comm_free(comm_new)
 
-call MTEST_Finalize(errs)
+call mpi_Finalize(errs)
 
 end program

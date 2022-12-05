@@ -26,7 +26,7 @@ PROGRAM get_elem_u
   REAL    :: a(amax)
 
   errs = 0
-  CALL MTest_Init( ierr )
+  CALL mpi_Init( ierr )
   COMM = MPI_COMM_WORLD
   types(1) = MPI_DOUBLE_PRECISION
   types(2) = MPI_CHAR
@@ -66,6 +66,6 @@ PROGRAM get_elem_u
   CALL MPI_Type_free(type1, ierr)
   CALL MPI_Type_free(type2, ierr)
 
-  CALL MTest_Finalize( errs )
+  CALL mpi_Finalize( errs )
 
 END PROGRAM get_elem_u

@@ -15,7 +15,7 @@
       integer buf(1024)
 
       errs = 0
-      call MTest_Init( ierr )
+      call mpi_Init( ierr )
 
 !    This test reads a header then sets the view to every "size" int,
 !    using set view and current displacement.  The file is first written
@@ -114,6 +114,6 @@
          call MTestPrintErrorMsg( "Close(2)", ierr )
       endif
 
-      call MTest_Finalize( errs )
+      call mpi_Finalize( errs )
       end
 

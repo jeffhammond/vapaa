@@ -14,7 +14,7 @@ program pt2pt_large
     integer:: tag = 0
 
     errs = 0
-    call MTest_Init(ierr)
+    call mpi_Init(ierr)
     comm = MPI_COMM_WORLD
     call MPI_Comm_rank(comm, rank, ierr)
     call MPI_Comm_size(comm, nproc, ierr)
@@ -31,7 +31,7 @@ program pt2pt_large
         endif
     endif
 
-    call MTest_Finalize(errs)
+    call mpi_Finalize(errs)
 
     contains
     subroutine init_sendbuf(buf)

@@ -17,7 +17,7 @@
 
 
         errs = 0
-        call MTest_Init( ierr )
+        call mpi_Init( ierr )
 
         filename = "iotest.txt"
         comm = MPI_COMM_WORLD
@@ -70,5 +70,5 @@
            endif
         endif
 !
-        call MTest_Finalize( errs )
+        call mpi_Finalize( errs )
         end

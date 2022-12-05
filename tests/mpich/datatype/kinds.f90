@@ -16,7 +16,7 @@
 !
   errs = 0
 !
-  call MTEST_INIT(ierr)
+  call mpi_INIT(ierr)
   call MPI_COMM_SIZE(MPI_COMM_WORLD,wsize,ierr)
   call MPI_COMM_RANK(MPI_COMM_WORLD,wrank,ierr)
   if (wsize .lt. 2) then
@@ -109,6 +109,6 @@
 !
   endif
 !
-  call MTEST_FINALIZE(errs)
+  call mpi_FINALIZE(errs)
 
   end

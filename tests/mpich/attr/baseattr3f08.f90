@@ -105,6 +105,6 @@
             print *, "MPI_LASTUSECODE is not defined"
          endif
 
-      call MTest_Finalize( errs )
+      call mpi_Finalize( errs )
 
       end

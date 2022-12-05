@@ -41,7 +41,7 @@ type(MPI_File) :: fh
 errs = 0
 str = "iotest.txt"
 
-call MTEST_INIT(ierr)
+call mpi_INIT(ierr)
 call MPI_COMM_SIZE(MPI_COMM_WORLD, nprocs, ierr)
 call MPI_COMM_RANK(MPI_COMM_WORLD, mynod, ierr)
 
@@ -139,7 +139,7 @@ if (mynod .eq. 0) then
     endif
 endif
 
-call MTEST_FINALIZE(errs)
+call mpi_FINALIZE(errs)
 
 stop
 end

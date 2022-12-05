@@ -16,7 +16,7 @@
 
       errs = 0
 
-      call MTest_Init(ierr)
+      call mpi_Init(ierr)
 
       call MPI_Get_address( iarray(1), aintv(1), ierr )
       call MPI_Get_address( iarray(200), aintv(2), ierr )
@@ -30,5 +30,5 @@
          print *, ' Expected a gap of ', 199 * intsize
       endif
 
-      call MTest_Finalize( errs )
+      call mpi_Finalize( errs )
       end

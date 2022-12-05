@@ -14,14 +14,14 @@
       logical mtestGetIntraComm
 
       errs = 0
-      call MTest_Init( ierr )
+      call mpi_Init( ierr )
 
       do while ( mtestGetIntraComm( comm, 2, .false. ) )
          call test_pair_psend( comm, errs )
          call mtestFreeComm( comm )
       enddo
 !
-      call MTest_Finalize( errs )
+      call mpi_Finalize( errs )
 !
       end
 !

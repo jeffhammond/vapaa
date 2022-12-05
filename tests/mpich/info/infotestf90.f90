@@ -15,7 +15,7 @@
 !
        errs = 0
 
-       call MTest_Init( ierr )
+       call mpi_Init( ierr )
 
        call mpi_info_create( i1, ierr )
        call mpi_info_create( i2, ierr )
@@ -51,5 +51,5 @@
        call mpi_info_free( i1, ierr )
        call mpi_info_free( i2, ierr )
 
-       call MTest_Finalize( errs )
+       call mpi_Finalize( errs )
        end

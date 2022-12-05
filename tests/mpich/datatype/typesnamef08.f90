@@ -14,7 +14,7 @@
 
        errs = 0
 
-       call MTest_Init( ierr )
+       call mpi_Init( ierr )
 
        call mpi_type_vector( 10, 1, 100, MPI_INTEGER, ntype1, ierr )
        rlen = -1
@@ -63,6 +63,6 @@
        call mpi_type_free( ntype1, ierr )
        call mpi_type_free( ntype2, ierr )
 
-       call MTest_Finalize( errs )
+       call mpi_Finalize( errs )
 
        end

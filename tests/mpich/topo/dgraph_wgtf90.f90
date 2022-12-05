@@ -139,7 +139,7 @@
       integer    src_wgts(2), dest_wgts(2)
 
       errs = 0
-      call MTEST_Init(ierr)
+      call mpi_Init(ierr)
       call MPI_Comm_rank(MPI_COMM_WORLD, world_rank, ierr)
       call MPI_Comm_size(MPI_COMM_WORLD, world_size, ierr)
 
@@ -193,5 +193,5 @@
       endif
       call MPI_Comm_free(dgraph_comm, ierr)
 
-      call MTEST_Finalize(errs)
+      call mpi_Finalize(errs)
       end

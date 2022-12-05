@@ -17,11 +17,11 @@
         errs = 0
         np   = 2
 
-        call MTest_Init( ierr )
+        call mpi_Init( ierr )
 
         call MTestSpawnPossible( can_spawn, errs )
         if ( can_spawn .eq. 0 ) then
-            call MTest_Finalize( errs )
+            call mpi_Finalize( errs )
             goto 300
         endif
 
@@ -86,11 +86,11 @@
 !       It isn't necessary to free the intercomm, but it should not hurt
         call MPI_Comm_free( intercomm, ierr )
 
-!       Note that the MTest_Finalize get errs only over COMM_WORLD
+!       Note that the mpi_Finalize get errs only over COMM_WORLD
 !       Note also that both the parent and child will generate "No
-!       Errors" if both call MTest_Finalize
+!       Errors" if both call mpi_Finalize
         if (parentcomm .eq. MPI_COMM_NULL) then
-           call MTest_Finalize( errs )
+           call mpi_Finalize( errs )
         else
            call MPI_Finalize( ierr )
         endif

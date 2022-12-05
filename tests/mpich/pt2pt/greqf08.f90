@@ -76,7 +76,7 @@
        errs = 0
        freefncall = 0
 
-       call MTest_Init( ierr )
+       call mpi_Init( ierr )
 
        extrastate = 0
        call mpi_grequest_start( query_fn, free_fn, cancel_fn,  &
@@ -110,6 +110,6 @@
           endif
        endif
 !
-       call MTest_Finalize( errs )
+       call mpi_Finalize( errs )
        end
 !
