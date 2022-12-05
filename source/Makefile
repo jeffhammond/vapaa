@@ -85,7 +85,7 @@ mpi_comm.o: mpi_comm.c mpi_handle_conversions.h mpi_constant_conversions.h mpi_d
 mpi_coll_f.o: mpi_coll_f.F90 mpi_coll_c.o mpi_handle_types.o mpi_global_constants.o
 	$(FC) $(FCFLAGS) -c $<
 
-mpi_coll_c.o: mpi_coll_c.F90 mpi_coll.o
+mpi_coll_c.o: mpi_coll_c.F90 mpi_coll.o mpi_detect_sentinels.h
 	$(FC) $(FCFLAGS) -c $<
 
 mpi_coll.o: mpi_coll.c mpi_handle_conversions.h mpi_constant_conversions.h
@@ -107,7 +107,7 @@ mpi_datatype.o: mpi_datatype.c mpi_handle_conversions.h mpi_constant_conversions
 mpi_file_f.o: mpi_file_f.F90 mpi_file_c.o mpi_handle_types.o mpi_global_constants.o
 	$(FC) $(FCFLAGS) -c $<
 
-mpi_file_c.o: mpi_file_c.F90 mpi_file.o mpi_handle_types.o
+mpi_file_c.o: mpi_file_c.F90 mpi_file.o mpi_handle_types.o mpi_detect_sentinels.h
 	$(FC) $(FCFLAGS) -c $<
 
 mpi_file.o: mpi_file.c mpi_handle_conversions.h mpi_constant_conversions.h
@@ -154,7 +154,7 @@ mpi_p2p_f.o: mpi_p2p_f.F90 mpi_p2p_c.o mpi_handle_types.o mpi_global_constants.o
 mpi_p2p_c.o: mpi_p2p_c.F90 mpi_p2p.o mpi_handle_types.o
 	$(FC) $(FCFLAGS) -c $<
 
-mpi_p2p.o: mpi_p2p.c mpi_handle_conversions.h mpi_constant_conversions.h
+mpi_p2p.o: mpi_p2p.c mpi_handle_conversions.h mpi_constant_conversions.h mpi_detect_sentinels.h
 	$(CC) $(CFLAGS) -c $<
 
 # OP
@@ -198,7 +198,7 @@ mpi_rma_f.o: mpi_rma_f.F90 mpi_rma_c.o mpi_handle_types.o mpi_global_constants.o
 mpi_rma_c.o: mpi_rma_c.F90 mpi_rma.o
 	$(FC) $(FCFLAGS) -c $<
 
-mpi_rma.o: mpi_rma.c mpi_handle_conversions.h mpi_constant_conversions.h
+mpi_rma.o: mpi_rma.c mpi_handle_conversions.h mpi_constant_conversions.h mpi_detect_sentinels.h
 	$(CC) $(CFLAGS) -c $<
 
 # WIN
