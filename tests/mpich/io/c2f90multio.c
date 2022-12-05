@@ -23,7 +23,7 @@ int main(int argc, char *argv[])
     int rank;
     MPI_File cFile;
 
-    MTest_Init(&argc, &argv);
+    mpi_Init(&argc, &argv);
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 
     /* File */
@@ -43,7 +43,7 @@ int main(int argc, char *argv[])
     }
     MPI_File_close(&cFile);
 
-    MTest_Finalize(errs);
+    mpi_Finalize(errs);
 
 
     return MTestReturnValue(errs);

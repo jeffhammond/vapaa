@@ -27,7 +27,7 @@ int main(int argc, char *argv[])
     MPI_Status st;
     int tFlag;
 
-    MTest_Init(&argc, &argv);
+    mpi_Init(&argc, &argv);
 
     /* Request */
     rc = MPI_Irecv(buf, 1, MPI_INT, 0, 0, MPI_COMM_WORLD, &cRequest);
@@ -53,7 +53,7 @@ int main(int argc, char *argv[])
      * object to it immediately after the cancel and that isn't essential to
      * this test */
 
-    MTest_Finalize(errs);
+    mpi_Finalize(errs);
 
     return MTestReturnValue(errs);
 }
