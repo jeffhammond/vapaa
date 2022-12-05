@@ -11,6 +11,16 @@ module mpi_datatype_c
     end interface
 
     interface
+        subroutine C_MPI_Type_size(datatype, size, ierror) &
+                   bind(C,name="C_MPI_Type_size")
+            use iso_c_binding, only: c_int
+            implicit none
+            integer(kind=c_int), intent(in) :: datatype
+            integer(kind=c_int), intent(out) :: size, ierror
+        end subroutine C_MPI_Type_size
+    end interface
+
+    interface
         subroutine C_MPI_Type_free(datatype, ierror) &
                    bind(C,name="C_MPI_Type_free")
             use iso_c_binding, only: c_int

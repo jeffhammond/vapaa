@@ -93,6 +93,18 @@ module mpi_datatype_f
             if (present(ierror)) ierror = ierror_c
         end subroutine MPI_Type_commit_f08
 
+        subroutine MPI_Type_size_f08(datatype, size, ierror) 
+            use mpi_handle_types, only: MPI_Datatype
+            use mpi_datatype_c, only: C_MPI_Type_size
+            type(MPI_Datatype), intent(in) :: datatype
+            integer, intent(out) :: size
+            integer, optional, intent(out) :: ierror
+            integer(kind=c_int) :: size_c, ierror_c
+            call C_MPI_Type_size(datatype % MPI_VAL, size_c, ierror_c)
+            size = size_c
+            if (present(ierror)) ierror = ierror_c
+        end subroutine MPI_Type_size_f08
+
         subroutine MPI_Type_free_f08(datatype, ierror) 
             use mpi_handle_types, only: MPI_Datatype
             use mpi_datatype_c, only: C_MPI_Type_free
