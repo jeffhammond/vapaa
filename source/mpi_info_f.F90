@@ -40,6 +40,12 @@ module mpi_info_f
         module procedure MPI_Info_set_f08
     end interface MPI_Info_set
 
+    !!!!!! deprecated in MPI 4.0 !!!!!!
+    interface MPI_Info_get
+        module procedure MPI_Info_get_string_f08
+    end interface MPI_Info_get
+    !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
     contains
 
         subroutine MPI_Info_create_f08(info, ierror)
