@@ -1,21 +1,15 @@
 #include <mpi.h>
 #include "mpi_handle_conversions.h"
 #include "mpi_constant_conversions.h"
-
-/*******************************
-! 7.4 MPI_COMM_SPLIT_TYPE
-integer, parameter :: MPI_COMM_TYPE_SHARED      = 5300
-integer, parameter :: MPI_COMM_TYPE_HW_UNGUIDED = 5400
-integer, parameter :: MPI_COMM_TYPE_HW_GUIDED   = 5500
-*******************************/
+#include "vapaa_constants.h"
 
 static int C_MPI_TRANSLATE_SPLIT_TYPE(int f)
 {
-    if (f == 5300) {
+    if (f == VAPAA_MPI_COMM_TYPE_SHARED) {
         return MPI_COMM_TYPE_SHARED;
-    } else if (f == 5400) {
+    } else if (f == VAPAA_MPI_COMM_TYPE_HW_UNGUIDED) {
         return MPI_COMM_TYPE_HW_UNGUIDED;
-    } else if (f == 5500) {
+    } else if (f == VAPAA_MPI_COMM_TYPE_HW_GUIDED) {
         return MPI_COMM_TYPE_HW_GUIDED;
     } else {
         // impossible

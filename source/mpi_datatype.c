@@ -1,18 +1,13 @@
 #include <mpi.h>
 #include "mpi_handle_conversions.h"
 #include "mpi_constant_conversions.h"
-
-/*******************************
-! MPI subarray array major constants
-integer, parameter :: MPI_ORDER_C       = 321
-integer, parameter :: MPI_ORDER_FORTRAN = 123
-*******************************/
+#include "vapaa_constants.h"
 
 static int C_MPI_TRANSLATE_MAJOR(int f)
 {
-    if (f == 321) {
+    if (f == VAPAA_MPI_ORDER_C) {
         return MPI_ORDER_C;
-    } else if (f == 123) {
+    } else if (f == VAPAA_MPI_ORDER_FORTRAN) {
         return MPI_ORDER_FORTRAN;
     } else {
         // impossible
