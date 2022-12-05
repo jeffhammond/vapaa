@@ -22,7 +22,7 @@ program main
     errs = 0
     verbose = .false.
 
-    call MTest_Init(ierr)
+    call mpi_Init(ierr)
     call mpi_comm_size(MPI_COMM_WORLD, size, ierr)
     call mpi_comm_rank(MPI_COMM_WORLD, rank, ierr)
 
@@ -72,5 +72,5 @@ program main
         if (verbose) print *, iar(1), iar(2), iar(3), iar(4), iar(5), iar(6), iar(7), iar(8), iar(9)
     endif
 
-    call MTest_Finalize(errs)
+    call mpi_Finalize(errs)
 end program

@@ -23,7 +23,7 @@ program main
     errs = 0
     verbose = .false.
 
-    call MTest_Init(ierr)
+    call mpi_Init(ierr)
     call mpi_comm_size(MPI_COMM_WORLD, size, ierr)
     call mpi_comm_rank(MPI_COMM_WORLD, rank, ierr)
 
@@ -98,5 +98,5 @@ program main
         end do
     endif
 
-    call MTest_Finalize(errs)
+    call mpi_Finalize(errs)
 end program
