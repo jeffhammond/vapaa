@@ -97,7 +97,7 @@ module mpi_core_f
 
         subroutine F_MPI_INIT_ADDRESS_SENTINELS()
             use mpi_global_constants, only: MPI_IN_PLACE, MPI_BOTTOM
-            use mpi_core_c, only: C_MPI_IN_PLACE, C_MPI_BOTTOM
+            use mpi_detect_sentinels_c, only: C_MPI_IN_PLACE, C_MPI_BOTTOM
             call C_MPI_IN_PLACE(MPI_IN_PLACE)
             call C_MPI_BOTTOM(MPI_BOTTOM)
         end subroutine F_MPI_INIT_ADDRESS_SENTINELS
