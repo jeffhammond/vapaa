@@ -32,6 +32,15 @@ void C_MPI_Type_commit(int * type_f, int * ierror)
     C_MPI_RC_FIX(*ierror);
 }
 
+void C_MPI_Type_size(int * type_f, int * size_f, int * ierror)
+{
+    int size = 0;
+    MPI_Datatype type = MPI_Type_f2c(*type_f);
+    *ierror = MPI_Type_size(type,&size);
+    *size_f = size;
+    C_MPI_RC_FIX(*ierror);
+}
+
 void C_MPI_Type_free(int * type_f, int * ierror)
 {
     MPI_Datatype type = MPI_Type_f2c(*type_f);
