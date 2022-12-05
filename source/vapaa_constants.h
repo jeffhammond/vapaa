@@ -189,3 +189,13 @@
 #define VAPAA_MPI_T_ERR_PVAR_NO_STARTSTOP    -400087
 #define VAPAA_MPI_T_ERR_PVAR_NO_ATOMIC       -400088
 #define VAPAA_MPI_ERR_LASTCODE               -400089
+
+#define VAPAA_MPI_MODE_APPEND             1
+#define VAPAA_MPI_MODE_CREATE             2
+#define VAPAA_MPI_MODE_DELETE_ON_CLOSE    4
+#define VAPAA_MPI_MODE_EXCL               8
+#define VAPAA_MPI_MODE_RDONLY            16
+#define VAPAA_MPI_MODE_RDWR              32
+#define VAPAA_MPI_MODE_SEQUENTIAL        64
+#define VAPAA_MPI_MODE_UNIQUE_OPEN      128
+#define VAPAA_MPI_MODE_WRONLY           256

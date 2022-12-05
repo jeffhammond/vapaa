@@ -3,15 +3,15 @@ module mpi_file_f
     implicit none
 
     ! I/O file mode constants
-    integer, parameter :: MPI_MODE_APPEND           =   1
-    integer, parameter :: MPI_MODE_CREATE           =   2
-    integer, parameter :: MPI_MODE_DELETE_ON_CLOSE  =   4
-    integer, parameter :: MPI_MODE_EXCL             =   8
-    integer, parameter :: MPI_MODE_RDONLY           =  16
-    integer, parameter :: MPI_MODE_RDWR             =  32
-    integer, parameter :: MPI_MODE_SEQUENTIAL       =  64
-    integer, parameter :: MPI_MODE_UNIQUE_OPEN      = 128
-    integer, parameter :: MPI_MODE_WRONLY           = 256
+    integer, parameter :: MPI_MODE_APPEND           = VAPAA_MPI_MODE_APPEND
+    integer, parameter :: MPI_MODE_CREATE           = VAPAA_MPI_MODE_CREATE
+    integer, parameter :: MPI_MODE_DELETE_ON_CLOSE  = VAPAA_MPI_MODE_DELETE_ON_CLOSE
+    integer, parameter :: MPI_MODE_EXCL             = VAPAA_MPI_MODE_EXCL
+    integer, parameter :: MPI_MODE_RDONLY           = VAPAA_MPI_MODE_RDONLY
+    integer, parameter :: MPI_MODE_RDWR             = VAPAA_MPI_MODE_RDWR
+    integer, parameter :: MPI_MODE_SEQUENTIAL       = VAPAA_MPI_MODE_SEQUENTIAL
+    integer, parameter :: MPI_MODE_UNIQUE_OPEN      = VAPAA_MPI_MODE_UNIQUE_OPEN
+    integer, parameter :: MPI_MODE_WRONLY           = VAPAA_MPI_MODE_WRONLY
 
     interface MPI_File_open
         module procedure MPI_File_open_f08
@@ -107,7 +107,7 @@ module mpi_file_f
 
     contains
 
-        subroutine MPI_File_open_f08(comm, filename, amode, info, file, ierror) 
+        subroutine MPI_File_open_f08(comm, filename, amode, info, file, ierror)
             use iso_c_binding, only: c_char, c_null_char
             use mpi_handle_types, only: MPI_Comm, MPI_Info, MPI_File
             use mpi_file_c, only: C_MPI_File_open
@@ -132,7 +132,7 @@ module mpi_file_f
             if (present(ierror)) ierror = ierror_c
         end subroutine MPI_File_open_f08
 
-        subroutine MPI_File_close_f08(file, ierror) 
+        subroutine MPI_File_close_f08(file, ierror)
             use mpi_handle_types, only: MPI_File
             use mpi_file_c, only: C_MPI_File_close
             type(MPI_File), intent(inout) :: file
@@ -142,7 +142,7 @@ module mpi_file_f
             if (present(ierror)) ierror = ierror_c
         end subroutine MPI_File_close_f08
 
-        subroutine MPI_File_delete_f08(filename, info, ierror) 
+        subroutine MPI_File_delete_f08(filename, info, ierror)
             use iso_c_binding, only: c_char, c_null_char
             use mpi_handle_types, only: MPI_Info
             use mpi_file_c, only: C_MPI_File_delete

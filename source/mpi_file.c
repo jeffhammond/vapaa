@@ -5,31 +5,19 @@
 #include "mpi_handle_conversions.h"
 #include "mpi_constant_conversions.h"
 
-/*******************************
-! MPI I/O file mode constants
-integer, parameter :: MPI_MODE_APPEND           =   1
-integer, parameter :: MPI_MODE_CREATE           =   2
-integer, parameter :: MPI_MODE_DELETE_ON_CLOSE  =   4
-integer, parameter :: MPI_MODE_EXCL             =   8
-integer, parameter :: MPI_MODE_RDONLY           =  16
-integer, parameter :: MPI_MODE_RDWR             =  32
-integer, parameter :: MPI_MODE_SEQUENTIAL       =  64
-integer, parameter :: MPI_MODE_UNIQUE_OPEN      = 128
-integer, parameter :: MPI_MODE_WRONLY           = 256
-*******************************/
-
 static int C_MPI_TRANSLATE_AMODE(int f)
 {
+    // all of the VAPAA constants are powers of two, so that bit logic works
     int c = 0;
-    if (f &   1) c |= MPI_MODE_APPEND;
-    if (f &   2) c |= MPI_MODE_CREATE;
-    if (f &   4) c |= MPI_MODE_DELETE_ON_CLOSE;
-    if (f &   8) c |= MPI_MODE_EXCL;
-    if (f &  16) c |= MPI_MODE_RDONLY;
-    if (f &  32) c |= MPI_MODE_RDWR;
-    if (f &  64) c |= MPI_MODE_SEQUENTIAL;
-    if (f & 128) c |= MPI_MODE_UNIQUE_OPEN;
-    if (f & 256) c |= MPI_MODE_WRONLY;
+    if (f & VAPAA_MPI_MODE_APPEND         ) c |= MPI_MODE_APPEND;
+    if (f & VAPAA_MPI_MODE_CREATE         ) c |= MPI_MODE_CREATE;
+    if (f & VAPAA_MPI_MODE_DELETE_ON_CLOSE) c |= MPI_MODE_DELETE_ON_CLOSE;
+    if (f & VAPAA_MPI_MODE_EXCL           ) c |= MPI_MODE_EXCL;
+    if (f & VAPAA_MPI_MODE_RDONLY         ) c |= MPI_MODE_RDONLY;
+    if (f & VAPAA_MPI_MODE_RDWR           ) c |= MPI_MODE_RDWR;
+    if (f & VAPAA_MPI_MODE_SEQUENTIAL     ) c |= MPI_MODE_SEQUENTIAL;
+    if (f & VAPAA_MPI_MODE_UNIQUE_OPEN    ) c |= MPI_MODE_UNIQUE_OPEN;
+    if (f & VAPAA_MPI_MODE_WRONLY         ) c |= MPI_MODE_WRONLY;
     return c;
 }
 
