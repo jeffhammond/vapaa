@@ -112,18 +112,16 @@ module mpi_core_f
         subroutine MPI_Init_f08(ierror) 
             use iso_c_binding, only: c_sizeof, c_int
             use mpi_core_c, only: C_MPI_Init
-            use mpi_status_f, only: F_MPI_Init_status
             integer, optional, intent(out) :: ierror
             integer(kind=c_int) :: ierror_c
             call C_MPI_Init(ierror_c)
-            call F_MPI_Init_status()
+            call F_MPI_INIT_ADDRESS_SENTINELS()
             call F_Check_design_assumptions()
             if (present(ierror)) ierror = ierror_c
         end subroutine MPI_Init_f08
 
         subroutine MPI_Init_thread_f08(required, provided, ierror) 
             use mpi_core_c, only: C_MPI_Init_thread
-            use mpi_status_f, only: F_MPI_Init_status
             integer, intent(in) :: required
             integer, intent(out) :: provided
             integer, optional, intent(out) :: ierror
@@ -131,7 +129,7 @@ module mpi_core_f
             required_c = required
             call C_MPI_Init_thread(required_c, provided_c, ierror_c)
             provided = provided_c
-            call F_MPI_Init_status()
+            call F_MPI_INIT_ADDRESS_SENTINELS()
             call F_Check_design_assumptions()
             if (present(ierror)) ierror = ierror_c
         end subroutine MPI_Init_thread_f08
