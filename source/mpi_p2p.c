@@ -8,23 +8,19 @@
 
 // STANDARD STUFF
 
-void C_MPI_Probe(const int * source_f, const int * tag_f, const int * comm_f, MPI_Status * status, int * ierror)
+void C_MPI_Probe(const int * source, const int * tag, const int * comm_f, MPI_Status * status, int * ierror)
 {
-    const int source = *source_f;
-    const int tag    = *tag_f;
     MPI_Comm comm = C_MPI_COMM_F2C(*comm_f);
-    *ierror = MPI_Probe(source, tag, comm,
+    *ierror = MPI_Probe(C_MPI_PROC_NULL_DETECTOR(*source), *tag, comm,
                         C_IS_MPI_STATUS_IGNORE(status) ? MPI_STATUS_IGNORE : status);
     C_MPI_RC_FIX(*ierror);
 }
 
-void C_MPI_Mprobe(const int * source_f, const int * tag_f, const int * comm_f, int * message_f, MPI_Status * status, int * ierror)
+void C_MPI_Mprobe(const int * source, const int * tag, const int * comm_f, int * message_f, MPI_Status * status, int * ierror)
 {
-    const int source = *source_f;
-    const int tag    = *tag_f;
     MPI_Message message;
     MPI_Comm comm = C_MPI_COMM_F2C(*comm_f);
-    *ierror = MPI_Mprobe(source, tag, comm, &message,
+    *ierror = MPI_Mprobe(C_MPI_PROC_NULL_DETECTOR(*source), *tag, comm, &message,
                          C_IS_MPI_STATUS_IGNORE(status) ? MPI_STATUS_IGNORE : status);
     *message_f = MPI_Message_c2f(message);
     C_MPI_RC_FIX(*ierror);
@@ -208,7 +204,7 @@ void C_MPI_Waitany(const int * count_f, int requests_f[], int * index_f, MPI_Sta
     C_MPI_RC_FIX(*ierror);
 }
 
-void C_MPI_Send(void * buffer, int * count, int * datatype_f, int * dest, int *tag, int * comm_f, int * ierror)
+void C_MPI_Send(void * buffer, int * count, int * datatype_f, int * dest, int * tag, int * comm_f, int * ierror)
 {
     MPI_Datatype datatype = C_MPI_TYPE_F2C(*datatype_f);
     MPI_Comm comm = C_MPI_COMM_F2C(*comm_f);
@@ -231,7 +227,7 @@ void CFI_MPI_Send(CFI_cdesc_t * desc, int * count, int * datatype_f, int * dest,
 }
 #endif
 
-void C_MPI_Isend(void * buffer, int * count, int * datatype_f, int * dest, int *tag, int * comm_f, int * request_f, int * ierror)
+void C_MPI_Isend(void * buffer, int * count, int * datatype_f, int * dest, int * tag, int * comm_f, int * request_f, int * ierror)
 {
     MPI_Request request = MPI_REQUEST_NULL;
     MPI_Datatype datatype = C_MPI_TYPE_F2C(*datatype_f);
