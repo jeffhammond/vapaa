@@ -49,6 +49,7 @@ module mpi_global_constants
     type(MPI_Status) :: MPI_STATUSES_IGNORE(1)
 
     integer, parameter :: MPI_PROC_NULL = -1000
+    type(MPI_Message), parameter  :: MPI_MESSAGE_NO_PROC = MPI_Message(MPI_VAL  = -1000)
 
     ! 2.5.4 Named Constants
     ! The constants that are required to be compile-time constants
