@@ -21,6 +21,17 @@ module mpi_datatype_c
     end interface
 
     interface
+        subroutine C_MPI_Type_dup(oldtype, newtype, ierror) &
+                   bind(C,name="C_MPI_Type_dup")
+            use iso_c_binding, only: c_int
+            implicit none
+            integer(kind=c_int), intent(in) :: oldtype
+            integer(kind=c_int), intent(out) :: newtype
+            integer(kind=c_int), intent(out) :: ierror
+        end subroutine C_MPI_Type_dup
+    end interface
+
+    interface
         subroutine C_MPI_Type_free(datatype, ierror) &
                    bind(C,name="C_MPI_Type_free")
             use iso_c_binding, only: c_int

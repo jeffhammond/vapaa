@@ -69,6 +69,10 @@ module mpi_datatype_f
         module procedure MPI_Type_size_f08
     end interface MPI_Type_size
 
+    interface MPI_Type_dup
+        module procedure MPI_Type_dup_f08
+    end interface MPI_Type_dup
+
     interface MPI_Type_free
         module procedure MPI_Type_free_f08
     end interface MPI_Type_free
@@ -108,6 +112,17 @@ module mpi_datatype_f
             size = size_c
             if (present(ierror)) ierror = ierror_c
         end subroutine MPI_Type_size_f08
+
+        subroutine MPI_Type_dup_f08(oldtype, newtype, ierror) 
+            use mpi_handle_types, only: MPI_Datatype
+            use mpi_datatype_c, only: C_MPI_Type_dup
+            type(MPI_Datatype), intent(in) :: oldtype
+            type(MPI_Datatype), intent(out) :: newtype
+            integer, optional, intent(out) :: ierror
+            integer(kind=c_int) :: ierror_c
+            call C_MPI_Type_dup(oldtype % MPI_VAL, newtype % MPI_VAL, ierror_c)
+            if (present(ierror)) ierror = ierror_c
+        end subroutine MPI_Type_dup_f08
 
         subroutine MPI_Type_free_f08(datatype, ierror) 
             use mpi_handle_types, only: MPI_Datatype

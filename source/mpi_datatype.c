@@ -41,6 +41,15 @@ void C_MPI_Type_size(int * type_f, int * size_f, int * ierror)
     C_MPI_RC_FIX(*ierror);
 }
 
+void C_MPI_Type_dup(int * oldtype_f, int * newtype_f, int * ierror)
+{
+    MPI_Datatype newtype;
+    MPI_Datatype oldtype = MPI_Type_f2c(*oldtype_f);
+    *ierror = MPI_Type_dup(oldtype,&newtype);
+    *newtype_f = MPI_Type_c2f(newtype);
+    C_MPI_RC_FIX(*ierror);
+}
+
 void C_MPI_Type_free(int * type_f, int * ierror)
 {
     MPI_Datatype type = MPI_Type_f2c(*type_f);
