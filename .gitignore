@@ -1,6 +1,6 @@
 make.inc
 */ISO_Fortran_binding.h
-*/*.dSYM
+*.dSYM
 *.x
 *.swp
 
