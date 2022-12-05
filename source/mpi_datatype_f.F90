@@ -17,15 +17,25 @@ module mpi_datatype_f
     type(MPI_Datatype), parameter :: MPI_INTEGER2               = MPI_Datatype(MPI_VAL = VAPAA_MPI_INTEGER2)
     type(MPI_Datatype), parameter :: MPI_INTEGER4               = MPI_Datatype(MPI_VAL = VAPAA_MPI_INTEGER4)
     type(MPI_Datatype), parameter :: MPI_INTEGER8               = MPI_Datatype(MPI_VAL = VAPAA_MPI_INTEGER8)
+#if HAVE_MPI_INTEGER16
     type(MPI_Datatype), parameter :: MPI_INTEGER16              = MPI_Datatype(MPI_VAL = VAPAA_MPI_INTEGER16)
+#endif
+#ifdef HAVE_MPI_REAL2
     type(MPI_Datatype), parameter :: MPI_REAL2                  = MPI_Datatype(MPI_VAL = VAPAA_MPI_REAL2)
+#endif
     type(MPI_Datatype), parameter :: MPI_REAL4                  = MPI_Datatype(MPI_VAL = VAPAA_MPI_REAL4)
     type(MPI_Datatype), parameter :: MPI_REAL8                  = MPI_Datatype(MPI_VAL = VAPAA_MPI_REAL8)
+#ifdef HAVE_MPI_REAL16
     type(MPI_Datatype), parameter :: MPI_REAL16                 = MPI_Datatype(MPI_VAL = VAPAA_MPI_REAL16)
+#endif
+#ifdef HAVE_MPI_COMPLEX4
     type(MPI_Datatype), parameter :: MPI_COMPLEX4               = MPI_Datatype(MPI_VAL = VAPAA_MPI_COMPLEX4)
+#endif
     type(MPI_Datatype), parameter :: MPI_COMPLEX8               = MPI_Datatype(MPI_VAL = VAPAA_MPI_COMPLEX8)
     type(MPI_Datatype), parameter :: MPI_COMPLEX16              = MPI_Datatype(MPI_VAL = VAPAA_MPI_COMPLEX16)
+#ifdef HAVE_MPI_COMPLEX32
     type(MPI_Datatype), parameter :: MPI_COMPLEX32              = MPI_Datatype(MPI_VAL = VAPAA_MPI_COMPLEX32)
+#endif
 
     ! these are language-agnostic
     type(MPI_Datatype), parameter :: MPI_AINT                        = MPI_Datatype(MPI_VAL = VAPAA_MPI_AINT)
