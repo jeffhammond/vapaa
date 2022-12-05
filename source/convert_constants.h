@@ -12,8 +12,10 @@ int C_MPI_ERROR_CODE_C2F(int error_c);
         if ((rc) != MPI_SUCCESS) { (rc) = C_MPI_ERROR_CODE_C2F((rc)); } \
     } while (0) 
 
-// We use the same values as MPICH but cannot be sure every MPI will,
-// so we convert them here.  See mpi_global_constants.F90 for our values.
+static inline int C_MPI_PROC_NULL_DETECTOR(int rank)
+{
+    return (rank == VAPAA_MPI_PROC_NULL ? MPI_PROC_NULL : rank);
+}
 
 MAYBE_UNUSED
 static int C_MPI_THREAD_LEVEL_F2C(int level_f)

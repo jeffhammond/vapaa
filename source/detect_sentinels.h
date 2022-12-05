@@ -1,5 +1,5 @@
 #include <stdbool.h>
-#include <mpi.h>
+#include "vapaa_constants.h"
 
 extern void * f08_MPI_BOTTOM_address;          // MPI_BOTTOM
 extern void * f08_MPI_STATUS_IGNORE_address;   // MPI_STATUS_IGNORE
@@ -54,10 +54,4 @@ static inline bool C_IS_MPI_UNWEIGHTED(const void * address)
 static inline bool C_IS_MPI_WEIGHTS_EMPTY(const void * address)
 {
     return (address == f08_MPI_WEIGHTS_EMPTY_address);
-}
-
-static inline int C_MPI_PROC_NULL_DETECTOR(int rank)
-{
-    // mpi_global_constants.F90 line 51
-    return (rank == -1000 ? MPI_PROC_NULL : rank);
 }
