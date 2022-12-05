@@ -7,7 +7,7 @@
 
       program main
       use mpi_f08
-      integer*8 inbuf, outbuf
+      integer inbuf, outbuf
       double complex zinbuf, zoutbuf
       integer wsize
       integer errs, ierr
@@ -21,7 +21,7 @@
 
       inbuf = 1
       outbuf = 0
-      call mpi_allreduce(inbuf, outbuf, 1, MPI_INTEGER8, MPI_SUM,  &
+      call mpi_allreduce(inbuf, outbuf, 1, MPI_INTEGER, MPI_SUM,  &
       &                   MPI_COMM_WORLD, ierr)
       if (outbuf .ne. wsize ) then
          errs = errs + 1
