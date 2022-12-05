@@ -1,40 +1,42 @@
+#include "vapaa_constants.h"
+
 module mpi_global_constants
     use iso_c_binding, only: c_int, c_size_t, c_intptr_t
     use mpi_handle_types
 
     ! thread levels
-    integer, parameter :: MPI_THREAD_SINGLE     = 0
-    integer, parameter :: MPI_THREAD_FUNNELED   = 1
-    integer, parameter :: MPI_THREAD_SERIALIZED = 2
-    integer, parameter :: MPI_THREAD_MULTIPLE   = 3
-
+    integer, parameter :: MPI_THREAD_SINGLE     = VAPAA_MPI_THREAD_SINGLE
+    integer, parameter :: MPI_THREAD_FUNNELED   = VAPAA_MPI_THREAD_FUNNELED
+    integer, parameter :: MPI_THREAD_SERIALIZED = VAPAA_MPI_THREAD_SERIALIZED
+    integer, parameter :: MPI_THREAD_MULTIPLE   = VAPAA_MPI_THREAD_MULTIPLE
+                                                                           
     ! comparisons (communicators and groups)
-    integer, parameter :: MPI_IDENT     = 0
-    integer, parameter :: MPI_CONGRUENT = 1
-    integer, parameter :: MPI_SIMILAR   = 2
-    integer, parameter :: MPI_UNEQUAL   = 3
+    integer, parameter :: MPI_IDENT     = VAPAA_MPI_IDENT
+    integer, parameter :: MPI_CONGRUENT = VAPAA_MPI_CONGRUENT
+    integer, parameter :: MPI_SIMILAR   = VAPAA_MPI_SIMILAR
+    integer, parameter :: MPI_UNEQUAL   = VAPAA_MPI_UNEQUAL
 
     ! TODO: These now work as initializers, but they need to be handled
     !       everywhere they can be used.  That will be tedious...
 
     ! useful handles
-    type(MPI_Comm), parameter     :: MPI_COMM_WORLD    = MPI_Comm(MPI_VAL     = -1000000)
-    type(MPI_Comm), parameter     :: MPI_COMM_SELF     = MPI_Comm(MPI_VAL     = -1)
+    type(MPI_Comm), parameter     :: MPI_COMM_WORLD    = MPI_Comm(MPI_VAL     = VAPAA_MPI_COMM_WORLD   )
+    type(MPI_Comm), parameter     :: MPI_COMM_SELF     = MPI_Comm(MPI_VAL     = VAPAA_MPI_COMM_SELF    )
 
     ! NULL handles
-    type(MPI_Comm), parameter     :: MPI_COMM_NULL     = MPI_Comm(MPI_VAL     = -911)
-    type(MPI_Datatype), parameter :: MPI_DATATYPE_NULL = MPI_Datatype(MPI_VAL = -911)
-    type(MPI_File), parameter     :: MPI_FILE_NULL     = MPI_File(MPI_VAL     = -911)
-    type(MPI_Group), parameter    :: MPI_GROUP_NULL    = MPI_Group(MPI_VAL    = -911)
-    type(MPI_Info), parameter     :: MPI_INFO_NULL     = MPI_Info(MPI_VAL     = -911)
-    type(MPI_Message), parameter  :: MPI_MESSAGE_NULL  = MPI_Message(MPI_VAL  = -911)
-    type(MPI_Op), parameter       :: MPI_OP_NULL       = MPI_Op(MPI_VAL       = -911)
-    type(MPI_Request), parameter  :: MPI_REQUEST_NULL  = MPI_Request(MPI_VAL  = -911)
-    type(MPI_Win), parameter      :: MPI_WIN_NULL      = MPI_Win(MPI_VAL      = -911)
+    type(MPI_Comm), parameter     :: MPI_COMM_NULL     = MPI_Comm(MPI_VAL     = VAPAA_MPI_COMM_NULL    )
+    type(MPI_Datatype), parameter :: MPI_DATATYPE_NULL = MPI_Datatype(MPI_VAL = VAPAA_MPI_DATATYPE_NULL)
+    type(MPI_File), parameter     :: MPI_FILE_NULL     = MPI_File(MPI_VAL     = VAPAA_MPI_FILE_NULL    )
+    type(MPI_Group), parameter    :: MPI_GROUP_NULL    = MPI_Group(MPI_VAL    = VAPAA_MPI_GROUP_NULL   )
+    type(MPI_Info), parameter     :: MPI_INFO_NULL     = MPI_Info(MPI_VAL     = VAPAA_MPI_INFO_NULL    )
+    type(MPI_Message), parameter  :: MPI_MESSAGE_NULL  = MPI_Message(MPI_VAL  = VAPAA_MPI_MESSAGE_NULL )
+    type(MPI_Op), parameter       :: MPI_OP_NULL       = MPI_Op(MPI_VAL       = VAPAA_MPI_OP_NULL      )
+    type(MPI_Request), parameter  :: MPI_REQUEST_NULL  = MPI_Request(MPI_VAL  = VAPAA_MPI_REQUEST_NULL )
+    type(MPI_Win), parameter      :: MPI_WIN_NULL      = MPI_Win(MPI_VAL      = VAPAA_MPI_WIN_NULL     )
 
     ! Magic sentinels
     ! The constants that cannot be used in initialization expressions or assignments in Fortran are as follows:
-    ! Buffer address sentinels
+    ! Buffer address sentinels - the values do not matter, as they are detected by address.
     integer :: MPI_BOTTOM          =  0
     integer :: MPI_IN_PLACE        =  1
     integer :: MPI_ARGV_NULL       =  0
@@ -48,11 +50,11 @@ module mpi_global_constants
     type(MPI_Status) :: MPI_STATUS_IGNORE
     type(MPI_Status) :: MPI_STATUSES_IGNORE(1)
 
-    integer, parameter :: MPI_PROC_NULL  = -1000
-    type(MPI_Message), parameter  :: MPI_MESSAGE_NO_PROC = MPI_Message(MPI_VAL  = -1000)
+    integer, parameter :: MPI_PROC_NULL  = VAPAA_MPI_PROC_NULL
+    type(MPI_Message), parameter  :: MPI_MESSAGE_NO_PROC = MPI_Message(MPI_VAL  = VAPAA_MPI_MESSAGE_NO_PROC)
 
-    integer, parameter :: MPI_ANY_SOURCE = -2000
-    integer, parameter :: MPI_ANY_TAG    = -3000
+    integer, parameter :: MPI_ANY_SOURCE = VAPAA_MPI_ANY_SOURCE
+    integer, parameter :: MPI_ANY_TAG    = VAPAA_MPI_ANY_TAG
 
     ! 2.5.4 Named Constants
     ! The constants that are required to be compile-time constants
@@ -60,25 +62,25 @@ module mpi_global_constants
     ! in C switch and Fortran case/select statements) are:
 
     ! 5.1.3 MPI_TYPE_CREATE_SUBARRAY
-    integer, parameter :: MPI_ORDER_C       = 321
-    integer, parameter :: MPI_ORDER_FORTRAN = 123
+    integer, parameter :: MPI_ORDER_C       = VAPAA_MPI_ORDER_C
+    integer, parameter :: MPI_ORDER_FORTRAN = VAPAA_MPI_ORDER_FORTRAN
 
     ! 7.4 MPI_COMM_SPLIT_TYPE
-    integer, parameter :: MPI_COMM_TYPE_SHARED      = 5300
-    integer, parameter :: MPI_COMM_TYPE_HW_UNGUIDED = 5400
-    integer, parameter :: MPI_COMM_TYPE_HW_GUIDED   = 5500
+    integer, parameter :: MPI_COMM_TYPE_SHARED      = VAPAA_MPI_COMM_TYPE_SHARED
+    integer, parameter :: MPI_COMM_TYPE_HW_UNGUIDED = VAPAA_MPI_COMM_TYPE_HW_UNGUIDED
+    integer, parameter :: MPI_COMM_TYPE_HW_GUIDED   = VAPAA_MPI_COMM_TYPE_HW_GUIDED
 
     ! use a ridiculously large value that will always be larger than
     ! what any implementation uses, to avoid having to query the
     ! underlying implementation
-    integer, parameter :: MPI_MAX_PROCESSOR_NAME         = (1024*1024)
-    integer, parameter :: MPI_MAX_LIBRARY_VERSION_STRING = (1024*1024)
-    integer, parameter :: MPI_MAX_ERROR_STRING           = (1024*1024)
-    integer, parameter :: MPI_MAX_DATAREP_STRING         = (1024*1024)
-    integer, parameter :: MPI_MAX_INFO_KEY               = (1024*1024)
-    integer, parameter :: MPI_MAX_INFO_VAL               = (1024*1024)
-    integer, parameter :: MPI_MAX_OBJECT_NAME            = (1024*1024)
-    integer, parameter :: MPI_MAX_PORT_NAME              = (1024*1024)
+    integer, parameter :: MPI_MAX_PROCESSOR_NAME         = VAPAA_MPI_MAX_PROCESSOR_NAME         
+    integer, parameter :: MPI_MAX_LIBRARY_VERSION_STRING = VAPAA_MPI_MAX_LIBRARY_VERSION_STRING 
+    integer, parameter :: MPI_MAX_ERROR_STRING           = VAPAA_MPI_MAX_ERROR_STRING           
+    integer, parameter :: MPI_MAX_DATAREP_STRING         = VAPAA_MPI_MAX_DATAREP_STRING         
+    integer, parameter :: MPI_MAX_INFO_KEY               = VAPAA_MPI_MAX_INFO_KEY               
+    integer, parameter :: MPI_MAX_INFO_VAL               = VAPAA_MPI_MAX_INFO_VAL               
+    integer, parameter :: MPI_MAX_OBJECT_NAME            = VAPAA_MPI_MAX_OBJECT_NAME            
+    integer, parameter :: MPI_MAX_PORT_NAME              = VAPAA_MPI_MAX_PORT_NAME              
 
     ! these must be queried out of the implementation, unfortunately,
     ! but we can at least say this much, since MPI F08 was added

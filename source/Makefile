@@ -51,7 +51,7 @@ mpi_handle_types.o: mpi_handle_types.F90
 mpi_handle_operators.o: mpi_handle_operators.F90 mpi_handle_types.o
 	$(FC) $(FCFLAGS) -c $<
 
-mpi_global_constants.o: mpi_global_constants.F90 mpi_handle_types.o
+mpi_global_constants.o: mpi_global_constants.F90 mpi_handle_types.o vapaa_constants.h
 	$(FC) $(FCFLAGS) -c $<
 
 # CORE
@@ -99,7 +99,7 @@ mpi_datatype_f.o: mpi_datatype_f.F90 mpi_datatype_c.o mpi_handle_types.o mpi_glo
 mpi_datatype_c.o: mpi_datatype_c.F90 mpi_datatype.o
 	$(FC) $(FCFLAGS) -c $<
 
-mpi_datatype.o: mpi_datatype.c mpi_handle_conversions.h mpi_constant_conversions.h
+mpi_datatype.o: mpi_datatype.c mpi_handle_conversions.h mpi_constant_conversions.h vapaa_constants.h
 	$(CC) $(CFLAGS) -c $<
 
 # FILE
