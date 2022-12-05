@@ -65,6 +65,10 @@ module mpi_datatype_f
         module procedure MPI_Type_commit_f08
     end interface MPI_Type_commit
 
+    interface MPI_Type_size
+        module procedure MPI_Type_size_f08
+    end interface MPI_Type_size
+
     interface MPI_Type_free
         module procedure MPI_Type_free_f08
     end interface MPI_Type_free
