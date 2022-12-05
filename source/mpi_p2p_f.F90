@@ -180,14 +180,14 @@ module mpi_p2p_f
             if (present(ierror)) ierror = ierror_c
         end subroutine MPI_Testsome_f08
 
-        subroutine MPI_Testany_f08(count, requests, index, flag, statuses, ierror) 
+        subroutine MPI_Testany_f08(count, requests, index, flag, status, ierror) 
             use mpi_handle_types, only: MPI_Request, MPI_Status
             use mpi_p2p_c, only: C_MPI_Testany
             integer, intent(in) :: count
             type(MPI_Request), intent(inout) :: requests(count)
             integer, intent(out) :: index
             logical, intent(out) :: flag
-            type(MPI_Status), intent(inout) :: statuses(*)
+            type(MPI_Status), intent(inout) :: status
             integer, optional, intent(out) :: ierror
             !integer(kind=c_int), allocatable :: requests_c(:)
             integer(kind=c_int) :: count_c, index_c, flag_c, ierror_c
@@ -198,7 +198,7 @@ module mpi_p2p_f
             !  requests_c(i) = requests(i) % MPI_VAL
             !end do
             count_c = count
-            call C_MPI_Testany(count_c, requests, index_c, flag_c, statuses, ierror_c)
+            call C_MPI_Testany(count_c, requests, index_c, flag_c, status, ierror_c)
             index = index_c
             if (flag_c .eq. 0) then
                 flag = .false.
@@ -274,13 +274,13 @@ module mpi_p2p_f
             if (present(ierror)) ierror = ierror_c
         end subroutine MPI_Waitsome_f08
 
-        subroutine MPI_Waitany_f08(count, requests, index, statuses, ierror) 
+        subroutine MPI_Waitany_f08(count, requests, index, status, ierror) 
             use mpi_handle_types, only: MPI_Request, MPI_Status
             use mpi_p2p_c, only: C_MPI_Waitany
             integer, intent(in) :: count
             type(MPI_Request), intent(inout) :: requests(count)
             integer, intent(out) :: index
-            type(MPI_Status), intent(inout) :: statuses(*)
+            type(MPI_Status), intent(inout) :: status
             integer, optional, intent(out) :: ierror
             !integer(kind=c_int), allocatable :: requests_c(:)
             integer(kind=c_int) :: count_c, index_c, ierror_c
@@ -291,7 +291,7 @@ module mpi_p2p_f
             !  requests_c(i) = requests(i) % MPI_VAL
             !end do
             count_c = count
-            call C_MPI_Waitany(count_c, requests, index_c, statuses, ierror_c)
+            call C_MPI_Waitany(count_c, requests, index_c, status, ierror_c)
             index = index_c
             !do i=1,count
             !  requests(i) % MPI_VAL = requests_c(i)

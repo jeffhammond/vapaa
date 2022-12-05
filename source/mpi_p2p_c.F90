@@ -67,7 +67,7 @@ module mpi_p2p_c
     end interface
 
     interface
-        subroutine C_MPI_Testany(count, requests, index, flag, statuses, ierror) &
+        subroutine C_MPI_Testany(count, requests, index, flag, status, ierror) &
                    bind(C,name="C_MPI_Testany")
             use iso_c_binding, only: c_int
             use mpi_handle_types, only: MPI_Status, MPI_Request
@@ -76,7 +76,7 @@ module mpi_p2p_c
             !integer(kind=c_int), intent(inout) :: requests(*)
             type(MPI_Request), intent(inout) :: requests(*)
             integer(kind=c_int), intent(out) :: index, flag, ierror
-            type(MPI_Status), intent(inout) :: statuses(*)
+            type(MPI_Status), intent(inout) :: status
         end subroutine C_MPI_Testany
     end interface
 
@@ -123,7 +123,7 @@ module mpi_p2p_c
     end interface
 
     interface
-        subroutine C_MPI_Waitany(count, requests, index, statuses, ierror) &
+        subroutine C_MPI_Waitany(count, requests, index, status, ierror) &
                    bind(C,name="C_MPI_Waitany")
             use iso_c_binding, only: c_int
             use mpi_handle_types, only: MPI_Status, MPI_Request
@@ -132,7 +132,7 @@ module mpi_p2p_c
             !integer(kind=c_int), intent(inout) :: requests(*)
             type(MPI_Request), intent(inout) :: requests(*)
             integer(kind=c_int), intent(out) :: index, ierror
-            type(MPI_Status), intent(inout) :: statuses(*)
+            type(MPI_Status), intent(inout) :: status
         end subroutine C_MPI_Waitany
     end interface
 
