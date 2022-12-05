@@ -33,7 +33,7 @@ program main
 
     buflen=MPI_MAX_INFO_VAL
     call MPI_Info_get_string(dup,'key1',buflen,string,flag)
-    print*,'key1=',string,' buflen=',buflen,' flag=',flag,' (should be true)'
+    print*,'key1=',trim(string),' buflen=',buflen,' flag=',flag,' (should be true)'
 
     buflen=MPI_MAX_INFO_VAL
     call MPI_Info_get_string(dup,'key2',buflen,string,flag)

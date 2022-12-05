@@ -173,6 +173,7 @@ module mpi_info_f
             end do
             buflen_c = buflen
             call CFI_MPI_Info_get_string(info % MPI_VAL, key_c, buflen_c, value_c, flag_c, ierror_c)
+            value = char(0) ! important
             do i = 1, min(lvalue,buflen_c-1)
               value(i:i) = value_c(i)
             end do
