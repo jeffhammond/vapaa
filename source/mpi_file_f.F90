@@ -1,3 +1,5 @@
+#include "vapaa_constants.h"
+
 module mpi_file_f
     use iso_c_binding, only: c_int
     implicit none
