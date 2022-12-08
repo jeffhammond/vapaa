@@ -1,3 +1,6 @@
+#ifndef DETECT_BUILTINS_H
+#define DETECT_BUILTINS_H
+
 #include <stdbool.h>
 #include <mpi.h>
 
@@ -103,3 +106,4 @@ static bool C_MPI_OP_IS_BUILTIN(int op_c)
 
 #undef OP_ELIF
 
+#endif // DETECT_BUILTINS_H

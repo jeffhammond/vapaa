@@ -1,3 +1,6 @@
+#ifndef CONVERT_HANDLES_H
+#define CONVERT_HANDLES_H
+
 #include <mpi.h>
 #include "vapaa_constants.h"
 
@@ -267,3 +270,4 @@ static int C_MPI_TYPE_C2F(MPI_Datatype type_c)
 
 #undef DT_ELIF
 
+#endif // CONVERT_HANDLES_H

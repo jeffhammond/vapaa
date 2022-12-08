@@ -1,3 +1,6 @@
+#ifndef DETECT_SENTINELS_H
+#define DETECT_SENTINELS_H
+
 #include <stdbool.h>
 #include "vapaa_constants.h"
 
@@ -55,3 +58,5 @@ static inline bool C_IS_MPI_WEIGHTS_EMPTY(const void * address)
 {
     return (address == f08_MPI_WEIGHTS_EMPTY_address);
 }
+
+#endif // DETECT_SENTINELS_H

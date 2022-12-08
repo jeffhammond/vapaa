@@ -4,6 +4,7 @@
 #include "detect_sentinels.h"
 #include "convert_handles.h"
 #include "convert_constants.h"
+#include "vapaa_constants.h"
 
 static int C_MPI_TRANSLATE_AMODE(int f)
 {

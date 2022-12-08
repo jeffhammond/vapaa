@@ -1,3 +1,6 @@
+#ifndef CONVERT_CONSTANTS_H
+#define CONVERT_CONSTANTS_H
+
 #include <stdio.h>
 #include <mpi.h>
 #include "vapaa_constants.h"
@@ -80,3 +83,5 @@ static int C_MPI_COMPARE_RESULT_C2F(int level_c)
         return -1;
     }
 }
+
+#endif // CONVERT_CONSTANTS_H
