@@ -16,3 +16,13 @@ Constants that represent members of much larger sets
 are always negative.
 For example, built-in ops and datatypes are negative
 numbers in a sequence, as are error codes.
+
+## Details
+
+RMA constants use mnemonics.
+```c
+#define VAPAA_MPI_WIN_FLAVOR_ALLOCATE    10 // 0xA  "A(llocate)"
+#define VAPAA_MPI_WIN_FLAVOR_CREATE      12 // 0xC  "C(reate)"
+#define VAPAA_MPI_WIN_FLAVOR_DYNAMIC    205 // 0xCD "C(reate)D(ynamic)"
+#define VAPAA_MPI_WIN_FLAVOR_SHARED     165 // 0xA5 "A(lloc)S(hared)"
+```
