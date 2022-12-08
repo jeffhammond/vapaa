@@ -109,6 +109,7 @@ module mpi_error_f
             string_c = c_null_char
             call CFI_MPI_Error_string(errorcode_c, string_c, resultlen_c, ierror_c)
             resultlen = resultlen_c
+            string = c_null_char
             do i = 1, min(resultlen+1,MPI_MAX_ERROR_STRING)
               string(i:i) = string_c(i)
             end do

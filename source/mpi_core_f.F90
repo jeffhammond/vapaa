@@ -220,6 +220,7 @@ module mpi_core_f
             version_c = c_null_char
             call C_MPI_Get_library_version(version_c, resultlen_c, ierror_c)
             resultlen = resultlen_c
+            version = c_null_char
             do i = 1, min(resultlen+1,MPI_MAX_LIBRARY_VERSION_STRING)
               version(i:i) = version_c(i)
             end do
