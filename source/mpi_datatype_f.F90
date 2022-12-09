@@ -72,6 +72,15 @@ module mpi_datatype_f
     type(MPI_Datatype), parameter :: MPI_C_FLOAT_COMPLEX             = MPI_Datatype(MPI_VAL = VAPAA_MPI_C_FLOAT_COMPLEX)
     type(MPI_Datatype), parameter :: MPI_C_DOUBLE_COMPLEX            = MPI_Datatype(MPI_VAL = VAPAA_MPI_C_DOUBLE_COMPLEX)
     type(MPI_Datatype), parameter :: MPI_C_LONG_DOUBLE_COMPLEX       = MPI_Datatype(MPI_VAL = VAPAA_MPI_C_LONG_DOUBLE_COMPLEX)
+    type(MPI_Datatype), parameter :: MPI_FLOAT_INT                   = MPI_Datatype(MPI_VAL = VAPAA_MPI_FLOAT_INT)
+    type(MPI_Datatype), parameter :: MPI_DOUBLE_INT                  = MPI_Datatype(MPI_VAL = VAPAA_MPI_DOUBLE_INT)
+    type(MPI_Datatype), parameter :: MPI_LONG_INT                    = MPI_Datatype(MPI_VAL = VAPAA_MPI_LONG_INT)
+    type(MPI_Datatype), parameter :: MPI_2INT                        = MPI_Datatype(MPI_VAL = VAPAA_MPI_2INT)
+    type(MPI_Datatype), parameter :: MPI_SHORT_INT                   = MPI_Datatype(MPI_VAL = VAPAA_MPI_SHORT_INT)
+    type(MPI_Datatype), parameter :: MPI_LONG_DOUBLE_INT             = MPI_Datatype(MPI_VAL = VAPAA_MPI_LONG_DOUBLE_INT)
+    type(MPI_Datatype), parameter :: MPI_2REAL                       = MPI_Datatype(MPI_VAL = VAPAA_MPI_2REAL)
+    type(MPI_Datatype), parameter :: MPI_2DOUBLE_PRECISION           = MPI_Datatype(MPI_VAL = VAPAA_MPI_2DOUBLE_PRECISION)
+    type(MPI_Datatype), parameter :: MPI_2INTEGER                    = MPI_Datatype(MPI_VAL = VAPAA_MPI_2INTEGER)
 
     interface MPI_Type_commit
         module procedure MPI_Type_commit_f08

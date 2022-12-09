@@ -97,6 +97,15 @@ static MPI_Datatype C_MPI_TYPE_F2C(int type_f)
         DT_CASE(MPI_C_FLOAT_COMPLEX             )
         DT_CASE(MPI_C_DOUBLE_COMPLEX            )
         DT_CASE(MPI_C_LONG_DOUBLE_COMPLEX       )
+        DT_CASE(MPI_FLOAT_INT                   )
+        DT_CASE(MPI_DOUBLE_INT                  )
+        DT_CASE(MPI_LONG_INT                    )
+        DT_CASE(MPI_2INT                        )
+        DT_CASE(MPI_SHORT_INT                   )
+        DT_CASE(MPI_LONG_DOUBLE_INT             )
+        DT_CASE(MPI_2REAL                       )
+        DT_CASE(MPI_2DOUBLE_PRECISION           )
+        DT_CASE(MPI_2INTEGER                    )
         default: return MPI_Type_f2c(type_f); break;
     }
 }
@@ -263,6 +272,15 @@ static int C_MPI_TYPE_C2F(MPI_Datatype type_c)
     DT_ELIF(MPI_C_FLOAT_COMPLEX             )
     DT_ELIF(MPI_C_DOUBLE_COMPLEX            )
     DT_ELIF(MPI_C_LONG_DOUBLE_COMPLEX       )
+    DT_ELIF(MPI_FLOAT_INT                   )
+    DT_ELIF(MPI_DOUBLE_INT                  )
+    DT_ELIF(MPI_LONG_INT                    )
+    DT_ELIF(MPI_2INT                        )
+    DT_ELIF(MPI_SHORT_INT                   )
+    DT_ELIF(MPI_LONG_DOUBLE_INT             )
+    DT_ELIF(MPI_2REAL                       )
+    DT_ELIF(MPI_2DOUBLE_PRECISION           )
+    DT_ELIF(MPI_2INTEGER                    )
     else {
         return MPI_Type_c2f(type_c);
     } 

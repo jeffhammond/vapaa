@@ -110,6 +110,15 @@
 #define VAPAA_MPI_C_FLOAT_COMPLEX           -30026
 #define VAPAA_MPI_C_DOUBLE_COMPLEX          -30027
 #define VAPAA_MPI_C_LONG_DOUBLE_COMPLEX     -30028
+#define VAPAA_MPI_FLOAT_INT                 -40000
+#define VAPAA_MPI_DOUBLE_INT                -40001
+#define VAPAA_MPI_LONG_INT                  -40002
+#define VAPAA_MPI_2INT                      -40003
+#define VAPAA_MPI_SHORT_INT                 -40004
+#define VAPAA_MPI_LONG_DOUBLE_INT           -40005
+#define VAPAA_MPI_2REAL                     -40006
+#define VAPAA_MPI_2DOUBLE_PRECISION         -40007
+#define VAPAA_MPI_2INTEGER                  -40008
 
 #define VAPAA_MPI_SUCCESS                    -400000
 #define VAPAA_MPI_ERR_BUFFER                 -400001
