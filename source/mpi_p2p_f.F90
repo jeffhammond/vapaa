@@ -199,7 +199,7 @@ module mpi_p2p_f
             !end do
             count_c = count
             call C_MPI_Testany(count_c, requests, index_c, flag_c, status, ierror_c)
-            if (index_c .ge 0) then
+            if (index_c .ge. 0) then
                 index = index_c + 1
             endif
             if (flag_c .eq. 0) then
@@ -294,7 +294,7 @@ module mpi_p2p_f
             !end do
             count_c = count
             call C_MPI_Waitany(count_c, requests, index_c, status, ierror_c)
-            if (index_c .ge 0) then
+            if (index_c .ge. 0) then
                 index = index_c + 1
             endif
             !do i=1,count

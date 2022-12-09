@@ -226,4 +226,9 @@
 
 #define VAPAA_MPI_UNDEFINED      -99999
 
+#define VAPAA_MPI_TAG_UB            900
+#define VAPAA_MPI_IO                901
+#define VAPAA_MPI_HOST              902
+#define VAPAA_MPI_WTIME_IS_GLOBAL   903
+
 #endif

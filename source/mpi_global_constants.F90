@@ -56,7 +56,14 @@ module mpi_global_constants
     integer, parameter :: MPI_ANY_SOURCE = VAPAA_MPI_ANY_SOURCE
     integer, parameter :: MPI_ANY_TAG    = VAPAA_MPI_ANY_TAG
 
-    integer, parameter :: MPI_UNDEFINED  = VAPAA_MPI_UNDEFINED
+    ! index sentinel in waitany etc.
+    integer, parameter :: MPI_UNDEFINED       = VAPAA_MPI_UNDEFINED
+
+    ! 9.1.2 environmental query attributes
+    integer, parameter :: MPI_TAG_UB          = VAPAA_MPI_TAG_UB
+    integer, parameter :: MPI_IO              = VAPAA_MPI_IO
+    integer, parameter :: MPI_HOST            = VAPAA_MPI_HOST
+    integer, parameter :: MPI_WTIME_IS_GLOBAL = VAPAA_MPI_WTIME_IS_GLOBAL
 
     ! 2.5.4 Named Constants
     ! The constants that are required to be compile-time constants

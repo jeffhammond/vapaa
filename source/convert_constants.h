@@ -15,9 +15,27 @@ int C_MPI_ERROR_CODE_C2F(int error_c);
         if ((rc) != MPI_SUCCESS) { (rc) = C_MPI_ERROR_CODE_C2F((rc)); } \
     } while (0) 
 
+MAYBE_UNUSED
 static inline int C_MPI_PROC_NULL_DETECTOR(int rank)
 {
     return (rank == VAPAA_MPI_PROC_NULL ? MPI_PROC_NULL : rank);
+}
+
+
+MAYBE_UNUSED
+static inline int C_MPI_COMM_ATTR_GLOBAL_F2C(int f)
+{
+    if (f == VAPAA_MPI_TAG_UB) {
+       return MPI_TAG_UB;
+    } else if (f == VAPAA_MPI_IO) {
+       return MPI_IO;
+    } else if (f == VAPAA_MPI_HOST) {
+       return MPI_HOST;
+    } else if (f == VAPAA_MPI_WTIME_IS_GLOBAL) {
+       return MPI_WTIME_IS_GLOBAL;
+    } else {
+       return f;
+    }
 }
 
 MAYBE_UNUSED
