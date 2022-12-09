@@ -56,6 +56,8 @@ module mpi_global_constants
     integer, parameter :: MPI_ANY_SOURCE = VAPAA_MPI_ANY_SOURCE
     integer, parameter :: MPI_ANY_TAG    = VAPAA_MPI_ANY_TAG
 
+    integer, parameter :: MPI_UNDEFINED  = VAPAA_MPI_UNDEFINED
+
     ! 2.5.4 Named Constants
     ! The constants that are required to be compile-time constants
     ! (and can thus be used for array length declarations and labels 

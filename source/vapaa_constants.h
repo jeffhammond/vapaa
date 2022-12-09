@@ -111,7 +111,6 @@
 #define VAPAA_MPI_C_DOUBLE_COMPLEX          -30027
 #define VAPAA_MPI_C_LONG_DOUBLE_COMPLEX     -30028
 
-
 #define VAPAA_MPI_SUCCESS                    -400000
 #define VAPAA_MPI_ERR_BUFFER                 -400001
 #define VAPAA_MPI_ERR_COUNT                  -400002
@@ -215,5 +214,7 @@
 #define VAPAA_MPI_MODE_NOPUT        128
 #define VAPAA_MPI_MODE_NOPRECEDE    256
 #define VAPAA_MPI_MODE_NOSUCCEED    512
+
+#define VAPAA_MPI_UNDEFINED      -99999
 
 #endif
