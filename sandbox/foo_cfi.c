@@ -40,7 +40,7 @@ void print_type(CFI_type_t type)
 #endif
     else if (type==CFI_type_struct)               printf("type is %s\n", "struct");
     else if (type==CFI_type_other)                printf("type is %s\n", "other");
-    else                                          printf("type is %s\n", "unknown");
+    else                                          printf("type is %s (%d)\n", "unknown", (int)type);
 }
 
 void print_attribute(CFI_attribute_t attribute)
@@ -57,7 +57,6 @@ void foo(CFI_cdesc_t * desc)
     printf("base_addr = %p = %ld\n", desc->base_addr, (long)desc->base_addr);
     printf("elem_len  = %zu\n", desc->elem_len);
     printf("rank      = %d\n", (int)desc->rank);
-    printf("type      = %d\n", (int)desc->type);
     print_type(desc->type);
     print_attribute(desc->attribute);
 
