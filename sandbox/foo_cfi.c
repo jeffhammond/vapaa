@@ -45,7 +45,7 @@ void print_attribute(CFI_attribute_t attribute)
 
 void foo(CFI_cdesc_t * desc)
 {
-    printf("base_addr = %p\n", desc->base_addr);
+    printf("base_addr = %p = %ld\n", desc->base_addr, (long)desc->base_addr);
     printf("elem_len  = %zu\n", desc->elem_len);
     printf("rank      = %d\n", (int)desc->rank);
     print_type(desc->type);

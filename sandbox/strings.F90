@@ -19,21 +19,25 @@ program main
     character(len=1) :: y = "Y"
     character :: z = "Z"
 
-    print*,'a=',a
+    print*,'==================='
+    print*,'a=',a,loc(a)
     call foo(a)
 
     !allocate( j(3) ) ! cannot allocate this - it is a scalar
     j = "JJJ"         ! this does allocation
 
-    print*,'j=',j
+    print*,'==================='
+    print*,'j=',j,loc(j)
     call foo(j)
 
     deallocate( j )   ! we can deallocate it though
 
-    print*,'y=',y
+    print*,'==================='
+    print*,'y=',y,loc(y)
     call foo(y)
 
-    print*,'z=',z
+    print*,'==================='
+    print*,'z=',z,loc(z)
     call foo(z)
 
 end program main
