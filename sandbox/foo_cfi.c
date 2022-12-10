@@ -54,28 +54,33 @@ void print_attribute(CFI_attribute_t attribute)
 
 void foo(CFI_cdesc_t * desc)
 {
-    printf("base_addr = %p = %ld\n", desc->base_addr, (long)desc->base_addr);
-    printf("elem_len  = %zu\n", desc->elem_len);
-    printf("rank      = %d\n", (int)desc->rank);
-    print_type(desc->type);
+    const void * ba = desc->base_addr;
+    const size_t el = desc->elem_len;
+    const int    rk = desc->rank;
+    const int    ty = desc->type;
+    printf("base_addr = %p = %ld\n", ba, (long)ba);
+    printf("elem_len  = %zu\n", el);
+    printf("rank      = %d\n", rk);
+    print_type(ty);
     print_attribute(desc->attribute);
 
-    printf("dim.lowerbound = ");
-    for (CFI_rank_t i=0; i<desc->rank; i++) {
-        printf("%d,",(int)desc->dim[i].lower_bound);
-    }
-    printf("\n");
+    if (rk > 0) {
+        printf("dim.lowerbound = ");
+        for (CFI_rank_t i=0; i<desc->rank; i++) {
+            printf("%d,",(int)desc->dim[i].lower_bound);
+        }
+        printf("\n");
 
-    printf("dim.extent     = ");
-    for (CFI_rank_t i=0; i<desc->rank; i++) {
-        printf("%d,",(int)desc->dim[i].extent);
-    }
-    printf("\n");
+        printf("dim.extent     = ");
+        for (CFI_rank_t i=0; i<desc->rank; i++) {
+            printf("%d,",(int)desc->dim[i].extent);
+        }
+        printf("\n");
 
-    printf("dim.sm         = ");
-    for (CFI_rank_t i=0; i<desc->rank; i++) {
-        printf("%d,",(int)desc->dim[i].sm);
+        printf("dim.sm         = ");
+        for (CFI_rank_t i=0; i<desc->rank; i++) {
+            printf("%d,",(int)desc->dim[i].sm);
+        }
+        printf("\n");
     }
-    printf("\n");
-
 }
