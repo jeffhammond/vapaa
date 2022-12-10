@@ -13,6 +13,8 @@ program main
     implicit none
     character(len=3) :: a="AAA"
     !character(len=*) :: b="BBB" ! only allowed for dummy or parameter
+    character(len=3,kind=c_char) :: c = "CCC"
+    character(len=1,kind=c_char), dimension(3) :: d = "DEF"
 
     character(:), allocatable :: j
 
@@ -22,6 +24,14 @@ program main
     print*,'==================='
     print*,'a=',a,loc(a)
     call foo(a)
+
+    print*,'==================='
+    print*,'c=',c,loc(c)
+    call foo(c)
+
+    print*,'==================='
+    print*,'d=',d,loc(d)
+    call foo(d)
 
     !allocate( j(3) ) ! cannot allocate this - it is a scalar
     j = "JJJ"         ! this does allocation

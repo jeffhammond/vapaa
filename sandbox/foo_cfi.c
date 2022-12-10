@@ -31,6 +31,15 @@ void print_type(CFI_type_t type)
     else if (type==CFI_type_float_Complex)        printf("type is %s\n", "float _Complex");
     else if (type==CFI_type_double_Complex)       printf("type is %s\n", "double _Complex");
     else if (type==CFI_type_long_double_Complex)  printf("type is %s\n", "long double _Complex");
+    else if (type==CFI_type_Bool)                 printf("type is %s\n", "Bool");
+    else if (type==CFI_type_char)                 printf("type is %s\n", "char");
+    else if (type==CFI_type_cptr)                 printf("type is %s\n", "cptr");
+#if 1
+    // not in F2023
+    else if (type==CFI_type_cfunptr)              printf("type is %s\n", "cfunptr");
+#endif
+    else if (type==CFI_type_struct)               printf("type is %s\n", "struct");
+    else if (type==CFI_type_other)                printf("type is %s\n", "other");
     else                                          printf("type is %s\n", "unknown");
 }
 
@@ -48,6 +57,7 @@ void foo(CFI_cdesc_t * desc)
     printf("base_addr = %p = %ld\n", desc->base_addr, (long)desc->base_addr);
     printf("elem_len  = %zu\n", desc->elem_len);
     printf("rank      = %d\n", (int)desc->rank);
+    printf("type      = %d\n", (int)desc->type);
     print_type(desc->type);
     print_attribute(desc->attribute);
 
