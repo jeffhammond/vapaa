@@ -17,11 +17,7 @@ module mpi_request_f
             integer, optional, intent(out) :: ierror
             integer(kind=c_int) :: flag_c, ierror_c
             call C_MPI_Request_get_status(request % MPI_VAL, flag_c, status, ierror_c)
-            if (flag_c .eq. 0) then
-                flag = .false.
-            else
-                flag = .true.
-            endif
+            flag = (flag_c .ne. 0)
             if (present(ierror)) ierror = ierror_c
         end subroutine MPI_Request_get_status_f08
 

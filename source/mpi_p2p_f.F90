@@ -114,11 +114,7 @@ module mpi_p2p_f
             integer, optional, intent(out) :: ierror
             integer(kind=c_int) :: flag_c, ierror_c
             call C_MPI_Test(request % MPI_VAL, flag_c, stat, ierror_c)
-            if (flag_c .eq. 0) then
-                flag = .false.
-            else
-                flag = .true.
-            endif
+            flag = (flag_c .ne. 0)
             if (present(ierror)) ierror = ierror_c
         end subroutine MPI_Test_f08
 
@@ -141,11 +137,7 @@ module mpi_p2p_f
             count_c = count
             !call C_MPI_Testall(count_c, requests_c, flag_c, statuses, ierror_c)
             call C_MPI_Testall(count_c, requests, flag_c, statuses, ierror_c)
-            if (flag_c .eq. 0) then
-                flag = .false.
-            else
-                flag = .true.
-            endif
+            flag = (flag_c .ne. 0)
             !do i=1,count
             !  requests(i) % MPI_VAL = requests_c(i)
             !end do
@@ -202,11 +194,7 @@ module mpi_p2p_f
             if (index_c .ge. 0) then
                 index = index_c + 1
             endif
-            if (flag_c .eq. 0) then
-                flag = .false.
-            else
-                flag = .true.
-            endif
+            flag = (flag_c .ne. 0)
             !do i=1,count
             !  requests(i) % MPI_VAL = requests_c(i)
             !end do
