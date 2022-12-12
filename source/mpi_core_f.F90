@@ -37,7 +37,11 @@ module mpi_core_f
     end interface MPI_Get_version
 
     interface MPI_Get_library_version
+#if HAVE_CFI
+        module procedure MPI_Get_library_version_f08ts
+#else
         module procedure MPI_Get_library_version_f08
+#endif
     end interface MPI_Get_library_version
 
     interface MPI_Wtime
@@ -213,20 +217,26 @@ module mpi_core_f
             character(len=MPI_MAX_LIBRARY_VERSION_STRING), intent(out) :: version
             integer, intent(out) :: resultlen
             integer, optional, intent(out) :: ierror
-            character(c_char), dimension(:), allocatable :: version_c
             integer(kind=c_int) :: resultlen_c, ierror_c
-            integer :: i
-            allocate( version_c(MPI_MAX_LIBRARY_VERSION_STRING) )
-            version_c = c_null_char
-            call C_MPI_Get_library_version(version_c, resultlen_c, ierror_c)
+            call C_MPI_Get_library_version(version, resultlen_c, ierror_c)
             resultlen = resultlen_c
-            version = c_null_char
-            do i = 1, min(resultlen+1,MPI_MAX_LIBRARY_VERSION_STRING)
-              version(i:i) = version_c(i)
-            end do
-            deallocate( version_c )
             if (present(ierror)) ierror = ierror_c
         end subroutine MPI_Get_library_version_f08
+
+#ifdef HAVE_CFI
+        subroutine MPI_Get_library_version_f08ts(version, resultlen, ierror)
+            use iso_c_binding, only: c_char, c_null_char
+            use mpi_core_c, only: CFI_MPI_Get_library_version
+            use mpi_global_constants, only: MPI_MAX_LIBRARY_VERSION_STRING
+            character(len=MPI_MAX_LIBRARY_VERSION_STRING), intent(out) :: version
+            integer, intent(out) :: resultlen
+            integer, optional, intent(out) :: ierror
+            integer(kind=c_int) :: resultlen_c, ierror_c
+            call CFI_MPI_Get_library_version(version, resultlen_c, ierror_c)
+            resultlen = resultlen_c
+            if (present(ierror)) ierror = ierror_c
+        end subroutine MPI_Get_library_version_f08ts
+#endif
 
         function MPI_Wtime_f08() result(time)
             use mpi_core_c, only: C_MPI_Wtime

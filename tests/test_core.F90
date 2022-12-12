@@ -31,7 +31,7 @@ program main
     if (me.eq.0) print*,'MPI ',v,'.',sv
 
     call MPI_Get_library_version(lib, liblen)
-    !if (me.eq.0) print*,'MPI library: ',lib
+    if (me.eq.0) print*,'MPI library: ', lib
 
     call MPI_Comm_rank(MPI_COMM_SELF,me)
     call MPI_Comm_size(MPI_COMM_SELF,np)

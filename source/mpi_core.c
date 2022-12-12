@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h> // NULL
+#include <string.h> // memset
 #include <mpi.h>
 #include "ISO_Fortran_binding.h"
 #include "convert_handles.h"
@@ -68,17 +69,31 @@ void C_MPI_Get_version(int * version, int * subversion, int * ierror)
     C_MPI_RC_FIX(*ierror);
 }
 
-#ifdef HAVE_CFI
-void C_MPI_Get_library_version(CFI_cdesc_t * version_d, int * resultlen, int * ierror)
+void C_MPI_Get_library_version(char ** pversion, int * resultlen, int * ierror)
 {
-    char * version = version_d -> base_addr;
+    if (VAPAA_MPI_MAX_LIBRARY_VERSION_STRING < MPI_MAX_LIBRARY_VERSION_STRING) {
+        fprintf(stderr,"C_MPI_Get_library_version: buffer is not large enough - "
+                       "bad things are going to happen now!\n"
+                       "VAPAA_MPI_MAX_LIBRARY_VERSION_STRING=%d, MPI_MAX_LIBRARY_VERSION_STRING=%d\n",
+                       VAPAA_MPI_MAX_LIBRARY_VERSION_STRING, MPI_MAX_LIBRARY_VERSION_STRING);
+    }
+    char * version = *pversion;
+    memset(version,0,MPI_MAX_LIBRARY_VERSION_STRING);
     *ierror = MPI_Get_library_version(version, resultlen);
     C_MPI_RC_FIX(*ierror);
 }
-#else
-#warning C_MPI_Get_library_version is probably broken...
-void C_MPI_Get_library_version(char * version, int * resultlen, int * ierror)
+
+#ifdef HAVE_CFI
+void CFI_MPI_Get_library_version(CFI_cdesc_t * version_d, int * resultlen, int * ierror)
 {
+    if (VAPAA_MPI_MAX_LIBRARY_VERSION_STRING < MPI_MAX_LIBRARY_VERSION_STRING) {
+        fprintf(stderr,"C_MPI_Get_library_version: buffer is not large enough - "
+                       "bad things are going to happen now!\n"
+                       "VAPAA_MPI_MAX_LIBRARY_VERSION_STRING=%d, MPI_MAX_LIBRARY_VERSION_STRING=%d\n",
+                       VAPAA_MPI_MAX_LIBRARY_VERSION_STRING, MPI_MAX_LIBRARY_VERSION_STRING);
+    }
+    char * version = version_d -> base_addr;
+    memset(version,0,MPI_MAX_LIBRARY_VERSION_STRING);
     *ierror = MPI_Get_library_version(version, resultlen);
     C_MPI_RC_FIX(*ierror);
 }

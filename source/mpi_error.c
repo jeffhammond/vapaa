@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <string.h> // memset
 #include <mpi.h>
 #include "ISO_Fortran_binding.h"
 #include "convert_constants.h"
@@ -196,6 +197,7 @@ void C_MPI_Error_string(int * errorcode_f, char ** pstring, int * resultlen, int
     }
     char * string = *pstring;
     int errorcode_c = C_MPI_ERROR_CODE_F2C(*errorcode_f);
+    memset(string,0,MPI_MAX_ERROR_STRING);
     *ierror = MPI_Error_string(errorcode_c, string, resultlen);
     C_MPI_RC_FIX(*ierror);
 }
@@ -212,6 +214,7 @@ void CFI_MPI_Error_string(int * errorcode_f, CFI_cdesc_t * string_d, int * resul
     char * string = string_d -> base_addr;
     //int    length = string_d -> elem_len; // input string length
     int errorcode_c = C_MPI_ERROR_CODE_F2C(*errorcode_f);
+    memset(string,0,MPI_MAX_ERROR_STRING);
     *ierror = MPI_Error_string(errorcode_c, string, resultlen);
     C_MPI_RC_FIX(*ierror);
 }
