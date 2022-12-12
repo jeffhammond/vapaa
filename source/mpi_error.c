@@ -188,6 +188,12 @@ int C_MPI_ERROR_CODE_F2C(int error_f)
 
 void C_MPI_Error_string(int * errorcode_f, char ** pstring, int * resultlen, int * ierror)
 {
+    if (VAPAA_MPI_MAX_ERROR_STRING < MPI_MAX_ERROR_STRING) {
+        fprintf(stderr,"C_MPI_Error_string: Fortran buffer is not large enough - "
+                       "bad things are going to happen now!\n"
+                       "VAPAA_MPI_MAX_ERROR_STRING=%d, MPI_MAX_ERROR_STRING=%d\n",
+                       VAPAA_MPI_MAX_ERROR_STRING, MPI_MAX_ERROR_STRING);
+    }
     char * string = *pstring;
     int errorcode_c = C_MPI_ERROR_CODE_F2C(*errorcode_f);
     *ierror = MPI_Error_string(errorcode_c, string, resultlen);
