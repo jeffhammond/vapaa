@@ -19,7 +19,7 @@ module mpi_request_f
             integer(kind=c_int) :: flag_c, ierror_c
             type(C_MPI_Status) :: status_c
             status_c = F_MPI_Status_copy_f2c(status)
-            call C_MPI_Request_get_status(request % MPI_VAL, flag_c, status, ierror_c)
+            call C_MPI_Request_get_status(request % MPI_VAL, flag_c, status_c, ierror_c)
             status = F_MPI_Status_copy_c2f(status_c)
             flag = (flag_c .ne. 0)
             if (present(ierror)) ierror = ierror_c

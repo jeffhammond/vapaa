@@ -2,8 +2,8 @@
 
 module mpi_file_f
     use iso_c_binding, only: c_int, c_char, c_null_char, c_intptr_t
-    use mpi_handle_operators, only: F_MPI_Status_copy_c2f, F_MPI_Status_copy_f2c
     use mpi_handle_types, only: MPI_Comm, MPI_File, MPI_Datatype, MPI_Info, MPI_Status, C_MPI_Status
+    use mpi_handle_operators, only: F_MPI_Status_copy_c2f, F_MPI_Status_copy_f2c
 
     implicit none
 

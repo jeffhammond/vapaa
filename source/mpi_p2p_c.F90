@@ -43,8 +43,7 @@ module mpi_p2p_c
             use mpi_handle_types, only: C_MPI_Status, MPI_Request
             implicit none
             integer(kind=c_int), intent(in) :: count
-            !integer(kind=c_int), intent(inout) :: requests(*)
-            type(MPI_Request), intent(inout) :: requests(*)
+            integer(kind=c_int), intent(inout) :: requests(*)
             integer(kind=c_int), intent(out) :: flag, ierror
             type(C_MPI_Status), intent(inout) :: statuses(*)
         end subroutine C_MPI_Testall
@@ -58,8 +57,7 @@ module mpi_p2p_c
             use mpi_handle_types, only: C_MPI_Status, MPI_Request
             implicit none
             integer(kind=c_int), intent(in) :: incount
-            !integer(kind=c_int), intent(inout) :: requests(*)
-            type(MPI_Request), intent(inout) :: requests(*)
+            integer(kind=c_int), intent(inout) :: requests(*)
             integer(kind=c_int), intent(out) :: outcount, indices(*)
             type(C_MPI_Status), intent(inout) :: statuses(*)
             integer(kind=c_int), intent(out) :: ierror
@@ -73,8 +71,7 @@ module mpi_p2p_c
             use mpi_handle_types, only: C_MPI_Status, MPI_Request
             implicit none
             integer(kind=c_int), intent(in) :: count
-            !integer(kind=c_int), intent(inout) :: requests(*)
-            type(MPI_Request), intent(inout) :: requests(*)
+            integer(kind=c_int), intent(inout) :: requests(*)
             integer(kind=c_int), intent(out) :: index, flag, ierror
             type(C_MPI_Status), intent(inout) :: status
         end subroutine C_MPI_Testany
@@ -99,8 +96,7 @@ module mpi_p2p_c
             use mpi_handle_types, only: C_MPI_Status, MPI_Request
             implicit none
             integer(kind=c_int), intent(in) :: count
-            !integer(kind=c_int), intent(inout) :: requests(*)
-            type(MPI_Request), intent(inout) :: requests(*)
+            integer(kind=c_int), intent(inout) :: requests(*)
             integer(kind=c_int), intent(out) :: ierror
             type(C_MPI_Status), intent(inout) :: statuses(*)
         end subroutine C_MPI_Waitall
@@ -114,8 +110,7 @@ module mpi_p2p_c
             use mpi_handle_types, only: C_MPI_Status, MPI_Request
             implicit none
             integer(kind=c_int), intent(in) :: incount
-            !integer(kind=c_int), intent(inout) :: requests(*)
-            type(MPI_Request), intent(inout) :: requests(*)
+            integer(kind=c_int), intent(inout) :: requests(*)
             integer(kind=c_int), intent(out) :: outcount, indices(*)
             type(C_MPI_Status), intent(inout) :: statuses(*)
             integer(kind=c_int), intent(out) :: ierror
@@ -129,8 +124,7 @@ module mpi_p2p_c
             use mpi_handle_types, only: C_MPI_Status, MPI_Request
             implicit none
             integer(kind=c_int), intent(in) :: count
-            !integer(kind=c_int), intent(inout) :: requests(*)
-            type(MPI_Request), intent(inout) :: requests(*)
+            integer(kind=c_int), intent(inout) :: requests(*)
             integer(kind=c_int), intent(out) :: index, ierror
             type(C_MPI_Status), intent(inout) :: status
         end subroutine C_MPI_Waitany

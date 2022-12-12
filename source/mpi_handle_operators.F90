@@ -92,6 +92,18 @@ module mpi_handle_operators
             f % MPI_ERROR  = c % MPI_ERROR
         end function F_MPI_Status_copy_c2f
 
+        pure subroutine F_MPI_Status_copy_array_c2f(c,f,n)
+            integer, intent(in) :: n
+            type(C_MPI_Status), intent(in) :: c(*)
+            type(MPI_Status), intent(out) :: f(*)
+            integer :: i
+            do i=1,n
+                f(i) % MPI_SOURCE = c(i) % MPI_SOURCE
+                f(i) % MPI_TAG    = c(i) % MPI_TAG
+                f(i) % MPI_ERROR  = c(i) % MPI_ERROR
+            end do
+        end subroutine F_MPI_Status_copy_array_c2f
+
         pure function F_MPI_Status_copy_f2c(f) result(c)
             type(MPI_Status), intent(in) :: f
             type(C_MPI_Status) :: c
@@ -99,6 +111,18 @@ module mpi_handle_operators
             c % MPI_TAG    = f % MPI_TAG
             c % MPI_ERROR  = f % MPI_ERROR
         end function F_MPI_Status_copy_f2c
+
+        pure subroutine F_MPI_Status_copy_array_f2c(f,c,n)
+            integer, intent(in) :: n
+            type(MPI_Status), intent(in) :: f(*)
+            type(C_MPI_Status), intent(out) :: c(*)
+            integer :: i
+            do i=1,n
+                c(i) % MPI_SOURCE = f(i) % MPI_SOURCE
+                c(i) % MPI_TAG    = f(i) % MPI_TAG
+                c(i) % MPI_ERROR  = f(i) % MPI_ERROR
+            end do
+        end subroutine F_MPI_Status_copy_array_f2c
 
         pure function F_MPI_Handle_Comm_eq(a,b) result (r)
             use mpi_handle_types, only: MPI_Comm
