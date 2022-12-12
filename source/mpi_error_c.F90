@@ -1,6 +1,19 @@
 module mpi_error_c
 
     interface
+        subroutine C_MPI_Error_string(errorcode, string, resultlen, ierror) &
+                   bind(C,name="C_MPI_Error_string")
+            use iso_c_binding, only: c_int, c_char
+            use mpi_global_constants, only: MPI_MAX_ERROR_STRING
+            implicit none
+            integer(kind=c_int), intent(in) :: errorcode
+            integer(kind=c_int), intent(out) :: resultlen, ierror
+            character(len=*, kind=c_char), intent(out) :: string
+        end subroutine C_MPI_Error_string
+    end interface
+
+#ifdef HAVE_CFI
+    interface
         subroutine CFI_MPI_Error_string(errorcode, string, resultlen, ierror) &
                    bind(C,name="CFI_MPI_Error_string")
             use iso_c_binding, only: c_int, c_char
@@ -10,6 +23,7 @@ module mpi_error_c
             character(kind=c_char), dimension(:), intent(out) :: string
         end subroutine CFI_MPI_Error_string
     end interface
+#endif
 
     interface
         subroutine C_MPI_Error_class(errorcode, errorclass, ierror) &

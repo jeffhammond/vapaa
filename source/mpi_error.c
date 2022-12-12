@@ -2,6 +2,7 @@
 #include <mpi.h>
 #include "ISO_Fortran_binding.h"
 #include "convert_constants.h"
+#include "vapaa_constants.h"
 
 // see mpi_error_f.F90 for the source of these values
 
@@ -185,18 +186,27 @@ int C_MPI_ERROR_CODE_F2C(int error_f)
     }
 }
 
-//void C_MPI_Error_string(char * string, int * resultlen, int * ierror)
-void CFI_MPI_Error_string(int * errorcode_f, CFI_cdesc_t * string_d, int * resultlen, int * ierror)
+void C_MPI_Error_string(int * errorcode_f, char ** pstring, int * resultlen, int * ierror)
 {
-    char * string = string_d -> base_addr;
-    int errorcode_c = C_MPI_ERROR_CODE_C2F(*errorcode_f);
+    char * string = *pstring;
+    int errorcode_c = C_MPI_ERROR_CODE_F2C(*errorcode_f);
     *ierror = MPI_Error_string(errorcode_c, string, resultlen);
     C_MPI_RC_FIX(*ierror);
 }
 
+#ifdef HAVE_CFI
+void CFI_MPI_Error_string(int * errorcode_f, CFI_cdesc_t * string_d, int * resultlen, int * ierror)
+{
+    char * string = string_d -> base_addr;
+    int errorcode_c = C_MPI_ERROR_CODE_F2C(*errorcode_f);
+    *ierror = MPI_Error_string(errorcode_c, string, resultlen);
+    C_MPI_RC_FIX(*ierror);
+}
+#endif
+
 void C_MPI_Error_class(int * errorcode_f, int * errorclass, int * ierror)
 {
-    int errorcode_c = C_MPI_ERROR_CODE_C2F(*errorcode_f);
+    int errorcode_c = C_MPI_ERROR_CODE_F2C(*errorcode_f);
     *ierror = MPI_Error_class(errorcode_c, errorclass);
     C_MPI_RC_FIX(*ierror);
 }

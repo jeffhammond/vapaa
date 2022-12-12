@@ -84,7 +84,11 @@ module mpi_error_f
     integer, parameter :: MPI_ERR_LASTCODE                           = 79
 
     interface MPI_Error_string
+#if 0
+        module procedure MPI_Error_string_f08ts
+#else
         module procedure MPI_Error_string_f08
+#endif
     end interface MPI_Error_string
 
     interface MPI_Error_class
@@ -94,6 +98,21 @@ module mpi_error_f
     contains
 
         subroutine MPI_Error_string_f08(errorcode, string, resultlen, ierror)
+            use iso_c_binding, only: c_int, c_char, c_null_char
+            use mpi_global_constants, only: MPI_MAX_ERROR_STRING
+            use mpi_error_c, only: C_MPI_Error_string
+            integer, intent(in) :: errorcode
+            character(len=MPI_MAX_ERROR_STRING), intent(out) :: string
+            integer, intent(out) :: resultlen
+            integer, optional, intent(out) :: ierror
+            integer(c_int) :: errorcode_c, resultlen_c, ierror_c
+            errorcode_c = errorcode
+            call C_MPI_Error_string(errorcode_c, string, resultlen_c, ierror_c)
+            resultlen = resultlen_c
+            if (present(ierror)) ierror = ierror_c
+        end subroutine MPI_Error_string_f08
+
+        subroutine MPI_Error_string_f08ts(errorcode, string, resultlen, ierror)
             use iso_c_binding, only: c_int, c_char, c_null_char
             use mpi_global_constants, only: MPI_MAX_ERROR_STRING
             use mpi_error_c, only: CFI_MPI_Error_string
@@ -115,7 +134,7 @@ module mpi_error_f
             end do
             deallocate( string_c )
             if (present(ierror)) ierror = ierror_c
-        end subroutine MPI_Error_string_f08
+        end subroutine MPI_Error_string_f08ts
 
         subroutine MPI_Error_class_f08(errorcode, errorclass, ierror)
             use iso_c_binding, only: c_int
