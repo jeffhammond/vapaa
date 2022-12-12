@@ -57,9 +57,9 @@ module mpi_core_f
         subroutine F_MPI_INIT_ADDRESS_SENTINELS()
             use mpi_global_constants
             use detect_sentinels_c
+            call CAPTURE_MPI_STATUS_IGNORE(MPI_STATUS_IGNORE,C_MPI_STATUS_IGNORE)
+            call CAPTURE_MPI_STATUSES_IGNORE(MPI_STATUSES_IGNORE,C_MPI_STATUSES_IGNORE)
             call C_MPI_BOTTOM(MPI_BOTTOM)
-            call C_MPI_STATUS_IGNORE(MPI_STATUS_IGNORE)
-            call C_MPI_STATUSES_IGNORE(MPI_STATUSES_IGNORE)
             call C_MPI_ERRCODES_IGNORE(MPI_ERRCODES_IGNORE)
             call C_MPI_IN_PLACE(MPI_IN_PLACE)
             call C_MPI_ARGV_NULL(MPI_ARGV_NULL)

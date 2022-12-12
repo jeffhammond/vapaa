@@ -49,6 +49,8 @@ module mpi_global_constants
     ! MPI_STATUS_IGNORE and MPI_STATUSES_IGNORE are not required to have the same values in C and Fortran.
     type(MPI_Status) :: MPI_STATUS_IGNORE
     type(MPI_Status) :: MPI_STATUSES_IGNORE(1)
+    type(C_MPI_Status) :: C_MPI_STATUS_IGNORE
+    type(C_MPI_Status) :: C_MPI_STATUSES_IGNORE(1)
 
     integer, parameter :: MPI_PROC_NULL  = VAPAA_MPI_PROC_NULL
     type(MPI_Message), parameter  :: MPI_MESSAGE_NO_PROC = MPI_Message(MPI_VAL  = VAPAA_MPI_MESSAGE_NO_PROC)

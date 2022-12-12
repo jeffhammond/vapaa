@@ -13,27 +13,27 @@ module detect_sentinels_c
     end interface
 
     interface
-        subroutine C_MPI_STATUS_IGNORE(inplace) &
-                   bind(C,name="C_MPI_STATUS_IGNORE")
+        subroutine CAPTURE_MPI_STATUS_IGNORE(f,c) &
+                   bind(C,name="CAPTURE_MPI_STATUS_IGNORE")
             implicit none
 #ifdef HAVE_CFI
-            type(*) :: inplace
+            type(*) :: f,c
 #else
-            class(*) :: inplace
+            class(*) :: f,c
 #endif
-        end subroutine C_MPI_STATUS_IGNORE
+        end subroutine CAPTURE_MPI_STATUS_IGNORE
     end interface
 
     interface
-        subroutine C_MPI_STATUSES_IGNORE(inplace) &
-                   bind(C,name="C_MPI_STATUSES_IGNORE")
+        subroutine CAPTURE_MPI_STATUSES_IGNORE(f,c) &
+                   bind(C,name="CAPTURE_MPI_STATUSES_IGNORE")
             implicit none
 #ifdef HAVE_CFI
-            type(*) :: inplace(..)
+            type(*) :: f(..), c(..)
 #else
-            class(*) :: inplace(..)
+            class(*) :: f(:), c(:)
 #endif
-        end subroutine C_MPI_STATUSES_IGNORE
+        end subroutine CAPTURE_MPI_STATUSES_IGNORE
     end interface
 
     interface
