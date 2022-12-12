@@ -22,7 +22,20 @@ static int C_MPI_TRANSLATE_AMODE(int f)
     return c;
 }
 
-void C_MPI_File_open(int * comm_f, CFI_cdesc_t * filename_d, int * amode_f, int * info_f, int * file_f, int * ierror)
+void C_MPI_File_open(int * comm_f, char ** pfilename, int * amode_f, int * info_f, int * file_f, int * ierror)
+{
+    MPI_File file = MPI_FILE_NULL;
+    MPI_Comm comm = C_MPI_COMM_F2C(*comm_f);
+    MPI_Info info = C_MPI_INFO_F2C(*info_f);
+    char * filename = *pfilename;
+    int amode = C_MPI_TRANSLATE_AMODE(*amode_f);
+    *ierror = MPI_File_open(comm, filename, amode, info, &file);
+    *file_f = MPI_File_c2f(file);
+    C_MPI_RC_FIX(*ierror);
+}
+
+#ifdef HAVE_CFI
+void CFI_MPI_File_open(int * comm_f, CFI_cdesc_t * filename_d, int * amode_f, int * info_f, int * file_f, int * ierror)
 {
     MPI_File file = MPI_FILE_NULL;
     MPI_Comm comm = C_MPI_COMM_F2C(*comm_f);
@@ -33,6 +46,7 @@ void C_MPI_File_open(int * comm_f, CFI_cdesc_t * filename_d, int * amode_f, int 
     *file_f = MPI_File_c2f(file);
     C_MPI_RC_FIX(*ierror);
 }
+#endif
 
 void C_MPI_File_close(int * file_f, int * ierror)
 {
@@ -42,13 +56,23 @@ void C_MPI_File_close(int * file_f, int * ierror)
     C_MPI_RC_FIX(*ierror);
 }
 
-void C_MPI_File_delete(CFI_cdesc_t * filename_d, int * info_f, int * ierror)
+void C_MPI_File_delete(char ** pfilename, int * info_f, int * ierror)
+{
+    MPI_Info info = C_MPI_INFO_F2C(*info_f);
+    char * filename = *pfilename;
+    *ierror = MPI_File_delete(filename, info);
+    C_MPI_RC_FIX(*ierror);
+}
+
+#ifdef HAVE_CFI
+void CFI_MPI_File_delete(CFI_cdesc_t * filename_d, int * info_f, int * ierror)
 {
     MPI_Info info = C_MPI_INFO_F2C(*info_f);
     char * filename = filename_d -> base_addr;
     *ierror = MPI_File_delete(filename, info);
     C_MPI_RC_FIX(*ierror);
 }
+#endif
 
 void C_MPI_File_set_size(int * file_f, intptr_t * size_f, int * ierror)
 {

@@ -6,10 +6,23 @@ module mpi_file_c
             use iso_c_binding, only: c_int, c_char
             implicit none
             integer(kind=c_int), intent(in) :: comm, amode, info
-            character(kind=c_char), dimension(:) :: filename
+            character(len=*,kind=c_char) :: filename
             integer(kind=c_int), intent(out) :: file, ierror
         end subroutine C_MPI_File_open
     end interface
+
+#ifdef HAVE_CFI
+    interface
+        subroutine CFI_MPI_File_open(comm, filename, amode, info, file, ierror) &
+                   bind(C,name="CFI_MPI_File_open")
+            use iso_c_binding, only: c_int, c_char
+            implicit none
+            integer(kind=c_int), intent(in) :: comm, amode, info
+            type(*), dimension(..) :: filename
+            integer(kind=c_int), intent(out) :: file, ierror
+        end subroutine CFI_MPI_File_open
+    end interface
+#endif
 
     interface
         subroutine C_MPI_File_close(file, ierror) &
@@ -27,10 +40,23 @@ module mpi_file_c
             use iso_c_binding, only: c_int, c_char
             implicit none
             integer(kind=c_int), intent(in) :: info
-            character(kind=c_char), dimension(:), intent(in) :: filename
+            character(len=*,kind=c_char), intent(in) :: filename
             integer(kind=c_int), intent(out) :: ierror
         end subroutine C_MPI_File_delete
     end interface
+
+#ifdef HAVE_CFI
+    interface
+        subroutine CFI_MPI_File_delete(filename, info, ierror) &
+                   bind(C,name="CFI_MPI_File_delete")
+            use iso_c_binding, only: c_int, c_char
+            implicit none
+            integer(kind=c_int), intent(in) :: info
+            type(*), dimension(..), intent(in) :: filename
+            integer(kind=c_int), intent(out) :: ierror
+        end subroutine CFI_MPI_File_delete
+    end interface
+#endif
 
     interface
         subroutine C_MPI_File_set_size(file, size, ierror) &
