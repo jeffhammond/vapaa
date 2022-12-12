@@ -47,8 +47,8 @@ module mpi_global_constants
     ! Note that in Fortran MPI_STATUS_IGNORE and MPI_STATUSES_IGNORE are objects like MPI_BOTTOM
     ! (not usable for initialization or assignment).
     ! MPI_STATUS_IGNORE and MPI_STATUSES_IGNORE are not required to have the same values in C and Fortran.
-    type(MPI_Status) :: MPI_STATUS_IGNORE
-    type(MPI_Status) :: MPI_STATUSES_IGNORE(1)
+    type(MPI_Status), target :: MPI_STATUS_IGNORE
+    type(MPI_Status), target :: MPI_STATUSES_IGNORE(1)
     type(C_MPI_Status) :: C_MPI_STATUS_IGNORE
     type(C_MPI_Status) :: C_MPI_STATUSES_IGNORE(1)
 

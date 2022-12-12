@@ -1,5 +1,5 @@
 module mpi_p2p_f
-    use iso_c_binding, only: c_int
+    use iso_c_binding, only: c_int, c_loc, c_associated
     use mpi_handle_types, only: MPI_Comm, MPI_Datatype, MPI_Message, MPI_Request, MPI_Status, C_MPI_Status
     use mpi_handle_operators, only: F_MPI_Status_copy_c2f, F_MPI_Status_copy_f2c, &
                                     F_MPI_Status_copy_array_c2f, F_MPI_Status_copy_array_f2c
@@ -135,7 +135,7 @@ module mpi_p2p_f
             integer, intent(in) :: count
             type(MPI_Request), intent(inout) :: requests(count)
             logical, intent(out) :: flag
-            type(MPI_Status), intent(inout) :: statuses(*)
+            type(MPI_Status), intent(inout), target :: statuses(*)
             integer, optional, intent(out) :: ierror
             integer(kind=c_int), allocatable :: requests_c(:)
             integer(kind=c_int) :: count_c, flag_c, ierror_c
@@ -147,7 +147,7 @@ module mpi_p2p_f
               requests_c(i) = requests(i) % MPI_VAL
             end do
             count_c = count
-            if (loc(statuses) .eq. loc(MPI_STATUSES_IGNORE)) then
+            if (c_associated(c_loc(statuses),c_loc(MPI_STATUSES_IGNORE))) then
                 call C_MPI_Testall(count_c, requests_c, flag_c, C_MPI_STATUSES_IGNORE, ierror_c)
             else
                 allocate( statuses_c(count) )
@@ -169,7 +169,7 @@ module mpi_p2p_f
             integer, intent(in) :: incount
             type(MPI_Request), intent(inout) :: requests(incount)
             integer, intent(out) :: outcount, indices(*)
-            type(MPI_Status), intent(inout) :: statuses(*)
+            type(MPI_Status), intent(inout), target :: statuses(*)
             integer, optional, intent(out) :: ierror
             integer(kind=c_int), allocatable :: indices_c(:), requests_c(:)
             integer(kind=c_int) :: incount_c, outcount_c, ierror_c
@@ -181,7 +181,7 @@ module mpi_p2p_f
               requests_c(i) = requests(i) % MPI_VAL
             end do
             incount_c = incount
-            if (loc(statuses) .eq. loc(MPI_STATUSES_IGNORE)) then
+            if (c_associated(c_loc(statuses),c_loc(MPI_STATUSES_IGNORE))) then
                 call C_MPI_Testsome(incount_c, requests_c, outcount_c, indices_c, C_MPI_STATUSES_IGNORE, ierror_c)
             else
                 allocate( statuses_c(incount) )
@@ -248,7 +248,7 @@ module mpi_p2p_f
             use mpi_p2p_c, only: C_MPI_Waitall
             integer, intent(in) :: count
             type(MPI_Request), intent(inout) :: requests(count)
-            type(MPI_Status), intent(inout) :: statuses(*)
+            type(MPI_Status), intent(inout), target :: statuses(*)
             integer, optional, intent(out) :: ierror
             integer(kind=c_int), allocatable :: requests_c(:)
             integer(kind=c_int) :: count_c, ierror_c
@@ -260,7 +260,7 @@ module mpi_p2p_f
               requests_c(i) = requests(i) % MPI_VAL
             end do
             count_c = count
-            if (loc(statuses) .eq. loc(MPI_STATUSES_IGNORE)) then
+            if (c_associated(c_loc(statuses),c_loc(MPI_STATUSES_IGNORE))) then
                 call C_MPI_Waitall(count_c, requests_c, C_MPI_STATUSES_IGNORE, ierror_c)
             else
                 allocate( statuses_c(count) )
@@ -281,7 +281,7 @@ module mpi_p2p_f
             integer, intent(in) :: incount
             type(MPI_Request), intent(inout) :: requests(incount)
             integer, intent(out) :: outcount, indices(*)
-            type(MPI_Status), intent(inout) :: statuses(*)
+            type(MPI_Status), intent(inout), target :: statuses(*)
             integer, optional, intent(out) :: ierror
             integer(kind=c_int), allocatable :: indices_c(:), requests_c(:)
             integer(kind=c_int) :: incount_c, outcount_c, ierror_c
@@ -293,7 +293,7 @@ module mpi_p2p_f
               requests_c(i) = requests(i) % MPI_VAL
             end do
             incount_c = incount
-            if (loc(statuses) .eq. loc(MPI_STATUSES_IGNORE)) then
+            if (c_associated(c_loc(statuses),c_loc(MPI_STATUSES_IGNORE))) then
                 call C_MPI_Waitsome(incount_c, requests_c, outcount_c, indices_c, C_MPI_STATUSES_IGNORE, ierror_c)
             else
                 allocate( statuses_c(incount) )
