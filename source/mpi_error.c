@@ -203,7 +203,14 @@ void C_MPI_Error_string(int * errorcode_f, char ** pstring, int * resultlen, int
 #ifdef HAVE_CFI
 void CFI_MPI_Error_string(int * errorcode_f, CFI_cdesc_t * string_d, int * resultlen, int * ierror)
 {
+    if (VAPAA_MPI_MAX_ERROR_STRING < MPI_MAX_ERROR_STRING) {
+        fprintf(stderr,"C_MPI_Error_string: Fortran buffer is not large enough - "
+                       "bad things are going to happen now!\n"
+                       "VAPAA_MPI_MAX_ERROR_STRING=%d, MPI_MAX_ERROR_STRING=%d\n",
+                       VAPAA_MPI_MAX_ERROR_STRING, MPI_MAX_ERROR_STRING);
+    }
     char * string = string_d -> base_addr;
+    //int    length = string_d -> elem_len; // input string length
     int errorcode_c = C_MPI_ERROR_CODE_F2C(*errorcode_f);
     *ierror = MPI_Error_string(errorcode_c, string, resultlen);
     C_MPI_RC_FIX(*ierror);

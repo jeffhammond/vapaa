@@ -86,7 +86,7 @@ module mpi_error_f
     integer, parameter :: MPI_ERR_LASTCODE                           = VAPAA_MPI_ERR_LASTCODE
 
     interface MPI_Error_string
-#if 0
+#if HAVE_CFI
         module procedure MPI_Error_string_f08ts
 #else
         module procedure MPI_Error_string_f08
@@ -114,8 +114,9 @@ module mpi_error_f
             if (present(ierror)) ierror = ierror_c
         end subroutine MPI_Error_string_f08
 
+#ifdef HAVE_CFI
         subroutine MPI_Error_string_f08ts(errorcode, string, resultlen, ierror)
-            use iso_c_binding, only: c_int, c_char, c_null_char
+            use iso_c_binding, only: c_int, c_char
             use mpi_global_constants, only: MPI_MAX_ERROR_STRING
             use mpi_error_c, only: CFI_MPI_Error_string
             integer, intent(in) :: errorcode
@@ -123,20 +124,12 @@ module mpi_error_f
             integer, intent(out) :: resultlen
             integer, optional, intent(out) :: ierror
             integer(c_int) :: errorcode_c, resultlen_c, ierror_c
-            character(c_char), dimension(:), allocatable :: string_c
-            integer :: i
             errorcode_c = errorcode
-            allocate( string_c(MPI_MAX_ERROR_STRING) )
-            string_c = c_null_char
-            call CFI_MPI_Error_string(errorcode_c, string_c, resultlen_c, ierror_c)
+            call CFI_MPI_Error_string(errorcode_c, string, resultlen_c, ierror_c)
             resultlen = resultlen_c
-            string = c_null_char
-            do i = 1, min(resultlen+1,MPI_MAX_ERROR_STRING)
-              string(i:i) = string_c(i)
-            end do
-            deallocate( string_c )
             if (present(ierror)) ierror = ierror_c
         end subroutine MPI_Error_string_f08ts
+#endif
 
         subroutine MPI_Error_class_f08(errorcode, errorclass, ierror)
             use iso_c_binding, only: c_int
