@@ -9,14 +9,18 @@ module mpi_request_f
     contains
 
         subroutine MPI_Request_get_status_f08(request, flag, status, ierror)
-            use mpi_handle_types, only: MPI_Status, MPI_Request
+            use mpi_handle_types, only: MPI_Status, MPI_Request, C_MPI_Status
+            use mpi_handle_operators, only: F_MPI_Status_copy_c2f, F_MPI_Status_copy_f2c
             use mpi_request_c, only: C_MPI_Request_get_status
             type(MPI_Request), intent(in) :: request
             logical, intent(out) :: flag
             type(MPI_Status), intent(inout) :: status
             integer, optional, intent(out) :: ierror
             integer(kind=c_int) :: flag_c, ierror_c
+            type(C_MPI_Status) :: status_c
+            status_c = F_MPI_Status_copy_f2c(status)
             call C_MPI_Request_get_status(request % MPI_VAL, flag_c, status, ierror_c)
+            status = F_MPI_Status_copy_c2f(status_c)
             flag = (flag_c .ne. 0)
             if (present(ierror)) ierror = ierror_c
         end subroutine MPI_Request_get_status_f08

@@ -2,6 +2,14 @@ module mpi_handle_operators
     use mpi_handle_types
     implicit none
 
+    !interface operator (=)
+    !    module procedure F_MPI_Status_copy_f2c
+    !end interface
+
+    !interface operator (=)
+    !    module procedure F_MPI_Status_copy_c2f
+    !end interface
+
     interface operator (==)
         module procedure F_MPI_Handle_Comm_eq
     end interface
@@ -75,6 +83,22 @@ module mpi_handle_operators
     end interface
 
     contains
+
+        pure function F_MPI_Status_copy_c2f(c) result(f)
+            type(C_MPI_Status), intent(in) :: c
+            type(MPI_Status) :: f
+            f % MPI_SOURCE = c % MPI_SOURCE
+            f % MPI_TAG    = c % MPI_TAG
+            f % MPI_ERROR  = c % MPI_ERROR
+        end function F_MPI_Status_copy_c2f
+
+        pure function F_MPI_Status_copy_f2c(f) result(c)
+            type(MPI_Status), intent(in) :: f
+            type(C_MPI_Status) :: c
+            c % MPI_SOURCE = f % MPI_SOURCE
+            c % MPI_TAG    = f % MPI_TAG
+            c % MPI_ERROR  = f % MPI_ERROR
+        end function F_MPI_Status_copy_f2c
 
         pure function F_MPI_Handle_Comm_eq(a,b) result (r)
             use mpi_handle_types, only: MPI_Comm

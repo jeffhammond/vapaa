@@ -1,7 +1,10 @@
 #include "vapaa_constants.h"
 
 module mpi_file_f
-    use iso_c_binding, only: c_int
+    use iso_c_binding, only: c_int, c_char, c_null_char, c_intptr_t
+    use mpi_handle_operators, only: F_MPI_Status_copy_c2f, F_MPI_Status_copy_f2c
+    use mpi_handle_types, only: MPI_Comm, MPI_File, MPI_Datatype, MPI_Info, MPI_Status, C_MPI_Status
+
     implicit none
 
     ! I/O file mode constants
@@ -122,8 +125,6 @@ module mpi_file_f
     contains
 
         subroutine MPI_File_open_f08(comm, filename, amode, info, file, ierror)
-            use iso_c_binding, only: c_char, c_null_char
-            use mpi_handle_types, only: MPI_Comm, MPI_Info, MPI_File
             use mpi_file_c, only: C_MPI_File_open
             type(MPI_Comm), intent(in) :: comm
             character(len=*), intent(in) :: filename
@@ -139,8 +140,6 @@ module mpi_file_f
 
 #ifdef HAVE_CFI
         subroutine MPI_File_open_f08ts(comm, filename, amode, info, file, ierror)
-            use iso_c_binding, only: c_char, c_null_char
-            use mpi_handle_types, only: MPI_Comm, MPI_Info, MPI_File
             use mpi_file_c, only: CFI_MPI_File_open
             type(MPI_Comm), intent(in) :: comm
             character(len=*), intent(in) :: filename
@@ -156,7 +155,6 @@ module mpi_file_f
 #endif
 
         subroutine MPI_File_close_f08(file, ierror)
-            use mpi_handle_types, only: MPI_File
             use mpi_file_c, only: C_MPI_File_close
             type(MPI_File), intent(inout) :: file
             integer, optional, intent(out) :: ierror
@@ -167,7 +165,6 @@ module mpi_file_f
 
         subroutine MPI_File_delete_f08(filename, info, ierror)
             use iso_c_binding, only: c_int
-            use mpi_handle_types, only: MPI_Info
             use mpi_file_c, only: C_MPI_File_delete
             character(len=*), intent(in) :: filename
             type(MPI_info), intent(in) :: info
@@ -179,8 +176,6 @@ module mpi_file_f
 
 #ifdef HAVE_CFI
         subroutine MPI_File_delete_f08ts(filename, info, ierror)
-            use iso_c_binding, only: c_int
-            use mpi_handle_types, only: MPI_Info
             use mpi_file_c, only: CFI_MPI_File_delete
             character(len=*), intent(in) :: filename
             type(MPI_info), intent(in) :: info
@@ -192,9 +187,7 @@ module mpi_file_f
 #endif
 
         subroutine MPI_File_set_size_f08(file, size, ierror)
-            use iso_c_binding, only: c_intptr_t
             use mpi_global_constants, only: MPI_OFFSET_KIND
-            use mpi_handle_types, only: MPI_File
             use mpi_file_c, only: C_MPI_File_set_size
             type(MPI_File), intent(in) :: file
             integer(kind=MPI_OFFSET_KIND), intent(in) :: size
@@ -205,9 +198,7 @@ module mpi_file_f
         end subroutine MPI_File_set_size_f08
 
         subroutine MPI_File_preallocate_f08(file, size, ierror)
-            use iso_c_binding, only: c_intptr_t
             use mpi_global_constants, only: MPI_OFFSET_KIND
-            use mpi_handle_types, only: MPI_File
             use mpi_file_c, only: C_MPI_File_preallocate
             type(MPI_File), intent(in) :: file
             integer(kind=MPI_OFFSET_KIND), intent(in) :: size
@@ -218,9 +209,7 @@ module mpi_file_f
         end subroutine MPI_File_preallocate_f08
 
         subroutine MPI_File_get_size_f08(file, size, ierror)
-            use iso_c_binding, only: c_intptr_t
             use mpi_global_constants, only: MPI_OFFSET_KIND
-            use mpi_handle_types, only: MPI_File
             use mpi_file_c, only: C_MPI_File_get_size
             type(MPI_File), intent(in) :: file
             integer(kind=MPI_OFFSET_KIND), intent(out) :: size
@@ -231,9 +220,7 @@ module mpi_file_f
         end subroutine MPI_File_get_size_f08
 
         subroutine MPI_File_set_view_f08(file, disp, etype, filetype, datarep, info, ierror)
-            use iso_c_binding, only: c_int, c_intptr_t, c_char, c_null_char
             use mpi_global_constants, only: MPI_OFFSET_KIND
-            use mpi_handle_types, only: MPI_File, MPI_Datatype, MPI_info
             use mpi_file_c, only: C_MPI_File_set_view
             type(MPI_File), intent(in) :: file
             integer(kind=MPI_OFFSET_KIND), intent(in) :: disp
@@ -251,9 +238,7 @@ module mpi_file_f
 
 #ifdef HAVE_CFI
         subroutine MPI_File_set_view_f08ts(file, disp, etype, filetype, datarep, info, ierror)
-            use iso_c_binding, only: c_int, c_intptr_t, c_char, c_null_char
             use mpi_global_constants, only: MPI_OFFSET_KIND
-            use mpi_handle_types, only: MPI_File, MPI_Datatype, MPI_info
             use mpi_file_c, only: CFI_MPI_File_set_view
             type(MPI_File), intent(in) :: file
             integer(kind=MPI_OFFSET_KIND), intent(in) :: disp
@@ -271,9 +256,7 @@ module mpi_file_f
 #endif
 
         subroutine MPI_File_read_at_f08(file, offset, buf, count, datatype, status, ierror)
-            use iso_c_binding, only: c_intptr_t
             use mpi_global_constants, only: MPI_OFFSET_KIND
-            use mpi_handle_types, only: MPI_File, MPI_Datatype, MPI_Status
             use mpi_file_c, only: C_MPI_File_read_at
             type(MPI_File), intent(in) :: file
             integer(kind=MPI_OFFSET_KIND), intent(in) :: offset
@@ -285,17 +268,18 @@ module mpi_file_f
             integer, optional, intent(out) :: ierror
             integer(c_int) :: count_c, ierror_c
             integer(c_intptr_t) :: offset_c
+            type(C_MPI_Status) :: status_c
             offset_c = offset
             count_c = count
-            call C_MPI_File_read_at(file % MPI_VAL, offset_c, buf, count_c, datatype % MPI_VAL, status, ierror_c)
+            status_c = F_MPI_Status_copy_f2c(status)
+            call C_MPI_File_read_at(file % MPI_VAL, offset_c, buf, count_c, datatype % MPI_VAL, status_c, ierror_c)
+            status = F_MPI_Status_copy_c2f(status_c)
             if (present(ierror)) ierror = ierror_c
         end subroutine MPI_File_read_at_f08
 
 #ifdef HAVE_CFI
         subroutine MPI_File_read_at_f08ts(file, offset, buf, count, datatype, status, ierror)
-            use iso_c_binding, only: c_intptr_t
             use mpi_global_constants, only: MPI_OFFSET_KIND
-            use mpi_handle_types, only: MPI_File, MPI_Datatype, MPI_Status
             use mpi_file_c, only: CFI_MPI_File_read_at
             type(MPI_File), intent(in) :: file
             integer(kind=MPI_OFFSET_KIND), intent(in) :: offset
@@ -306,17 +290,18 @@ module mpi_file_f
             integer, optional, intent(out) :: ierror
             integer(c_int) :: count_c, ierror_c
             integer(c_intptr_t) :: offset_c
+            type(C_MPI_Status) :: status_c
             offset_c = offset
             count_c = count
-            call CFI_MPI_File_read_at(file % MPI_VAL, offset_c, buf, count_c, datatype % MPI_VAL, status, ierror_c)
+            status_c = F_MPI_Status_copy_f2c(status)
+            call CFI_MPI_File_read_at(file % MPI_VAL, offset_c, buf, count_c, datatype % MPI_VAL, status_c, ierror_c)
+            status = F_MPI_Status_copy_c2f(status_c)
             if (present(ierror)) ierror = ierror_c
         end subroutine MPI_File_read_at_f08ts
 #endif
 
         subroutine MPI_File_read_at_all_f08(file, offset, buf, count, datatype, status, ierror)
-            use iso_c_binding, only: c_intptr_t
             use mpi_global_constants, only: MPI_OFFSET_KIND
-            use mpi_handle_types, only: MPI_File, MPI_Datatype, MPI_Status
             use mpi_file_c, only: C_MPI_File_read_at_all
             type(MPI_File), intent(in) :: file
             integer(kind=MPI_OFFSET_KIND), intent(in) :: offset
@@ -328,17 +313,18 @@ module mpi_file_f
             integer, optional, intent(out) :: ierror
             integer(c_int) :: count_c, ierror_c
             integer(c_intptr_t) :: offset_c
+            type(C_MPI_Status) :: status_c
             offset_c = offset
             count_c = count
-            call C_MPI_File_read_at_all(file % MPI_VAL, offset_c, buf, count_c, datatype % MPI_VAL, status, ierror_c)
+            status_c = F_MPI_Status_copy_f2c(status)
+            call C_MPI_File_read_at_all(file % MPI_VAL, offset_c, buf, count_c, datatype % MPI_VAL, status_c, ierror_c)
+            status = F_MPI_Status_copy_c2f(status_c)
             if (present(ierror)) ierror = ierror_c
         end subroutine MPI_File_read_at_all_f08
 
 #ifdef HAVE_CFI
         subroutine MPI_File_read_at_all_f08ts(file, offset, buf, count, datatype, status, ierror)
-            use iso_c_binding, only: c_intptr_t
             use mpi_global_constants, only: MPI_OFFSET_KIND
-            use mpi_handle_types, only: MPI_File, MPI_Datatype, MPI_Status
             use mpi_file_c, only: CFI_MPI_File_read_at_all
             type(MPI_File), intent(in) :: file
             integer(kind=MPI_OFFSET_KIND), intent(in) :: offset
@@ -349,16 +335,17 @@ module mpi_file_f
             integer, optional, intent(out) :: ierror
             integer(c_int) :: count_c, ierror_c
             integer(c_intptr_t) :: offset_c
+            type(C_MPI_Status) :: status_c
             offset_c = offset
             count_c = count
-            call CFI_MPI_File_read_at_all(file % MPI_VAL, offset_c, buf, count_c, datatype % MPI_VAL, status, ierror_c)
+            status_c = F_MPI_Status_copy_f2c(status)
+            call CFI_MPI_File_read_at_all(file % MPI_VAL, offset_c, buf, count_c, datatype % MPI_VAL, status_c, ierror_c)
+            status = F_MPI_Status_copy_c2f(status_c)
             if (present(ierror)) ierror = ierror_c
         end subroutine MPI_File_read_at_all_f08ts
 #endif
 
         subroutine MPI_File_read_f08(file, buf, count, datatype, status, ierror)
-            use iso_c_binding, only: c_intptr_t
-            use mpi_handle_types, only: MPI_File, MPI_Datatype, MPI_Status
             use mpi_file_c, only: C_MPI_File_read
             type(MPI_File), intent(in) :: file
 !dir$ ignore_tkr buffer
@@ -368,15 +355,16 @@ module mpi_file_f
             type(MPI_Status) :: status
             integer, optional, intent(out) :: ierror
             integer(c_int) :: count_c, ierror_c
+            type(C_MPI_Status) :: status_c
             count_c = count
-            call C_MPI_File_read(file % MPI_VAL, buf, count_c, datatype % MPI_VAL, status, ierror_c)
+            status_c = F_MPI_Status_copy_f2c(status)
+            call C_MPI_File_read(file % MPI_VAL, buf, count_c, datatype % MPI_VAL, status_c, ierror_c)
+            status = F_MPI_Status_copy_c2f(status_c)
             if (present(ierror)) ierror = ierror_c
         end subroutine MPI_File_read_f08
 
 #ifdef HAVE_CFI
         subroutine MPI_File_read_f08ts(file, buf, count, datatype, status, ierror)
-            use iso_c_binding, only: c_intptr_t
-            use mpi_handle_types, only: MPI_File, MPI_Datatype, MPI_Status
             use mpi_file_c, only: CFI_MPI_File_read
             type(MPI_File), intent(in) :: file
             type(*), dimension(..) :: buf
@@ -385,15 +373,16 @@ module mpi_file_f
             type(MPI_Status) :: status
             integer, optional, intent(out) :: ierror
             integer(c_int) :: count_c, ierror_c
+            type(C_MPI_Status) :: status_c
             count_c = count
-            call CFI_MPI_File_read(file % MPI_VAL, buf, count_c, datatype % MPI_VAL, status, ierror_c)
+            status_c = F_MPI_Status_copy_f2c(status)
+            call CFI_MPI_File_read(file % MPI_VAL, buf, count_c, datatype % MPI_VAL, status_c, ierror_c)
+            status = F_MPI_Status_copy_c2f(status_c)
             if (present(ierror)) ierror = ierror_c
         end subroutine MPI_File_read_f08ts
 #endif
 
         subroutine MPI_File_read_all_f08(file, buf, count, datatype, status, ierror)
-            use iso_c_binding, only: c_intptr_t
-            use mpi_handle_types, only: MPI_File, MPI_Datatype, MPI_Status
             use mpi_file_c, only: C_MPI_File_read_all
             type(MPI_File), intent(in) :: file
 !dir$ ignore_tkr buffer
@@ -403,15 +392,16 @@ module mpi_file_f
             type(MPI_Status) :: status
             integer, optional, intent(out) :: ierror
             integer(c_int) :: count_c, ierror_c
+            type(C_MPI_Status) :: status_c
             count_c = count
-            call C_MPI_File_read_all(file % MPI_VAL, buf, count_c, datatype % MPI_VAL, status, ierror_c)
+            status_c = F_MPI_Status_copy_f2c(status)
+            call C_MPI_File_read_all(file % MPI_VAL, buf, count_c, datatype % MPI_VAL, status_c, ierror_c)
+            status = F_MPI_Status_copy_c2f(status_c)
             if (present(ierror)) ierror = ierror_c
         end subroutine MPI_File_read_all_f08
 
 #ifdef HAVE_CFI
         subroutine MPI_File_read_all_f08ts(file, buf, count, datatype, status, ierror)
-            use iso_c_binding, only: c_intptr_t
-            use mpi_handle_types, only: MPI_File, MPI_Datatype, MPI_Status
             use mpi_file_c, only: CFI_MPI_File_read_all
             type(MPI_File), intent(in) :: file
             type(*), dimension(..) :: buf
@@ -420,16 +410,17 @@ module mpi_file_f
             type(MPI_Status) :: status
             integer, optional, intent(out) :: ierror
             integer(c_int) :: count_c, ierror_c
+            type(C_MPI_Status) :: status_c
             count_c = count
-            call CFI_MPI_File_read_all(file % MPI_VAL, buf, count_c, datatype % MPI_VAL, status, ierror_c)
+            status_c = F_MPI_Status_copy_f2c(status)
+            call CFI_MPI_File_read_all(file % MPI_VAL, buf, count_c, datatype % MPI_VAL, status_c, ierror_c)
+            status = F_MPI_Status_copy_c2f(status_c)
             if (present(ierror)) ierror = ierror_c
         end subroutine MPI_File_read_all_f08ts
 #endif
 
         subroutine MPI_File_write_at_f08(file, offset, buf, count, datatype, status, ierror)
-            use iso_c_binding, only: c_intptr_t
             use mpi_global_constants, only: MPI_OFFSET_KIND
-            use mpi_handle_types, only: MPI_File, MPI_Datatype, MPI_Status
             use mpi_file_c, only: C_MPI_File_write_at
             type(MPI_File), intent(in) :: file
             integer(kind=MPI_OFFSET_KIND), intent(in) :: offset
@@ -441,17 +432,18 @@ module mpi_file_f
             integer, optional, intent(out) :: ierror
             integer(c_int) :: count_c, ierror_c
             integer(c_intptr_t) :: offset_c
+            type(C_MPI_Status) :: status_c
             offset_c = offset
             count_c = count
-            call C_MPI_File_write_at(file % MPI_VAL, offset_c, buf, count_c, datatype % MPI_VAL, status, ierror_c)
+            status_c = F_MPI_Status_copy_f2c(status)
+            call C_MPI_File_write_at(file % MPI_VAL, offset_c, buf, count_c, datatype % MPI_VAL, status_c, ierror_c)
+            status = F_MPI_Status_copy_c2f(status_c)
             if (present(ierror)) ierror = ierror_c
         end subroutine MPI_File_write_at_f08
 
 #ifdef HAVE_CFI
         subroutine MPI_File_write_at_f08ts(file, offset, buf, count, datatype, status, ierror)
-            use iso_c_binding, only: c_intptr_t
             use mpi_global_constants, only: MPI_OFFSET_KIND
-            use mpi_handle_types, only: MPI_File, MPI_Datatype, MPI_Status
             use mpi_file_c, only: CFI_MPI_File_write_at
             type(MPI_File), intent(in) :: file
             integer(kind=MPI_OFFSET_KIND), intent(in) :: offset
@@ -462,17 +454,18 @@ module mpi_file_f
             integer, optional, intent(out) :: ierror
             integer(c_int) :: count_c, ierror_c
             integer(c_intptr_t) :: offset_c
+            type(C_MPI_Status) :: status_c
             offset_c = offset
             count_c = count
-            call CFI_MPI_File_write_at(file % MPI_VAL, offset_c, buf, count_c, datatype % MPI_VAL, status, ierror_c)
+            status_c = F_MPI_Status_copy_f2c(status)
+            call CFI_MPI_File_write_at(file % MPI_VAL, offset_c, buf, count_c, datatype % MPI_VAL, status_c, ierror_c)
+            status = F_MPI_Status_copy_c2f(status_c)
             if (present(ierror)) ierror = ierror_c
         end subroutine MPI_File_write_at_f08ts
 #endif
 
         subroutine MPI_File_write_at_all_f08(file, offset, buf, count, datatype, status, ierror)
-            use iso_c_binding, only: c_intptr_t
             use mpi_global_constants, only: MPI_OFFSET_KIND
-            use mpi_handle_types, only: MPI_File, MPI_Datatype, MPI_Status
             use mpi_file_c, only: C_MPI_File_write_at_all
             type(MPI_File), intent(in) :: file
             integer(kind=MPI_OFFSET_KIND), intent(in) :: offset
@@ -484,17 +477,18 @@ module mpi_file_f
             integer, optional, intent(out) :: ierror
             integer(c_int) :: count_c, ierror_c
             integer(c_intptr_t) :: offset_c
+            type(C_MPI_Status) :: status_c
             offset_c = offset
             count_c = count
-            call C_MPI_File_write_at_all(file % MPI_VAL, offset_c, buf, count_c, datatype % MPI_VAL, status, ierror_c)
+            status_c = F_MPI_Status_copy_f2c(status)
+            call C_MPI_File_write_at_all(file % MPI_VAL, offset_c, buf, count_c, datatype % MPI_VAL, status_c, ierror_c)
+            status = F_MPI_Status_copy_c2f(status_c)
             if (present(ierror)) ierror = ierror_c
         end subroutine MPI_File_write_at_all_f08
 
 #ifdef HAVE_CFI
         subroutine MPI_File_write_at_all_f08ts(file, offset, buf, count, datatype, status, ierror)
-            use iso_c_binding, only: c_intptr_t
             use mpi_global_constants, only: MPI_OFFSET_KIND
-            use mpi_handle_types, only: MPI_File, MPI_Datatype, MPI_Status
             use mpi_file_c, only: CFI_MPI_File_write_at_all
             type(MPI_File), intent(in) :: file
             integer(kind=MPI_OFFSET_KIND), intent(in) :: offset
@@ -505,16 +499,17 @@ module mpi_file_f
             integer, optional, intent(out) :: ierror
             integer(c_int) :: count_c, ierror_c
             integer(c_intptr_t) :: offset_c
+            type(C_MPI_Status) :: status_c
             offset_c = offset
             count_c = count
-            call CFI_MPI_File_write_at_all(file % MPI_VAL, offset_c, buf, count_c, datatype % MPI_VAL, status, ierror_c)
+            status_c = F_MPI_Status_copy_f2c(status)
+            call CFI_MPI_File_write_at_all(file % MPI_VAL, offset_c, buf, count_c, datatype % MPI_VAL, status_c, ierror_c)
+            status = F_MPI_Status_copy_c2f(status_c)
             if (present(ierror)) ierror = ierror_c
         end subroutine MPI_File_write_at_all_f08ts
 #endif
 
         subroutine MPI_File_write_f08(file, buf, count, datatype, status, ierror)
-            use iso_c_binding, only: c_intptr_t
-            use mpi_handle_types, only: MPI_File, MPI_Datatype, MPI_Status
             use mpi_file_c, only: C_MPI_File_write
             type(MPI_File), intent(in) :: file
 !dir$ ignore_tkr buffer
@@ -524,15 +519,16 @@ module mpi_file_f
             type(MPI_Status) :: status
             integer, optional, intent(out) :: ierror
             integer(c_int) :: count_c, ierror_c
+            type(C_MPI_Status) :: status_c
             count_c = count
-            call C_MPI_File_write(file % MPI_VAL, buf, count_c, datatype % MPI_VAL, status, ierror_c)
+            status_c = F_MPI_Status_copy_f2c(status)
+            call C_MPI_File_write(file % MPI_VAL, buf, count_c, datatype % MPI_VAL, status_c, ierror_c)
+            status = F_MPI_Status_copy_c2f(status_c)
             if (present(ierror)) ierror = ierror_c
         end subroutine MPI_File_write_f08
 
 #ifdef HAVE_CFI
         subroutine MPI_File_write_f08ts(file, buf, count, datatype, status, ierror)
-            use iso_c_binding, only: c_intptr_t
-            use mpi_handle_types, only: MPI_File, MPI_Datatype, MPI_Status
             use mpi_file_c, only: CFI_MPI_File_write
             type(MPI_File), intent(in) :: file
             type(*), dimension(..), intent(in) :: buf
@@ -541,15 +537,16 @@ module mpi_file_f
             type(MPI_Status) :: status
             integer, optional, intent(out) :: ierror
             integer(c_int) :: count_c, ierror_c
+            type(C_MPI_Status) :: status_c
             count_c = count
-            call CFI_MPI_File_write(file % MPI_VAL, buf, count_c, datatype % MPI_VAL, status, ierror_c)
+            status_c = F_MPI_Status_copy_f2c(status)
+            call CFI_MPI_File_write(file % MPI_VAL, buf, count_c, datatype % MPI_VAL, status_c, ierror_c)
+            status = F_MPI_Status_copy_c2f(status_c)
             if (present(ierror)) ierror = ierror_c
         end subroutine MPI_File_write_f08ts
 #endif
 
         subroutine MPI_File_write_all_f08(file, buf, count, datatype, status, ierror)
-            use iso_c_binding, only: c_intptr_t
-            use mpi_handle_types, only: MPI_File, MPI_Datatype, MPI_Status
             use mpi_file_c, only: C_MPI_File_write_all
             type(MPI_File), intent(in) :: file
 !dir$ ignore_tkr buffer
@@ -559,15 +556,16 @@ module mpi_file_f
             type(MPI_Status) :: status
             integer, optional, intent(out) :: ierror
             integer(c_int) :: count_c, ierror_c
+            type(C_MPI_Status) :: status_c
             count_c = count
-            call C_MPI_File_write_all(file % MPI_VAL, buf, count_c, datatype % MPI_VAL, status, ierror_c)
+            status_c = F_MPI_Status_copy_f2c(status)
+            call C_MPI_File_write_all(file % MPI_VAL, buf, count_c, datatype % MPI_VAL, status_c, ierror_c)
+            status = F_MPI_Status_copy_c2f(status_c)
             if (present(ierror)) ierror = ierror_c
         end subroutine MPI_File_write_all_f08
 
 #ifdef HAVE_CFI
         subroutine MPI_File_write_all_f08ts(file, buf, count, datatype, status, ierror)
-            use iso_c_binding, only: c_intptr_t
-            use mpi_handle_types, only: MPI_File, MPI_Datatype, MPI_Status
             use mpi_file_c, only: CFI_MPI_File_write_all
             type(MPI_File), intent(in) :: file
             type(*), dimension(..), intent(in) :: buf
@@ -576,8 +574,11 @@ module mpi_file_f
             type(MPI_Status) :: status
             integer, optional, intent(out) :: ierror
             integer(c_int) :: count_c, ierror_c
+            type(C_MPI_Status) :: status_c
             count_c = count
-            call CFI_MPI_File_write_all(file % MPI_VAL, buf, count_c, datatype % MPI_VAL, status, ierror_c)
+            status_c = F_MPI_Status_copy_f2c(status)
+            call CFI_MPI_File_write_all(file % MPI_VAL, buf, count_c, datatype % MPI_VAL, status_c, ierror_c)
+            status = F_MPI_Status_copy_c2f(status_c)
             if (present(ierror)) ierror = ierror_c
         end subroutine MPI_File_write_all_f08ts
 #endif
