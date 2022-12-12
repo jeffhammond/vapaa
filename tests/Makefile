@@ -21,4 +21,4 @@ all: test_core.x test_collectives.x test_reductions.x test_p2p.x \
 
 clean:
 	-rm -fr *.dSYM
-	-rm -f *.x *.o
+	-rm -f *.x *.o *.mod
