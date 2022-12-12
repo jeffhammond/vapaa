@@ -21,12 +21,23 @@ module mpi_info_c
 #endif
 
     interface
+        subroutine C_MPI_Info_delete(info, key, ierror) &
+                   bind(C,name="C_MPI_Info_delete")
+            use iso_c_binding, only: c_int, c_char
+            implicit none
+            integer(kind=c_int), intent(in) :: info
+            character(len=*, kind=c_char), intent(in) :: key
+            integer(kind=c_int), intent(out) :: ierror
+        end subroutine C_MPI_Info_delete
+    end interface
+
+    interface
         subroutine CFI_MPI_Info_delete(info, key, ierror) &
                    bind(C,name="CFI_MPI_Info_delete")
             use iso_c_binding, only: c_int, c_char
             implicit none
             integer(kind=c_int), intent(in) :: info
-            character(kind=c_char), dimension(:), intent(in) :: key
+            type(*), dimension(..), intent(in) :: key
             integer(kind=c_int), intent(out) :: ierror
         end subroutine CFI_MPI_Info_delete
     end interface
@@ -62,14 +73,38 @@ module mpi_info_c
     end interface
 
     interface
-        subroutine CFI_MPI_Info_get_nthkey(info, n, key, ierror) &
-                   bind(C,name="CFI_MPI_Info_get_nthkey")
+        subroutine C_MPI_Info_get_nthkey(info, n, key, ierror) &
+                   bind(C,name="C_MPI_Info_get_nthkey")
             use iso_c_binding, only: c_int, c_char
             implicit none
             integer(kind=c_int), intent(in) :: info, n
-            character(kind=c_char), dimension(:), intent(out) :: key
+            character(len=*, kind=c_char), intent(out) :: key
+            integer(kind=c_int), intent(out) :: ierror
+        end subroutine C_MPI_Info_get_nthkey
+    end interface
+
+    interface
+        subroutine CFI_MPI_Info_get_nthkey(info, n, key, ierror) &
+                   bind(C,name="CFI_MPI_Info_get_nthkey")
+            use iso_c_binding, only: c_int
+            implicit none
+            integer(kind=c_int), intent(in) :: info, n
+            type(*), dimension(..), intent(inout) :: key
             integer(kind=c_int), intent(out) :: ierror
         end subroutine CFI_MPI_Info_get_nthkey
+    end interface
+
+    interface
+        subroutine C_MPI_Info_get_string(info, key, buflen, value, flag, ierror) &
+                   bind(C,name="C_MPI_Info_get_string")
+            use iso_c_binding, only: c_int, c_char
+            implicit none
+            integer(kind=c_int), intent(in) :: info
+            character(len=*, kind=c_char), intent(in) :: key
+            integer(kind=c_int), intent(inout) :: buflen
+            character(len=*, kind=c_char), intent(out) :: value
+            integer(kind=c_int), intent(out) :: flag, ierror
+        end subroutine C_MPI_Info_get_string
     end interface
 
     interface
@@ -78,11 +113,22 @@ module mpi_info_c
             use iso_c_binding, only: c_int, c_char
             implicit none
             integer(kind=c_int), intent(in) :: info
-            character(kind=c_char), dimension(:), intent(in) :: key
             integer(kind=c_int), intent(inout) :: buflen
-            character(kind=c_char), dimension(:), intent(out) :: value
+            type(*), dimension(..), intent(in) :: key
+            type(*), dimension(..), intent(inout) :: value
             integer(kind=c_int), intent(out) :: flag, ierror
         end subroutine CFI_MPI_Info_get_string
+    end interface
+
+    interface
+        subroutine C_MPI_Info_set(info, key, value, ierror) &
+                   bind(C,name="C_MPI_Info_set")
+            use iso_c_binding, only: c_int, c_char
+            implicit none
+            integer(kind=c_int), intent(in) :: info
+            character(len=*,kind=c_char), intent(in) :: key, value
+            integer(kind=c_int), intent(out) :: ierror
+        end subroutine C_MPI_Info_set
     end interface
 
     interface
@@ -91,7 +137,7 @@ module mpi_info_c
             use iso_c_binding, only: c_int, c_char
             implicit none
             integer(kind=c_int), intent(in) :: info
-            character(kind=c_char), dimension(:), intent(in) :: key, value
+            type(*), dimension(..), intent(in) :: key, value
             integer(kind=c_int), intent(out) :: ierror
         end subroutine CFI_MPI_Info_set
     end interface
