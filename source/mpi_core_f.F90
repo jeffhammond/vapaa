@@ -54,51 +54,6 @@ module mpi_core_f
 
     contains
 
-        subroutine F_Check_design_assumptions()
-            use iso_c_binding, only: c_sizeof, c_int
-            use mpi_handle_types
-            integer            :: i(4),j
-            type(MPI_Comm)     :: c
-            type(MPI_Datatype) :: d
-            type(MPI_Message)  :: m
-            type(MPI_Op)       :: o
-            type(MPI_Group)    :: g
-            type(MPI_Request)  :: r(4)
-            type(MPI_Win)      :: w
-            if (c_sizeof(int(0,c_int)).ne.c_sizeof(int(0))) then
-                print*,'Design assumptions violated: INTEGER'
-                stop
-            endif
-            if (c_sizeof(c).ne.c_sizeof(j)) then
-                print*,'Design assumptions violated: MPI_Comm'
-                stop
-            endif
-            if (c_sizeof(d).ne.c_sizeof(j)) then
-                print*,'Design assumptions violated: MPI_Datatype'
-                stop
-            endif
-            if (c_sizeof(g).ne.c_sizeof(j)) then
-                print*,'Design assumptions violated: MPI_Group'
-                stop
-            endif
-            if (c_sizeof(m).ne.c_sizeof(j)) then
-                print*,'Design assumptions violated: MPI_Message'
-                stop
-            endif
-            if (c_sizeof(o).ne.c_sizeof(j)) then
-                print*,'Design assumptions violated: MPI_Op'
-                stop
-            endif
-            if (c_sizeof(r).ne.c_sizeof(i)) then
-                print*,'Design assumptions violated: MPI_Request'
-                stop
-            endif
-            if (c_sizeof(w).ne.c_sizeof(j)) then
-                print*,'Design assumptions violated: MPI_Win'
-                stop
-            endif
-        end subroutine F_Check_design_assumptions
-
         subroutine F_MPI_INIT_ADDRESS_SENTINELS()
             use mpi_global_constants
             use detect_sentinels_c
@@ -120,7 +75,6 @@ module mpi_core_f
             integer(kind=c_int) :: ierror_c
             call C_MPI_Init(ierror_c)
             call F_MPI_INIT_ADDRESS_SENTINELS()
-            call F_Check_design_assumptions()
             if (present(ierror)) ierror = ierror_c
         end subroutine MPI_Init_f08
 
@@ -134,7 +88,6 @@ module mpi_core_f
             call C_MPI_Init_thread(required_c, provided_c, ierror_c)
             provided = provided_c
             call F_MPI_INIT_ADDRESS_SENTINELS()
-            call F_Check_design_assumptions()
             if (present(ierror)) ierror = ierror_c
         end subroutine MPI_Init_thread_f08
 
