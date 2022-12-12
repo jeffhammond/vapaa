@@ -2,6 +2,17 @@
 #include <stdlib.h>
 #include "ISO_Fortran_binding.h"
 
+void print_string(const char ** ps, const int * n)
+{
+    const char * s = *ps;
+    printf("chars=");
+    for (int i=0; i<*n; i++) {
+        printf("%c",s[i]);
+    }
+    printf("\n");
+    printf("string=%s\n", s);
+}
+
 void print_type(CFI_type_t type) 
 {
          if (type==CFI_type_signed_char)          printf("type is %s\n", "signed char");

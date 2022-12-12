@@ -1,5 +1,12 @@
 module cfi
     interface
+        subroutine print_string(s,n) bind(C,name="print_string")
+            implicit none
+            character*(*) :: s
+            integer :: n
+        end subroutine print_string
+    end interface
+    interface
         subroutine foo(buffer) bind(C,name="foo")
             implicit none
             type(*), dimension(..) :: buffer
@@ -24,6 +31,7 @@ program main
     print*,'==================='
     print*,'a=',a,loc(a)
     call foo(a)
+    call print_string(a,len(a))
 
     print*,'==================='
     print*,'c=',c,loc(c)
