@@ -181,7 +181,7 @@ mpi_request.o: mpi_request.c convert_handles.h convert_constants.h
 
 # status
 
-mpi_status_f.o: mpi_status_f.F90 mpi_status_c.o mpi_handle_types.o mpi_global_constants.o
+mpi_status_f.o: mpi_status_f.F90 mpi_status_c.o mpi_handle_types.o mpi_global_constants.o mpi_handle_operators.o
 	$(FC) $(FCFLAGS) -c $<
 
 mpi_status_c.o: mpi_status_c.F90 mpi_status.o mpi_handle_types.o

@@ -108,7 +108,7 @@ module mpi_error_f
             integer, intent(out) :: resultlen
             integer, optional, intent(out) :: ierror
             integer(c_int) :: errorcode_c, resultlen_c, ierror_c
-            errorcode_c = errorcode
+            errorcode_c = int(errorcode,kind=c_int)
             call C_MPI_Error_string(errorcode_c, string, resultlen_c, ierror_c)
             resultlen = resultlen_c
             if (present(ierror)) ierror = ierror_c
@@ -124,7 +124,7 @@ module mpi_error_f
             integer, intent(out) :: resultlen
             integer, optional, intent(out) :: ierror
             integer(c_int) :: errorcode_c, resultlen_c, ierror_c
-            errorcode_c = errorcode
+            errorcode_c = int(errorcode,kind=c_int)
             call CFI_MPI_Error_string(errorcode_c, string, resultlen_c, ierror_c)
             resultlen = resultlen_c
             if (present(ierror)) ierror = ierror_c
@@ -138,7 +138,7 @@ module mpi_error_f
             integer, intent(out) :: errorclass
             integer, optional, intent(out) :: ierror
             integer(c_int) :: errorcode_c, errorclass_c, ierror_c
-            errorcode_c = errorcode
+            errorcode_c = int(errorcode,kind=c_int)
             call C_MPI_Error_class(errorcode_c, errorclass_c, ierror_c)
             errorclass = errorclass_c
             if (present(ierror)) ierror = ierror_c

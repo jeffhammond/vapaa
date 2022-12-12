@@ -2,7 +2,7 @@
 
 module mpi_datatype_f
     use iso_c_binding, only: c_int
-    use mpi_global_constants, only: MPI_Datatype
+    use mpi_handle_types, only: MPI_Datatype
     implicit none
 
     ! Fortran types come first
@@ -117,8 +117,14 @@ module mpi_datatype_f
             use mpi_datatype_c, only: C_MPI_Type_commit
             type(MPI_Datatype), intent(inout) :: datatype
             integer, optional, intent(out) :: ierror
-            integer(kind=c_int) :: ierror_c
-            call C_MPI_Type_commit(datatype % MPI_VAL, ierror_c)
+            integer(kind=c_int) :: datatype_c, ierror_c
+            if (c_int .eq. kind(0)) then
+                call C_MPI_Type_commit(datatype % MPI_VAL, ierror_c)
+            else
+                datatype_c = int(datatype % MPI_VAL,kind=c_int)
+                call C_MPI_Type_commit(datatype_c, ierror_c)
+                datatype % MPI_VAL = datatype_c
+            end if
             if (present(ierror)) ierror = ierror_c
         end subroutine MPI_Type_commit_f08
 

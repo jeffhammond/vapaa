@@ -117,9 +117,9 @@ module mpi_handle_operators
             c % count_lo               = f % count_lo
             c % count_hi_and_cancelled = f % count_hi_and_cancelled
 #endif
-            c % MPI_SOURCE = f % MPI_SOURCE
-            c % MPI_TAG    = f % MPI_TAG
-            c % MPI_ERROR  = f % MPI_ERROR
+            c % MPI_SOURCE = int(f % MPI_SOURCE,kind=c_int)
+            c % MPI_TAG    = int(f % MPI_TAG,kind=c_int)
+            c % MPI_ERROR  = int(f % MPI_ERROR,kind=c_int)
 #ifdef OPEN_MPI
             c % cancelled = f % cancelled
             c % ucount    = f % ucount
