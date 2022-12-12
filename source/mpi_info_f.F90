@@ -192,7 +192,7 @@ module mpi_info_f
             buflen_c = buflen
             call C_MPI_Info_get_string(info % MPI_VAL, key, buflen_c, value, flag_c, ierror_c)
             buflen = buflen_c
-            flag = .not.(flag_c.eq.0)
+            flag = (flag_c.ne.0)
             if (present(ierror)) ierror = ierror_c
         end subroutine  MPI_Info_get_string_f08
 
@@ -210,7 +210,7 @@ module mpi_info_f
             buflen_c = buflen
             call CFI_MPI_Info_get_string(info % MPI_VAL, key, buflen_c, value, flag_c, ierror_c)
             buflen = buflen_c
-            flag = .not.(flag_c.eq.0)
+            flag = (flag_c.ne.0)
             if (present(ierror)) ierror = ierror_c
         end subroutine  MPI_Info_get_string_f08ts
 
