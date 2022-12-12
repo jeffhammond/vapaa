@@ -217,7 +217,7 @@ mpi_win.o: mpi_win.c convert_handles.h convert_constants.h
 mpi_error_f.o: mpi_error_f.F90 mpi_error_c.o mpi_handle_types.o mpi_global_constants.o
 	$(FC) $(FCFLAGS) -c $<
 
-mpi_error_c.o: mpi_error_c.F90 mpi_error.o
+mpi_error_c.o: mpi_error_c.F90 mpi_error.o mpi_global_constants.o
 	$(FC) $(FCFLAGS) -c $<
 
 mpi_error.o: mpi_error.c convert_handles.h convert_constants.h vapaa_constants.h
