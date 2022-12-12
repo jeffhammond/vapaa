@@ -39,7 +39,7 @@ module mpi_p2p_c
     interface
         subroutine C_MPI_Testall(count, requests, flag, statuses, ierror) &
                    bind(C,name="C_MPI_Testall")
-            use iso_c_binding, only: c_int
+            use iso_c_binding, only: c_int, c_ptr
             use mpi_handle_types, only: C_MPI_Status, MPI_Request
             implicit none
             integer(kind=c_int), intent(in) :: count
