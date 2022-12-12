@@ -98,7 +98,7 @@ module mpi_file_c
             implicit none
             integer(kind=c_int), intent(in) :: file, etype, filetype, info
             integer(kind=c_intptr_t), intent(in) :: disp
-            character(kind=c_char), dimension(:) :: datarep
+            character(len=*,kind=c_char) :: datarep
             integer(kind=c_int), intent(out) :: ierror
         end subroutine C_MPI_File_set_view
     end interface
