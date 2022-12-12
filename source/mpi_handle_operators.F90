@@ -87,9 +87,17 @@ module mpi_handle_operators
         pure function F_MPI_Status_copy_c2f(c) result(f)
             type(C_MPI_Status), intent(in) :: c
             type(MPI_Status) :: f
+#ifdef MPICH
+            f % count_lo               = c % count_lo
+            f % count_hi_and_cancelled = c % count_hi_and_cancelled
+#endif
             f % MPI_SOURCE = c % MPI_SOURCE
             f % MPI_TAG    = c % MPI_TAG
             f % MPI_ERROR  = c % MPI_ERROR
+#ifdef OPEN_MPI
+            f % cancelled = c % cancelled
+            f % ucount    = c % ucount
+#endif
         end function F_MPI_Status_copy_c2f
 
         pure subroutine F_MPI_Status_copy_array_c2f(c,f,n)
@@ -98,18 +106,24 @@ module mpi_handle_operators
             type(MPI_Status), intent(out) :: f(*)
             integer :: i
             do i=1,n
-                f(i) % MPI_SOURCE = c(i) % MPI_SOURCE
-                f(i) % MPI_TAG    = c(i) % MPI_TAG
-                f(i) % MPI_ERROR  = c(i) % MPI_ERROR
+                f(i) = F_MPI_Status_copy_c2f(c(i))
             end do
         end subroutine F_MPI_Status_copy_array_c2f
 
         pure function F_MPI_Status_copy_f2c(f) result(c)
             type(MPI_Status), intent(in) :: f
             type(C_MPI_Status) :: c
+#ifdef MPICH
+            c % count_lo               = f % count_lo
+            c % count_hi_and_cancelled = f % count_hi_and_cancelled
+#endif
             c % MPI_SOURCE = f % MPI_SOURCE
             c % MPI_TAG    = f % MPI_TAG
             c % MPI_ERROR  = f % MPI_ERROR
+#ifdef OPEN_MPI
+            c % cancelled = f % cancelled
+            c % ucount    = f % ucount
+#endif
         end function F_MPI_Status_copy_f2c
 
         pure subroutine F_MPI_Status_copy_array_f2c(f,c,n)
@@ -118,9 +132,7 @@ module mpi_handle_operators
             type(C_MPI_Status), intent(out) :: c(*)
             integer :: i
             do i=1,n
-                c(i) % MPI_SOURCE = f(i) % MPI_SOURCE
-                c(i) % MPI_TAG    = f(i) % MPI_TAG
-                c(i) % MPI_ERROR  = f(i) % MPI_ERROR
+                c(i) = F_MPI_Status_copy_f2c(f(i))
             end do
         end subroutine F_MPI_Status_copy_array_f2c
 
