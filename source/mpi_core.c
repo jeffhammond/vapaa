@@ -11,6 +11,7 @@
 void C_MPI_Init(int * ierror)
 {
     *ierror = MPI_Init(NULL, NULL);
+    // it is not clear if we need this - do we rely on MPI_Fint anywhere?
     if (sizeof(MPI_Fint) != sizeof(int)) {
         fprintf(stderr, "MPI_Fint is wider than C int, which violates our design assumptions.\n");
     }
@@ -29,7 +30,7 @@ void C_MPI_Init_thread(int * required_f, int * provided_f, int * ierror)
     required = C_MPI_THREAD_LEVEL_F2C(*required_f);
     *ierror = MPI_Init_thread(NULL, NULL, required, &provided);
     *provided_f = C_MPI_THREAD_LEVEL_F2C(provided);
-
+    // it is not clear if we need this - do we rely on MPI_Fint anywhere?
     if (sizeof(MPI_Fint) != sizeof(int)) {
         fprintf(stderr, "MPI_Fint is wider than C int, which violates our design assumptions.\n");
     }
@@ -71,6 +72,7 @@ void C_MPI_Get_version(int * version, int * subversion, int * ierror)
 
 void C_MPI_Get_library_version(char ** pversion, int * resultlen, int * ierror)
 {
+    // we can fix this with malloc...
     if (VAPAA_MPI_MAX_LIBRARY_VERSION_STRING < MPI_MAX_LIBRARY_VERSION_STRING) {
         fprintf(stderr,"C_MPI_Get_library_version: buffer is not large enough - "
                        "bad things are going to happen now!\n"
@@ -86,6 +88,7 @@ void C_MPI_Get_library_version(char ** pversion, int * resultlen, int * ierror)
 #ifdef HAVE_CFI
 void CFI_MPI_Get_library_version(CFI_cdesc_t * version_d, int * resultlen, int * ierror)
 {
+    // we can fix this with malloc...
     if (VAPAA_MPI_MAX_LIBRARY_VERSION_STRING < MPI_MAX_LIBRARY_VERSION_STRING) {
         fprintf(stderr,"C_MPI_Get_library_version: buffer is not large enough - "
                        "bad things are going to happen now!\n"
