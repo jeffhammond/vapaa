@@ -1,5 +1,5 @@
-!module m
-!    contains
+module m
+    contains
          subroutine f( cin, cout, count, datatype )
          use iso_c_binding, only: c_ptr, c_f_pointer
          use mpi_f08
@@ -7,7 +7,7 @@
          integer :: count
          type(MPI_Datatype) :: datatype
          integer, pointer :: cin_r(:), cout_r(:)
-         print*,'My Reduce Op:', datatype % MPI_VAL, 'INTEGER?',datatype == MPI_INTEGER
+         !print*,'My Reduce Op:', datatype % MPI_VAL, 'INTEGER?',datatype == MPI_INTEGER
          !if (datatype .ne. MPI_INTEGER) then
          !   print *, 'Invalid datatype (',datatype,') passed to user_op()'
          !   return
@@ -29,13 +29,15 @@
              end do
          end subroutine g
 #endif
-!end module m
+end module m
 
 program main
     use mpi_f08
-!    use m
+    use m
     implicit none
+#if 0
     external :: f
+#endif
     integer :: ierror
     integer :: i, me, np, ref
     integer, parameter :: b = 10
@@ -52,24 +54,18 @@ program main
     call MPI_Comm_rank(MPI_COMM_WORLD,me)
     call MPI_Comm_size(MPI_COMM_WORLD,np)
 
-    if (me.eq.0) then
-        print*,'MPI_INTEGER=',MPI_INTEGER % MPI_VAL!,MPI_Type_f2c(MPI_INTEGER)
-        print*,'My INTEGER =',dt % MPI_VAL!,MPI_Type_f2c(MPI_INTEGER)
-    endif
+    !if (me.eq.0) then
+    !    print*,'MPI_INTEGER=',MPI_INTEGER % MPI_VAL!,MPI_Type_f2c(MPI_INTEGER)
+    !    print*,'My INTEGER =',dt % MPI_VAL!,MPI_Type_f2c(MPI_INTEGER)
+    !endif
 
     call MPI_Barrier(MPI_COMM_WORLD)
-    do i=0,np
-        if (me.eq.i) print*,'I am ',me,' of ',np,' of WORLD'
-        call MPI_Barrier(MPI_COMM_WORLD)
-    enddo
 
     ref = (np * (np-1)) / 2
 
-    if (me.eq.0) print*,b,' integers'
     ix = me
     iy = -1
     call MPI_Allreduce(ix, iy, b, MPI_INTEGER, MPI_SUM, MPI_COMM_WORLD)
-    call MPI_Barrier(MPI_COMM_WORLD)
     if (any(iy.ne.ref)) then
         print*,'an error has occurred in MPI_INTEGER+MPI_SUM'
         print*,iy
@@ -78,18 +74,16 @@ program main
 
     ix = me
     iy = -1
-    call MPI_Allreduce(ix, iy, b, MPI_INTEGER, op, MPI_COMM_WORLD)
-    call MPI_Barrier(MPI_COMM_WORLD)
-    if (any(iy.ne.ref)) then
-        print*,'an error has occurred in MPI_INTEGER+op'
-        print*,iy
+    call MPI_Allreduce(ix, iy, b, MPI_INTEGER, op, MPI_COMM_WORLD, ierror)
+    if ((ierror.ne.MPI_ERR_OP)) then
+        print*,'MPI_INTEGER+op did not fail as expected'
+        print*,'ierror=',ierror
     endif
     call MPI_Barrier(MPI_COMM_WORLD)
 
     ix = me
     iy = -1
     call MPI_Allreduce(ix, iy, b, dt, op, MPI_COMM_WORLD)
-    call MPI_Barrier(MPI_COMM_WORLD)
     if (any(iy.ne.ref)) then
         print*,'an error has occurred in dt+op'
         print*,iy
@@ -99,8 +93,8 @@ program main
     call MPI_Op_free(op,ierror)
     call MPI_Type_free(dt,ierror)
 
-    if(me.eq.0) print*,'EVERYTHING IS OKAY'
+    if(me.eq.0) print*,'MPI_Allreduce with user-def op is okay'
 
-    call MPI_Finalize(ierror)
+    call MPI_Finalize()
 
 end program main
