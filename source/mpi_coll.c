@@ -7,10 +7,6 @@
 #include "detect_builtins.h"
 #include "detect_sentinels.h"
 
-extern void * f08_mpi_in_place_address;
-
-// STANDARD STUFF
-
 void C_MPI_Barrier(int * comm_f, int * ierror)
 {
     MPI_Comm comm = C_MPI_COMM_F2C(*comm_f);
@@ -59,7 +55,7 @@ void C_MPI_Reduce(const void * input, void * output, int * count, int * datatype
         return;
     }
     MPI_Comm comm = C_MPI_COMM_F2C(*comm_f);
-    if (C_IS_MPI_IN_PLACE(input)) input  = MPI_IN_PLACE;
+    if (C_IS_MPI_IN_PLACE(input))  input  = MPI_IN_PLACE;
     if (C_IS_MPI_IN_PLACE(output)) output = MPI_IN_PLACE;
     *ierror = MPI_Reduce(input, output, *count, datatype, op, *root, comm);
     C_MPI_RC_FIX(*ierror);
@@ -70,7 +66,7 @@ void CFI_MPI_Reduce(CFI_cdesc_t * input, CFI_cdesc_t * output, int * count, int 
 {
     void * in_addr  = input->base_addr;
     void * out_addr = output->base_addr;
-    if (C_IS_MPI_IN_PLACE(in_addr)) in_addr  = MPI_IN_PLACE;
+    if (C_IS_MPI_IN_PLACE(in_addr))  in_addr  = MPI_IN_PLACE;
     if (C_IS_MPI_IN_PLACE(out_addr)) out_addr = MPI_IN_PLACE;
 
     MPI_Datatype datatype = C_MPI_TYPE_F2C(*datatype_f);
@@ -107,7 +103,7 @@ void C_MPI_Allreduce(const void * input, void * output, int * count, int * datat
         return;
     }
     MPI_Comm comm = C_MPI_COMM_F2C(*comm_f);
-    if (C_IS_MPI_IN_PLACE(input)) input  = MPI_IN_PLACE;
+    if (C_IS_MPI_IN_PLACE(input))  input  = MPI_IN_PLACE;
     if (C_IS_MPI_IN_PLACE(output)) output = MPI_IN_PLACE;
     *ierror = MPI_Allreduce(input, output, *count, datatype, op, comm);
     C_MPI_RC_FIX(*ierror);
@@ -118,7 +114,7 @@ void CFI_MPI_Allreduce(CFI_cdesc_t * input, CFI_cdesc_t * output, int * count, i
 {
     void * in_addr  = input->base_addr;
     void * out_addr = output->base_addr;
-    if (C_IS_MPI_IN_PLACE(in_addr)) in_addr  = MPI_IN_PLACE;
+    if (C_IS_MPI_IN_PLACE(in_addr))  in_addr  = MPI_IN_PLACE;
     if (C_IS_MPI_IN_PLACE(out_addr)) out_addr = MPI_IN_PLACE;
 
     MPI_Datatype datatype = C_MPI_TYPE_F2C(*datatype_f);
@@ -151,7 +147,7 @@ void C_MPI_Gather(const void * input, int * scount, int * stype_f, void * output
     MPI_Datatype stype = C_MPI_TYPE_F2C(*stype_f);
     MPI_Datatype rtype = C_MPI_TYPE_F2C(*rtype_f);
     MPI_Comm comm = C_MPI_COMM_F2C(*comm_f);
-    if (C_IS_MPI_IN_PLACE(input)) input  = MPI_IN_PLACE;
+    if (C_IS_MPI_IN_PLACE(input))  input  = MPI_IN_PLACE;
     if (C_IS_MPI_IN_PLACE(output)) output = MPI_IN_PLACE;
     *ierror = MPI_Gather(input, *scount, stype, output, *rcount, rtype, *root, comm);
     C_MPI_RC_FIX(*ierror);
@@ -162,7 +158,7 @@ void CFI_MPI_Gather(CFI_cdesc_t * input, int * scount, int * stype_f, CFI_cdesc_
 {
     void * in_addr  = input->base_addr;
     void * out_addr = output->base_addr;
-    if (C_IS_MPI_IN_PLACE(in_addr)) in_addr  = MPI_IN_PLACE;
+    if (C_IS_MPI_IN_PLACE(in_addr))  in_addr  = MPI_IN_PLACE;
     if (C_IS_MPI_IN_PLACE(out_addr)) out_addr = MPI_IN_PLACE;
 
     MPI_Datatype stype = C_MPI_TYPE_F2C(*stype_f);
@@ -186,7 +182,7 @@ void C_MPI_Allgather(const void * input, int * scount, int * stype_f, void * out
     MPI_Datatype stype = C_MPI_TYPE_F2C(*stype_f);
     MPI_Datatype rtype = C_MPI_TYPE_F2C(*rtype_f);
     MPI_Comm comm = C_MPI_COMM_F2C(*comm_f);
-    if (C_IS_MPI_IN_PLACE(input)) input  = MPI_IN_PLACE;
+    if (C_IS_MPI_IN_PLACE(input))  input  = MPI_IN_PLACE;
     if (C_IS_MPI_IN_PLACE(output)) output = MPI_IN_PLACE;
     *ierror = MPI_Allgather(input, *scount, stype, output, *rcount, rtype, comm);
     C_MPI_RC_FIX(*ierror);
@@ -197,7 +193,7 @@ void CFI_MPI_Allgather(CFI_cdesc_t * input, int * scount, int * stype_f, CFI_cde
 {
     void * in_addr  = input->base_addr;
     void * out_addr = output->base_addr;
-    if (C_IS_MPI_IN_PLACE(in_addr)) in_addr  = MPI_IN_PLACE;
+    if (C_IS_MPI_IN_PLACE(in_addr))  in_addr  = MPI_IN_PLACE;
     if (C_IS_MPI_IN_PLACE(out_addr)) out_addr = MPI_IN_PLACE;
 
     MPI_Datatype stype = C_MPI_TYPE_F2C(*stype_f);
@@ -221,7 +217,7 @@ void C_MPI_Scatter(const void * input, int * scount, int * stype_f, void * outpu
     MPI_Datatype stype = C_MPI_TYPE_F2C(*stype_f);
     MPI_Datatype rtype = C_MPI_TYPE_F2C(*rtype_f);
     MPI_Comm comm = C_MPI_COMM_F2C(*comm_f);
-    if (C_IS_MPI_IN_PLACE(input)) input  = MPI_IN_PLACE;
+    if (C_IS_MPI_IN_PLACE(input))  input  = MPI_IN_PLACE;
     if (C_IS_MPI_IN_PLACE(output)) output = MPI_IN_PLACE;
     *ierror = MPI_Scatter(input, *scount, stype, output, *rcount, rtype, *root, comm);
     C_MPI_RC_FIX(*ierror);
@@ -232,7 +228,7 @@ void CFI_MPI_Scatter(CFI_cdesc_t * input, int * scount, int * stype_f, CFI_cdesc
 {
     void * in_addr  = input->base_addr;
     void * out_addr = output->base_addr;
-    if (C_IS_MPI_IN_PLACE(in_addr)) in_addr  = MPI_IN_PLACE;
+    if (C_IS_MPI_IN_PLACE(in_addr))  in_addr  = MPI_IN_PLACE;
     if (C_IS_MPI_IN_PLACE(out_addr)) out_addr = MPI_IN_PLACE;
 
     MPI_Datatype stype = C_MPI_TYPE_F2C(*stype_f);
@@ -256,7 +252,7 @@ void C_MPI_Alltoall(const void * input, int * scount, int * stype_f, void * outp
     MPI_Datatype stype = C_MPI_TYPE_F2C(*stype_f);
     MPI_Datatype rtype = C_MPI_TYPE_F2C(*rtype_f);
     MPI_Comm comm = C_MPI_COMM_F2C(*comm_f);
-    if (C_IS_MPI_IN_PLACE(input)) input  = MPI_IN_PLACE;
+    if (C_IS_MPI_IN_PLACE(input))  input  = MPI_IN_PLACE;
     if (C_IS_MPI_IN_PLACE(output)) output = MPI_IN_PLACE;
     *ierror = MPI_Alltoall(input, *scount, stype, output, *rcount, rtype, comm);
     C_MPI_RC_FIX(*ierror);
@@ -267,7 +263,7 @@ void CFI_MPI_Alltoall(CFI_cdesc_t * input, int * scount, int * stype_f, CFI_cdes
 {
     void * in_addr  = input->base_addr;
     void * out_addr = output->base_addr;
-    if (C_IS_MPI_IN_PLACE(in_addr)) in_addr  = MPI_IN_PLACE;
+    if (C_IS_MPI_IN_PLACE(in_addr))  in_addr  = MPI_IN_PLACE;
     if (C_IS_MPI_IN_PLACE(out_addr)) out_addr = MPI_IN_PLACE;
 
     MPI_Datatype stype = C_MPI_TYPE_F2C(*stype_f);
@@ -295,7 +291,7 @@ void C_MPI_Gatherv(const void * input, int * scount, int * stype_f,
     MPI_Datatype stype = C_MPI_TYPE_F2C(*stype_f);
     MPI_Datatype rtype = C_MPI_TYPE_F2C(*rtype_f);
     MPI_Comm comm = C_MPI_COMM_F2C(*comm_f);
-    if (C_IS_MPI_IN_PLACE(input)) input  = MPI_IN_PLACE;
+    if (C_IS_MPI_IN_PLACE(input))  input  = MPI_IN_PLACE;
     if (C_IS_MPI_IN_PLACE(output)) output = MPI_IN_PLACE;
     *ierror = MPI_Gatherv(input, *scount, stype, output, rcounts, rdisps, rtype, *root, comm);
     C_MPI_RC_FIX(*ierror);
@@ -308,7 +304,7 @@ void CFI_MPI_Gatherv(CFI_cdesc_t * input, int * scount, int * stype_f,
 {
     void * in_addr  = input->base_addr;
     void * out_addr = output->base_addr;
-    if (C_IS_MPI_IN_PLACE(in_addr)) in_addr  = MPI_IN_PLACE;
+    if (C_IS_MPI_IN_PLACE(in_addr))  in_addr  = MPI_IN_PLACE;
     if (C_IS_MPI_IN_PLACE(out_addr)) out_addr = MPI_IN_PLACE;
 
     MPI_Datatype stype = C_MPI_TYPE_F2C(*stype_f);
@@ -334,7 +330,7 @@ void C_MPI_Allgatherv(const void * input, int * scount, int * stype_f,
     MPI_Datatype stype = C_MPI_TYPE_F2C(*stype_f);
     MPI_Datatype rtype = C_MPI_TYPE_F2C(*rtype_f);
     MPI_Comm comm = C_MPI_COMM_F2C(*comm_f);
-    if (C_IS_MPI_IN_PLACE(input)) input  = MPI_IN_PLACE;
+    if (C_IS_MPI_IN_PLACE(input))  input  = MPI_IN_PLACE;
     if (C_IS_MPI_IN_PLACE(output)) output = MPI_IN_PLACE;
     *ierror = MPI_Allgatherv(input, *scount, stype, output, rcounts, rdisps, rtype, comm);
     C_MPI_RC_FIX(*ierror);
@@ -347,7 +343,7 @@ void CFI_MPI_Allgatherv(CFI_cdesc_t * input, int * scount, int * stype_f,
 {
     void * in_addr  = input->base_addr;
     void * out_addr = output->base_addr;
-    if (C_IS_MPI_IN_PLACE(in_addr)) in_addr  = MPI_IN_PLACE;
+    if (C_IS_MPI_IN_PLACE(in_addr))  in_addr  = MPI_IN_PLACE;
     if (C_IS_MPI_IN_PLACE(out_addr)) out_addr = MPI_IN_PLACE;
 
     MPI_Datatype stype = C_MPI_TYPE_F2C(*stype_f);
@@ -373,7 +369,7 @@ void C_MPI_Scatterv(const void * input, const int scounts[], const int sdisps[],
     MPI_Datatype stype = C_MPI_TYPE_F2C(*stype_f);
     MPI_Datatype rtype = C_MPI_TYPE_F2C(*rtype_f);
     MPI_Comm comm = C_MPI_COMM_F2C(*comm_f);
-    if (C_IS_MPI_IN_PLACE(input)) input  = MPI_IN_PLACE;
+    if (C_IS_MPI_IN_PLACE(input))  input  = MPI_IN_PLACE;
     if (C_IS_MPI_IN_PLACE(output)) output = MPI_IN_PLACE;
     *ierror = MPI_Scatterv(input, scounts, sdisps, stype, output, *rcount, rtype, *root, comm);
     C_MPI_RC_FIX(*ierror);
@@ -412,7 +408,7 @@ void C_MPI_Alltoallv(const void * input, const int scounts[], const int sdisps[]
     MPI_Datatype stype = C_MPI_TYPE_F2C(*stype_f);
     MPI_Datatype rtype = C_MPI_TYPE_F2C(*rtype_f);
     MPI_Comm comm = C_MPI_COMM_F2C(*comm_f);
-    if (C_IS_MPI_IN_PLACE(input)) input  = MPI_IN_PLACE;
+    if (C_IS_MPI_IN_PLACE(input))  input  = MPI_IN_PLACE;
     if (C_IS_MPI_IN_PLACE(output)) output = MPI_IN_PLACE;
     *ierror = MPI_Alltoallv(input, scounts, sdisps, stype, output, rcounts, rdisps, rtype, comm);
     C_MPI_RC_FIX(*ierror);
@@ -425,7 +421,7 @@ void CFI_MPI_Alltoallv(CFI_cdesc_t * input, const int scounts[], const int sdisp
 {
     void * in_addr  = input->base_addr;
     void * out_addr = output->base_addr;
-    if (C_IS_MPI_IN_PLACE(in_addr)) in_addr  = MPI_IN_PLACE;
+    if (C_IS_MPI_IN_PLACE(in_addr))  in_addr  = MPI_IN_PLACE;
     if (C_IS_MPI_IN_PLACE(out_addr)) out_addr = MPI_IN_PLACE;
 
     MPI_Datatype stype = C_MPI_TYPE_F2C(*stype_f);
