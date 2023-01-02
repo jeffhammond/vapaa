@@ -6,6 +6,7 @@
 #include "convert_constants.h"
 #include "detect_builtins.h"
 #include "detect_sentinels.h"
+#include "cfi_util.h"
 
 void C_MPI_Barrier(int * comm_f, int * ierror)
 {
@@ -25,16 +26,37 @@ void C_MPI_Bcast(void * buffer, int * count, int * datatype_f, int * root, int *
 #ifdef HAVE_CFI
 void CFI_MPI_Bcast(CFI_cdesc_t * desc, int * count, int * datatype_f, int * root, int * comm_f, int * ierror)
 {
-    //void * buffer   = desc->base_addr;
-    //CFI_type_t type = desc->type;
-    //CFI_rank_t rank = desc->rank;
-    //CFI_dim_t  dim[CFI_MAX_RANK] = desc->dim;
-
     MPI_Datatype datatype = C_MPI_TYPE_F2C(*datatype_f);
     MPI_Comm comm = C_MPI_COMM_F2C(*comm_f);
+
     if (1 == CFI_is_contiguous(desc)) {
         *ierror = MPI_Bcast(desc->base_addr, *count, datatype, *root, comm);
     } else {
+
+        printf("CFI rank=%d\n", desc->rank);
+        printf("CFI elem_len=%zu\n", desc->elem_len);
+        for (int i=0; i < desc->rank; i++) {
+            printf("%d: dim.lower_bound=%zd, dim.extent=%zd, dim.stride_bytes=%zd, dim.stride_elems=%zu\n",
+                    i, desc->dim[i].lower_bound, desc->dim[i].extent, desc->dim[i].sm, desc->dim[i].sm / desc->elem_len);
+        }
+
+        int sizes[CFI_MAX_RANK] = {0};
+        int subsizes[CFI_MAX_RANK] = {0};
+        int starts[CFI_MAX_RANK] = {0};
+        MPI_Datatype subarray_type = MPI_DATATYPE_NULL;
+
+        MPI_Datatype cfi_type = VAPAA_CFI_TO_MPI_TYPE(desc->type);
+        *ierror = MPI_Type_create_subarray(desc->rank,
+                                           sizes, subsizes, starts, 
+                                           MPI_ORDER_FORTRAN, cfi_type, &subarray_type);
+
+        printf("CFI: %p, %d, %d, %d, %d\n", desc->base_addr, desc->type, desc->rank, datatype, cfi_type);
+        int buflen;
+        char name[MPI_MAX_OBJECT_NAME];
+        PMPI_Type_get_name(datatype, name, &buflen);
+        printf("type name 1 = %s\n", name);
+        PMPI_Type_get_name(cfi_type, name, &buflen);
+        printf("type name 2 = %s\n", name);
         fprintf(stderr, "FIXME: not contiguous case\n");
         MPI_Abort(comm, 99);
     }
