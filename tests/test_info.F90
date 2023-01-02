@@ -1,5 +1,6 @@
 program main
     use mpi_f08
+    use, intrinsic :: iso_c_binding, only: c_null_char
     implicit none
     integer :: ierror, buflen, nkeys, i
     integer :: me, np
@@ -11,7 +12,7 @@ program main
 
     call MPI_Comm_rank(MPI_COMM_WORLD,me)
     call MPI_Comm_size(MPI_COMM_WORLD,np)
-    print*,'I am ',me,' of ',np,' of WORLD'
+    !print*,'I am ',me,' of ',np,' of WORLD'
 
     call MPI_Info_create(info)
 
@@ -20,7 +21,11 @@ program main
     call MPI_Info_set(info,'key3','val3')
 
     call MPI_Info_get_nkeys(info,nkeys)
-    print*,'nkeys=',nkeys
+    !print*,'nkeys=',nkeys
+    if (nkeys .ne. 3) then
+        print*,'nkeys=',nkeys
+        call MPI_Abort(MPI_COMM_WORLD,nkeys)
+    end if
 
     call MPI_Info_delete(info,'key2')
 
@@ -29,23 +34,42 @@ program main
     call MPI_Info_free(info)
 
     call MPI_Info_get_nkeys(dup,nkeys)
-    print*,'nkeys=',nkeys
+    !print*,'nkeys=',nkeys
+    if (nkeys .ne. 2) then
+        print*,'nkeys=',nkeys
+        call MPI_Abort(MPI_COMM_WORLD,nkeys)
+    end if
 
     buflen=MPI_MAX_INFO_VAL
     call MPI_Info_get_string(dup,'key1',buflen,string,flag)
-    print*,'key1=',trim(string),' buflen=',buflen,' flag=',flag,' (should be true)'
+    !print*,'key1=',trim(string),' buflen=',buflen,' flag=',flag,' (should be true)'
+    if ((.not.flag).or.(buflen.ne.5).or.(string(1:4).ne.'val1')) then
+        print*,'key1=',trim(string),' buflen=',buflen,' flag=',flag,' (should be true)'
+        call MPI_Abort(MPI_COMM_WORLD,1)
+    end if
 
     buflen=MPI_MAX_INFO_VAL
     call MPI_Info_get_string(dup,'key2',buflen,string,flag)
-    print*,'flag=',flag,' (should be false)'
+    !print*,'flag=',flag,' (should be false)'
+    if (flag) then
+        print*,'flag=',flag,' (should be false)'
+        call MPI_Abort(MPI_COMM_WORLD,1)
+    end if
 
     do i=0,nkeys-1
         call MPI_Info_get_nthkey(dup, i, string)
-        print*,'key(',i,')=',string
+        if (((i.eq.0).and.(string(1:4).ne.'key1')).or. &
+            ((i.eq.1).and.(string(1:4).ne.'key3'))) then
+            print*,'key(',i,')=',string
+        end if
     end do
 
     call MPI_Info_free(dup)
 
-    call MPI_Finalize(ierror)
+    if (me.eq.0) then
+        print*,'MPI_Info stuff is okay'
+    end if
+
+    call MPI_Finalize()
 
 end program main
