@@ -29,12 +29,16 @@ program main
 
     if (me.eq.0) print*,'B=',B
 
+#if 0
     B = 0
-
     call MPI_Isend( A(1:100:2), 1, v, 0, 99, MPI_COMM_WORLD, r(1))
     call MPI_Irecv( B, 25, MPI_INTEGER, 0, 99, MPI_COMM_WORLD, r(2))
     call MPI_Waitall(2, r, MPI_STATUSES_IGNORE)
+    if (me.eq.0) print*,'B=',B
+#endif
 
+    B = 0
+    call MPI_Bcast( A(2:100:2), 50, MPI_INTEGER, 0, MPI_COMM_WORLD )
     if (me.eq.0) print*,'B=',B
 
     call MPI_Type_free(v)
