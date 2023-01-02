@@ -51,7 +51,12 @@ void C_MPI_Reduce(const void * input, void * output, int * count, int * datatype
     MPI_Datatype datatype = C_MPI_TYPE_F2C(*datatype_f);
     MPI_Op op = C_MPI_OP_F2C(*op_f);
     if ( ! C_MPI_OP_IS_BUILTIN(op) && C_MPI_TYPE_IS_BUILTIN(datatype) ) {
+#ifndef VAPAA_SUPPRESS_INTERNAL_MESSAGES
         fprintf(stderr,"MPI F08: user-def reduce op with built-in type is not supported. See docs.\n");
+#endif
+        *ierror = MPI_ERR_OP;
+        C_MPI_RC_FIX(*ierror);
+        return;
     }
     MPI_Comm comm = C_MPI_COMM_F2C(*comm_f);
     if (C_IS_MPI_IN_PLACE(input)) input  = MPI_IN_PLACE;
@@ -71,7 +76,12 @@ void CFI_MPI_Reduce(CFI_cdesc_t * input, CFI_cdesc_t * output, int * count, int 
     MPI_Datatype datatype = C_MPI_TYPE_F2C(*datatype_f);
     MPI_Op op = C_MPI_OP_F2C(*op_f);
     if ( ! C_MPI_OP_IS_BUILTIN(op) && C_MPI_TYPE_IS_BUILTIN(datatype) ) {
+#ifndef VAPAA_SUPPRESS_INTERNAL_MESSAGES
         fprintf(stderr,"MPI F08: user-def reduce op with built-in type is not supported. See docs.\n");
+#endif
+        *ierror = MPI_ERR_OP;
+        C_MPI_RC_FIX(*ierror);
+        return;
     }
     MPI_Comm comm = C_MPI_COMM_F2C(*comm_f);
     if ( (1 == CFI_is_contiguous(input)) && (1 == CFI_is_contiguous(output)) ) {
@@ -89,7 +99,12 @@ void C_MPI_Allreduce(const void * input, void * output, int * count, int * datat
     MPI_Datatype datatype = C_MPI_TYPE_F2C(*datatype_f);
     MPI_Op op = C_MPI_OP_F2C(*op_f);
     if ( ! C_MPI_OP_IS_BUILTIN(op) && C_MPI_TYPE_IS_BUILTIN(datatype) ) {
+#ifndef VAPAA_SUPPRESS_INTERNAL_MESSAGES
         fprintf(stderr,"MPI F08: user-def reduce op with built-in type is not supported. See docs.\n");
+#endif
+        *ierror = MPI_ERR_OP;
+        C_MPI_RC_FIX(*ierror);
+        return;
     }
     MPI_Comm comm = C_MPI_COMM_F2C(*comm_f);
     if (C_IS_MPI_IN_PLACE(input)) input  = MPI_IN_PLACE;
@@ -110,29 +125,14 @@ void CFI_MPI_Allreduce(CFI_cdesc_t * input, CFI_cdesc_t * output, int * count, i
     MPI_Op op = C_MPI_OP_F2C(*op_f);
     MPI_Comm comm = C_MPI_COMM_F2C(*comm_f);
 
-#if 0
-    // thanks to https://github.com/mpi-forum/mpi-issues/issues/654,
-    // we can only a user-defined type with a user-defined reduction.
-    // however, we cannot fix this by creating a user-defined type
-    // on-the-fly, because then the user reduction code will not see
-    // the type passed to the reduction call.
-
-    MPI_Datatype temptype = MPI_DATATYPE_NULL;
-    if ( ! C_MPI_OP_IS_BUILTIN(op) ) {
-        if ( C_MPI_TYPE_IS_BUILTIN(datatype) ) {
-            MPI_Type_contiguous(1, datatype, &temptype);
-            MPI_Type_commit(&temptype);
-        }
-    }
-#else
     if ( ! C_MPI_OP_IS_BUILTIN(op) && C_MPI_TYPE_IS_BUILTIN(datatype) ) {
+#ifndef VAPAA_SUPPRESS_INTERNAL_MESSAGES
         fprintf(stderr,"MPI F08: user-def reduce op with built-in type is not supported. See docs.\n");
+#endif
+        *ierror = MPI_ERR_OP;
+        C_MPI_RC_FIX(*ierror);
+        return;
     }
-#endif
-
-#ifdef JEFF_DEBUG
-    printf("dt=%d (F), %d (C)\n", *datatype_f, datatype);
-#endif
 
     // TODO optional count and datatype checking???
 
