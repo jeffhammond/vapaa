@@ -215,20 +215,24 @@
 #define VAPAA_MPI_WIN_FLAVOR_CREATE      12
 #define VAPAA_MPI_WIN_FLAVOR_DYNAMIC    205
 #define VAPAA_MPI_WIN_FLAVOR_SHARED     165
+
 #define VAPAA_MPI_WIN_UNIFIED             1
 #define VAPAA_MPI_WIN_SEPARATE            2
+                                          
+#define VAPAA_MPI_LOCK_SHARED             4
+#define VAPAA_MPI_LOCK_EXCLUSIVE          8
 
-#define VAPAA_MPI_MODE_NOCHECK       32
-#define VAPAA_MPI_MODE_NOSTORE       64
-#define VAPAA_MPI_MODE_NOPUT        128
-#define VAPAA_MPI_MODE_NOPRECEDE    256
-#define VAPAA_MPI_MODE_NOSUCCEED    512
+#define VAPAA_MPI_MODE_NOCHECK           32
+#define VAPAA_MPI_MODE_NOSTORE           64
+#define VAPAA_MPI_MODE_NOPUT            128
+#define VAPAA_MPI_MODE_NOPRECEDE        256
+#define VAPAA_MPI_MODE_NOSUCCEED        512
 
-#define VAPAA_MPI_UNDEFINED      -99999
+#define VAPAA_MPI_UNDEFINED          -99999
 
-#define VAPAA_MPI_TAG_UB            900
-#define VAPAA_MPI_IO                901
-#define VAPAA_MPI_HOST              902
-#define VAPAA_MPI_WTIME_IS_GLOBAL   903
+#define VAPAA_MPI_TAG_UB                900
+#define VAPAA_MPI_IO                    901
+#define VAPAA_MPI_HOST                  902
+#define VAPAA_MPI_WTIME_IS_GLOBAL       903
 
 #endif
