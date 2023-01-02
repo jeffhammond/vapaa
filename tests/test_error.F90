@@ -19,6 +19,11 @@ program main
         call MPI_Error_class(e, c)
         print*,'SUCCESS:',e,c,trim(s),len
 
+        e = MPI_ERR_OP
+        call MPI_Error_string(e, s, len)
+        call MPI_Error_class(e, c)
+        print*,'OP:     ',e,c,trim(s),len
+
         e = MPI_ERR_INTERN
         call MPI_Error_string(e, s, len)
         call MPI_Error_class(e, c)
