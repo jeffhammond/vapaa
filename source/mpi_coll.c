@@ -33,30 +33,53 @@ void CFI_MPI_Bcast(CFI_cdesc_t * desc, int * count, int * datatype_f, int * root
         *ierror = MPI_Bcast(desc->base_addr, *count, datatype, *root, comm);
     } else {
 
-        printf("CFI rank=%d\n", desc->rank);
-        printf("CFI elem_len=%zu\n", desc->elem_len);
+        // all of this will eventually get hoisted into a utility routine...
+
+        // I have not figured out when this happens, fortunately.
         for (int i=0; i < desc->rank; i++) {
-            printf("%d: dim.lower_bound=%zd, dim.extent=%zd, dim.stride_bytes=%zd, dim.stride_elems=%zu\n",
-                    i, desc->dim[i].lower_bound, desc->dim[i].extent, desc->dim[i].sm, desc->dim[i].sm / desc->elem_len);
+            if (desc->dim[i].lower_bound != 0) {
+#ifndef VAPAA_SUPPRESS_INTERNAL_MESSAGES
+                fprintf(stderr, "MPI F08: non-zero lower-bounds are not supported.\n");
+#endif
+                *ierror = MPI_ERR_ARG;
+                C_MPI_RC_FIX(*ierror);
+                return;
+            }
         }
 
-        int sizes[CFI_MAX_RANK] = {0};
-        int subsizes[CFI_MAX_RANK] = {0};
-        int starts[CFI_MAX_RANK] = {0};
-        MPI_Datatype subarray_type = MPI_DATATYPE_NULL;
+        // We can relax this and permit contiguous and duplicates thereof, but why?
+        {
+            int ni, na, nd, combiner;
+            PMPI_Type_get_envelope(datatype, &ni, &na, &nd, &combiner);
+            if (combiner != MPI_COMBINER_NAMED) {
+#ifndef VAPAA_SUPPRESS_INTERNAL_MESSAGES
+                fprintf(stderr, "MPI F08: only predefined types are supported.\n");
+#endif
+                *ierror = MPI_ERR_ARG;
+                C_MPI_RC_FIX(*ierror);
+                return;
+            }
+        }
 
-        MPI_Datatype cfi_type = VAPAA_CFI_TO_MPI_TYPE(desc->type);
-        *ierror = MPI_Type_create_subarray(desc->rank,
-                                           sizes, subsizes, starts, 
-                                           MPI_ORDER_FORTRAN, cfi_type, &subarray_type);
+        // It is extremely difficult to combine non-contiguous subarrays with non-contiguous datatypes.
+        {
+            int type_size;
+            MPI_Aint lb, extent;
+            PMPI_Type_size(datatype, &type_size);
+            PMPI_Type_get_extent(datatype, &lb, &extent);
+            if (type_size != extent) {
+#ifndef VAPAA_SUPPRESS_INTERNAL_MESSAGES
+                fprintf(stderr, "MPI F08: non-contiguous datatypes are not supported.\n");
+#endif
+                *ierror = MPI_ERR_ARG;
+                C_MPI_RC_FIX(*ierror);
+                return;
+            }
+        }
 
-        printf("CFI: %p, %d, %d, %d, %d\n", desc->base_addr, desc->type, desc->rank, datatype, cfi_type);
-        int buflen;
-        char name[MPI_MAX_OBJECT_NAME];
-        PMPI_Type_get_name(datatype, name, &buflen);
-        printf("type name 1 = %s\n", name);
-        PMPI_Type_get_name(cfi_type, name, &buflen);
-        printf("type name 2 = %s\n", name);
+        //MPI_Datatype vector_type = MPI_DATATYPE_NULL;
+        //MPI_Datatype cfi_type = VAPAA_CFI_TO_MPI_TYPE(desc->type);
+
         fprintf(stderr, "FIXME: not contiguous case\n");
         MPI_Abort(comm, 99);
     }
