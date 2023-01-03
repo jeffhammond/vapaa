@@ -69,9 +69,10 @@ void foo(CFI_cdesc_t * desc)
     const size_t el = desc->elem_len;
     const int    rk = desc->rank;
     const int    ty = desc->type;
-    printf("base_addr = %p = %ld\n", ba, (long)ba);
-    printf("elem_len  = %zu\n", el);
-    printf("rank      = %d\n", rk);
+    printf("base_addr  = %p = %ld\n", ba, (long)ba);
+    printf("elem_len   = %zu\n", el);
+    printf("rank       = %d\n", rk);
+    printf("contiguous = %s\n", CFI_is_contiguous(desc) ? "true" : "false" );
     print_type(ty);
     print_attribute(desc->attribute);
 
