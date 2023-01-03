@@ -39,6 +39,9 @@ mpi_f08.o: mpi_f08.F90 \
 	   mpi_rma_f.o mpi_win_f.o mpi_error_f.o
 	$(FC) $(FCFLAGS) -c $<
 
+cfi_util.o: cfi_util.c cfi_util.h
+	$(CC) $(CFLAGS) -c $<
+
 detect_sentinels.o: detect_sentinels.c
 	$(CC) $(CFLAGS) -c $<
 
