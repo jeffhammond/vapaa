@@ -6,11 +6,11 @@
 
 #include <mpi.h>
 
-#include <debug.h>
-
 #if HAVE_EXECINFO_H
 #include <execinfo.h>
 #endif
+
+#include "debug.h"
 
 // Print an assertion failure message and abort the program.
 void VAPAA_Assert_fail(const char *expr, const char *msg, const char *file, int line, const char *func)

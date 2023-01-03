@@ -8,7 +8,7 @@ all: libmpi_f08.a
 %.o: %.F90 mpi_f08.o
 	$(FC) $(FCFLAGS) -c $<
 
-libmpi_f08.a: mpi_f08.o cfi_util.o \
+libmpi_f08.a: mpi_f08.o cfi_util.o debug.o \
 	      detect_sentinels.o detect_sentinels_c.o \
 	      mpi_global_constants.o \
 	      mpi_handle_types.o mpi_handle_operators.o \
@@ -38,6 +38,9 @@ mpi_f08.o: mpi_f08.F90 \
 	   mpi_p2p_f.o mpi_op_f.o mpi_request_f.o mpi_status_f.o \
 	   mpi_rma_f.o mpi_win_f.o mpi_error_f.o
 	$(FC) $(FCFLAGS) -c $<
+
+debug.o: debug.c debug.h
+	$(CC) $(CFLAGS) -c $<
 
 cfi_util.o: cfi_util.c cfi_util.h
 	$(CC) $(CFLAGS) -c $<
