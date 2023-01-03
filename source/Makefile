@@ -80,7 +80,7 @@ mpi_comm_f.o: mpi_comm_f.F90 mpi_comm_c.o mpi_handle_types.o mpi_global_constant
 mpi_comm_c.o: mpi_comm_c.F90 mpi_comm.o
 	$(FC) $(FCFLAGS) -c $<
 
-mpi_comm.o: mpi_comm.c convert_handles.h convert_constants.h detect_builtins.h
+mpi_comm.o: mpi_comm.c convert_handles.h convert_constants.h detect_builtins.h cfi_util.h
 	$(CC) $(CFLAGS) -c $<
 
 # COLLECTIVES
