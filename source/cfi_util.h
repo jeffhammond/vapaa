@@ -1,5 +1,8 @@
 #include "ISO_Fortran_binding.h"
 
+#define MAYBE_UNUSED __attribute__((unused))
+
+MAYBE_UNUSED
 static MPI_Comm VAPAA_CFI_TO_MPI_TYPE(CFI_type_t type)
 {
          if (type==CFI_type_signed_char)          return MPI_CHAR;
