@@ -7,6 +7,7 @@
 #include "detect_builtins.h"
 #include "detect_sentinels.h"
 #include "cfi_util.h"
+#include "debug.h"
 
 void C_MPI_Barrier(int * comm_f, int * ierror)
 {
@@ -38,9 +39,7 @@ void CFI_MPI_Bcast(CFI_cdesc_t * desc, int * count, int * datatype_f, int * root
         // I have not figured out when this happens, fortunately.
         for (int i=0; i < desc->rank; i++) {
             if (desc->dim[i].lower_bound != 0) {
-#ifndef VAPAA_SUPPRESS_INTERNAL_MESSAGES
-                fprintf(stderr, "MPI F08: non-zero lower-bounds are not supported.\n");
-#endif
+                VAPAA_Warning("non-zero lower-bounds are not supported.\n");
                 *ierror = MPI_ERR_ARG;
                 C_MPI_RC_FIX(*ierror);
                 return;
@@ -52,9 +51,7 @@ void CFI_MPI_Bcast(CFI_cdesc_t * desc, int * count, int * datatype_f, int * root
             int ni, na, nd, combiner;
             PMPI_Type_get_envelope(datatype, &ni, &na, &nd, &combiner);
             if (combiner != MPI_COMBINER_NAMED) {
-#ifndef VAPAA_SUPPRESS_INTERNAL_MESSAGES
-                fprintf(stderr, "MPI F08: only predefined types are supported.\n");
-#endif
+                VAPAA_Warning("only predefined types are supported.\n");
                 *ierror = MPI_ERR_ARG;
                 C_MPI_RC_FIX(*ierror);
                 return;
@@ -68,9 +65,7 @@ void CFI_MPI_Bcast(CFI_cdesc_t * desc, int * count, int * datatype_f, int * root
             PMPI_Type_size(datatype, &type_size);
             PMPI_Type_get_extent(datatype, &lb, &extent);
             if (type_size != extent) {
-#ifndef VAPAA_SUPPRESS_INTERNAL_MESSAGES
-                fprintf(stderr, "MPI F08: non-contiguous datatypes are not supported.\n");
-#endif
+                VAPAA_Warning("non-contiguous datatypes are not supported.\n");
                 *ierror = MPI_ERR_ARG;
                 C_MPI_RC_FIX(*ierror);
                 return;
@@ -92,9 +87,7 @@ void C_MPI_Reduce(const void * input, void * output, int * count, int * datatype
     MPI_Datatype datatype = C_MPI_TYPE_F2C(*datatype_f);
     MPI_Op op = C_MPI_OP_F2C(*op_f);
     if ( ! C_MPI_OP_IS_BUILTIN(op) && C_MPI_TYPE_IS_BUILTIN(datatype) ) {
-#ifndef VAPAA_SUPPRESS_INTERNAL_MESSAGES
-        fprintf(stderr,"MPI F08: user-def reduce op with built-in type is not supported. See docs.\n");
-#endif
+        VAPAA_Warning("user-def reduce op with built-in type is not supported. See docs.\n");
         *ierror = MPI_ERR_OP;
         C_MPI_RC_FIX(*ierror);
         return;
@@ -117,9 +110,7 @@ void CFI_MPI_Reduce(CFI_cdesc_t * input, CFI_cdesc_t * output, int * count, int 
     MPI_Datatype datatype = C_MPI_TYPE_F2C(*datatype_f);
     MPI_Op op = C_MPI_OP_F2C(*op_f);
     if ( ! C_MPI_OP_IS_BUILTIN(op) && C_MPI_TYPE_IS_BUILTIN(datatype) ) {
-#ifndef VAPAA_SUPPRESS_INTERNAL_MESSAGES
-        fprintf(stderr,"MPI F08: user-def reduce op with built-in type is not supported. See docs.\n");
-#endif
+        VAPAA_Warning("user-def reduce op with built-in type is not supported. See docs.\n");
         *ierror = MPI_ERR_OP;
         C_MPI_RC_FIX(*ierror);
         return;
@@ -140,9 +131,7 @@ void C_MPI_Allreduce(const void * input, void * output, int * count, int * datat
     MPI_Datatype datatype = C_MPI_TYPE_F2C(*datatype_f);
     MPI_Op op = C_MPI_OP_F2C(*op_f);
     if ( ! C_MPI_OP_IS_BUILTIN(op) && C_MPI_TYPE_IS_BUILTIN(datatype) ) {
-#ifndef VAPAA_SUPPRESS_INTERNAL_MESSAGES
-        fprintf(stderr,"MPI F08: user-def reduce op with built-in type is not supported. See docs.\n");
-#endif
+        VAPAA_Warning("user-def reduce op with built-in type is not supported. See docs.\n");
         *ierror = MPI_ERR_OP;
         C_MPI_RC_FIX(*ierror);
         return;
@@ -167,9 +156,7 @@ void CFI_MPI_Allreduce(CFI_cdesc_t * input, CFI_cdesc_t * output, int * count, i
     MPI_Comm comm = C_MPI_COMM_F2C(*comm_f);
 
     if ( ! C_MPI_OP_IS_BUILTIN(op) && C_MPI_TYPE_IS_BUILTIN(datatype) ) {
-#ifndef VAPAA_SUPPRESS_INTERNAL_MESSAGES
-        fprintf(stderr,"MPI F08: user-def reduce op with built-in type is not supported. See docs.\n");
-#endif
+        VAPAA_Warning("user-def reduce op with built-in type is not supported. See docs.\n");
         *ierror = MPI_ERR_OP;
         C_MPI_RC_FIX(*ierror);
         return;

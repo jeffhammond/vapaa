@@ -124,16 +124,12 @@ int VAPAA_CFI_CREATE_DATATYPE(CFI_cdesc_t * desc, ssize_t count, MPI_Datatype in
 {
     // this is the wrong place to check this, but it does not hurt here
     if (count > INT_MAX) {
-#ifndef VAPAA_SUPPRESS_INTERNAL_MESSAGES
-        fprintf(stderr, "MPI F08: count (%zd) > INT_MAX.\n", count);
-#endif
+        VAPAA_Warning("count (%zd) > INT_MAX.\n", count);
         return MPI_ERR_COUNT;
     }
 
     if ( ! VAPAA_MPI_DATATYPE_IS_BUILTIN(input_datatype) ) {
-#ifndef VAPAA_SUPPRESS_INTERNAL_MESSAGES
-        fprintf(stderr, "MPI F08: input datatype is not a named datatype.\n");
-#endif
+        VAPAA_Warning("input datatype is not a named datatype.\n");
         return MPI_ERR_ARG;
     }
 
@@ -154,26 +150,20 @@ int VAPAA_CFI_CREATE_DATATYPE(CFI_cdesc_t * desc, ssize_t count, MPI_Datatype in
 
         // detect large-count problems
         if (extent > INT_MAX) {
-#ifndef VAPAA_SUPPRESS_INTERNAL_MESSAGES
-            fprintf(stderr, "MPI F08: extent (%zd) > INT_MAX.\n", extent);
-#endif
+            VAPAA_Warning("extent (%zd) > INT_MAX.\n", extent);
             return MPI_ERR_COUNT;
         }
 
         // detect large-count problems - test here so we catch cases where the last extent is -1
         if (total_elems > INT_MAX) {
-    #ifndef VAPAA_SUPPRESS_INTERNAL_MESSAGES
-            fprintf(stderr, "MPI F08: total_elems (%zd) > INT_MAX.\n", total_elems);
-    #endif
+                VAPAA_Warning("total_elems (%zd) > INT_MAX.\n", total_elems);
             return MPI_ERR_COUNT;
         }
     }
 
     // detect invalid input that will cause buffer overrun
     if (count > total_elems) {
-#ifndef VAPAA_SUPPRESS_INTERNAL_MESSAGES
-        fprintf(stderr, "MPI F08: count (%zd) > total_elems (%zd).\n", count, total_elems);
-#endif
+        VAPAA_Warning("count (%zd) > total_elems (%zd).\n", count, total_elems);
         return MPI_ERR_ARG;
     }
 
@@ -225,10 +215,7 @@ int VAPAA_CFI_CREATE_DATATYPE(CFI_cdesc_t * desc, ssize_t count, MPI_Datatype in
                     if (rc) return rc;
                 }
             } else {
-#ifndef VAPAA_SUPPRESS_INTERNAL_MESSAGES
-                fprintf(stderr, "MPI F08: 2D array case where count (%zd) is not cleanly divisible by extent[0] (%d)\n",
-                                count, extent0);
-#endif
+                VAPAA_Warning("2D array case where count (%zd) is not cleanly divisible by extent[0] (%d)\n", count, extent0);
                 return MPI_ERR_ARG;
             }
             break;
@@ -244,9 +231,7 @@ int VAPAA_CFI_CREATE_DATATYPE(CFI_cdesc_t * desc, ssize_t count, MPI_Datatype in
         int type_size;
         PMPI_Type_size(*array_datatype, &type_size);
         if (type_size != count * elem_len) {
-#ifndef VAPAA_SUPPRESS_INTERNAL_MESSAGES
-            fprintf(stderr, "MPI F08: type_size (%d) != count (%zd) * elem_len (%zd).\n", type_size, count, elem_len);
-#endif
+            VAPAA_Warning("type_size (%d) != count (%zd) * elem_len (%zd).\n", type_size, count, elem_len);
             return MPI_ERR_INTERN;
         }   
     }
