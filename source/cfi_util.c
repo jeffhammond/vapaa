@@ -1,3 +1,6 @@
+#include <stdio.h>
+#include <limits.h>
+
 #include "cfi_util.h"
 
 bool VAPAA_MPI_DATATYPE_IS_BUILTIN(MPI_Datatype t)

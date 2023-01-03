@@ -2,7 +2,7 @@
 #define CFI_UTIL_H
 
 #include <stdbool.h>
-#include <limits.h>
+#include <mpi.h>
 #include "ISO_Fortran_binding.h"
 
 #define MAYBE_UNUSED __attribute__((unused))

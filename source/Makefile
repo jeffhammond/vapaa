@@ -8,7 +8,7 @@ all: libmpi_f08.a
 %.o: %.F90 mpi_f08.o
 	$(FC) $(FCFLAGS) -c $<
 
-libmpi_f08.a: mpi_f08.o \
+libmpi_f08.a: mpi_f08.o cfi_util.o \
 	      detect_sentinels.o detect_sentinels_c.o \
 	      mpi_global_constants.o \
 	      mpi_handle_types.o mpi_handle_operators.o \
@@ -29,7 +29,7 @@ libmpi_f08.a: mpi_f08.o \
 	$(AR) $(ARFLAGS) $@ $^
 
 mpi_f08.o: mpi_f08.F90 \
-	   detect_sentinels.o detect_sentinels_c.o \
+	   detect_sentinels_c.o \
 	   mpi_global_constants.o \
 	   mpi_handle_types.o mpi_handle_operators.o \
 	   mpi_core_f.o mpi_comm_f.o mpi_coll_f.o mpi_datatype_f.o \
