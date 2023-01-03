@@ -56,27 +56,6 @@ void VAPAA_Assert_fail(const char *expr, const char *msg, const char *file, int 
   PMPI_Abort(MPI_COMM_WORLD, -1);
 }
 
-
-// Print a debugging message.
-void VAPAA_Dbg_print_impl(const char *func, const char *format, ...)
-{
-  int rank;
-  PMPI_Comm_rank(MPI_COMM_WORLD, &rank);
-
-  va_list etc;
-  int  disp;
-  char string[500];
-
-  disp  = 0;
-  disp += snprintf(string, 500, "[%d] %s: ", rank, func);
-  va_start(etc, format);
-  disp += vsnprintf(string+disp, 500-disp, format, etc);
-  va_end(etc);
-
-  fprintf(stderr, "%s", string);
-}
-
-// Print an VAPAA warning message.
 void VAPAA_Warning(const char *fmt, ...)
 {
   int rank;
