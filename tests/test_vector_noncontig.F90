@@ -21,7 +21,6 @@ program main
     call MPI_Type_vector(25,1,4,MPI_INTEGER,v)
     call MPI_Type_commit(v)
 
-
     B = 0
     call MPI_Isend( A, 1, v, me, 99, MPI_COMM_WORLD, r(1))
     call MPI_Irecv( B, 25, MPI_INTEGER, me, 99, MPI_COMM_WORLD, r(2))
