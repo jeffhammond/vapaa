@@ -215,6 +215,9 @@ int VAPAA_CFI_CREATE_DATATYPE(CFI_cdesc_t * desc, ssize_t count, MPI_Datatype in
             //    2: the count is not an even multiple of extent[0], which is another type: struct or (h)indexed
             const int extent0 = desc->dim[0].extent;
             if (count % extent0 == 0) {
+
+                VAPAA_CFI_PRINT_INFO(desc);
+
                 const MPI_Aint stride0 = desc->dim[0].sm;
                 // if the first dimension is contiguous, we only need one datatype
                 if (stride0 == elem_len) {
@@ -229,7 +232,7 @@ int VAPAA_CFI_CREATE_DATATYPE(CFI_cdesc_t * desc, ssize_t count, MPI_Datatype in
                     rc = PMPI_Type_create_hvector(extent0, 1, stride0, element_datatype, &temp_datatype);
                     VAPAA_Assert(rc == MPI_SUCCESS);
 
-                    const MPI_Aint stride1 = desc->dim[0].sm;
+                    const MPI_Aint stride1 = desc->dim[1].sm;
                     rc = PMPI_Type_create_hvector(count / extent0, 1, stride1, temp_datatype, array_datatype);
                     VAPAA_Assert(rc == MPI_SUCCESS);
 
