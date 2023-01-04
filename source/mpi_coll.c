@@ -80,12 +80,25 @@ void CFI_MPI_Reduce(CFI_cdesc_t * input, CFI_cdesc_t * output, int * count, int 
         C_MPI_RC_FIX(*ierror);
         return;
     }
+
     MPI_Comm comm = C_MPI_COMM_F2C(*comm_f);
     if ( (1 == CFI_is_contiguous(input)) && (1 == CFI_is_contiguous(output)) ) {
         *ierror = MPI_Reduce(in_addr, out_addr, *count, datatype, op, *root, comm);
     } else {
         fprintf(stderr, "FIXME: not contiguous case\n");
         MPI_Abort(comm, 99);
+
+        // if the input and output buffers are both non-contiguous and they are not the same
+        // shape, it is impossible to do this without copying one because we can only pass
+        int rc;
+        MPI_Datatype subarray_type = MPI_DATATYPE_NULL;
+        rc = VAPAA_CFI_CREATE_DATATYPE(desc, *count, datatype, &subarray_type);
+        VAPAA_Assert(rc == MPI_SUCCESS);
+        rc = PMPI_Type_commit(&subarray_type);
+        VAPAA_Assert(rc == MPI_SUCCESS);
+        *ierror = MPI_Reduce(in_addr, out_addr, 1, subarray_type, op, *root, comm);
+        rc = PMPI_Type_free(&subarray_type);
+        VAPAA_Assert(rc == MPI_SUCCESS);
     }
     C_MPI_RC_FIX(*ierror);
 }
@@ -118,8 +131,6 @@ void CFI_MPI_Allreduce(CFI_cdesc_t * input, CFI_cdesc_t * output, int * count, i
 
     MPI_Datatype datatype = C_MPI_TYPE_F2C(*datatype_f);
     MPI_Op op = C_MPI_OP_F2C(*op_f);
-    MPI_Comm comm = C_MPI_COMM_F2C(*comm_f);
-
     if ( ! C_MPI_OP_IS_BUILTIN(op) && C_MPI_TYPE_IS_BUILTIN(datatype) ) {
         VAPAA_Warning("user-def reduce op with built-in type is not supported. See docs.\n");
         *ierror = MPI_ERR_OP;
@@ -127,13 +138,22 @@ void CFI_MPI_Allreduce(CFI_cdesc_t * input, CFI_cdesc_t * output, int * count, i
         return;
     }
 
-    // TODO optional count and datatype checking???
-
+    MPI_Comm comm = C_MPI_COMM_F2C(*comm_f);
     if ( (1 == CFI_is_contiguous(input)) && (1 == CFI_is_contiguous(output)) ) {
         *ierror = MPI_Allreduce(in_addr, out_addr, *count, datatype, op, comm);
     } else {
         fprintf(stderr, "FIXME: not contiguous case\n");
         MPI_Abort(comm, 99);
+
+        int rc;
+        MPI_Datatype subarray_type = MPI_DATATYPE_NULL;
+        rc = VAPAA_CFI_CREATE_DATATYPE(desc, *count, datatype, &subarray_type);
+        VAPAA_Assert(rc == MPI_SUCCESS);
+        rc = PMPI_Type_commit(&subarray_type);
+        VAPAA_Assert(rc == MPI_SUCCESS);
+        *ierror = MPI_Allreduce(in_addr, out_addr, 1, subarray_type, op, comm);
+        rc = PMPI_Type_free(&subarray_type);
+        VAPAA_Assert(rc == MPI_SUCCESS);
     }
     C_MPI_RC_FIX(*ierror);
 }
