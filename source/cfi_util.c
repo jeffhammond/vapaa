@@ -8,7 +8,19 @@ bool VAPAA_MPI_DATATYPE_IS_BUILTIN(MPI_Datatype t)
 {
     int ni, na, nd, c;
     int rc = PMPI_Type_get_envelope(t, &ni, &na, &nd, &c);
-    return (rc == MPI_SUCCESS && c == MPI_COMBINER_NAMED);
+    VAPAA_Assert(rc == MPI_SUCCESS);
+    return (c == MPI_COMBINER_NAMED);
+}
+
+bool VAPAA_MPI_DATATYPE_IS_CONTIGUOUS(MPI_Datatype t)
+{
+    int rc, type_size;
+    MPI_Aint lb, extent;
+    rc = PMPI_Type_size(t, &type_size);
+    VAPAA_Assert(rc == MPI_SUCCESS);
+    rc = PMPI_Type_get_extent(t, &lb, &extent);
+    VAPAA_Assert(rc == MPI_SUCCESS);
+    return (type_size == extent);
 }
 
 MPI_Datatype VAPAA_CFI_TO_MPI_TYPE(CFI_type_t type)
@@ -66,7 +78,7 @@ void VAPAA_CFI_GET_TYPE_NAME(CFI_type_t type, char * name)
     else if (type==CFI_type_Bool)                 snprintf(name,32,"%s", "Bool");
     else if (type==CFI_type_char)                 snprintf(name,32,"%s", "char");
     else if (type==CFI_type_cptr)                 snprintf(name,32,"%s", "cptr");
-#if 1
+#if 0
     // not in F2023
     else if (type==CFI_type_cfunptr)              snprintf(name,32,"%s", "cfunptr");
 #endif
@@ -117,8 +129,9 @@ void VAPAA_CFI_PRINT_INFO(CFI_cdesc_t * desc)
     }
 }
 
-// this function only handles the case where the datatype passed to the communication function
+// This function only handles the case where the datatype passed to the communication function
 // is a named aka pre-defined aka built-in datatype, corresponding to the elements of the array.
+// This function does not commit datatypes.  That needs to happen elsewhere.
 int VAPAA_CFI_CREATE_DATATYPE(CFI_cdesc_t * desc, ssize_t count, MPI_Datatype input_datatype, 
                               MPI_Datatype * array_datatype)
 {
@@ -159,6 +172,15 @@ int VAPAA_CFI_CREATE_DATATYPE(CFI_cdesc_t * desc, ssize_t count, MPI_Datatype in
                 VAPAA_Warning("total_elems (%zd) > INT_MAX.\n", total_elems);
             return MPI_ERR_COUNT;
         }
+
+        // Check for non-zero lower-bounds, because I do not know how to handle this.
+        // Fortunately, I have not found a scenario where this happens (maybe pointers?).
+        for (int i=0; i < desc->rank; i++) {
+            if (desc->dim[i].lower_bound != 0) {
+                VAPAA_Warning("non-zero lower-bounds (%zd) are not supported.\n", desc->dim[i].lower_bound);
+                return MPI_ERR_BUFFER;
+            }
+        }
     }
 
     // detect invalid input that will cause buffer overrun
@@ -180,7 +202,7 @@ int VAPAA_CFI_CREATE_DATATYPE(CFI_cdesc_t * desc, ssize_t count, MPI_Datatype in
             const int      num_blocks = count;
             const MPI_Aint stride     = desc->dim[0].sm;
             rc = PMPI_Type_create_hvector(num_blocks, 1, stride, element_datatype, array_datatype);
-            if (rc) return rc;
+            VAPAA_Assert(rc == MPI_SUCCESS);
             break;
         }
 
@@ -198,21 +220,21 @@ int VAPAA_CFI_CREATE_DATATYPE(CFI_cdesc_t * desc, ssize_t count, MPI_Datatype in
                 if (stride0 == elem_len) {
                     const MPI_Aint stride1 = desc->dim[1].sm;
                     rc = PMPI_Type_create_hvector(count / extent0, extent0, stride1, element_datatype, array_datatype);
-                    if (rc) return rc;
+                    VAPAA_Assert(rc == MPI_SUCCESS);
                 }
                 // if the first dimension is non-contiguous, create a temp for it,
                 // then create a vector of those for the array
                 else {
                     MPI_Datatype temp_datatype = MPI_DATATYPE_NULL;
                     rc = PMPI_Type_create_hvector(extent0, 1, stride0, element_datatype, &temp_datatype);
-                    if (rc) return rc;
+                    VAPAA_Assert(rc == MPI_SUCCESS);
 
                     const MPI_Aint stride1 = desc->dim[0].sm;
                     rc = PMPI_Type_create_hvector(count / extent0, 1, stride1, temp_datatype, array_datatype);
-                    if (rc) return rc;
+                    VAPAA_Assert(rc == MPI_SUCCESS);
 
                     rc = PMPI_Type_free(&temp_datatype);
-                    if (rc) return rc;
+                    VAPAA_Assert(rc == MPI_SUCCESS);
                 }
             } else {
                 VAPAA_Warning("2D array case where count (%zd) is not cleanly divisible by extent[0] (%d)\n", count, extent0);
