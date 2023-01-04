@@ -178,7 +178,7 @@ module mpi_coll_c
 #ifdef HAVE_CFI
     interface
         subroutine CFI_MPI_Alltoall(input, scount, stype, output, rcount, rtype, comm, &
-                                     ierror) &
+                                    ierror) &
                    bind(C,name="CFI_MPI_Alltoall")
             use iso_c_binding, only: c_int
             implicit none
@@ -186,6 +186,120 @@ module mpi_coll_c
             type(*), dimension(..), intent(inout) :: output
             integer(kind=c_int) :: scount, stype, rcount, rtype, comm, ierror
         end subroutine CFI_MPI_Alltoall
+    end interface
+#endif
+
+    ! v-collectives
+
+    interface
+        subroutine C_MPI_Gatherv(input, scount, stype, output, rcounts, rdisps, rtype, root, comm, &
+                                 ierror) &
+                   bind(C,name="C_MPI_Gatherv")
+            use iso_c_binding, only: c_int
+            implicit none
+            integer(kind=c_int), dimension(*), intent(in)    :: input
+            integer(kind=c_int), dimension(*), intent(inout) :: output
+            integer(kind=c_int), dimension(*), intent(in) :: rcounts, rdisps
+            integer(kind=c_int) :: scount, stype, rtype, root, comm, ierror
+        end subroutine C_MPI_Gatherv
+    end interface
+
+#ifdef HAVE_CFI
+    interface
+        subroutine CFI_MPI_Gatherv(input, scount, stype, output, rcounts, rdisps, rtype, root, comm, &
+                                   ierror) &
+                   bind(C,name="CFI_MPI_Gatherv")
+            use iso_c_binding, only: c_int
+            implicit none
+            type(*), dimension(..), intent(in)    :: input
+            type(*), dimension(..), intent(inout) :: output
+            integer(kind=c_int), dimension(*), intent(in) :: rcounts, rdisps
+            integer(kind=c_int) :: scount, stype, rtype, root, comm, ierror
+        end subroutine CFI_MPI_Gatherv
+    end interface
+#endif
+
+    interface
+        subroutine C_MPI_Allgatherv(input, scount, stype, output, rcounts, rdisps, rtype, comm, &
+                                    ierror) &
+                   bind(C,name="C_MPI_Allgatherv")
+            use iso_c_binding, only: c_int
+            implicit none
+            integer(kind=c_int), dimension(*), intent(in)    :: input
+            integer(kind=c_int), dimension(*), intent(inout) :: output
+            integer(kind=c_int), dimension(*), intent(in) :: rcounts, rdisps
+            integer(kind=c_int) :: scount, stype, rtype, comm, ierror
+        end subroutine C_MPI_Allgatherv
+    end interface
+
+#ifdef HAVE_CFI
+    interface
+        subroutine CFI_MPI_Allgatherv(input, scount, stype, output, rcounts, rdisps, rtype, comm, &
+                                      ierror) &
+                   bind(C,name="CFI_MPI_Allgatherv")
+            use iso_c_binding, only: c_int
+            implicit none
+            type(*), dimension(..), intent(in)    :: input
+            type(*), dimension(..), intent(inout) :: output
+            integer(kind=c_int), dimension(*), intent(in) :: rcounts, rdisps
+            integer(kind=c_int) :: scount, stype, rtype, comm, ierror
+        end subroutine CFI_MPI_Allgatherv
+    end interface
+#endif
+
+    interface
+        subroutine C_MPI_Scatterv(input, scounts, sdisps, stype, output, rcount, rtype, root, comm, &
+                                 ierror) &
+                   bind(C,name="C_MPI_Scatterv")
+            use iso_c_binding, only: c_int
+            implicit none
+            integer(kind=c_int), dimension(*), intent(in)    :: input
+            integer(kind=c_int), dimension(*), intent(inout) :: output
+            integer(kind=c_int), dimension(*), intent(in) :: scounts, sdisps
+            integer(kind=c_int) :: stype, rcount, rtype, root, comm, ierror
+        end subroutine C_MPI_Scatterv
+    end interface
+
+#ifdef HAVE_CFI
+    interface
+        subroutine CFI_MPI_Scatterv(input, scounts, sdisps, stype, output, rcount, rtype, root, comm, &
+                                    ierror) &
+                   bind(C,name="CFI_MPI_Scatterv")
+            use iso_c_binding, only: c_int
+            implicit none
+            type(*), dimension(..), intent(in)    :: input
+            type(*), dimension(..), intent(inout) :: output
+            integer(kind=c_int), dimension(*), intent(in) :: scounts, sdisps
+            integer(kind=c_int) :: stype, rcount, rtype, root, comm, ierror
+        end subroutine CFI_MPI_Scatterv
+    end interface
+#endif
+
+    interface
+        subroutine C_MPI_Alltoallv(input, scounts, sdisps, stype, output, rcounts, rdisps, rtype, comm, &
+                                   ierror) &
+                   bind(C,name="C_MPI_Alltoallv")
+            use iso_c_binding, only: c_int
+            implicit none
+            integer(kind=c_int), dimension(*), intent(in)    :: input
+            integer(kind=c_int), dimension(*), intent(inout) :: output
+            integer(kind=c_int), dimension(*), intent(in) :: scounts, sdisps, rcounts, rdisps
+            integer(kind=c_int) :: stype, rtype, comm, ierror
+        end subroutine C_MPI_Alltoallv
+    end interface
+
+#ifdef HAVE_CFI
+    interface
+        subroutine CFI_MPI_Alltoallv(input, scounts, sdisps, stype, output, rcounts, rdisps, rtype, comm, &
+                                     ierror) &
+                   bind(C,name="CFI_MPI_Alltoallv")
+            use iso_c_binding, only: c_int
+            implicit none
+            type(*), dimension(..), intent(in)    :: input
+            type(*), dimension(..), intent(inout) :: output
+            integer(kind=c_int), dimension(*), intent(in) :: scounts, sdisps, rcounts, rdisps
+            integer(kind=c_int) :: stype, rtype, comm, ierror
+        end subroutine CFI_MPI_Alltoallv
     end interface
 #endif
 
