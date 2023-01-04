@@ -222,8 +222,15 @@ void CFI_MPI_Send(CFI_cdesc_t * desc, int * count, int * datatype_f, int * dest,
     if (1 == CFI_is_contiguous(desc)) {
         *ierror = MPI_Send(desc->base_addr, *count, datatype, *dest, *tag, comm);
     } else {
-        fprintf(stderr, "FIXME: not contiguous case\n");
-        MPI_Abort(comm, 99);
+        int rc;
+        MPI_Datatype subarray_type = MPI_DATATYPE_NULL;
+        rc = VAPAA_CFI_CREATE_DATATYPE(desc, *count, datatype, &subarray_type);
+        VAPAA_Assert(rc == MPI_SUCCESS);
+        rc = PMPI_Type_commit(&subarray_type);
+        VAPAA_Assert(rc == MPI_SUCCESS);
+        *ierror = MPI_Send(desc->base_addr, 1, subarray_type, *dest, *tag, comm);
+        rc = PMPI_Type_free(&subarray_type);
+        VAPAA_Assert(rc == MPI_SUCCESS);
     }
     C_MPI_RC_FIX(*ierror);
 }
@@ -286,8 +293,16 @@ void CFI_MPI_Recv(CFI_cdesc_t * desc, int * count, int * datatype_f, int * sourc
         *ierror = MPI_Recv(desc->base_addr, *count, datatype, *source, *tag, comm,
                            C_IS_MPI_STATUS_IGNORE(status) ? MPI_STATUS_IGNORE : status);
     } else {
-        fprintf(stderr, "FIXME: not contiguous case\n");
-        MPI_Abort(comm, 99);
+        int rc;
+        MPI_Datatype subarray_type = MPI_DATATYPE_NULL;
+        rc = VAPAA_CFI_CREATE_DATATYPE(desc, *count, datatype, &subarray_type);
+        VAPAA_Assert(rc == MPI_SUCCESS);
+        rc = PMPI_Type_commit(&subarray_type);
+        VAPAA_Assert(rc == MPI_SUCCESS);
+        *ierror = MPI_Recv(desc->base_addr, 1, subarray_type, *source, *tag, comm,
+                           C_IS_MPI_STATUS_IGNORE(status) ? MPI_STATUS_IGNORE : status);
+        rc = PMPI_Type_free(&subarray_type);
+        VAPAA_Assert(rc == MPI_SUCCESS);
     }
     C_MPI_RC_FIX(*ierror);
 }
@@ -312,8 +327,15 @@ void CFI_MPI_Irecv(CFI_cdesc_t * desc, int * count, int * datatype_f, int * sour
     if (1 == CFI_is_contiguous(desc)) {
         *ierror = MPI_Irecv(desc->base_addr, *count, datatype, *source, *tag, comm, &request);
     } else {
-        fprintf(stderr, "FIXME: not contiguous case\n");
-        MPI_Abort(comm, 99);
+        int rc;
+        MPI_Datatype subarray_type = MPI_DATATYPE_NULL;
+        rc = VAPAA_CFI_CREATE_DATATYPE(desc, *count, datatype, &subarray_type);
+        VAPAA_Assert(rc == MPI_SUCCESS);
+        rc = PMPI_Type_commit(&subarray_type);
+        VAPAA_Assert(rc == MPI_SUCCESS);
+        *ierror = MPI_Irecv(desc->base_addr, 1, subarray_type, *source, *tag, comm, &request);
+        rc = PMPI_Type_free(&subarray_type);
+        VAPAA_Assert(rc == MPI_SUCCESS);
     }
     *request_f = MPI_Request_c2f(request);
     C_MPI_RC_FIX(*ierror);
@@ -338,8 +360,16 @@ void CFI_MPI_Mrecv(CFI_cdesc_t * desc, int * count, int * datatype_f, int * mess
         *ierror = MPI_Mrecv(desc->base_addr, *count, datatype, &message,
                             C_IS_MPI_STATUS_IGNORE(status) ? MPI_STATUS_IGNORE : status);
     } else {
-        fprintf(stderr, "FIXME: not contiguous case\n");
-        MPI_Abort(MPI_COMM_SELF, 99);
+        int rc;
+        MPI_Datatype subarray_type = MPI_DATATYPE_NULL;
+        rc = VAPAA_CFI_CREATE_DATATYPE(desc, *count, datatype, &subarray_type);
+        VAPAA_Assert(rc == MPI_SUCCESS);
+        rc = PMPI_Type_commit(&subarray_type);
+        VAPAA_Assert(rc == MPI_SUCCESS);
+        *ierror = MPI_Mrecv(desc->base_addr, 1, subarray_type, &message,
+                            C_IS_MPI_STATUS_IGNORE(status) ? MPI_STATUS_IGNORE : status);
+        rc = PMPI_Type_free(&subarray_type);
+        VAPAA_Assert(rc == MPI_SUCCESS);
     }
     C_MPI_RC_FIX(*ierror);
 }
@@ -364,8 +394,15 @@ void CFI_MPI_Imrecv(CFI_cdesc_t * desc, int * count, int * datatype_f, int * mes
     if (1 == CFI_is_contiguous(desc)) {
         *ierror = MPI_Imrecv(desc->base_addr, *count, datatype, &message, &request);
     } else {
-        fprintf(stderr, "FIXME: not contiguous case\n");
-        MPI_Abort(MPI_COMM_SELF, 99);
+        int rc;
+        MPI_Datatype subarray_type = MPI_DATATYPE_NULL;
+        rc = VAPAA_CFI_CREATE_DATATYPE(desc, *count, datatype, &subarray_type);
+        VAPAA_Assert(rc == MPI_SUCCESS);
+        rc = PMPI_Type_commit(&subarray_type);
+        VAPAA_Assert(rc == MPI_SUCCESS);
+        *ierror = MPI_Imrecv(desc->base_addr, 1, subarray_type, &message, &request);
+        rc = PMPI_Type_free(&subarray_type);
+        VAPAA_Assert(rc == MPI_SUCCESS);
     }
     *request_f = MPI_Request_c2f(request);
     C_MPI_RC_FIX(*ierror);

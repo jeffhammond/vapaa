@@ -326,7 +326,7 @@ int VAPAA_CFI_CREATE_DATATYPE(CFI_cdesc_t * desc, ssize_t count, MPI_Datatype in
         MPI_Aint * array_of_displacements = malloc(count * sizeof(MPI_Aint));
         VAPAA_Assert(array_of_displacements != NULL);
         ssize_t offset = 0;
-        for (int i3 = 0; i3 < extent2; i3++) {
+        for (int i3 = 0; i3 < extent3; i3++) {
             const MPI_Aint stride3 = desc->dim[3].sm;
             for (int i2 = 0; i2 < extent2; i2++) {
                 const MPI_Aint stride2 = desc->dim[2].sm;
