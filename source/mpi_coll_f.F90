@@ -328,5 +328,40 @@ module mpi_coll_f
         end subroutine MPI_Alltoall_f08ts
 #endif
 
+        subroutine MPI_Alltoallv_f08(input, scounts, sdisps, stype, output, rcounts, rdisps, rtype, comm, ierror) 
+            use mpi_handle_types, only: MPI_Comm, MPI_Datatype
+            use mpi_coll_c, only: C_MPI_Alltoallv
+!dir$ ignore_tkr input, output
+            integer, dimension(*), intent(in)    :: input
+            integer, dimension(*), intent(inout) :: output
+            integer, intent(in), dimension(*) :: scounts, sdisps, rcounts, rdisps
+            type(MPI_Datatype), intent(in) :: stype, rtype
+            type(MPI_Comm), intent(in) :: comm
+            integer, optional, intent(out) :: ierror
+            integer(kind=c_int) :: ierror_c
+            ! assume Fortran INTEGER and C int are equivalent
+            call C_MPI_Alltoallv(input, scounts, sdisps, stype % MPI_VAL, output, rcounts, rdisps, rtype % MPI_VAL, &
+                                 comm % MPI_VAL, ierror_c)
+            if (present(ierror)) ierror = ierror_c
+        end subroutine MPI_Alltoallv_f08
+
+#ifdef HAVE_CFI
+        subroutine MPI_Alltoallv_f08ts(input, scounts, sdisps, stype, output, rcounts, rdisps, rtype, comm, ierror)
+            use mpi_handle_types, only: MPI_Comm, MPI_Datatype
+            use mpi_coll_c, only: CFI_MPI_Alltoallv
+            type(*), dimension(..), intent(in)    :: input
+            type(*), dimension(..), intent(inout) :: output
+            integer, intent(in), dimension(*) :: scounts, sdisps, rcounts, rdisps
+            type(MPI_Datatype), intent(in) :: stype, rtype
+            type(MPI_Comm), intent(in) :: comm
+            integer, optional, intent(out) :: ierror
+            integer(kind=c_int) :: ierror_c
+            ! assume Fortran INTEGER and C int are equivalent
+            call CFI_MPI_Alltoallv(input, scounts, sdisps, stype % MPI_VAL, output, rcounts, rdisps, rtype % MPI_VAL, &
+                                   comm % MPI_VAL, ierror_c)
+            if (present(ierror)) ierror = ierror_c
+        end subroutine MPI_Alltoallv_f08ts
+#endif
+
 end module mpi_coll_f
 
