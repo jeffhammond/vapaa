@@ -5,6 +5,8 @@
 #include "detect_sentinels.h"
 #include "convert_handles.h"
 #include "convert_constants.h"
+#include "cfi_util.h"
+#include "debug.h"
 
 // STANDARD STUFF
 
@@ -246,8 +248,15 @@ void CFI_MPI_Isend(CFI_cdesc_t * desc, int * count, int * datatype_f, int * dest
     if (1 == CFI_is_contiguous(desc)) {
         *ierror = MPI_Isend(desc->base_addr, *count, datatype, *dest, *tag, comm, &request);
     } else {
-        fprintf(stderr, "FIXME: not contiguous case\n");
-        MPI_Abort(comm, 99);
+        int rc;
+        MPI_Datatype subarray_type = MPI_DATATYPE_NULL;
+        rc = VAPAA_CFI_CREATE_DATATYPE(desc, *count, datatype, &subarray_type);
+        VAPAA_Assert(rc == MPI_SUCCESS);
+        rc = PMPI_Type_commit(&subarray_type);
+        VAPAA_Assert(rc == MPI_SUCCESS);
+        *ierror = MPI_Isend(desc->base_addr, 1, subarray_type, *dest, *tag, comm, &request);
+        rc = PMPI_Type_free(&subarray_type);
+        VAPAA_Assert(rc == MPI_SUCCESS);
     }
     *request_f = MPI_Request_c2f(request);
     C_MPI_RC_FIX(*ierror);

@@ -15,11 +15,11 @@ program test
     integer :: i
     integer, dimension(10,10) :: a
 
+#if 0
     a = reshape([(i, i = 1,size(a,1)*size(a,2))],[size(a,1),size(a,2)])
     write(*,'(a,100(i5),a)') 'a=[',a,']'
     print*,'shape(a)=',shape(a)
 
-#if 0
     ! all of these are contiguous
     print*,'----------------------'
     call foo(a)
@@ -29,7 +29,6 @@ program test
     call foo(a(:,1:5))
     print*,'......................'
     call foo(a(:,6:10))
-#endif
     ! all of these are non-contiguous
     print*,'----------------------'
     call foo(a(1:5,:))
@@ -40,5 +39,13 @@ program test
     print*,'......................'
     call foo(a(6:10,6:10))
     print*,'----------------------'
+    call foo(a(2:9,2:9))
+    print*,'----------------------'
+#endif
+
+    block
+        integer, dimension(10,15) :: B
+        call foo(B(2:8,3:12:3))
+    end block
 
 end program test
