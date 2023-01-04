@@ -42,8 +42,6 @@ void CFI_MPI_Bcast(CFI_cdesc_t * desc, int * count, int * datatype_f, int * root
         *ierror = MPI_Bcast(desc->base_addr, 1, subarray_type, *root, comm);
         rc = PMPI_Type_free(&subarray_type);
         VAPAA_Assert(rc == MPI_SUCCESS);
-        //fprintf(stderr, "FIXME: not contiguous case\n");
-        //MPI_Abort(comm, 99);
     }
     C_MPI_RC_FIX(*ierror);
 }
