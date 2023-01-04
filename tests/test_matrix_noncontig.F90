@@ -3,28 +3,51 @@ program main
     implicit none
     integer :: me, np, i
     type(MPI_Datatype) :: v
-#if 0
-    integer, allocatable :: A(:,:)
-    allocate( A(30,20) )
-#else
-    integer :: A(30,32)
-#endif
+    integer, dimension(30,20) :: A
+    integer, dimension(10,10) :: B
+    type(MPI_Request) :: r(2)
 
     call MPI_Init()
     call MPI_Comm_rank(MPI_COMM_WORLD,me)
     call MPI_Comm_size(MPI_COMM_WORLD,np)
 
-    if (me.eq.0) then
-        print*,'MPI_SUBARRAYS_SUPPORTED=',MPI_SUBARRAYS_SUPPORTED
-        print*,'MPI_ASYNC_PROTECTS_NONBLOCKING=',MPI_ASYNC_PROTECTS_NONBLOCKING
+    !if (me.eq.0) then
+    !    print*,'MPI_SUBARRAYS_SUPPORTED=',MPI_SUBARRAYS_SUPPORTED
+    !    print*,'MPI_ASYNC_PROTECTS_NONBLOCKING=',MPI_ASYNC_PROTECTS_NONBLOCKING
+    !endif
+
+    A = reshape([(i, i = 1,size(A))],shape(A))
+    !if (me.eq.0) print*,'A=',A
+
+    B = 0
+    call MPI_Isend( A(1:10,1:20:2), size(A(1:10,1:20:2)), MPI_INTEGER, me, 99, MPI_COMM_WORLD, r(1))
+    call MPI_Irecv( B, size(B), MPI_INTEGER, me, 99, MPI_COMM_WORLD, r(2))
+    call MPI_Waitall(2, r, MPI_STATUSES_IGNORE)
+    if (any(B.ne.A(1:10,1:20:2))) then
+        print*,'an error has occurred'
+        if (me .eq. 0) then
+            !write(*,'(a,600i4,a)') 'A=[',A,']'
+            write(*,'(a,100i4,a)') 'A[...]=[',A(1:10,1:20:2),']'
+            write(*,'(a,100i4,a)') 'B[ * ]=[',B,']'
+        endif
     endif
 
-    A = reshape([(i, i = 1,size(A,1)*size(A,2))],[size(A,1),size(A,2)])
-    !if (me.eq.0) print*,'A=[',A,']'
-    !if (me.eq.0) print*,'shape(A)=',shape(A)
+    B = 0
+    call MPI_Isend( A(1:30:3,1:20:2), size(A(1:30:3,1:20:2)), MPI_INTEGER, me, 99, MPI_COMM_WORLD, r(1))
+    call MPI_Irecv( B, size(B), MPI_INTEGER, me, 99, MPI_COMM_WORLD, r(2))
+    call MPI_Waitall(2, r, MPI_STATUSES_IGNORE)
+    if (any(B.ne.A(1:30:3,1:20:2))) then
+        print*,'an error has occurred'
+        if (me .eq. 0) then
+            !write(*,'(a,600i4,a)') 'A=[',A,']'
+            write(*,'(a,100i4,a)') 'A[...]=[',A(1:30:3,1:20:2),']'
+            write(*,'(a,100i4,a)') 'B[ * ]=[',B,']'
+        endif
+    endif
 
-    call MPI_Bcast( A(1:30:1,1:20:3), 1, MPI_INTEGER, 0, MPI_COMM_WORLD )
-    if (me.eq.0) print*,'A=',A
+    if (me.eq.0) then
+        print*,'non-contiguous matrix support is okay'
+    end if
 
     call MPI_Finalize()
 
