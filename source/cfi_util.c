@@ -312,7 +312,8 @@ int VAPAA_CFI_CREATE_DATATYPE(CFI_cdesc_t * desc, ssize_t count, MPI_Datatype in
     }
     else
     {
-            return MPI_ERR_ARG;
+        VAPAA_Warning("Unsupported dimension (%d).\n", rank);
+        return MPI_ERR_ARG;
     }
 
     // verify that the type we have created holds the correct number of elements
