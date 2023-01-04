@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include <limits.h>
 
 #include "cfi_util.h"
@@ -169,7 +170,7 @@ int VAPAA_CFI_CREATE_DATATYPE(CFI_cdesc_t * desc, ssize_t count, MPI_Datatype in
 
         // detect large-count problems - test here so we catch cases where the last extent is -1
         if (total_elems > INT_MAX) {
-                VAPAA_Warning("total_elems (%zd) > INT_MAX.\n", total_elems);
+            VAPAA_Warning("total_elems (%zd) > INT_MAX.\n", total_elems);
             return MPI_ERR_COUNT;
         }
 
@@ -193,62 +194,96 @@ int VAPAA_CFI_CREATE_DATATYPE(CFI_cdesc_t * desc, ssize_t count, MPI_Datatype in
     //  last element of the dim member has the value −1."
     // Using extent[rank-1] is dangerous and we should never do it.
 
-    switch (rank) {
+    const int extent0 = desc->dim[0].extent;
+    const int extent1 = desc->dim[1].extent;
 
-        case 1:
+    if (rank == 1 || count <= extent0)
+    {
+        // 1D array non-contiguous array can only be single elements, e.g.
+        //    X(1:end:stride) where stride > 1
+        // If we land here because of the second conditional, we may create an hvector when
+        // contiguous would suffice, but that is an unlikely use case that does not warrant specialization.
+        const int      num_blocks = count;
+        const MPI_Aint stride     = desc->dim[0].sm;
+        rc = PMPI_Type_create_hvector(num_blocks, 1, stride, element_datatype, array_datatype);
+        VAPAA_Assert(rc == MPI_SUCCESS);
+    }
+    else if (rank == 2 || count <= extent0*extent1)
+    {
+        // 2D array non-contiguous array will be a vector of blocks e.g.
+        //    X(1:e0:s0,b1:e1:s1)
+        // There are a few cases to support:
+        //    1: count is an even multiple of extent[0], which is a vector or a vector of vectors
+        //    2: count is not an even multiple of extent[0], which is another type: struct or (h)indexed
+        if (count % extent0 == 0)
         {
-            // 1D array non-contiguous array can only be single elements, e.g.
-            //    X(1:end:stride) where stride > 1
-            const int      num_blocks = count;
-            const MPI_Aint stride     = desc->dim[0].sm;
-            rc = PMPI_Type_create_hvector(num_blocks, 1, stride, element_datatype, array_datatype);
-            VAPAA_Assert(rc == MPI_SUCCESS);
-            break;
-        }
-
-        case 2:
-        {
-            // 2D array non-contiguous array will be a vector of blocks e.g.
-            //    X(1:e0:s0,b1:e1:s1)
-            // There are 2 cases to support:
-            //    1: the count is an even multiple of extent[0], which is a vector or a vector of vectors
-            //    2: the count is not an even multiple of extent[0], which is another type: struct or (h)indexed
-            const int extent0 = desc->dim[0].extent;
-            if (count % extent0 == 0) {
-
-                VAPAA_CFI_PRINT_INFO(desc);
-
-                const MPI_Aint stride0 = desc->dim[0].sm;
-                // if the first dimension is contiguous, we only need one datatype
-                if (stride0 == elem_len) {
-                    const MPI_Aint stride1 = desc->dim[1].sm;
-                    rc = PMPI_Type_create_hvector(count / extent0, extent0, stride1, element_datatype, array_datatype);
-                    VAPAA_Assert(rc == MPI_SUCCESS);
-                }
-                // if the first dimension is non-contiguous, create a temp for it,
-                // then create a vector of those for the array
-                else {
-                    MPI_Datatype temp_datatype = MPI_DATATYPE_NULL;
-                    rc = PMPI_Type_create_hvector(extent0, 1, stride0, element_datatype, &temp_datatype);
-                    VAPAA_Assert(rc == MPI_SUCCESS);
-
-                    const MPI_Aint stride1 = desc->dim[1].sm;
-                    rc = PMPI_Type_create_hvector(count / extent0, 1, stride1, temp_datatype, array_datatype);
-                    VAPAA_Assert(rc == MPI_SUCCESS);
-
-                    rc = PMPI_Type_free(&temp_datatype);
-                    VAPAA_Assert(rc == MPI_SUCCESS);
-                }
-            } else {
-                VAPAA_Warning("2D array case where count (%zd) is not cleanly divisible by extent[0] (%d)\n", count, extent0);
-                return MPI_ERR_ARG;
+            const MPI_Aint stride0 = desc->dim[0].sm;
+            // if the first dimension is contiguous, we only need one datatype
+            if (stride0 == elem_len) {
+                const MPI_Aint stride1 = desc->dim[1].sm;
+                rc = PMPI_Type_create_hvector(count / extent0, extent0, stride1, element_datatype, array_datatype);
+                VAPAA_Assert(rc == MPI_SUCCESS);
             }
-            break;
-        }
+            // if the first dimension is non-contiguous, create a temp for it,
+            // then create a vector of those for the array
+            else
+            {
+                MPI_Datatype temp_datatype = MPI_DATATYPE_NULL;
+                rc = PMPI_Type_create_hvector(extent0, 1, stride0, element_datatype, &temp_datatype);
+                VAPAA_Assert(rc == MPI_SUCCESS);
 
-        default:
+                const MPI_Aint stride1 = desc->dim[1].sm;
+                rc = PMPI_Type_create_hvector(count / extent0, 1, stride1, temp_datatype, array_datatype);
+                VAPAA_Assert(rc == MPI_SUCCESS);
+
+                rc = PMPI_Type_free(&temp_datatype);
+                VAPAA_Assert(rc == MPI_SUCCESS);
+            }
+        }
+        else // weird case where the count does not lead to a cartesian subarray
+        {
+            //VAPAA_Warning("2D array case where count (%zd) is not cleanly divisible by extent[0] (%d)\n", count, extent0);
+            //fflush(0);
+            //VAPAA_CFI_PRINT_INFO(desc);
+            //fflush(0);
+
+            // this is not optimal.
+            // we enumerate every element instead of generating one type for the cartesian part
+            // and a second type for the remainer.
+
+            int * array_of_blocklengths = malloc(count * sizeof(int));
+            VAPAA_Assert(array_of_blocklengths != NULL); 
+            for (ssize_t i=0; i < count; i++) {
+                array_of_blocklengths[i] = 1;
+            }
+
+            MPI_Aint * array_of_displacements = malloc(count * sizeof(MPI_Aint));
+            VAPAA_Assert(array_of_displacements != NULL); 
+            ssize_t offset = 0;
+            for (int i1 = 0; i1 < extent1; i1++) {
+                const MPI_Aint stride1 = desc->dim[1].sm;
+                for (int i0 = 0; i0 < extent0; i0++) {
+                    const MPI_Aint stride0 = desc->dim[0].sm;
+                    array_of_displacements[offset] = stride0 * i0 + stride1 * i1;
+                    //printf("array_of_displacements[%zd] = %zd\n", offset, array_of_displacements[offset]);
+                    offset++;
+                    if (offset == count) goto done;
+                }
+            }
+            done:
+
+            rc = PMPI_Type_create_hindexed(count, array_of_blocklengths, array_of_displacements,
+                                           element_datatype, array_datatype);
+            VAPAA_Assert(rc == MPI_SUCCESS);
+
+            free(array_of_blocklengths);
+            free(array_of_displacements);
+            //return MPI_ERR_ARG;
+        }
+    }
+    else
+    {
             return MPI_ERR_ARG;
-            break;
     }
 
     // verify that the type we have created holds the correct number of elements
