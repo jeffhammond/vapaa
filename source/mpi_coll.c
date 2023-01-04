@@ -87,9 +87,13 @@ void CFI_MPI_Reduce(CFI_cdesc_t * input, CFI_cdesc_t * output, int * count, int 
     } else {
         fprintf(stderr, "FIXME: not contiguous case\n");
         MPI_Abort(comm, 99);
-
+#if 0
         // if the input and output buffers are both non-contiguous and they are not the same
         // shape, it is impossible to do this without copying one because we can only pass
+        // one datatype.
+        // of course, if we use user-defined datatypes, we need have user-defined reductions
+        // that apply the operators for the datatypes in question.
+        // see https://github.com/mpi-forum/mpi-issues/issues/663 for details.
         int rc;
         MPI_Datatype subarray_type = MPI_DATATYPE_NULL;
         rc = VAPAA_CFI_CREATE_DATATYPE(desc, *count, datatype, &subarray_type);
@@ -99,6 +103,7 @@ void CFI_MPI_Reduce(CFI_cdesc_t * input, CFI_cdesc_t * output, int * count, int 
         *ierror = MPI_Reduce(in_addr, out_addr, 1, subarray_type, op, *root, comm);
         rc = PMPI_Type_free(&subarray_type);
         VAPAA_Assert(rc == MPI_SUCCESS);
+#endif
     }
     C_MPI_RC_FIX(*ierror);
 }
@@ -144,7 +149,7 @@ void CFI_MPI_Allreduce(CFI_cdesc_t * input, CFI_cdesc_t * output, int * count, i
     } else {
         fprintf(stderr, "FIXME: not contiguous case\n");
         MPI_Abort(comm, 99);
-
+#if 0
         int rc;
         MPI_Datatype subarray_type = MPI_DATATYPE_NULL;
         rc = VAPAA_CFI_CREATE_DATATYPE(desc, *count, datatype, &subarray_type);
@@ -154,6 +159,7 @@ void CFI_MPI_Allreduce(CFI_cdesc_t * input, CFI_cdesc_t * output, int * count, i
         *ierror = MPI_Allreduce(in_addr, out_addr, 1, subarray_type, op, comm);
         rc = PMPI_Type_free(&subarray_type);
         VAPAA_Assert(rc == MPI_SUCCESS);
+#endif
     }
     C_MPI_RC_FIX(*ierror);
 }
@@ -173,6 +179,8 @@ void C_MPI_Gather(const void * input, int * scount, int * stype_f, void * output
 #ifdef HAVE_CFI
 void CFI_MPI_Gather(CFI_cdesc_t * input, int * scount, int * stype_f, CFI_cdesc_t * output, int * rcount, int * rtype_f, int * root, int * comm_f, int * ierror)
 {
+    int rc;
+
     void * in_addr  = input->base_addr;
     void * out_addr = output->base_addr;
     if (C_IS_MPI_IN_PLACE(in_addr))  in_addr  = MPI_IN_PLACE;
@@ -180,17 +188,45 @@ void CFI_MPI_Gather(CFI_cdesc_t * input, int * scount, int * stype_f, CFI_cdesc_
 
     MPI_Datatype stype = C_MPI_TYPE_F2C(*stype_f);
     MPI_Datatype rtype = C_MPI_TYPE_F2C(*rtype_f);
-    MPI_Comm comm = C_MPI_COMM_F2C(*comm_f);
 
-    // TODO optional count and datatype checking???
+    bool in_contiguous  = (1 == CFI_is_contiguous(input));
+    bool out_contiguous = (1 == CFI_is_contiguous(output));
 
-    if ( (1 == CFI_is_contiguous(input)) && (1 == CFI_is_contiguous(output)) ) {
-        *ierror = MPI_Gather(in_addr, *scount, stype, out_addr, *rcount, rtype, *root, comm);
-    } else {
-        fprintf(stderr, "FIXME: not contiguous case\n");
-        MPI_Abort(comm, 99);
+    int in_count  = *scount;
+    int out_count = *rcount;
+
+    MPI_Datatype in_type  = stype;
+    MPI_Datatype out_type = rtype;
+
+    if (!in_contiguous) {
+        in_count = 1;
+        rc = VAPAA_CFI_CREATE_DATATYPE(input, *scount, stype, &in_type);
+        VAPAA_Assert(rc == MPI_SUCCESS);
+        rc = PMPI_Type_commit(&in_type);
+        VAPAA_Assert(rc == MPI_SUCCESS);
     }
+
+    if (!out_contiguous) {
+        out_count = 1;
+        rc = VAPAA_CFI_CREATE_DATATYPE(output, *rcount, rtype, &out_type);
+        VAPAA_Assert(rc == MPI_SUCCESS);
+        rc = PMPI_Type_commit(&out_type);
+        VAPAA_Assert(rc == MPI_SUCCESS);
+    }
+
+    MPI_Comm comm = C_MPI_COMM_F2C(*comm_f);
+    *ierror = MPI_Gather(in_addr, in_count, in_type, out_addr, out_count, out_type, *root, comm);
     C_MPI_RC_FIX(*ierror);
+
+    if (!in_contiguous) {
+        rc = PMPI_Type_free(&in_type);
+        VAPAA_Assert(rc == MPI_SUCCESS);
+    }
+
+    if (!out_contiguous) {
+        rc = PMPI_Type_free(&out_type);
+        VAPAA_Assert(rc == MPI_SUCCESS);
+    }
 }
 #endif
 
@@ -208,6 +244,8 @@ void C_MPI_Allgather(const void * input, int * scount, int * stype_f, void * out
 #ifdef HAVE_CFI
 void CFI_MPI_Allgather(CFI_cdesc_t * input, int * scount, int * stype_f, CFI_cdesc_t * output, int * rcount, int * rtype_f, int * comm_f, int * ierror)
 {
+    int rc;
+
     void * in_addr  = input->base_addr;
     void * out_addr = output->base_addr;
     if (C_IS_MPI_IN_PLACE(in_addr))  in_addr  = MPI_IN_PLACE;
@@ -215,17 +253,45 @@ void CFI_MPI_Allgather(CFI_cdesc_t * input, int * scount, int * stype_f, CFI_cde
 
     MPI_Datatype stype = C_MPI_TYPE_F2C(*stype_f);
     MPI_Datatype rtype = C_MPI_TYPE_F2C(*rtype_f);
-    MPI_Comm comm = C_MPI_COMM_F2C(*comm_f);
 
-    // TODO optional count and datatype checking???
+    bool in_contiguous  = (1 == CFI_is_contiguous(input));
+    bool out_contiguous = (1 == CFI_is_contiguous(output));
 
-    if ( (1 == CFI_is_contiguous(input)) && (1 == CFI_is_contiguous(output)) ) {
-        *ierror = MPI_Allgather(in_addr, *scount, stype, out_addr, *rcount, rtype, comm);
-    } else {
-        fprintf(stderr, "FIXME: not contiguous case\n");
-        MPI_Abort(comm, 99);
+    int in_count  = *scount;
+    int out_count = *rcount;
+
+    MPI_Datatype in_type  = stype;
+    MPI_Datatype out_type = rtype;
+
+    if (!in_contiguous) {
+        in_count = 1;
+        rc = VAPAA_CFI_CREATE_DATATYPE(input, *scount, stype, &in_type);
+        VAPAA_Assert(rc == MPI_SUCCESS);
+        rc = PMPI_Type_commit(&in_type);
+        VAPAA_Assert(rc == MPI_SUCCESS);
     }
+
+    if (!out_contiguous) {
+        out_count = 1;
+        rc = VAPAA_CFI_CREATE_DATATYPE(output, *rcount, rtype, &out_type);
+        VAPAA_Assert(rc == MPI_SUCCESS);
+        rc = PMPI_Type_commit(&out_type);
+        VAPAA_Assert(rc == MPI_SUCCESS);
+    }
+
+    MPI_Comm comm = C_MPI_COMM_F2C(*comm_f);
+    *ierror = MPI_Allgather(in_addr, in_count, in_type, out_addr, out_count, out_type, comm);
     C_MPI_RC_FIX(*ierror);
+
+    if (!in_contiguous) {
+        rc = PMPI_Type_free(&in_type);
+        VAPAA_Assert(rc == MPI_SUCCESS);
+    }
+
+    if (!out_contiguous) {
+        rc = PMPI_Type_free(&out_type);
+        VAPAA_Assert(rc == MPI_SUCCESS);
+    }
 }
 #endif
 
@@ -243,6 +309,8 @@ void C_MPI_Scatter(const void * input, int * scount, int * stype_f, void * outpu
 #ifdef HAVE_CFI
 void CFI_MPI_Scatter(CFI_cdesc_t * input, int * scount, int * stype_f, CFI_cdesc_t * output, int * rcount, int * rtype_f, int * root, int * comm_f, int * ierror)
 {
+    int rc;
+
     void * in_addr  = input->base_addr;
     void * out_addr = output->base_addr;
     if (C_IS_MPI_IN_PLACE(in_addr))  in_addr  = MPI_IN_PLACE;
@@ -250,17 +318,45 @@ void CFI_MPI_Scatter(CFI_cdesc_t * input, int * scount, int * stype_f, CFI_cdesc
 
     MPI_Datatype stype = C_MPI_TYPE_F2C(*stype_f);
     MPI_Datatype rtype = C_MPI_TYPE_F2C(*rtype_f);
-    MPI_Comm comm = C_MPI_COMM_F2C(*comm_f);
 
-    // TODO optional count and datatype checking???
+    bool in_contiguous  = (1 == CFI_is_contiguous(input));
+    bool out_contiguous = (1 == CFI_is_contiguous(output));
 
-    if ( (1 == CFI_is_contiguous(input)) && (1 == CFI_is_contiguous(output)) ) {
-        *ierror = MPI_Scatter(in_addr, *scount, stype, out_addr, *rcount, rtype, *root, comm);
-    } else {
-        fprintf(stderr, "FIXME: not contiguous case\n");
-        MPI_Abort(comm, 99);
+    int in_count  = *scount;
+    int out_count = *rcount;
+
+    MPI_Datatype in_type  = stype;
+    MPI_Datatype out_type = rtype;
+
+    if (!in_contiguous) {
+        in_count = 1;
+        rc = VAPAA_CFI_CREATE_DATATYPE(input, *scount, stype, &in_type);
+        VAPAA_Assert(rc == MPI_SUCCESS);
+        rc = PMPI_Type_commit(&in_type);
+        VAPAA_Assert(rc == MPI_SUCCESS);
     }
+
+    if (!out_contiguous) {
+        out_count = 1;
+        rc = VAPAA_CFI_CREATE_DATATYPE(output, *rcount, rtype, &out_type);
+        VAPAA_Assert(rc == MPI_SUCCESS);
+        rc = PMPI_Type_commit(&out_type);
+        VAPAA_Assert(rc == MPI_SUCCESS);
+    }
+
+    MPI_Comm comm = C_MPI_COMM_F2C(*comm_f);
+    *ierror = MPI_Scatter(in_addr, in_count, in_type, out_addr, out_count, out_type, *root, comm);
     C_MPI_RC_FIX(*ierror);
+
+    if (!in_contiguous) {
+        rc = PMPI_Type_free(&in_type);
+        VAPAA_Assert(rc == MPI_SUCCESS);
+    }
+
+    if (!out_contiguous) {
+        rc = PMPI_Type_free(&out_type);
+        VAPAA_Assert(rc == MPI_SUCCESS);
+    }
 }
 #endif
 
@@ -278,6 +374,8 @@ void C_MPI_Alltoall(const void * input, int * scount, int * stype_f, void * outp
 #ifdef HAVE_CFI
 void CFI_MPI_Alltoall(CFI_cdesc_t * input, int * scount, int * stype_f, CFI_cdesc_t * output, int * rcount, int * rtype_f, int * comm_f, int * ierror)
 {
+    int rc;
+
     void * in_addr  = input->base_addr;
     void * out_addr = output->base_addr;
     if (C_IS_MPI_IN_PLACE(in_addr))  in_addr  = MPI_IN_PLACE;
@@ -285,17 +383,45 @@ void CFI_MPI_Alltoall(CFI_cdesc_t * input, int * scount, int * stype_f, CFI_cdes
 
     MPI_Datatype stype = C_MPI_TYPE_F2C(*stype_f);
     MPI_Datatype rtype = C_MPI_TYPE_F2C(*rtype_f);
-    MPI_Comm comm = C_MPI_COMM_F2C(*comm_f);
 
-    // TODO optional count and datatype checking???
+    bool in_contiguous  = (1 == CFI_is_contiguous(input));
+    bool out_contiguous = (1 == CFI_is_contiguous(output));
 
-    if ( (1 == CFI_is_contiguous(input)) && (1 == CFI_is_contiguous(output)) ) {
-        *ierror = MPI_Alltoall(in_addr, *scount, stype, out_addr, *rcount, rtype, comm);
-    } else {
-        fprintf(stderr, "FIXME: not contiguous case\n");
-        MPI_Abort(comm, 99);
+    int in_count  = *scount;
+    int out_count = *rcount;
+
+    MPI_Datatype in_type  = stype;
+    MPI_Datatype out_type = rtype;
+
+    if (!in_contiguous) {
+        in_count = 1;
+        rc = VAPAA_CFI_CREATE_DATATYPE(input, *scount, stype, &in_type);
+        VAPAA_Assert(rc == MPI_SUCCESS);
+        rc = PMPI_Type_commit(&in_type);
+        VAPAA_Assert(rc == MPI_SUCCESS);
     }
+
+    if (!out_contiguous) {
+        out_count = 1;
+        rc = VAPAA_CFI_CREATE_DATATYPE(output, *rcount, rtype, &out_type);
+        VAPAA_Assert(rc == MPI_SUCCESS);
+        rc = PMPI_Type_commit(&out_type);
+        VAPAA_Assert(rc == MPI_SUCCESS);
+    }
+
+    MPI_Comm comm = C_MPI_COMM_F2C(*comm_f);
+    *ierror = MPI_Alltoall(in_addr, in_count, in_type, out_addr, out_count, out_type, comm);
     C_MPI_RC_FIX(*ierror);
+
+    if (!in_contiguous) {
+        rc = PMPI_Type_free(&in_type);
+        VAPAA_Assert(rc == MPI_SUCCESS);
+    }
+
+    if (!out_contiguous) {
+        rc = PMPI_Type_free(&out_type);
+        VAPAA_Assert(rc == MPI_SUCCESS);
+    }
 }
 #endif
 
@@ -327,8 +453,6 @@ void CFI_MPI_Gatherv(CFI_cdesc_t * input, int * scount, int * stype_f,
     MPI_Datatype stype = C_MPI_TYPE_F2C(*stype_f);
     MPI_Datatype rtype = C_MPI_TYPE_F2C(*rtype_f);
     MPI_Comm comm = C_MPI_COMM_F2C(*comm_f);
-
-    // TODO optional count and datatype checking???
 
     if ( (1 == CFI_is_contiguous(input)) && (1 == CFI_is_contiguous(output)) ) {
         *ierror = MPI_Gatherv(in_addr, *scount, stype, out_addr, rcounts, rdisps, rtype, *root, comm);
@@ -367,8 +491,6 @@ void CFI_MPI_Allgatherv(CFI_cdesc_t * input, int * scount, int * stype_f,
     MPI_Datatype rtype = C_MPI_TYPE_F2C(*rtype_f);
     MPI_Comm comm = C_MPI_COMM_F2C(*comm_f);
 
-    // TODO optional count and datatype checking???
-
     if ( (1 == CFI_is_contiguous(input)) && (1 == CFI_is_contiguous(output)) ) {
         *ierror = MPI_Allgatherv(in_addr, *scount, stype, out_addr, rcounts, rdisps, rtype, comm);
     } else {
@@ -406,8 +528,6 @@ void CFI_MPI_Scatterv(CFI_cdesc_t * input, const int scounts[], const int sdisps
     MPI_Datatype rtype = C_MPI_TYPE_F2C(*rtype_f);
     MPI_Comm comm = C_MPI_COMM_F2C(*comm_f);
 
-    // TODO optional count and datatype checking???
-
     if ( (1 == CFI_is_contiguous(input)) && (1 == CFI_is_contiguous(output)) ) {
         *ierror = MPI_Scatterv(in_addr, scounts, sdisps, stype, out_addr, *rcount, rtype, *root, comm);
     } else {
@@ -444,8 +564,6 @@ void CFI_MPI_Alltoallv(CFI_cdesc_t * input, const int scounts[], const int sdisp
     MPI_Datatype stype = C_MPI_TYPE_F2C(*stype_f);
     MPI_Datatype rtype = C_MPI_TYPE_F2C(*rtype_f);
     MPI_Comm comm = C_MPI_COMM_F2C(*comm_f);
-
-    // TODO optional count and datatype checking???
 
     if ( (1 == CFI_is_contiguous(input)) && (1 == CFI_is_contiguous(output)) ) {
         *ierror = MPI_Alltoallv(in_addr, scounts, sdisps, stype, out_addr, rcounts, rdisps, rtype, comm);
