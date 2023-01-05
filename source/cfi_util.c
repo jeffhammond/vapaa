@@ -310,48 +310,6 @@ int VAPAA_CFI_CREATE_DATATYPE(CFI_cdesc_t * desc, ssize_t count, MPI_Datatype in
         free(array_of_blocklengths);
         free(array_of_displacements);
     }
-#if 0
-    else if (rank == 4)
-    {
-        const int extent2 = desc->dim[2].extent;
-        const int extent3 = desc->dim[3].extent;
-
-        // this is not optimal.
-
-        int * array_of_blocklengths = malloc(count * sizeof(int));
-        VAPAA_Assert(array_of_blocklengths != NULL);
-        for (ssize_t i=0; i < count; i++) {
-            array_of_blocklengths[i] = 1;
-        }
-
-        MPI_Aint * array_of_displacements = malloc(count * sizeof(MPI_Aint));
-        VAPAA_Assert(array_of_displacements != NULL);
-        ssize_t offset = 0;
-        for (int i3 = 0; i3 < extent3; i3++) {
-            const MPI_Aint stride3 = desc->dim[3].sm;
-            for (int i2 = 0; i2 < extent2; i2++) {
-                const MPI_Aint stride2 = desc->dim[2].sm;
-                for (int i1 = 0; i1 < extent1; i1++) {
-                    const MPI_Aint stride1 = desc->dim[1].sm;
-                    for (int i0 = 0; i0 < extent0; i0++) {
-                        const MPI_Aint stride0 = desc->dim[0].sm;
-                        array_of_displacements[offset] = stride0 * i0 + stride1 * i1 + stride2 * i2 + stride3 * i3;
-                        offset++;
-                        if (offset == count) goto done4d;
-                    }
-                }
-            }
-        }
-        done4d:
-
-        rc = PMPI_Type_create_hindexed(count, array_of_blocklengths, array_of_displacements,
-                                       element_datatype, array_datatype);
-        VAPAA_Assert(rc == MPI_SUCCESS);
-
-        free(array_of_blocklengths);
-        free(array_of_displacements);
-    }
-#endif
     else if (rank < 15)
     {
         const int extent2  = (rank >  2) ? desc->dim[ 2].extent : 1;
