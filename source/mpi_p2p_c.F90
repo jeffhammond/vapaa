@@ -237,4 +237,58 @@ module mpi_p2p_c
     end interface
 #endif
 
+    interface
+        subroutine C_MPI_Pack(inbuf, incount, datatype, outbuf, outsize, position, comm, &
+                              ierror) &
+                   bind(C,name="C_MPI_Pack")
+            use iso_c_binding, only: c_int
+            implicit none
+            integer(kind=c_int), dimension(*), intent(in) :: inbuf
+            integer(kind=c_int), dimension(*), intent(inout) :: outbuf
+            integer(kind=c_int) :: incount, datatype, outsize, position, comm, ierror
+        end subroutine C_MPI_Pack
+    end interface
+
+#ifdef HAVE_CFI
+    interface
+        subroutine CFI_MPI_Pack(inbuf, incount, datatype, outbuf, outsize, position, comm, &
+                                ierror) &
+                   bind(C,name="CFI_MPI_Pack")
+            use iso_c_binding, only: c_int
+            implicit none
+            type(*), dimension(..), intent(in) :: inbuf
+            type(*), dimension(..), intent(inout) :: outbuf
+            integer(kind=c_int) :: incount, datatype, outsize, position, comm, ierror
+        end subroutine CFI_MPI_Pack
+    end interface
+#endif
+
+    interface
+        subroutine C_MPI_Unpack(inbuf, insize, position, outbuf, outcount, datatype, comm, &
+                                ierror) &
+                   bind(C,name="C_MPI_Unpack")
+            use iso_c_binding, only: c_int
+            use mpi_handle_types, only: MPI_Status
+            implicit none
+            integer(kind=c_int), dimension(*), intent(in) :: inbuf
+            integer(kind=c_int), dimension(*), intent(inout) :: outbuf
+            integer(kind=c_int) :: insize, position, outcount, datatype, comm, ierror
+        end subroutine C_MPI_Unpack
+    end interface
+
+#ifdef HAVE_CFI
+    interface
+        subroutine CFI_MPI_Unpack(inbuf, insize, position, outbuf, outcount, datatype, comm, &
+                                  ierror) &
+                   bind(C,name="CFI_MPI_Unpack")
+            use iso_c_binding, only: c_int
+            use mpi_handle_types, only: MPI_Status
+            implicit none
+            type(*), dimension(..), intent(in) :: inbuf
+            type(*), dimension(..), intent(inout) :: outbuf
+            integer(kind=c_int) :: insize, position, outcount, datatype, comm, ierror
+        end subroutine CFI_MPI_Unpack
+    end interface
+#endif
+
 end module mpi_p2p_c
