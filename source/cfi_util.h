@@ -20,4 +20,8 @@ void VAPAA_CFI_PRINT_INFO(CFI_cdesc_t * desc);
 int VAPAA_CFI_CREATE_DATATYPE(CFI_cdesc_t * desc, ssize_t count, MPI_Datatype input_datatype, 
                               MPI_Datatype * array_datatype);
 
+size_t VAPAA_CFI_GET_TOTAL_ELEMENTS(CFI_cdesc_t * desc);
+int VAPAA_CFI_SERIALIZE_SUBARRAY(const CFI_cdesc_t * desc, ssize_t count, void * output);
+int VAPAA_CFI_DESERIALIZE_SUBARRAY(ssize_t count, const void * input, CFI_cdesc_t * desc);
+
 #endif // CFI_UTIL_H
