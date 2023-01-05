@@ -409,3 +409,72 @@ void CFI_MPI_Imrecv(CFI_cdesc_t * desc, int * count, int * datatype_f, int * mes
 }
 #endif
 
+void C_MPI_Pack(void * inbuf, int * incount, int * datatype_f, void * outbuf, int * outsize, int * position, int * comm_f, int * ierror)
+{
+    MPI_Datatype datatype = C_MPI_TYPE_F2C(*datatype_f);
+    MPI_Comm comm = C_MPI_COMM_F2C(*comm_f);
+    *ierror = MPI_Pack(inbuf, *incount, datatype, outbuf, *outsize, position, comm);
+    C_MPI_RC_FIX(*ierror);
+}
+
+#ifdef HAVE_CFI
+void CFI_MPI_Pack(CFI_cdesc_t * indesc, int * incount, int * datatype_f, CFI_cdesc_t * outdesc, int * outsize, int * position, int * comm_f, int * ierror)
+{
+    MPI_Datatype datatype = C_MPI_TYPE_F2C(*datatype_f);
+    MPI_Comm comm = C_MPI_COMM_F2C(*comm_f);
+    if (0 == CFI_is_contiguous(outdesc)) {
+        VAPAA_Warning("MPI_Pack requires the output buffer be contiguous.\n");
+        *ierror = MPI_ERR_ARG;
+    } else {
+        if (1 == CFI_is_contiguous(indesc)) {
+            *ierror = MPI_Pack(indesc->base_addr, *incount, datatype, outdesc->base_addr, *outsize, position, comm);
+        } else {
+            int rc;
+            MPI_Datatype subarray_type = MPI_DATATYPE_NULL;
+            rc = VAPAA_CFI_CREATE_DATATYPE(indesc, *incount, datatype, &subarray_type);
+            VAPAA_Assert(rc == MPI_SUCCESS);
+            rc = PMPI_Type_commit(&subarray_type);
+            VAPAA_Assert(rc == MPI_SUCCESS);
+            *ierror = MPI_Pack(indesc->base_addr, 1, subarray_type, outdesc->base_addr, *outsize, position, comm);
+            rc = PMPI_Type_free(&subarray_type);
+            VAPAA_Assert(rc == MPI_SUCCESS);
+        }
+    }
+    C_MPI_RC_FIX(*ierror);
+}
+#endif
+
+void C_MPI_Unpack(void * inbuf, int * insize, int * position, void * outbuf, int * outcount,  int * datatype_f, int * comm_f, int * ierror)
+{
+    MPI_Datatype datatype = C_MPI_TYPE_F2C(*datatype_f);
+    MPI_Comm comm = C_MPI_COMM_F2C(*comm_f);
+    *ierror = MPI_Unpack(inbuf, *insize, position, outbuf, *outcount, datatype, comm);
+    C_MPI_RC_FIX(*ierror);
+}
+
+#ifdef HAVE_CFI
+void CFI_MPI_Unpack(CFI_cdesc_t * indesc, int * insize, int * position, CFI_cdesc_t * outdesc, int * outcount,  int * datatype_f, int * comm_f, int * ierror)
+{
+    MPI_Datatype datatype = C_MPI_TYPE_F2C(*datatype_f);
+    MPI_Comm comm = C_MPI_COMM_F2C(*comm_f);
+    if (0 == CFI_is_contiguous(indesc)) {
+        VAPAA_Warning("MPI_Unpack requires the input buffer be contiguous.\n");
+        *ierror = MPI_ERR_ARG;
+    } else {
+        if (1 == CFI_is_contiguous(outdesc)) {
+            *ierror = MPI_Unpack(indesc->base_addr, *insize, position, outdesc->base_addr, *outcount, datatype, comm);
+        } else {
+            int rc;
+            MPI_Datatype subarray_type = MPI_DATATYPE_NULL;
+            rc = VAPAA_CFI_CREATE_DATATYPE(outdesc, *outcount, datatype, &subarray_type);
+            VAPAA_Assert(rc == MPI_SUCCESS);
+            rc = PMPI_Type_commit(&subarray_type);
+            VAPAA_Assert(rc == MPI_SUCCESS);
+            *ierror = MPI_Unpack(indesc->base_addr, *insize, position, outdesc->base_addr, 1, subarray_type, comm);
+            rc = PMPI_Type_free(&subarray_type);
+            VAPAA_Assert(rc == MPI_SUCCESS);
+        }
+    }
+    C_MPI_RC_FIX(*ierror);
+}
+#endif
