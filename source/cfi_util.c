@@ -310,6 +310,7 @@ int VAPAA_CFI_CREATE_DATATYPE(CFI_cdesc_t * desc, ssize_t count, MPI_Datatype in
         free(array_of_blocklengths);
         free(array_of_displacements);
     }
+#if 0
     else if (rank == 4)
     {
         const int extent2 = desc->dim[2].extent;
@@ -350,7 +351,105 @@ int VAPAA_CFI_CREATE_DATATYPE(CFI_cdesc_t * desc, ssize_t count, MPI_Datatype in
         free(array_of_blocklengths);
         free(array_of_displacements);
     }
-    // We can just copy-and-paste the above pattern for dimensions 5 to 15 if anyone asks for it...
+#endif
+    else if (rank < 15)
+    {
+        const int extent2  = (rank >  2) ? desc->dim[ 2].extent : 1;
+        const int extent3  = (rank >  3) ? desc->dim[ 3].extent : 1;
+        const int extent4  = (rank >  4) ? desc->dim[ 4].extent : 1;
+        const int extent5  = (rank >  5) ? desc->dim[ 5].extent : 1;
+        const int extent6  = (rank >  6) ? desc->dim[ 6].extent : 1;
+        const int extent7  = (rank >  7) ? desc->dim[ 7].extent : 1;
+        const int extent8  = (rank >  8) ? desc->dim[ 8].extent : 1;
+        const int extent9  = (rank >  9) ? desc->dim[ 9].extent : 1;
+        const int extent10 = (rank > 10) ? desc->dim[10].extent : 1;
+        const int extent11 = (rank > 11) ? desc->dim[11].extent : 1;
+        const int extent12 = (rank > 12) ? desc->dim[12].extent : 1;
+        const int extent13 = (rank > 13) ? desc->dim[13].extent : 1;
+        const int extent14 = (rank > 14) ? desc->dim[14].extent : 1;
+
+        // this is not optimal.
+
+        int * array_of_blocklengths = malloc(count * sizeof(int));
+        VAPAA_Assert(array_of_blocklengths != NULL);
+        for (ssize_t i=0; i < count; i++) {
+            array_of_blocklengths[i] = 1;
+        }
+
+        MPI_Aint * array_of_displacements = malloc(count * sizeof(MPI_Aint));
+        VAPAA_Assert(array_of_displacements != NULL);
+        ssize_t offset = 0;
+        for (int i14 = 0; i14 < extent14; i14++) {
+         const MPI_Aint stride14 = (rank > 14) ? desc->dim[14].sm : 0;
+         for (int i13 = 0; i13 < extent13; i13++) {
+          const MPI_Aint stride13 = (rank > 13) ? desc->dim[13].sm : 0;
+          for (int i12 = 0; i12 < extent12; i12++) {
+           const MPI_Aint stride12 = (rank > 12) ? desc->dim[12].sm : 0;
+           for (int i11 = 0; i11 < extent11; i11++) {
+            const MPI_Aint stride11 = (rank > 11) ? desc->dim[11].sm : 0;
+            for (int i10 = 0; i10 < extent10; i10++) {
+             const MPI_Aint stride10 = (rank > 10) ? desc->dim[10].sm : 0;
+             for (int i9 = 0; i9 < extent9; i9++) {
+              const MPI_Aint stride9 = (rank > 9) ? desc->dim[9].sm : 0;
+              for (int i8 = 0; i8 < extent8; i8++) {
+               const MPI_Aint stride8 = (rank > 8) ? desc->dim[8].sm : 0;
+               for (int i7 = 0; i7 < extent7; i7++) {
+                const MPI_Aint stride7 = (rank > 7) ? desc->dim[7].sm : 0;
+                for (int i6 = 0; i6 < extent6; i6++) {
+                 const MPI_Aint stride6 = (rank > 6) ? desc->dim[6].sm : 0;
+                 for (int i5 = 0; i5 < extent5; i5++) {
+                  const MPI_Aint stride5 = (rank > 5) ? desc->dim[5].sm : 0;
+                  for (int i4 = 0; i4 < extent4; i4++) {
+                   const MPI_Aint stride4 = (rank > 4) ? desc->dim[4].sm : 0;
+                   for (int i3 = 0; i3 < extent3; i3++) {
+                    const MPI_Aint stride3 = (rank > 3) ? desc->dim[3].sm : 0;
+                    for (int i2 = 0; i2 < extent2; i2++) {
+                     const MPI_Aint stride2 = (rank > 2) ? desc->dim[2].sm : 0;
+                     for (int i1 = 0; i1 < extent1; i1++) {
+                      const MPI_Aint stride1 = (rank > 1) ? desc->dim[1].sm : 0;
+                      for (int i0 = 0; i0 < extent0; i0++) {
+                       const MPI_Aint stride0 = (rank > 0) ? desc->dim[0].sm : 0;
+                       array_of_displacements[offset] = stride0  * i0
+                                                      + stride1  * i1
+                                                      + stride2  * i2
+                                                      + stride3  * i3
+                                                      + stride4  * i4
+                                                      + stride5  * i5
+                                                      + stride6  * i6
+                                                      + stride7  * i7
+                                                      + stride8  * i8
+                                                      + stride9  * i9
+                                                      + stride10 * i10
+                                                      + stride11 * i11
+                                                      + stride12 * i12
+                                                      + stride13 * i13
+                                                      + stride14 * i14;
+                       offset++;
+                       if (offset == count) goto done15d;
+                      }
+                     }
+                    }
+                   }
+                  }
+                 }
+                }
+               }
+              }
+             }
+            }
+           }
+          }
+         }
+        }
+        done15d:
+
+        rc = PMPI_Type_create_hindexed(count, array_of_blocklengths, array_of_displacements,
+                                       element_datatype, array_datatype);
+        VAPAA_Assert(rc == MPI_SUCCESS);
+
+        free(array_of_blocklengths);
+        free(array_of_displacements);
+    }
     else
     {
         VAPAA_Warning("Unsupported dimension (%d).\n", rank);
@@ -366,5 +465,22 @@ int VAPAA_CFI_CREATE_DATATYPE(CFI_cdesc_t * desc, ssize_t count, MPI_Datatype in
             return MPI_ERR_INTERN;
         }   
     }
+    return MPI_SUCCESS;
+}
+
+int VAPAA_CFI_SERIALIZE_SUBARRAY(CFI_cdesc_t * desc, void * output)
+{
+    const int     rank     = desc->rank;
+    const ssize_t elem_len = desc->elem_len;
+
+    // count up the total number of elements in the CFI array
+    ssize_t total_elems = 1;
+    for (CFI_rank_t i=0; i < rank; i++) {
+        const ssize_t extent = desc->dim[i].extent;
+        total_elems *= extent;
+    }
+
+    *(void**)output = malloc( total_elems * elem_len );
+
     return MPI_SUCCESS;
 }
