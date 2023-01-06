@@ -57,7 +57,9 @@ int C_MPI_ERROR_CODE_C2F(int error_c)
     else if (error_c == MPI_ERR_NO_SPACE              ) { return VAPAA_MPI_ERR_NO_SPACE; }
     else if (error_c == MPI_ERR_NO_SUCH_FILE          ) { return VAPAA_MPI_ERR_NO_SUCH_FILE; }
     else if (error_c == MPI_ERR_PORT                  ) { return VAPAA_MPI_ERR_PORT; }
+#if (MPI_VERSION >= 4)
     else if (error_c == MPI_ERR_PROC_ABORTED          ) { return VAPAA_MPI_ERR_PROC_ABORTED; }
+#endif
     else if (error_c == MPI_ERR_QUOTA                 ) { return VAPAA_MPI_ERR_QUOTA; }
     else if (error_c == MPI_ERR_READ_ONLY             ) { return VAPAA_MPI_ERR_READ_ONLY; }
     else if (error_c == MPI_ERR_RMA_ATTACH            ) { return VAPAA_MPI_ERR_RMA_ATTACH; }
@@ -67,17 +69,23 @@ int C_MPI_ERROR_CODE_C2F(int error_c)
     else if (error_c == MPI_ERR_RMA_SYNC              ) { return VAPAA_MPI_ERR_RMA_SYNC; }
     else if (error_c == MPI_ERR_RMA_FLAVOR            ) { return VAPAA_MPI_ERR_RMA_FLAVOR; }
     else if (error_c == MPI_ERR_SERVICE               ) { return VAPAA_MPI_ERR_SERVICE; }
+#if (MPI_VERSION >= 4)
     else if (error_c == MPI_ERR_SESSION               ) { return VAPAA_MPI_ERR_SESSION; }
+#endif
     else if (error_c == MPI_ERR_SIZE                  ) { return VAPAA_MPI_ERR_SIZE; }
     else if (error_c == MPI_ERR_SPAWN                 ) { return VAPAA_MPI_ERR_SPAWN; }
     else if (error_c == MPI_ERR_UNSUPPORTED_DATAREP   ) { return VAPAA_MPI_ERR_UNSUPPORTED_DATAREP; }
     else if (error_c == MPI_ERR_UNSUPPORTED_OPERATION ) { return VAPAA_MPI_ERR_UNSUPPORTED_OPERATION; }
+#if (MPI_VERSION >= 4)
     else if (error_c == MPI_ERR_VALUE_TOO_LARGE       ) { return VAPAA_MPI_ERR_VALUE_TOO_LARGE; }
+#endif
     else if (error_c == MPI_ERR_WIN                   ) { return VAPAA_MPI_ERR_WIN; }
     else if (error_c == MPI_T_ERR_CANNOT_INIT         ) { return VAPAA_MPI_T_ERR_CANNOT_INIT; }
     //else if (error_c == MPI_T_ERR_NOT_ACCESSIBLE      ) { return VAPAA_MPI_T_ERR_NOT_ACCESSIBLE; }
     else if (error_c == MPI_T_ERR_NOT_INITIALIZED     ) { return VAPAA_MPI_T_ERR_NOT_INITIALIZED; }
+#if (MPI_VERSION >= 4)
     else if (error_c == MPI_T_ERR_NOT_SUPPORTED       ) { return VAPAA_MPI_T_ERR_NOT_SUPPORTED; }
+#endif
     else if (error_c == MPI_T_ERR_MEMORY              ) { return VAPAA_MPI_T_ERR_MEMORY; }
     else if (error_c == MPI_T_ERR_INVALID             ) { return VAPAA_MPI_T_ERR_INVALID; }
     else if (error_c == MPI_T_ERR_INVALID_INDEX       ) { return VAPAA_MPI_T_ERR_INVALID_INDEX; }
@@ -145,7 +153,9 @@ int C_MPI_ERROR_CODE_F2C(int error_f)
     else if (error_f == VAPAA_MPI_ERR_NO_SPACE               ) { return MPI_ERR_NO_SPACE;              }
     else if (error_f == VAPAA_MPI_ERR_NO_SUCH_FILE           ) { return MPI_ERR_NO_SUCH_FILE;          }
     else if (error_f == VAPAA_MPI_ERR_PORT                   ) { return MPI_ERR_PORT;                  }
+#if (MPI_VERSION >= 4)
     else if (error_f == VAPAA_MPI_ERR_PROC_ABORTED           ) { return MPI_ERR_PROC_ABORTED;          }
+#endif
     else if (error_f == VAPAA_MPI_ERR_QUOTA                  ) { return MPI_ERR_QUOTA;                 }
     else if (error_f == VAPAA_MPI_ERR_READ_ONLY              ) { return MPI_ERR_READ_ONLY;             }
     else if (error_f == VAPAA_MPI_ERR_RMA_ATTACH             ) { return MPI_ERR_RMA_ATTACH;            }
@@ -155,17 +165,23 @@ int C_MPI_ERROR_CODE_F2C(int error_f)
     else if (error_f == VAPAA_MPI_ERR_RMA_SYNC               ) { return MPI_ERR_RMA_SYNC;              }
     else if (error_f == VAPAA_MPI_ERR_RMA_FLAVOR             ) { return MPI_ERR_RMA_FLAVOR;            }
     else if (error_f == VAPAA_MPI_ERR_SERVICE                ) { return MPI_ERR_SERVICE;               }
+#if (MPI_VERSION >= 4)
     else if (error_f == VAPAA_MPI_ERR_SESSION                ) { return MPI_ERR_SESSION;               }
+#endif
     else if (error_f == VAPAA_MPI_ERR_SIZE                   ) { return MPI_ERR_SIZE;                  }
     else if (error_f == VAPAA_MPI_ERR_SPAWN                  ) { return MPI_ERR_SPAWN;                 }
     else if (error_f == VAPAA_MPI_ERR_UNSUPPORTED_DATAREP    ) { return MPI_ERR_UNSUPPORTED_DATAREP;   }
     else if (error_f == VAPAA_MPI_ERR_UNSUPPORTED_OPERATION  ) { return MPI_ERR_UNSUPPORTED_OPERATION; }
+#if (MPI_VERSION >= 4)
     else if (error_f == VAPAA_MPI_ERR_VALUE_TOO_LARGE        ) { return MPI_ERR_VALUE_TOO_LARGE;       }
+#endif
     else if (error_f == VAPAA_MPI_ERR_WIN                    ) { return MPI_ERR_WIN;                   }
     else if (error_f == VAPAA_MPI_T_ERR_CANNOT_INIT          ) { return MPI_T_ERR_CANNOT_INIT;         }
     //else if (error_f == VAPAA_MPI_T_ERR_NOT_ACCESSIBLE       ) { return MPI_T_ERR_NOT_ACCESSIBLE;      }
     else if (error_f == VAPAA_MPI_T_ERR_NOT_INITIALIZED      ) { return MPI_T_ERR_NOT_INITIALIZED;     }
+#if (MPI_VERSION >= 4)
     else if (error_f == VAPAA_MPI_T_ERR_NOT_SUPPORTED        ) { return MPI_T_ERR_NOT_SUPPORTED;       }
+#endif
     else if (error_f == VAPAA_MPI_T_ERR_MEMORY               ) { return MPI_T_ERR_MEMORY;              }
     else if (error_f == VAPAA_MPI_T_ERR_INVALID              ) { return MPI_T_ERR_INVALID;             }
     else if (error_f == VAPAA_MPI_T_ERR_INVALID_INDEX        ) { return MPI_T_ERR_INVALID_INDEX;       }
