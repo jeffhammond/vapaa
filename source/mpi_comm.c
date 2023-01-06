@@ -7,11 +7,16 @@ static int C_MPI_TRANSLATE_SPLIT_TYPE(int f)
 {
     if (f == VAPAA_MPI_COMM_TYPE_SHARED) {
         return MPI_COMM_TYPE_SHARED;
-    } else if (f == VAPAA_MPI_COMM_TYPE_HW_UNGUIDED) {
+    }
+#if (MPI_VERSION >= 4)
+    else if (f == VAPAA_MPI_COMM_TYPE_HW_UNGUIDED) {
         return MPI_COMM_TYPE_HW_UNGUIDED;
-    } else if (f == VAPAA_MPI_COMM_TYPE_HW_GUIDED) {
+    }
+    else if (f == VAPAA_MPI_COMM_TYPE_HW_GUIDED) {
         return MPI_COMM_TYPE_HW_GUIDED;
-    } else {
+    }
+#endif
+    else {
         // impossible
         MPI_Abort(MPI_COMM_WORLD,f);
         return -1;
