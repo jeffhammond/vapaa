@@ -86,7 +86,7 @@ static bool C_MPI_TYPE_IS_BUILTIN(MPI_Datatype type_c)
     }
 
 MAYBE_UNUSED
-static bool C_MPI_OP_IS_BUILTIN(int op_c)
+static bool C_MPI_OP_IS_BUILTIN(MPI_Op op_c)
 {
     if (false) { return false; }
     OP_ELIF(MPI_MAX)
