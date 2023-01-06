@@ -74,6 +74,22 @@ module mpi_p2p_f
 #endif
     end interface MPI_Irecv
 
+    interface MPI_Pack
+#ifdef HAVE_CFI
+        module procedure MPI_Pack_f08ts
+#else
+        module procedure MPI_Pack_f08
+#endif
+    end interface MPI_Pack
+
+    interface MPI_Unpack
+#ifdef HAVE_CFI
+        module procedure MPI_Unpack_f08ts
+#else
+        module procedure MPI_Unpack_f08
+#endif
+    end interface MPI_Unpack
+
     contains
 
         subroutine MPI_Probe_f08(source, tag, comm, stat, ierror) 
@@ -377,7 +393,6 @@ module mpi_p2p_f
             integer, optional, intent(out) :: ierror
             integer(kind=c_int) :: count_c, source_c, tag_c, ierror_c
             type(MPI_Status), intent(inout) :: stat
-            ! buffer
             count_c = count
             source_c = source 
             tag_c = tag
@@ -396,7 +411,6 @@ module mpi_p2p_f
             integer, optional, intent(out) :: ierror
             integer(kind=c_int) :: count_c, source_c, tag_c, ierror_c
             type(MPI_Status), intent(inout) :: stat
-            ! buffer
             count_c = count
             source_c = source 
             tag_c = tag
@@ -416,7 +430,6 @@ module mpi_p2p_f
             type(MPI_Request), intent(out) :: request
             integer, optional, intent(out) :: ierror
             integer(kind=c_int) :: count_c, source_c, tag_c, ierror_c
-            ! buffer
             count_c = count
             source_c = source 
             tag_c = tag
@@ -435,13 +448,96 @@ module mpi_p2p_f
             type(MPI_Request), intent(out) :: request
             integer, optional, intent(out) :: ierror
             integer(kind=c_int) :: count_c, source_c, tag_c, ierror_c
-            ! buffer
             count_c = count
             source_c = source 
             tag_c = tag
             call CFI_MPI_Irecv(buffer, count_c, datatype % MPI_VAL, source_c, tag_c, comm % MPI_VAL, request % MPI_VAL, ierror_c)
             if (present(ierror)) ierror = ierror_c
         end subroutine MPI_Irecv_f08ts
+#endif
+
+        subroutine MPI_Pack_f08(inbuf, incount, datatype, outbuf, outsize, position, comm, ierror) 
+            use mpi_handle_types, only: MPI_Comm, MPI_Datatype
+            use mpi_p2p_c, only: C_MPI_Pack
+!dir$ ignore_tkr inbuf
+            integer, dimension(*), intent(in) :: inbuf
+            integer, intent(in) :: incount, outsize
+            type(MPI_Datatype), intent(in) :: datatype
+!dir$ ignore_tkr outbuf
+            integer, dimension(*), intent(out) :: outbuf
+            integer, intent(inout) :: position
+            type(MPI_Comm), intent(in) :: comm
+            integer, optional, intent(out) :: ierror
+            integer(kind=c_int) :: incount_c, outsize_c, position_c, ierror_c
+            incount_c  = incount
+            outsize_c  = outsize
+            position_c = position
+            call C_MPI_Pack(inbuf, incount_c, datatype % MPI_VAL, outbuf, outsize_c, position_c, comm % MPI_VAL, ierror_c)
+            position  = position_c
+            if (present(ierror)) ierror = ierror_c
+        end subroutine MPI_Pack_f08
+
+#ifdef HAVE_CFI
+        subroutine MPI_Pack_f08ts(inbuf, incount, datatype, outbuf, outsize, position, comm, ierror)
+            use mpi_handle_types, only: MPI_Comm, MPI_Datatype
+            use mpi_p2p_c, only: CFI_MPI_Pack
+            type(*), dimension(..), intent(in) :: inbuf
+            integer, intent(in) :: incount, outsize
+            type(MPI_Datatype), intent(in) :: datatype
+            type(*), dimension(..), intent(inout) :: outbuf
+            integer, intent(inout) :: position
+            type(MPI_Comm), intent(in) :: comm
+            integer, optional, intent(out) :: ierror
+            integer(kind=c_int) :: incount_c, outsize_c, position_c, ierror_c
+            incount_c  = incount
+            outsize_c  = outsize
+            position_c = position
+            call CFI_MPI_Pack(inbuf, incount_c, datatype % MPI_VAL, outbuf, outsize_c, position_c, comm % MPI_VAL, ierror_c)
+            position  = position_c
+            if (present(ierror)) ierror = ierror_c
+        end subroutine MPI_Pack_f08ts
+#endif
+
+        subroutine MPI_Unpack_f08(inbuf, insize, position, outbuf, outcount, datatype, comm, ierror)
+            use mpi_handle_types, only: MPI_Comm, MPI_Datatype
+            use mpi_p2p_c, only: C_MPI_Unpack
+!dir$ ignore_tkr inbuf
+            integer, dimension(*), intent(in) :: inbuf
+            integer, intent(in) :: insize, outcount
+            integer, intent(inout) :: position
+!dir$ ignore_tkr outbuf
+            integer, dimension(*), intent(out) :: outbuf
+            type(MPI_Datatype), intent(in) :: datatype
+            type(MPI_Comm), intent(in) :: comm
+            integer, optional, intent(out) :: ierror
+            integer(kind=c_int) :: insize_c, position_c, outcount_c, ierror_c
+            insize_c   = insize
+            position_c = position
+            outcount_c = outcount
+            call C_MPI_Unpack(inbuf, insize_c, position_c, outbuf, outcount_c, datatype % MPI_VAL, comm % MPI_VAL, ierror_c)
+            position = position_c
+            if (present(ierror)) ierror = ierror_c
+        end subroutine MPI_Unpack_f08
+
+#ifdef HAVE_CFI
+        subroutine MPI_Unpack_f08ts(inbuf, insize, position, outbuf, outcount, datatype, comm, ierror)
+            use mpi_handle_types, only: MPI_Comm, MPI_Datatype
+            use mpi_p2p_c, only: CFI_MPI_Unpack
+            type(*), dimension(..), intent(in) :: inbuf
+            integer, intent(in) :: insize, outcount
+            integer, intent(inout) :: position
+            type(*), dimension(..), intent(inout) :: outbuf
+            type(MPI_Datatype), intent(in) :: datatype
+            type(MPI_Comm), intent(in) :: comm
+            integer, optional, intent(out) :: ierror
+            integer(kind=c_int) :: insize_c, position_c, outcount_c, ierror_c
+            insize_c   = insize
+            position_c = position
+            outcount_c = outcount
+            call CFI_MPI_Unpack(inbuf, insize_c, position_c, outbuf, outcount_c, datatype % MPI_VAL, comm % MPI_VAL, ierror_c)
+            position = position_c
+            if (present(ierror)) ierror = ierror_c
+        end subroutine MPI_Unpack_f08ts
 #endif
 
 end module mpi_p2p_f
