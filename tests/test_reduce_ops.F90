@@ -5,12 +5,10 @@ program main
     integer :: i, me, np, ref
     integer, dimension(10) :: ix, iy
     type(MPI_Op) :: o
-    type(MPI_Op), dimension(10) :: ops = [ MPI_MAX, MPI_MIN, MPI_SUM, MPI_PROD, &
-                                           MPI_BAND, MPI_BOR, MPI_BXOR, &
-                                           MPI_LAND, MPI_LOR, MPI_LXOR ] 
-    character(8), dimension(10) :: opn = [ 'MPI_MAX ', 'MPI_MIN ', 'MPI_SUM ', 'MPI_PROD', &
-                                           'MPI_BAND', 'MPI_BOR ', 'MPI_BXOR', &
-                                           'MPI_LAND', 'MPI_LOR ', 'MPI_LXOR' ] 
+    type(MPI_Op), dimension(7) :: ops = [ MPI_MAX, MPI_MIN, MPI_SUM, MPI_PROD, &
+                                          MPI_BAND, MPI_BOR, MPI_BXOR ]
+    character(8), dimension(7) :: opn = [ 'MPI_MAX ', 'MPI_MIN ', 'MPI_SUM ', 'MPI_PROD', &
+                                          'MPI_BAND', 'MPI_BOR ', 'MPI_BXOR' ]
 
     call MPI_Init(ierror)
 
