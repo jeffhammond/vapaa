@@ -44,7 +44,7 @@ program main
     call MPI_Info_get_string(dup,'key1',buflen,string,flag)
     !print*,'key1=',trim(string),' buflen=',buflen,' flag=',flag,' (should be true)'
     if ((.not.flag).or.(buflen.ne.5).or.(string(1:4).ne.'val1')) then
-        print*,'key1=',trim(string),' buflen=',buflen,' flag=',flag,' (should be true)'
+        print*,'key1=',trim(string),' buflen=',buflen,' (should be 5)',' flag=',flag,' (should be true)'
         call MPI_Abort(MPI_COMM_WORLD,1)
     end if
 

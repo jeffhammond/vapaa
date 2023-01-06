@@ -72,15 +72,23 @@ void CFI_MPI_Info_get_nthkey(int * info_f, int * n, CFI_cdesc_t * key_d, int * i
 }
 #endif
 
-#if (MPI_VERSION >= 4)
-
 void C_MPI_Info_get_string(int * info_f, char ** pkey, int * buflen, char ** pval, int * flag, int * ierror)
 {
     MPI_Info info = C_MPI_INFO_F2C(*info_f);
     char * key = *pkey;
     char * val = *pval;
     memset(val,0,*buflen);
+#if (MPI_VERSION >= 4)
+    // In C, buflen includes the required space for the null terminator.
     *ierror = MPI_Info_get_string(info, key, buflen, val, flag);
+#else
+    // The length returned in C does not include the end-of-string character.
+    *ierror = MPI_Info_get(info, key, *buflen, val, flag);
+    if (*ierror == MPI_SUCCESS) {
+        *ierror = MPI_Info_get_valuelen(info, key, buflen, flag);
+        (*buflen)++;
+    }
+#endif
     C_MPI_RC_FIX(*ierror);
 }
 
@@ -91,12 +99,20 @@ void CFI_MPI_Info_get_string(int * info_f, CFI_cdesc_t * key_d, int * buflen, CF
     char * key = key_d -> base_addr;
     char * val = val_d -> base_addr;
     memset(val,0,*buflen);
+#if (MPI_VERSION >= 4)
+    // In C, buflen includes the required space for the null terminator.
     *ierror = MPI_Info_get_string(info, key, buflen, val, flag);
+#else
+    // The length returned in C does not include the end-of-string character.
+    *ierror = MPI_Info_get(info, key, *buflen, val, flag);
+    if (*ierror == MPI_SUCCESS) {
+        *ierror = MPI_Info_get_valuelen(info, key, buflen, flag);
+        (*buflen)++;
+    }
+#endif
     C_MPI_RC_FIX(*ierror);
 }
 #endif
-
-#endif // MPI_VERSION >= 4
 
 void C_MPI_Info_set(int * info_f, char ** pkey, char ** pval, int * ierror)
 {
