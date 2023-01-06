@@ -28,6 +28,7 @@ bool VAPAA_MPI_DATATYPE_IS_CONTIGUOUS(MPI_Datatype t)
 MPI_Datatype VAPAA_CFI_TO_MPI_TYPE(CFI_type_t type)
 {
          if (type==CFI_type_signed_char)          return MPI_CHAR;
+    else if (type==CFI_type_char)                 return MPI_CHAR;
     else if (type==CFI_type_int8_t)               return MPI_INT8_T;
     else if (type==CFI_type_int16_t)              return MPI_INT16_T;
     else if (type==CFI_type_int32_t)              return MPI_INT32_T;
@@ -36,7 +37,12 @@ MPI_Datatype VAPAA_CFI_TO_MPI_TYPE(CFI_type_t type)
     else if (type==CFI_type_double)               return MPI_DOUBLE;
     else if (type==CFI_type_float_Complex)        return MPI_C_FLOAT_COMPLEX;
     else if (type==CFI_type_double_Complex)       return MPI_C_DOUBLE_COMPLEX;
-    else                                          return MPI_DATATYPE_NULL;
+    else {
+        char name[33] = {0};
+        VAPAA_CFI_GET_TYPE_NAME(type, name);
+        VAPAA_Warning("Unknown CFI type = %s (%d)\n", name, type);
+        return MPI_DATATYPE_NULL;
+    }
 }
 
 void VAPAA_CFI_GET_TYPE_ATTRIBUTE(CFI_attribute_t attribute, char * name)
