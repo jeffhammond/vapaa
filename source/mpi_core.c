@@ -80,7 +80,7 @@ void C_MPI_Get_library_version(char ** pversion, int * resultlen, int * ierror)
                        VAPAA_MPI_MAX_LIBRARY_VERSION_STRING, MPI_MAX_LIBRARY_VERSION_STRING);
     }
     char * version = *pversion;
-    memset(version,0,MPI_MAX_LIBRARY_VERSION_STRING);
+    memset(version,0,VAPAA_MPI_MAX_LIBRARY_VERSION_STRING);
     *ierror = MPI_Get_library_version(version, resultlen);
     C_MPI_RC_FIX(*ierror);
 }
@@ -96,7 +96,7 @@ void CFI_MPI_Get_library_version(CFI_cdesc_t * version_d, int * resultlen, int *
                        VAPAA_MPI_MAX_LIBRARY_VERSION_STRING, MPI_MAX_LIBRARY_VERSION_STRING);
     }
     char * version = version_d -> base_addr;
-    memset(version,0,MPI_MAX_LIBRARY_VERSION_STRING);
+    memset(version,0,VAPAA_MPI_MAX_LIBRARY_VERSION_STRING);
     *ierror = MPI_Get_library_version(version, resultlen);
     C_MPI_RC_FIX(*ierror);
 }
