@@ -1,5 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <unistd.h>
+#include <limits.h>
 #include <mpi.h>
 #include "ISO_Fortran_binding.h"
 #include "convert_handles.h"
@@ -34,6 +36,44 @@ void CFI_MPI_Bcast(CFI_cdesc_t * desc, int * count, int * datatype_f, int * root
         *ierror = MPI_Bcast(desc->base_addr, *count, datatype, *root, comm);
     } else {
         int rc;
+#if 1
+        size_t scount = VAPAA_CFI_GET_TOTAL_ELEMENTS(desc);
+        int    icount = (scount < INT_MAX) ? scount : (abort(), 1);
+        int    bytes  = icount * desc->elem_len; // technically not count-safe
+        void * temp   = malloc(bytes);
+
+        int me;
+        rc = PMPI_Comm_rank(comm, &me);
+        VAPAA_Assert(rc == MPI_SUCCESS);
+
+        if (me == *root) {
+            rc = VAPAA_CFI_SERIALIZE_SUBARRAY(desc, scount, temp);
+#if 0
+            printf("%d: serialized = ", me);
+            for (int i=0; i<icount; i++) {
+                printf("%c ", ((char*)temp)[i]);
+            }
+            printf("\n");
+            fflush(0);
+            sleep(1);
+#endif
+        }
+        *ierror = MPI_Bcast(temp, *count, datatype, *root, comm);
+        if (me != *root) {
+            rc = VAPAA_CFI_DESERIALIZE_SUBARRAY(scount, temp, desc);
+#if 0
+            printf("%d: deserialized = ", me);
+            for (int i=0; i<icount; i++) {
+                printf("%c ", ((char*)temp)[i]);
+            }
+            printf("\n");
+            fflush(0);
+            sleep(1);
+#endif
+        }
+
+        free(temp);
+#else
         MPI_Datatype subarray_type = MPI_DATATYPE_NULL;
         rc = VAPAA_CFI_CREATE_DATATYPE(desc, *count, datatype, &subarray_type);
         VAPAA_Assert(rc == MPI_SUCCESS);
@@ -42,6 +82,7 @@ void CFI_MPI_Bcast(CFI_cdesc_t * desc, int * count, int * datatype_f, int * root
         *ierror = MPI_Bcast(desc->base_addr, 1, subarray_type, *root, comm);
         rc = PMPI_Type_free(&subarray_type);
         VAPAA_Assert(rc == MPI_SUCCESS);
+#endif
     }
     C_MPI_RC_FIX(*ierror);
 }

@@ -506,7 +506,7 @@ int VAPAA_CFI_SERIALIZE_SUBARRAY(const CFI_cdesc_t * desc, ssize_t count, void *
                                           + stride12 * i12
                                           + stride13 * i13
                                           + stride14 * i14;
-                   memcpy( &output[ offset * elem_len ] , &base[ displacement * elem_len ] , elem_len );
+                   memcpy( &output[ offset * elem_len ] , &base[ displacement ] , elem_len );
                    offset++;
                    if (offset == count) goto done15d;
                   }
@@ -597,7 +597,7 @@ int VAPAA_CFI_DESERIALIZE_SUBARRAY(ssize_t count, const void * input, CFI_cdesc_
                                           + stride12 * i12
                                           + stride13 * i13
                                           + stride14 * i14;
-                   memcpy( &base[ displacement * elem_len ] , &input[ offset * elem_len ] , elem_len );
+                   memcpy( &base[ displacement ] , &input[ offset * elem_len ] , elem_len );
                    offset++;
                    if (offset == count) goto done15d;
                   }
