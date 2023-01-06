@@ -72,6 +72,8 @@ void CFI_MPI_Info_get_nthkey(int * info_f, int * n, CFI_cdesc_t * key_d, int * i
 }
 #endif
 
+#if (MPI_VERSION >= 4)
+
 void C_MPI_Info_get_string(int * info_f, char ** pkey, int * buflen, char ** pval, int * flag, int * ierror)
 {
     MPI_Info info = C_MPI_INFO_F2C(*info_f);
@@ -93,6 +95,8 @@ void CFI_MPI_Info_get_string(int * info_f, CFI_cdesc_t * key_d, int * buflen, CF
     C_MPI_RC_FIX(*ierror);
 }
 #endif
+
+#endif // MPI_VERSION >= 4
 
 void C_MPI_Info_set(int * info_f, char ** pkey, char ** pval, int * ierror)
 {
