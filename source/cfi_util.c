@@ -438,7 +438,7 @@ size_t VAPAA_CFI_GET_TOTAL_ELEMENTS(CFI_cdesc_t * desc)
     return total_elems;
 }
 
-int VAPAA_CFI_SERIALIZE_SUBARRAY(const CFI_cdesc_t * desc, ssize_t count, void * output)
+int VAPAA_CFI_SERIALIZE_SUBARRAY(const CFI_cdesc_t * desc, void * output)
 {
     const void *  base     = desc->base_addr;
     const int     rank     = desc->rank;
@@ -491,6 +491,7 @@ int VAPAA_CFI_SERIALIZE_SUBARRAY(const CFI_cdesc_t * desc, ssize_t count, void *
                   const ptrdiff_t stride1 = (rank > 1) ? desc->dim[1].sm : 0;
                   for (int i0 = 0; i0 < extent0; i0++) {
                    const ptrdiff_t stride0 = (rank > 0) ? desc->dim[0].sm : 0;
+                   printf("stride0 = %zd ", stride0);
                    ptrdiff_t displacement = stride0  * i0
                                           + stride1  * i1
                                           + stride2  * i2
@@ -507,8 +508,11 @@ int VAPAA_CFI_SERIALIZE_SUBARRAY(const CFI_cdesc_t * desc, ssize_t count, void *
                                           + stride13 * i13
                                           + stride14 * i14;
                    memcpy( &output[ offset * elem_len ] , &base[ displacement ] , elem_len );
+                   printf("disp=%zd, offset=%zd, elem_len=%zu, base[]=%c, output[]=%c\n",
+                           displacement, offset, elem_len,
+                           ((const char*)base)[displacement],
+                           ((const char*)output)[offset*elem_len]);
                    offset++;
-                   if (offset == count) goto done15d;
                   }
                  }
                 }
@@ -524,12 +528,11 @@ int VAPAA_CFI_SERIALIZE_SUBARRAY(const CFI_cdesc_t * desc, ssize_t count, void *
       }
      }
     }
-    done15d:
 
     return 0;
 }
 
-int VAPAA_CFI_DESERIALIZE_SUBARRAY(ssize_t count, const void * input, CFI_cdesc_t * desc)
+int VAPAA_CFI_DESERIALIZE_SUBARRAY(const void * input, CFI_cdesc_t * desc)
 {
           void *  base     = desc->base_addr;
     const int     rank     = desc->rank;
@@ -582,6 +585,7 @@ int VAPAA_CFI_DESERIALIZE_SUBARRAY(ssize_t count, const void * input, CFI_cdesc_
                   const ptrdiff_t stride1 = (rank > 1) ? desc->dim[1].sm : 0;
                   for (int i0 = 0; i0 < extent0; i0++) {
                    const ptrdiff_t stride0 = (rank > 0) ? desc->dim[0].sm : 0;
+                   printf("stride0 = %zd ", stride0);
                    ptrdiff_t displacement = stride0  * i0
                                           + stride1  * i1
                                           + stride2  * i2
@@ -598,8 +602,11 @@ int VAPAA_CFI_DESERIALIZE_SUBARRAY(ssize_t count, const void * input, CFI_cdesc_
                                           + stride13 * i13
                                           + stride14 * i14;
                    memcpy( &base[ displacement ] , &input[ offset * elem_len ] , elem_len );
+                   printf("disp=%zd, offset=%zd, elem_len=%zu, input[]=%c, base[]=%c\n",
+                           displacement, offset, elem_len,
+                           ((const char*)input)[offset*elem_len],
+                           ((const char*)base)[displacement]);
                    offset++;
-                   if (offset == count) goto done15d;
                   }
                  }
                 }
@@ -615,7 +622,6 @@ int VAPAA_CFI_DESERIALIZE_SUBARRAY(ssize_t count, const void * input, CFI_cdesc_
       }
      }
     }
-    done15d:
 
     return 0;
 }
