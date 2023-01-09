@@ -3,6 +3,8 @@
 #include <string.h>
 #include <limits.h>
 
+#include <mpi.h>
+
 #include "cfi_util.h"
 #include "debug.h"
 
@@ -794,4 +796,269 @@ int VAPAA_MPIDT_PRINT_INFO(MPI_Datatype dt)
     #endif
     return MPI_ERR_INTERN;
 #endif
+}
+
+int VAPAA_CFI_SERIALIZE_SUBARRAY_MPIDT_NONCONTIG(const CFI_cdesc_t * desc, void * output, size_t count, MPI_Datatype dt)
+{
+    int rc;
+    (void)count;
+
+    // MPI datatype
+    MPI_Count max_iov_bytes=INT_MAX;    // upper bound on the size of the returned iov array
+    MPI_Count iov_len;                  // how many MPIX_Iov fit into the above
+    MPI_Count actual_iov_bytes;         // real size of the iov array to be returned
+    rc = MPIX_Type_iov_len(dt, max_iov_bytes, &iov_len, &actual_iov_bytes);
+    VAPAA_Assert(rc == MPI_SUCCESS);
+
+    MPIX_Iov * iov = malloc(actual_iov_bytes);
+    VAPAA_Assert(iov != NULL);
+
+    MPI_Count actual_iov_len;
+    rc = MPIX_Type_iov(dt, 0, iov, iov_len, &actual_iov_len);
+    VAPAA_Assert(rc == MPI_SUCCESS);
+
+    // CFI subarray
+    const void *  base     = desc->base_addr;
+    const int     rank     = desc->rank;
+    const ssize_t elem_len = desc->elem_len;
+
+    const int extent0  = (rank >  0) ? desc->dim[ 0].extent : 1;
+    const int extent1  = (rank >  1) ? desc->dim[ 1].extent : 1;
+    const int extent2  = (rank >  2) ? desc->dim[ 2].extent : 1;
+    const int extent3  = (rank >  3) ? desc->dim[ 3].extent : 1;
+    const int extent4  = (rank >  4) ? desc->dim[ 4].extent : 1;
+    const int extent5  = (rank >  5) ? desc->dim[ 5].extent : 1;
+    const int extent6  = (rank >  6) ? desc->dim[ 6].extent : 1;
+    const int extent7  = (rank >  7) ? desc->dim[ 7].extent : 1;
+    const int extent8  = (rank >  8) ? desc->dim[ 8].extent : 1;
+    const int extent9  = (rank >  9) ? desc->dim[ 9].extent : 1;
+    const int extent10 = (rank > 10) ? desc->dim[10].extent : 1;
+    const int extent11 = (rank > 11) ? desc->dim[11].extent : 1;
+    const int extent12 = (rank > 12) ? desc->dim[12].extent : 1;
+    const int extent13 = (rank > 13) ? desc->dim[13].extent : 1;
+    const int extent14 = (rank > 14) ? desc->dim[14].extent : 1;
+
+    ssize_t offset = 0;
+    for (int i14 = 0; i14 < extent14; i14++) {
+     const ptrdiff_t stride14 = (rank > 14) ? desc->dim[14].sm : 0;
+     for (int i13 = 0; i13 < extent13; i13++) {
+      const ptrdiff_t stride13 = (rank > 13) ? desc->dim[13].sm : 0;
+      for (int i12 = 0; i12 < extent12; i12++) {
+       const ptrdiff_t stride12 = (rank > 12) ? desc->dim[12].sm : 0;
+       for (int i11 = 0; i11 < extent11; i11++) {
+        const ptrdiff_t stride11 = (rank > 11) ? desc->dim[11].sm : 0;
+        for (int i10 = 0; i10 < extent10; i10++) {
+         const ptrdiff_t stride10 = (rank > 10) ? desc->dim[10].sm : 0;
+         for (int i9 = 0; i9 < extent9; i9++) {
+          const ptrdiff_t stride9 = (rank > 9) ? desc->dim[9].sm : 0;
+          for (int i8 = 0; i8 < extent8; i8++) {
+           const ptrdiff_t stride8 = (rank > 8) ? desc->dim[8].sm : 0;
+           for (int i7 = 0; i7 < extent7; i7++) {
+            const ptrdiff_t stride7 = (rank > 7) ? desc->dim[7].sm : 0;
+            for (int i6 = 0; i6 < extent6; i6++) {
+             const ptrdiff_t stride6 = (rank > 6) ? desc->dim[6].sm : 0;
+             for (int i5 = 0; i5 < extent5; i5++) {
+              const ptrdiff_t stride5 = (rank > 5) ? desc->dim[5].sm : 0;
+              for (int i4 = 0; i4 < extent4; i4++) {
+               const ptrdiff_t stride4 = (rank > 4) ? desc->dim[4].sm : 0;
+               for (int i3 = 0; i3 < extent3; i3++) {
+                const ptrdiff_t stride3 = (rank > 3) ? desc->dim[3].sm : 0;
+                for (int i2 = 0; i2 < extent2; i2++) {
+                 const ptrdiff_t stride2 = (rank > 2) ? desc->dim[2].sm : 0;
+                 for (int i1 = 0; i1 < extent1; i1++) {
+                  const ptrdiff_t stride1 = (rank > 1) ? desc->dim[1].sm : 0;
+                  for (int i0 = 0; i0 < extent0; i0++) {
+                   const ptrdiff_t stride0 = (rank > 0) ? desc->dim[0].sm : 0;
+                   printf("stride0 = %zd ", stride0);
+                   ptrdiff_t displacement = stride0  * i0
+                                          + stride1  * i1
+                                          + stride2  * i2
+                                          + stride3  * i3
+                                          + stride4  * i4
+                                          + stride5  * i5
+                                          + stride6  * i6
+                                          + stride7  * i7
+                                          + stride8  * i8
+                                          + stride9  * i9
+                                          + stride10 * i10
+                                          + stride11 * i11
+                                          + stride12 * i12
+                                          + stride13 * i13
+                                          + stride14 * i14;
+                   memcpy( &output[ offset * elem_len ] , &base[ displacement ] , elem_len );
+                   printf("disp=%zd, offset=%zd, elem_len=%zu, base[]=%c, output[]=%c\n",
+                           displacement, offset, elem_len,
+                           ((const char*)base)[displacement],
+                           ((const char*)output)[offset*elem_len]);
+                   offset++;
+                  }
+                 }
+                }
+               }
+              }
+             }
+            }
+           }
+          }
+         }
+        }
+       }
+      }
+     }
+    }
+
+    free(iov);
+
+    return 0;
+}
+
+int VAPAA_CFI_DESERIALIZE_SUBARRAY_MPIDT_NONCONTIG(const void * input, CFI_cdesc_t * desc, size_t count, MPI_Datatype dt)
+{
+    int rc;
+
+    // have not figured out >1 yet
+    VAPAA_Assert(count == 1);
+
+    // MPI datatype
+    MPI_Count max_iov_bytes=INT_MAX;    // upper bound on the size of the returned iov array
+    MPI_Count iov_len;                  // how many MPIX_Iov fit into the above
+    MPI_Count actual_iov_bytes;         // real size of the iov array to be returned
+    rc = MPIX_Type_iov_len(dt, max_iov_bytes, &iov_len, &actual_iov_bytes);
+    VAPAA_Assert(rc == MPI_SUCCESS);
+
+    MPIX_Iov * iov = malloc(actual_iov_bytes);
+    VAPAA_Assert(iov != NULL);
+
+    MPI_Aint extent, lb;
+    rc = MPI_Type_get_extent(dt, &lb, &extent);
+    VAPAA_Assert(rc == MPI_SUCCESS);
+    printf("lb = %zu, extent = %zu\n", (size_t)lb, (size_t)extent);
+    rc =MPI_Type_get_true_extent(dt, &lb, &extent);
+    VAPAA_Assert(rc == MPI_SUCCESS);
+    printf("TRUE lb = %zu, extent = %zu\n", (size_t)lb, (size_t)extent);
+
+    printf("input = %p\n", input);
+    rc = VAPAA_MPIDT_PRINT_INFO(dt);
+    VAPAA_Assert(rc == MPI_SUCCESS);
+
+    MPI_Count actual_iov_len;
+    rc = MPIX_Type_iov(dt, 0, iov, iov_len, &actual_iov_len);
+    VAPAA_Assert(rc == MPI_SUCCESS);
+
+    if (iov[0].iov_base != 0) {
+        VAPAA_Warning("MPI datatype non-zero iov_base (%p) is not supported.\n", iov[0].iov_base);
+        return MPI_ERR_TYPE;
+    }
+
+    // CFI subarray
+          void *  base     = desc->base_addr;
+    const int     rank     = desc->rank;
+    const ssize_t elem_len = desc->elem_len;
+
+    const int extent0  = (rank >  0) ? desc->dim[ 0].extent : 1;
+    const int extent1  = (rank >  1) ? desc->dim[ 1].extent : 1;
+    const int extent2  = (rank >  2) ? desc->dim[ 2].extent : 1;
+    const int extent3  = (rank >  3) ? desc->dim[ 3].extent : 1;
+    const int extent4  = (rank >  4) ? desc->dim[ 4].extent : 1;
+    const int extent5  = (rank >  5) ? desc->dim[ 5].extent : 1;
+    const int extent6  = (rank >  6) ? desc->dim[ 6].extent : 1;
+    const int extent7  = (rank >  7) ? desc->dim[ 7].extent : 1;
+    const int extent8  = (rank >  8) ? desc->dim[ 8].extent : 1;
+    const int extent9  = (rank >  9) ? desc->dim[ 9].extent : 1;
+    const int extent10 = (rank > 10) ? desc->dim[10].extent : 1;
+    const int extent11 = (rank > 11) ? desc->dim[11].extent : 1;
+    const int extent12 = (rank > 12) ? desc->dim[12].extent : 1;
+    const int extent13 = (rank > 13) ? desc->dim[13].extent : 1;
+    const int extent14 = (rank > 14) ? desc->dim[14].extent : 1;
+
+    // iterate with this.  we are going to increment it with the iov and count
+    const void * buffer = input;
+    size_t iov_counter   = 0;
+
+    for (int i14 = 0; i14 < extent14; i14++) {
+     const ptrdiff_t stride14 = (rank > 14) ? desc->dim[14].sm : 0;
+     for (int i13 = 0; i13 < extent13; i13++) {
+      const ptrdiff_t stride13 = (rank > 13) ? desc->dim[13].sm : 0;
+      for (int i12 = 0; i12 < extent12; i12++) {
+       const ptrdiff_t stride12 = (rank > 12) ? desc->dim[12].sm : 0;
+       for (int i11 = 0; i11 < extent11; i11++) {
+        const ptrdiff_t stride11 = (rank > 11) ? desc->dim[11].sm : 0;
+        for (int i10 = 0; i10 < extent10; i10++) {
+         const ptrdiff_t stride10 = (rank > 10) ? desc->dim[10].sm : 0;
+         for (int i9 = 0; i9 < extent9; i9++) {
+          const ptrdiff_t stride9 = (rank > 9) ? desc->dim[9].sm : 0;
+          for (int i8 = 0; i8 < extent8; i8++) {
+           const ptrdiff_t stride8 = (rank > 8) ? desc->dim[8].sm : 0;
+           for (int i7 = 0; i7 < extent7; i7++) {
+            const ptrdiff_t stride7 = (rank > 7) ? desc->dim[7].sm : 0;
+            for (int i6 = 0; i6 < extent6; i6++) {
+             const ptrdiff_t stride6 = (rank > 6) ? desc->dim[6].sm : 0;
+             for (int i5 = 0; i5 < extent5; i5++) {
+              const ptrdiff_t stride5 = (rank > 5) ? desc->dim[5].sm : 0;
+              for (int i4 = 0; i4 < extent4; i4++) {
+               const ptrdiff_t stride4 = (rank > 4) ? desc->dim[4].sm : 0;
+               for (int i3 = 0; i3 < extent3; i3++) {
+                const ptrdiff_t stride3 = (rank > 3) ? desc->dim[3].sm : 0;
+                for (int i2 = 0; i2 < extent2; i2++) {
+                 const ptrdiff_t stride2 = (rank > 2) ? desc->dim[2].sm : 0;
+                 for (int i1 = 0; i1 < extent1; i1++) {
+                  const ptrdiff_t stride1 = (rank > 1) ? desc->dim[1].sm : 0;
+                  for (int i0 = 0; i0 < extent0; i0++) {
+                   const ptrdiff_t stride0 = (rank > 0) ? desc->dim[0].sm : 0;
+                   printf("stride0 = %zd ", stride0);
+                   ptrdiff_t displacement = stride0  * i0
+                                          + stride1  * i1
+                                          + stride2  * i2
+                                          + stride3  * i3
+                                          + stride4  * i4
+                                          + stride5  * i5
+                                          + stride6  * i6
+                                          + stride7  * i7
+                                          + stride8  * i8
+                                          + stride9  * i9
+                                          + stride10 * i10
+                                          + stride11 * i11
+                                          + stride12 * i12
+                                          + stride13 * i13
+                                          + stride14 * i14;
+                   memcpy( &base[ displacement ] , buffer , elem_len );
+
+                   printf("disp=%zd, elem_len=%zu, buffer[]=%p=%c, base[]=%c\n",
+                           displacement, elem_len,
+                           buffer, *(const char*)buffer,
+                           ((const char*)base)[displacement]);
+
+                   buffer += elem_len;
+                   if (buffer == iov[iov_counter].iov_base + (size_t)iov[iov_counter].iov_len) {
+                       iov_counter++;
+                       buffer = input + (intptr_t)iov[iov_counter].iov_base;
+                   }
+#if 0
+                   if (iov_counter == (size_t)actual_iov_len) {
+                       printf("reset iov_counter = %zd ", iov_counter);
+                       iov_counter = 0;
+                       dt_counter++;
+                       buffer += (intptr_t)extent;
+                       printf("buffer = %p\n", buffer);
+                   }
+#endif
+                  }
+                 }
+                }
+               }
+              }
+             }
+            }
+           }
+          }
+         }
+        }
+       }
+      }
+     }
+    }
+
+    free(iov);
+
+    return 0;
 }

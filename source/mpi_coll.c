@@ -55,11 +55,12 @@ void CFI_MPI_Bcast(CFI_cdesc_t * desc, int * count, int * datatype_f, int * root
         // and non-contig datatypes, so we create a contiguous temporary buffer
         else
         {
+#if 0
             VAPAA_Warning("Non-contiguous subarrays with user-defined datatypes is not supported.\n");
             *ierror = MPI_ERR_TYPE;
             C_MPI_RC_FIX(*ierror);
             return;
-
+#endif
             size_t scount   = VAPAA_CFI_GET_TOTAL_ELEMENTS(desc);
             size_t bytes    = scount * desc->elem_len;
             void * subarray = malloc(bytes);
@@ -84,28 +85,28 @@ void CFI_MPI_Bcast(CFI_cdesc_t * desc, int * count, int * datatype_f, int * root
                 rc = VAPAA_CFI_SERIALIZE_SUBARRAY(desc, subarray);
 #if 1
                 fflush(0);
-                sleep(1);
+                usleep(100*1000);
                 printf("root subarray=[");
                 for (size_t i=0; i<bytes; i++) {
                     printf("%c", ((char*)subarray)[i]);
                 }
                 printf("]\n");
                 fflush(0);
-                sleep(1);
+                usleep(100*1000);
 #endif
                 int position = 0;
                 rc = PMPI_Pack(subarray, *count, datatype, packed, pack_size, &position, comm);
                 VAPAA_Assert(rc == MPI_SUCCESS);
 #if 1
                 fflush(0);
-                sleep(1);
+                usleep(100*1000);
                 printf("root pack=[");
                 for (int i=0; i<pack_size; i++) {
                     printf("%c", ((char*)packed)[i]);
                 }
                 printf("]\n");
                 fflush(0);
-                sleep(1);
+                usleep(100*1000);
 #endif
             }
 
@@ -115,30 +116,31 @@ void CFI_MPI_Bcast(CFI_cdesc_t * desc, int * count, int * datatype_f, int * root
             {
 #if 1
                 fflush(0);
-                sleep(1);
+                usleep(100*1000);
                 printf("recv pack=[");
                 for (int i=0; i<pack_size; i++) {
                     printf("%c", ((char*)packed)[i]);
                 }
                 printf("]\n");
                 fflush(0);
-                sleep(1);
+                usleep(100*1000);
 #endif
                 int position = 0;
                 rc = PMPI_Unpack(packed, pack_size, &position, subarray, 1, datatype, comm);
                 VAPAA_Assert(rc == MPI_SUCCESS);
 #if 1
                 fflush(0);
-                sleep(1);
+                usleep(100*1000);
                 printf("recv subarray=[");
                 for (size_t i=0; i<bytes; i++) {
                     printf("%c", ((char*)subarray)[i]);
                 }
                 printf("]\n");
                 fflush(0);
-                sleep(1);
+                usleep(100*1000);
 #endif
-                rc = VAPAA_CFI_DESERIALIZE_SUBARRAY(subarray, desc);
+                //rc = VAPAA_CFI_DESERIALIZE_SUBARRAY(subarray, desc);
+                rc = VAPAA_CFI_DESERIALIZE_SUBARRAY_MPIDT_NONCONTIG(subarray, desc, *count, datatype);
             }
 
             free(packed);
