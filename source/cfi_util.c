@@ -437,6 +437,9 @@ int VAPAA_CFI_CREATE_DATATYPE(CFI_cdesc_t * desc, ssize_t count, MPI_Datatype in
         free(array_of_displacements);
     }
     else if (rank < 15)
+#if 1
+        rc = VAPAA_CFI_CREATE_DATATYPE_15D(desc, count, input_datatype, array_datatype);
+#else
     {
         const int extent2  = (rank >  2) ? desc->dim[ 2].extent : 1;
         const int extent3  = (rank >  3) ? desc->dim[ 3].extent : 1;
@@ -534,6 +537,7 @@ int VAPAA_CFI_CREATE_DATATYPE(CFI_cdesc_t * desc, ssize_t count, MPI_Datatype in
         free(array_of_blocklengths);
         free(array_of_displacements);
     }
+#endif
     else
     {
         VAPAA_Warning("Unsupported dimension (%d).\n", rank);
