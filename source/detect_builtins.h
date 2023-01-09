@@ -12,7 +12,7 @@
 MAYBE_UNUSED
 static bool C_MPI_TYPE_IS_BUILTIN(MPI_Datatype type_c)
 {
-    if (false) { return false; }
+    if (type_c == MPI_DATATYPE_NULL) { return false; }
     DT_ELIF(MPI_CHARACTER)
     DT_ELIF(MPI_LOGICAL)
     DT_ELIF(MPI_INTEGER)
@@ -88,7 +88,7 @@ static bool C_MPI_TYPE_IS_BUILTIN(MPI_Datatype type_c)
 MAYBE_UNUSED
 static bool C_MPI_OP_IS_BUILTIN(MPI_Op op_c)
 {
-    if (false) { return false; }
+    if (op_c == MPI_OP_NULL) { return false; }
     OP_ELIF(MPI_MAX)
     OP_ELIF(MPI_MIN)
     OP_ELIF(MPI_SUM)
