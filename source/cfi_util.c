@@ -137,8 +137,8 @@ void VAPAA_CFI_PRINT_INFO(CFI_cdesc_t * desc)
     }
 }
 
-int VAPAA_CFI_CREATE_DATATYPE_15D(CFI_cdesc_t * desc, ssize_t count, MPI_Datatype input_datatype,
-                                  MPI_Datatype * array_datatype)
+static int VAPAA_CFI_CREATE_DATATYPE_15D(CFI_cdesc_t * desc, ssize_t count, MPI_Datatype input_datatype,
+                                         MPI_Datatype * array_datatype)
 {
     if ( ! VAPAA_MPI_DATATYPE_IS_BUILTIN(input_datatype) ) {
         VAPAA_Warning("input datatype is not a named datatype.\n");
