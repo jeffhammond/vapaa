@@ -252,6 +252,11 @@ void CFI_MPI_Isend(CFI_cdesc_t * desc, int * count, int * datatype_f, int * dest
     MPI_Request request = MPI_REQUEST_NULL;
     MPI_Datatype datatype = C_MPI_TYPE_F2C(*datatype_f);
     MPI_Comm comm = C_MPI_COMM_F2C(*comm_f);
+
+#if 1
+    VAPAA_MPIDT_PRINT_INFO(datatype);
+#endif
+
     if (1 == CFI_is_contiguous(desc)) {
         *ierror = MPI_Isend(desc->base_addr, *count, datatype, *dest, *tag, comm, &request);
     } else {
