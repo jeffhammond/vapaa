@@ -885,7 +885,7 @@ int VAPAA_CFI_SERIALIZE_SUBARRAY_MPIDT_NONCONTIG(const CFI_cdesc_t * desc, void 
                                           + stride12 * i12
                                           + stride13 * i13
                                           + stride14 * i14;
-                   memcpy( &output[ offset * elem_len ] , &base[ displacement ] , elem_len );
+                   memcpy(output + offset * elem_len, base + displacement, elem_len);
                    printf("disp=%zd, offset=%zd, elem_len=%zu, base[]=%c, output[]=%c\n",
                            displacement, offset, elem_len,
                            ((const char*)base)[displacement],
@@ -1021,7 +1021,7 @@ int VAPAA_CFI_DESERIALIZE_SUBARRAY_MPIDT_NONCONTIG(const void * input, CFI_cdesc
                                           + stride12 * i12
                                           + stride13 * i13
                                           + stride14 * i14;
-                   memcpy( &base[ displacement ] , buffer , elem_len );
+                   memcpy(base + displacement, buffer, elem_len);
 
                    printf("disp=%zd, elem_len=%zu, buffer[]=%p=%c, base[]=%c\n",
                            displacement, elem_len,
