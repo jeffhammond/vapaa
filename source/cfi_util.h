@@ -2,6 +2,7 @@
 #define CFI_UTIL_H
 
 #include <stdbool.h>
+#include <sys/types.h>
 #include <mpi.h>
 #include "ISO_Fortran_binding.h"
 

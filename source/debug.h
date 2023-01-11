@@ -3,6 +3,9 @@
 #ifndef DEBUG_H
 #define DEBUG_H
 
+#include <unistd.h> // usleep
+int usleep(unsigned);
+
 #include <stdarg.h>
 
 #ifdef NO_SEATBELTS
