@@ -762,8 +762,6 @@ int VAPAA_CFI_DESERIALIZE_SUBARRAY(const void * input, CFI_cdesc_t * desc)
 int VAPAA_MPIDT_PRINT_INFO(MPI_Datatype dt)
 {
 #if defined(MPICH) && defined(MPICH_NUMVERSION) && (MPICH_NUMVERSION > 40200000)
-    //int MPIX_Type_iov_len(MPI_Datatype datatype, MPI_Count max_iov_bytes, MPI_Count *iov_len, MPI_Count *actual_iov_bytes)
-    //int MPIX_Type_iov(MPI_Datatype datatype, MPI_Count iov_offset, MPIX_Iov *iov, MPI_Count max_iov_len, MPI_Count *actual_iov_len)
     int rc;
     MPI_Count max_iov_bytes=INT_MAX;    // upper bound on the size of the returned iov array (arbitrary for VAPAA)
     MPI_Count iov_len;                  // how many MPIX_Iov fit into the above
@@ -800,6 +798,8 @@ int VAPAA_MPIDT_PRINT_INFO(MPI_Datatype dt)
 
 int VAPAA_CFI_SERIALIZE_SUBARRAY_MPIDT_NONCONTIG(const CFI_cdesc_t * desc, void * output, size_t count, MPI_Datatype dt)
 {
+    VAPAA_Assert(0);
+
     int rc;
     (void)count;
 
@@ -1065,15 +1065,15 @@ int VAPAA_CFI_DESERIALIZE_SUBARRAY_MPIDT_NONCONTIG(const void * input, CFI_cdesc
 
 // This is a completely generic implementation of CFI -> IOV that takes
 // no advantage of contiguous multi-element chunks.
-struct iovec * VAPAA_CFI_CREATE_IOV_15D(const CFI_cdesc_t * desc)
+// We actually just return a vector of addresses since the chunks are all elem_len
+const void ** VAPAA_CFI_CREATE_ELEMENT_ADDRESSES(const CFI_cdesc_t * desc)
 {
     const size_t num_elem = VAPAA_CFI_GET_TOTAL_ELEMENTS(desc);
 
-    struct iovec * iovecs = malloc( num_elem * sizeof(struct iovec) );
-    VAPAA_Assert(iovecs != NULL);
+    const void ** addresses = malloc( num_elem * sizeof(void*) );
+    VAPAA_Assert(addresses != NULL);
 
     const void * base  = desc->base_addr;
-    const int elem_len = desc->elem_len;
     const int rank     = desc->rank;
     const int extent0  = (rank >  0) ? desc->dim[ 0].extent : 1;
     const int extent1  = (rank >  1) ? desc->dim[ 1].extent : 1;
@@ -1137,9 +1137,8 @@ struct iovec * VAPAA_CFI_CREATE_IOV_15D(const CFI_cdesc_t * desc)
                                           + stride12 * i12
                                           + stride13 * i13
                                           + stride14 * i14;
-                   iovecs[index].iov_base = (void*)base + displacement;
-                   iovecs[index].iov_len  = elem_len;
-                   printf("CFI iovecs[%zu] = {%p,%zu}\n", index, iovecs[index].iov_base, iovecs[index].iov_len);
+                   addresses[index] = (void*)base + displacement;
+                   printf("CFI addresses[%zu] = %p\n", index, addresses[index]);
                    index++;
                   }
                  }
@@ -1157,12 +1156,69 @@ struct iovec * VAPAA_CFI_CREATE_IOV_15D(const CFI_cdesc_t * desc)
      }
     }
 
-    return iovecs;
+    return addresses;
 }
 
+// Takes the result of VAPAA_CFI_CREATE_ELEMENT_ADDRESSES, which is
+// a vector of all of the element addresses in a subarray, and returns
+// the vector of addresses representing the subset of those that are
+// contained in an MPI datatype
+const void ** VAPAA_CFI_CREATE_DATATYPE_ADDRESSES(const void * input[], int count, MPI_Datatype dt)
+{
+#if defined(MPICH) && defined(MPICH_NUMVERSION) && (MPICH_NUMVERSION > 40200000)
+    int rc;
+    MPI_Count max_iov_bytes=INT_MAX;    // upper bound on the size of the returned iov array (arbitrary for VAPAA)
+    MPI_Count iov_len;                  // how many MPIX_Iov fit into the above
+    MPI_Count actual_iov_bytes;         // real size of the iov array to be returned
+    rc = MPIX_Type_iov_len(dt, max_iov_bytes, &iov_len, &actual_iov_bytes);
+    VAPAA_Assert(rc == MPI_SUCCESS);
 
-// This is a completely generic implementation of CFI -> IOV that takes
-// no advantage of contiguous multi-element chunks.
+    MPIX_Iov * iov = malloc(actual_iov_bytes);
+    VAPAA_Assert(iov != NULL);
+
+    MPI_Count actual_iov_len;
+    rc = MPIX_Type_iov(dt, 0, iov, iov_len, &actual_iov_len);
+    VAPAA_Assert(rc == MPI_SUCCESS);
+
+    if (iov[0].iov_base != 0) {
+        VAPAA_Warning("MPIX_Iov iov_base (%p) is not zero, which is not supported.\n", iov[0].iov_base);
+        return NULL;
+    }
+
+    MPI_Aint lb, extent;
+    rc = MPI_Type_get_extent(dt, &lb, &extent);
+    VAPAA_Assert(rc == MPI_SUCCESS);
+
+    const void ** output = malloc( count * actual_iov_len * sizeof(void*) );
+    VAPAA_Assert(output != NULL);
+
+    size_t index = 0;
+    for (int j=0; j < count; j++) {
+        const ptrdiff_t type_displacement = j * extent;
+        for (size_t i=0; i < (size_t)actual_iov_len; i++) {
+            const size_t offset = (intptr_t)iov[i].iov_base + type_displacement;
+            output[index] = input[offset];
+            printf("CFI x MPI output[%zu] = %p\n", index, output[index]);
+            index++;
+        }
+    }
+    free(iov);
+
+    return output;
+#else
+    (void)dt;
+    #ifdef MPICH_NUMVERSION
+        #warning MPICH too old
+        VAPAA_Warning("MPICH %s does not have MPIX_Iov support",MPICH_NUMVERSION);
+    #else
+        #warning Not MPICH
+        VAPAA_Warning("Not MPICH so no MPIX_Iov support");
+    #endif
+    return NULL;
+#endif
+}
+
+#if 0
 struct iovec * VAPAA_MPIDT_CREATE_IOV(const void * buffer, int count, MPI_Datatype dt)
 {
 #if defined(MPICH) && defined(MPICH_NUMVERSION) && (MPICH_NUMVERSION > 40200000)
@@ -1192,12 +1248,14 @@ struct iovec * VAPAA_MPIDT_CREATE_IOV(const void * buffer, int count, MPI_Dataty
     struct iovec * iovecs = malloc( count * actual_iov_len * sizeof(struct iovec) );
     VAPAA_Assert(iovecs != NULL);
 
+    (void)buffer;
+
     size_t index = 0;
     for (int j=0; j < count; j++) {
         const ptrdiff_t type_displacement = j * extent;
         for (size_t i=0; i < (size_t)actual_iov_len; i++) {
            const ptrdiff_t displacement = (intptr_t)iov[i].iov_base - (intptr_t)iov[0].iov_base;
-           iovecs[index].iov_base = (void*)buffer + type_displacement + displacement;
+           iovecs[index].iov_base = (void*)( type_displacement + displacement );
            iovecs[index].iov_len  = iov[i].iov_len;
            printf("MPI iovecs[%zu] = {%p,%zu}\n", index, iovecs[index].iov_base, iovecs[index].iov_len);
            index++;
@@ -1218,4 +1276,4 @@ struct iovec * VAPAA_MPIDT_CREATE_IOV(const void * buffer, int count, MPI_Dataty
     return NULL;
 #endif
 }
-
+#endif

@@ -27,15 +27,10 @@ int VAPAA_CFI_SERIALIZE_SUBARRAY_MPIDT_NONCONTIG(const CFI_cdesc_t * desc, void 
 int VAPAA_CFI_DESERIALIZE_SUBARRAY_MPIDT_NONCONTIG(const void * input, CFI_cdesc_t * desc, size_t count, MPI_Datatype dt);
 
 // IOV related
+//struct iovec * VAPAA_CFI_CREATE_IOV_15D(const CFI_cdesc_t * desc);
+//struct iovec * VAPAA_MPIDT_CREATE_IOV(const void * buffer, int count, MPI_Datatype dt);
 
-// Linux IOV definition
-//#include <sys/uio.h>
-struct iovec {
-   void  *iov_base;    /* Starting address */
-   size_t iov_len;     /* Number of bytes to transfer */
-};
-
-struct iovec * VAPAA_CFI_CREATE_IOV_15D(const CFI_cdesc_t * desc);
-struct iovec * VAPAA_MPIDT_CREATE_IOV(const void * buffer, int count, MPI_Datatype dt);
+const void ** VAPAA_CFI_CREATE_ELEMENT_ADDRESSES(const CFI_cdesc_t * desc);
+const void ** VAPAA_CFI_CREATE_DATATYPE_ADDRESSES(const void * input[], int count, MPI_Datatype dt);
 
 #endif // CFI_UTIL_H
