@@ -90,7 +90,7 @@ void C_MPI_File_preallocate(int * file_f, intptr_t * size_f, int * ierror)
     C_MPI_RC_FIX(*ierror);
 }
 
-void C_MPI_File_get_size(int * file_f, intptr_t * size_f, int * ierror)
+void C_MPI_File_get_size(int * file_f, size_t * size_f, int * ierror)
 {
     MPI_Offset size = -1;
     MPI_File file = C_MPI_FILE_F2C(*file_f);

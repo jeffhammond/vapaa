@@ -218,15 +218,17 @@ module mpi_file_f
         end subroutine MPI_File_preallocate_f08
 
         subroutine MPI_File_get_size_f08(file, size, ierror)
-            use iso_c_binding, only: c_intptr_t
+            use iso_c_binding, only: c_size_t
             use mpi_global_constants, only: MPI_OFFSET_KIND
             use mpi_handle_types, only: MPI_File
             use mpi_file_c, only: C_MPI_File_get_size
             type(MPI_File), intent(in) :: file
             integer(kind=MPI_OFFSET_KIND), intent(out) :: size
             integer, optional, intent(out) :: ierror
+            integer(c_size_t) :: size_c
             integer(c_int) :: ierror_c
-            call C_MPI_File_get_size(file % MPI_VAL, size, ierror_c)
+            call C_MPI_File_get_size(file % MPI_VAL, size_c, ierror_c)
+            size = size_c
             if (present(ierror)) ierror = ierror_c
         end subroutine MPI_File_get_size_f08
 

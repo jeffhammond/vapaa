@@ -83,10 +83,10 @@ module mpi_file_c
     interface
         subroutine C_MPI_File_get_size(file, size, ierror) &
                    bind(C,name="C_MPI_File_get_size")
-            use iso_c_binding, only: c_int, c_intptr_t
+            use iso_c_binding, only: c_int, c_size_t
             implicit none
             integer(kind=c_int), intent(in) :: file
-            integer(kind=c_intptr_t), intent(in) :: size
+            integer(kind=c_size_t), intent(out) :: size
             integer(kind=c_int), intent(out) :: ierror
         end subroutine C_MPI_File_get_size
     end interface
