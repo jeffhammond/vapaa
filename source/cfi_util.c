@@ -1138,7 +1138,7 @@ const void ** VAPAA_CFI_CREATE_ELEMENT_ADDRESSES(const CFI_cdesc_t * desc)
                                           + stride13 * i13
                                           + stride14 * i14;
                    addresses[index] = (void*)base + displacement;
-                   printf("CFI addresses[%zu] = %p\n", index, addresses[index]);
+                   //printf("CFI addresses[%zu] = %p\n", index, addresses[index]);
                    index++;
                   }
                  }
@@ -1248,12 +1248,16 @@ MPI_Datatype VAPAA_CFI_CREATE_INDEXED_FROM_CFI_AND_MPIDT(const void * input[], i
     rc = MPI_Type_get_extent(dt, &lb, &extent);
     VAPAA_Assert(rc == MPI_SUCCESS);
 
+    //printf("J count=%d actual_iov_len=%zd extent=%zd\n", count, (size_t)actual_iov_len, extent);
+
     int * array_of_blocklengths = malloc(count * actual_iov_len * sizeof(int));
     VAPAA_Assert(array_of_blocklengths != NULL);
     size_t index = 0;
     for (int j=0; j < count; j++) {
-        array_of_blocklengths[index] = 1;
-        index++;
+        for (size_t i=0; i < (size_t)actual_iov_len; i++) {
+            array_of_blocklengths[index] = 1;
+            index++;
+        }
     }
 
     MPI_Aint * array_of_displacements = malloc(count * actual_iov_len * sizeof(MPI_Aint));
@@ -1265,14 +1269,17 @@ MPI_Datatype VAPAA_CFI_CREATE_INDEXED_FROM_CFI_AND_MPIDT(const void * input[], i
         for (size_t i=0; i < (size_t)actual_iov_len; i++) {
             const size_t offset = (intptr_t)iov[i].iov_base + type_displacement;
             array_of_displacements[index] = input[offset] - input[0];
-            printf("CFI x MPI offset=%zd array_of_displacements[%zu] = %zd\n", offset, index, array_of_displacements[index]);
+            //printf("CFI x MPI offset=%zd array_of_displacements[%zu] = %zd\n", offset, index, array_of_displacements[index]);
             index++;
         }
     }
     free(iov);
 
+    const size_t n = count * actual_iov_len;
+    VAPAA_Assert(n < INT_MAX);
+
     MPI_Datatype indexed_datatype;
-    rc = PMPI_Type_create_hindexed(count, array_of_blocklengths, array_of_displacements,
+    rc = PMPI_Type_create_hindexed((int)n, array_of_blocklengths, array_of_displacements,
                                    elem_dt, &indexed_datatype);
     VAPAA_Assert(rc == MPI_SUCCESS);
 

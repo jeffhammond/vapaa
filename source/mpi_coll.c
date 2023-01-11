@@ -74,11 +74,48 @@ void CFI_MPI_Bcast(CFI_cdesc_t * desc, int * count, int * datatype_f, int * root
             fflush(0);
             usleep(100*1000);
 
-            *ierror = MPI_Bcast(desc->base_addr, 1, indexed_datatype, *root, comm);
+#if 0
+            int pack_size, type_size;
 
-            rc = MPI_Type_free(&indexed_datatype);
+            rc = PMPI_Pack_size(*count, datatype, comm, &pack_size);
+            VAPAA_Assert(rc == MPI_SUCCESS);
+            rc = PMPI_Type_size(datatype, &type_size);
+            VAPAA_Assert(rc == MPI_SUCCESS);
+            printf("1: pack size = %d type size = %d\n", pack_size, type_size);
+
+            rc = PMPI_Pack_size(1, indexed_datatype, comm, &pack_size);
+            VAPAA_Assert(rc == MPI_SUCCESS);
+            rc = PMPI_Type_size(indexed_datatype, &type_size);
+            VAPAA_Assert(rc == MPI_SUCCESS);
+            printf("2: pack size = %d type size = %d\n", pack_size, type_size);
+
+            void * packed = malloc(pack_size);
+            memset(packed,'#',pack_size);
+
+            int me;
+            rc = PMPI_Comm_rank(comm, &me);
             VAPAA_Assert(rc == MPI_SUCCESS);
 
+            if (me == *root)
+            {
+                int position = 0;
+                rc = PMPI_Pack(desc->base_addr, 1, indexed_datatype, packed, pack_size, &position, comm);
+                VAPAA_Assert(rc == MPI_SUCCESS);
+
+                fflush(0);
+                usleep(100*1000);
+                printf("root pack=[");
+                for (int i=0; i<pack_size; i++) {
+                    printf("%c", ((char*)packed)[i]);
+                }
+                printf("]\n");
+                fflush(0);
+                usleep(100*1000);
+            }
+#endif
+            *ierror = MPI_Bcast(desc->base_addr, 1, indexed_datatype, *root, comm);
+            rc = MPI_Type_free(&indexed_datatype);
+            VAPAA_Assert(rc == MPI_SUCCESS);
 #if 0
             int me;
             rc = PMPI_Comm_rank(comm, &me);
