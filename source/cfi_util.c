@@ -1232,7 +1232,7 @@ MPI_Datatype VAPAA_CFI_CREATE_INDEXED_FROM_CFI_AND_MPIDT(const void * input[], i
     rc = MPIX_Type_iov_len(dt, max_iov_bytes, &iov_len, &actual_iov_bytes);
     VAPAA_Assert(rc == MPI_SUCCESS);
 
-    MPIX_Iov * iov = malloc(actual_iov_bytes);
+    MPIX_Iov * iov = malloc(iov_len * sizeof(MPIX_Iov));
     VAPAA_Assert(iov != NULL);
 
     MPI_Count actual_iov_len;
