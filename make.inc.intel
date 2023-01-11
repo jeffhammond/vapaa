@@ -2,17 +2,18 @@ WARNFLAGS = -Wall -Wextra -Werror
 
 FORTRAN_INCLUDE = -I/opt/intel/oneapi/compiler/2022.2.0/linux/compiler/include
 
-MPI_LIBS = -L"/opt/intel/oneapi/mpi/2021.7.0/lib/release" -L"/opt/intel/oneapi/mpi/2021.7.0/lib" -Xlinker --enable-new-dtags -Xlinker -rpath -Xlinker "/opt/intel/oneapi/mpi/2021.7.0/lib/release" -Xlinker -rpath -Xlinker "/opt/intel/oneapi/mpi/2021.7.0/lib" -lmpifort -lmpi -lrt -lpthread -Wl,-z,now -Wl,-z,relro -Wl,-z,noexecstack -Xlinker --enable-new-dtags -ldl
+#MPI_LIBS = -L"/opt/intel/oneapi/mpi/2021.7.0/lib/release" -L"/opt/intel/oneapi/mpi/2021.7.0/lib" -Xlinker --enable-new-dtags -Xlinker -rpath -Xlinker "/opt/intel/oneapi/mpi/2021.7.0/lib/release" -Xlinker -rpath -Xlinker "/opt/intel/oneapi/mpi/2021.7.0/lib" -lmpifort -lmpi -lrt -lpthread -Wl,-z,now -Wl,-z,relro -Wl,-z,noexecstack -Xlinker --enable-new-dtags -ldl
+MPI_LIBS = -L/opt/mpich/intel/lib -Wl,-rpath -Wl,/opt/mpich/intel/lib -Wl,--enable-new-dtags -lmpi
 
-CC = /opt/intel/oneapi/mpi/latest/bin/mpicc
+CC = /opt/mpich/intel/bin/mpicc
 CFLAGS = $(WARNFLAGS) -g -std=c11 $(FORTRAN_INCLUDE) -DHAVE_CFI
 
 FC = ifort
 FCFLAGS = -warn all -g -std08 -DHAVE_CFI
 
 # required on nuclear (x86_64)
-CFLAGS  += -fPIE
-FCFLAGS += -fPIE
+CFLAGS  += -fPIE -Os
+FCFLAGS += -fPIE -Os
 
 ABIFLAG = -DMPICH
 #ABIFLAG = -DOPEN_MPI
