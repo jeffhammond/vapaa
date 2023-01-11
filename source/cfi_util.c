@@ -1218,8 +1218,11 @@ const void ** VAPAA_CFI_CREATE_DATATYPE_ADDRESSES(const void * input[], int coun
 #endif
 }
 
-#if 0
-struct iovec * VAPAA_MPIDT_CREATE_IOV(const void * buffer, int count, MPI_Datatype dt)
+// Takes the result of VAPAA_CFI_CREATE_ELEMENT_ADDRESSES, which is
+// a vector of all of the element addresses in a subarray, and returns
+// the MPI indexed type associated with the vector of addresses
+// representing the subset of those that are contained in an MPI datatype
+MPI_Datatype VAPAA_CFI_CREATE_INDEXED_FROM_CFI_AND_MPIDT(const void * input[], int count, MPI_Datatype dt, MPI_Datatype elem_dt)
 {
 #if defined(MPICH) && defined(MPICH_NUMVERSION) && (MPICH_NUMVERSION > 40200000)
     int rc;
@@ -1238,34 +1241,46 @@ struct iovec * VAPAA_MPIDT_CREATE_IOV(const void * buffer, int count, MPI_Dataty
 
     if (iov[0].iov_base != 0) {
         VAPAA_Warning("MPIX_Iov iov_base (%p) is not zero, which is not supported.\n", iov[0].iov_base);
-        return NULL;
+        return MPI_ERR_TYPE;
     }
 
     MPI_Aint lb, extent;
     rc = MPI_Type_get_extent(dt, &lb, &extent);
     VAPAA_Assert(rc == MPI_SUCCESS);
 
-    struct iovec * iovecs = malloc( count * actual_iov_len * sizeof(struct iovec) );
-    VAPAA_Assert(iovecs != NULL);
-
-    (void)buffer;
-
+    int * array_of_blocklengths = malloc(count * actual_iov_len * sizeof(int));
+    VAPAA_Assert(array_of_blocklengths != NULL);
     size_t index = 0;
+    for (int j=0; j < count; j++) {
+        array_of_blocklengths[index] = 1;
+        index++;
+    }
+
+    MPI_Aint * array_of_displacements = malloc(count * actual_iov_len * sizeof(MPI_Aint));
+    VAPAA_Assert(array_of_displacements != NULL);
+
+    index = 0;
     for (int j=0; j < count; j++) {
         const ptrdiff_t type_displacement = j * extent;
         for (size_t i=0; i < (size_t)actual_iov_len; i++) {
-           const ptrdiff_t displacement = (intptr_t)iov[i].iov_base - (intptr_t)iov[0].iov_base;
-           iovecs[index].iov_base = (void*)( type_displacement + displacement );
-           iovecs[index].iov_len  = iov[i].iov_len;
-           printf("MPI iovecs[%zu] = {%p,%zu}\n", index, iovecs[index].iov_base, iovecs[index].iov_len);
-           index++;
+            const size_t offset = (intptr_t)iov[i].iov_base + type_displacement;
+            array_of_displacements[index] = input[offset] - input[0];
+            printf("CFI x MPI offset=%zd array_of_displacements[%zu] = %zd\n", offset, index, array_of_displacements[index]);
+            index++;
         }
     }
     free(iov);
 
-    return iovecs;
+    MPI_Datatype indexed_datatype;
+    rc = PMPI_Type_create_hindexed(count, array_of_blocklengths, array_of_displacements,
+                                   elem_dt, &indexed_datatype);
+    VAPAA_Assert(rc == MPI_SUCCESS);
+
+    free(array_of_blocklengths);
+    free(array_of_displacements);
+
+    return indexed_datatype;
 #else
-    (void)dt;
     #ifdef MPICH_NUMVERSION
         #warning MPICH too old
         VAPAA_Warning("MPICH %s does not have MPIX_Iov support",MPICH_NUMVERSION);
@@ -1273,7 +1288,6 @@ struct iovec * VAPAA_MPIDT_CREATE_IOV(const void * buffer, int count, MPI_Dataty
         #warning Not MPICH
         VAPAA_Warning("Not MPICH so no MPIX_Iov support");
     #endif
-    return NULL;
+    return MPI_DATATYPE_NULL;
 #endif
 }
-#endif

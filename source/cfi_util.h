@@ -32,5 +32,7 @@ int VAPAA_CFI_DESERIALIZE_SUBARRAY_MPIDT_NONCONTIG(const void * input, CFI_cdesc
 
 const void ** VAPAA_CFI_CREATE_ELEMENT_ADDRESSES(const CFI_cdesc_t * desc);
 const void ** VAPAA_CFI_CREATE_DATATYPE_ADDRESSES(const void * input[], int count, MPI_Datatype dt);
+MPI_Datatype VAPAA_CFI_CREATE_INDEXED_FROM_CFI_AND_MPIDT(const void * input[], int count, MPI_Datatype dt, MPI_Datatype elem_dt);
+
 
 #endif // CFI_UTIL_H

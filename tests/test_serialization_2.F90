@@ -9,7 +9,7 @@ program main
     call MPI_Comm_rank(MPI_COMM_WORLD,me)
     call MPI_Comm_size(MPI_COMM_WORLD,np)
 
-    call MPI_Type_vector(26,1,2,MPI_BYTE,v)
+    call MPI_Type_vector(26,1,2,MPI_CHARACTER,v)
     !call MPI_Type_set_name(v,'VAPAA: 26,1,2,MPI_CHAR')
     call MPI_Type_commit(v)
 
@@ -28,10 +28,13 @@ program main
     enddo
     print*, me, 'IN A=[',A,']'
     call MPI_Barrier(MPI_COMM_WORLD)
-    !write(*,'(a,26a1,a)')  'REF B=[',B,']'
-    !call MPI_Barrier(MPI_COMM_WORLD)
+    write(*,'(a,26a1,a)')  'REF B=[',B,']'
+    call MPI_Barrier(MPI_COMM_WORLD)
 
     call MPI_Bcast( A(1:104:2), 1, v, 0, MPI_COMM_WORLD)
+    call MPI_Barrier(MPI_COMM_WORLD)
+
+    if (me.ne.0) print*, me, 'OUT A=[',A,']'
 
     call MPI_Barrier(MPI_COMM_WORLD)
     if (me.ne.0) then
