@@ -7,7 +7,7 @@ module mpi_error_c
             implicit none
             integer(kind=c_int), intent(in) :: errorcode
             integer(kind=c_int), intent(out) :: resultlen, ierror
-            character(len=*, kind=c_char), intent(out) :: string
+            character(kind=c_char), dimension(*), intent(out) :: string
         end subroutine C_MPI_Error_string
     end interface
 

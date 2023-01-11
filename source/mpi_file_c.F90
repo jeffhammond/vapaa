@@ -6,7 +6,7 @@ module mpi_file_c
             use iso_c_binding, only: c_int, c_char
             implicit none
             integer(kind=c_int), intent(in) :: comm, amode, info
-            character(len=*,kind=c_char) :: filename
+            character(kind=c_char), dimension(*), intent(in) :: filename
             integer(kind=c_int), intent(out) :: file, ierror
         end subroutine C_MPI_File_open
     end interface
@@ -40,7 +40,7 @@ module mpi_file_c
             use iso_c_binding, only: c_int, c_char
             implicit none
             integer(kind=c_int), intent(in) :: info
-            character(len=*,kind=c_char), intent(in) :: filename
+            character(kind=c_char), dimension(*), intent(in) :: filename
             integer(kind=c_int), intent(out) :: ierror
         end subroutine C_MPI_File_delete
     end interface
@@ -98,7 +98,7 @@ module mpi_file_c
             implicit none
             integer(kind=c_int), intent(in) :: file, etype, filetype, info
             integer(kind=c_intptr_t), intent(in) :: disp
-            character(len=*,kind=c_char) :: datarep
+            character(kind=c_char), dimension(*), intent(in) :: datarep
             integer(kind=c_int), intent(out) :: ierror
         end subroutine C_MPI_File_set_view
     end interface

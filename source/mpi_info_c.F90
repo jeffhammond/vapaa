@@ -26,7 +26,7 @@ module mpi_info_c
             use iso_c_binding, only: c_int, c_char
             implicit none
             integer(kind=c_int), intent(in) :: info
-            character(len=*, kind=c_char), intent(in) :: key
+            character(kind=c_char), dimension(*), intent(in) :: key
             integer(kind=c_int), intent(out) :: ierror
         end subroutine C_MPI_Info_delete
     end interface
@@ -78,7 +78,7 @@ module mpi_info_c
             use iso_c_binding, only: c_int, c_char
             implicit none
             integer(kind=c_int), intent(in) :: info, n
-            character(len=*, kind=c_char), intent(out) :: key
+            character(kind=c_char), dimension(*), intent(out) :: key
             integer(kind=c_int), intent(out) :: ierror
         end subroutine C_MPI_Info_get_nthkey
     end interface
@@ -100,9 +100,9 @@ module mpi_info_c
             use iso_c_binding, only: c_int, c_char
             implicit none
             integer(kind=c_int), intent(in) :: info
-            character(len=*, kind=c_char), intent(in) :: key
+            character(kind=c_char), dimension(*), intent(in) :: key
             integer(kind=c_int), intent(inout) :: buflen
-            character(len=*, kind=c_char), intent(out) :: value
+            character(kind=c_char), dimension(*), intent(out) :: value
             integer(kind=c_int), intent(out) :: flag, ierror
         end subroutine C_MPI_Info_get_string
     end interface
@@ -126,7 +126,7 @@ module mpi_info_c
             use iso_c_binding, only: c_int, c_char
             implicit none
             integer(kind=c_int), intent(in) :: info
-            character(len=*,kind=c_char), intent(in) :: key, value
+            character(kind=c_char), dimension(*), intent(in) :: key, value
             integer(kind=c_int), intent(out) :: ierror
         end subroutine C_MPI_Info_set
     end interface
