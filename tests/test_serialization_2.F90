@@ -33,6 +33,7 @@ program main
 
     call MPI_Bcast( A(1:104:2), 1, v, 0, MPI_COMM_WORLD)
 
+    call MPI_Barrier(MPI_COMM_WORLD)
     if (me.ne.0) then
         if (any(A(1:104:4).ne.B)) then
             write(*,'(a,26a1,a)') 'A[...]=[',A(1:104:4),']'

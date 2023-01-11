@@ -55,12 +55,32 @@ void CFI_MPI_Bcast(CFI_cdesc_t * desc, int * count, int * datatype_f, int * root
         // and non-contig datatypes, so we create a contiguous temporary buffer
         else
         {
+            int me;
+            rc = PMPI_Comm_rank(comm, &me);
+            VAPAA_Assert(rc == MPI_SUCCESS);
+
+            if (me == *root)
+            {
+                fflush(0);
+                usleep(100*1000);
+                struct iovec * cfi_iovecs = VAPAA_CFI_CREATE_IOV_15D(desc);
+                free(cfi_iovecs);
+                fflush(0);
+                usleep(100*1000);
+                struct iovec * mpi_iovecs = VAPAA_MPIDT_CREATE_IOV(desc->base_addr, *count, datatype);
+                free(mpi_iovecs);
+                fflush(0);
+                usleep(100*1000);
+            }
+
+            *ierror = MPI_ERR_INTERN;
 #if 0
             VAPAA_Warning("Non-contiguous subarrays with user-defined datatypes is not supported.\n");
             *ierror = MPI_ERR_TYPE;
             C_MPI_RC_FIX(*ierror);
             return;
 #endif
+#if 0
             size_t scount   = VAPAA_CFI_GET_TOTAL_ELEMENTS(desc);
             size_t bytes    = scount * desc->elem_len;
             void * subarray = malloc(bytes);
@@ -75,10 +95,6 @@ void CFI_MPI_Bcast(CFI_cdesc_t * desc, int * count, int * datatype_f, int * root
             memset(packed,'#',pack_size);
 
             printf("bytes=%zu pack_size=%d type_size=%d\n", bytes, pack_size, type_size);
-
-            int me;
-            rc = PMPI_Comm_rank(comm, &me);
-            VAPAA_Assert(rc == MPI_SUCCESS);
 
             if (me == *root)
             {
@@ -145,6 +161,7 @@ void CFI_MPI_Bcast(CFI_cdesc_t * desc, int * count, int * datatype_f, int * root
 
             free(packed);
             free(subarray);
+#endif
         }
     }
     C_MPI_RC_FIX(*ierror);
