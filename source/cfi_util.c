@@ -638,7 +638,7 @@ int VAPAA_CFI_SERIALIZE_SUBARRAY(const CFI_cdesc_t * desc, void * output)
                                           + stride12 * i12
                                           + stride13 * i13
                                           + stride14 * i14;
-                   memcpy( &output[ offset * elem_len ] , &base[ displacement ] , elem_len );
+                   memcpy(output + offset * elem_len, base + displacement, elem_len);
                    printf("disp=%zd, offset=%zd, elem_len=%zu, base[]=%c, output[]=%c\n",
                            displacement, offset, elem_len,
                            ((const char*)base)[displacement],
@@ -732,7 +732,7 @@ int VAPAA_CFI_DESERIALIZE_SUBARRAY(const void * input, CFI_cdesc_t * desc)
                                           + stride12 * i12
                                           + stride13 * i13
                                           + stride14 * i14;
-                   memcpy( &base[ displacement ] , &input[ offset * elem_len ] , elem_len );
+                   memcpy(base + displacement, input + offset * elem_len, elem_len);
                    printf("disp=%zd, offset=%zd, elem_len=%zu, input[]=%c, base[]=%c\n",
                            displacement, offset, elem_len,
                            ((const char*)input)[offset*elem_len],
