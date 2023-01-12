@@ -253,10 +253,6 @@ void CFI_MPI_Isend(CFI_cdesc_t * desc, int * count, int * datatype_f, int * dest
     MPI_Datatype datatype = C_MPI_TYPE_F2C(*datatype_f);
     MPI_Comm comm = C_MPI_COMM_F2C(*comm_f);
 
-#if 1
-    VAPAA_MPIDT_PRINT_INFO(datatype);
-#endif
-
     if (1 == CFI_is_contiguous(desc)) {
         *ierror = MPI_Isend(desc->base_addr, *count, datatype, *dest, *tag, comm, &request);
     } else {
@@ -326,12 +322,15 @@ void C_MPI_Irecv(void * buffer, int * count, int * datatype_f, int * source, int
 #ifdef HAVE_CFI
 void CFI_MPI_Irecv(CFI_cdesc_t * desc, int * count, int * datatype_f, int * source, int * tag, int * comm_f, int * request_f, int * ierror)
 {
+printf("HI\n");
     MPI_Request request = MPI_REQUEST_NULL;
     MPI_Datatype datatype = C_MPI_TYPE_F2C(*datatype_f);
     MPI_Comm comm = C_MPI_COMM_F2C(*comm_f);
     if (1 == CFI_is_contiguous(desc)) {
+printf("CFI is contiguous\n");
         *ierror = MPI_Irecv(desc->base_addr, *count, datatype, *source, *tag, comm, &request);
     } else {
+printf("CFI is not contiguous\n");
         int rc;
         MPI_Datatype subarray_type = MPI_DATATYPE_NULL;
         rc = VAPAA_CFI_CREATE_DATATYPE(desc, *count, datatype, &subarray_type);
