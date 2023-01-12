@@ -1,7 +1,7 @@
 program main
     use mpi_f08
     implicit none
-    integer :: me, np, i
+    integer :: me, np, i, ierr
     integer :: A(100), B(25)
     type(MPI_Datatype) :: v
     type(MPI_Request) :: r(2)
@@ -22,9 +22,9 @@ program main
     call MPI_Type_commit(v)
 
     B = 0
-    call MPI_Isend( A, 1, v, me, 99, MPI_COMM_WORLD, r(1))
     call MPI_Irecv( B, 25, MPI_INTEGER, me, 99, MPI_COMM_WORLD, r(2))
-    call MPI_Waitall(2, r, MPI_STATUSES_IGNORE)
+    call MPI_Isend( A, 1, v, me, 99, MPI_COMM_WORLD, r(1), ierr)
+    call MPI_Waitall(2, r, MPI_STATUSES_IGNORE, ierr)
     !if (me.eq.0) print*,'B=',B
     if (any(B.ne.A(1:100:4))) then
         print*,'an error has occurred'
