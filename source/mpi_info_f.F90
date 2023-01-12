@@ -58,7 +58,11 @@ module mpi_info_f
 
     !!!!!! deprecated in MPI 4.0 !!!!!!
     interface MPI_Info_get
+#ifdef HAVE_CFI
+        module procedure MPI_Info_get_string_f08ts
+#else
         module procedure MPI_Info_get_string_f08
+#endif
     end interface MPI_Info_get
     !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -89,28 +93,46 @@ module mpi_info_f
 #endif
 
         subroutine MPI_Info_delete_f08(info, key, ierror)
-            use iso_c_binding, only: c_int
+            use iso_c_binding, only: c_int, c_char, c_null_char
             use mpi_handle_types, only: MPI_Info
             use mpi_info_c, only: C_MPI_Info_delete
             type(MPI_Info), intent(in) :: info
             character(len=*), intent(in) :: key
             integer, optional, intent(out) :: ierror
             integer(kind=c_int) :: ierror_c
-            call C_MPI_Info_delete(info % MPI_VAL, key, ierror_c)
+            integer :: i, ls
+            character(kind=c_char), dimension(:), allocatable :: key_c
+            ls = len(key)
+            allocate( key_c(ls+1) )
+            key_c = c_null_char
+            do i=1, ls
+                key_c(i) = key(i:i)
+            end do
+            call C_MPI_Info_delete(info % MPI_VAL, key_c, ierror_c)
             if (present(ierror)) ierror = ierror_c
+            deallocate( key_c )
         end subroutine  MPI_Info_delete_f08
 
 #ifdef HAVE_CFI
         subroutine MPI_Info_delete_f08ts(info, key, ierror)
-            use iso_c_binding, only: c_int
+            use iso_c_binding, only: c_int, c_char, c_null_char
             use mpi_handle_types, only: MPI_Info
             use mpi_info_c, only: CFI_MPI_Info_delete
             type(MPI_Info), intent(in) :: info
             character(len=*), intent(in) :: key
             integer, optional, intent(out) :: ierror
             integer(kind=c_int) :: ierror_c
-            call CFI_MPI_Info_delete(info % MPI_VAL, key, ierror_c)
+            integer :: i, ls
+            character(kind=c_char), dimension(:), allocatable :: key_c
+            ls = len(key)
+            allocate( key_c(ls+1) )
+            key_c = c_null_char
+            do i=1, ls
+                key_c(i) = key(i:i)
+            end do
+            call CFI_MPI_Info_delete(info % MPI_VAL, key_c, ierror_c)
             if (present(ierror)) ierror = ierror_c
+            deallocate( key_c )
         end subroutine  MPI_Info_delete_f08ts
 #endif
 
@@ -173,9 +195,18 @@ module mpi_info_f
             character(len=*), intent(out) :: key
             integer, optional, intent(out) :: ierror
             integer(kind=c_int) :: n_c, ierror_c
+            integer :: i, ls
+            character(kind=c_char), dimension(:), allocatable :: key_c
+            ls = len(key)
+            allocate( key_c(ls+1) )
+            key_c = c_null_char
             n_c = n
-            call CFI_MPI_Info_get_nthkey(info % MPI_VAL, n_c, key, ierror_c)
+            call CFI_MPI_Info_get_nthkey(info % MPI_VAL, n_c, key_c, ierror_c)
             if (present(ierror)) ierror = ierror_c
+            do i=1, ls
+                key(i:i) = key_c(i)
+            end do
+            deallocate( key_c )
         end subroutine  MPI_Info_get_nthkey_f08ts
 
         subroutine MPI_Info_get_string_f08(info, key, buflen, value, flag, ierror)
@@ -207,11 +238,25 @@ module mpi_info_f
             logical, intent(out) :: flag
             integer, optional, intent(out) :: ierror
             integer(kind=c_int) :: buflen_c, flag_c, ierror_c
+            integer :: i, lk, lv
+            character(kind=c_char), dimension(:), allocatable :: key_c, value_c
+            lk = len(key)
+            lv = len(value)
+            allocate( key_c(lk+1), value_c(lv+1) )
+            key_c   = c_null_char
+            value_c = c_null_char
+            do i=1, lk
+                key_c(i) = key(i:i)
+            end do
             buflen_c = buflen
-            call CFI_MPI_Info_get_string(info % MPI_VAL, key, buflen_c, value, flag_c, ierror_c)
+            call CFI_MPI_Info_get_string(info % MPI_VAL, key_c, buflen_c, value_c, flag_c, ierror_c)
             buflen = buflen_c
+            do i=1, lv
+                value(i:i) = value_c(i)
+            end do
             flag = (flag_c .ne. 0)
             if (present(ierror)) ierror = ierror_c
+            deallocate( key_c, value_c )
         end subroutine  MPI_Info_get_string_f08ts
 
         subroutine MPI_Info_set_f08(info, key, value, ierror)
@@ -227,15 +272,29 @@ module mpi_info_f
         end subroutine  MPI_Info_set_f08
 
         subroutine MPI_Info_set_f08ts(info, key, value, ierror)
-            use iso_c_binding, only: c_int
+            use iso_c_binding, only: c_int, c_char, c_null_char
             use mpi_handle_types, only: MPI_Info
             use mpi_info_c, only: CFI_MPI_Info_set
             type(MPI_Info), intent(in) :: info
             character(len=*), intent(in) :: key, value
             integer, optional, intent(out) :: ierror
             integer(kind=c_int) :: ierror_c
-            call CFI_MPI_Info_set(info % MPI_VAL, key, value, ierror_c)
+            integer :: i, lk, lv
+            character(kind=c_char), dimension(:), allocatable :: key_c, value_c
+            lk = len(key)
+            lv = len(value)
+            allocate( key_c(lk+1), value_c(lv+1) )
+            key_c   = c_null_char
+            value_c = c_null_char
+            do i=1, lk
+                key_c(i) = key(i:i)
+            end do
+            do i=1, lv
+                value_c(i) = value(i:i)
+            end do
+            call CFI_MPI_Info_set(info % MPI_VAL, key_c, value_c, ierror_c)
             if (present(ierror)) ierror = ierror_c
+            deallocate( key_c, value_c )
         end subroutine  MPI_Info_set_f08ts
 
 end module mpi_info_f
