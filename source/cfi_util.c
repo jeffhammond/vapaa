@@ -27,6 +27,46 @@ bool VAPAA_MPI_DATATYPE_IS_CONTIGUOUS(MPI_Datatype t)
     return (type_size == extent);
 }
 
+// return void* so we do not have to define MPIX_Iov when this function does not work anyways
+void * VAPAA_CREATE_MPIX_IOV(MPI_Datatype dt, size_t * len)
+{
+#if defined(MPICH) && defined(MPICH_NUMVERSION) && (MPICH_NUMVERSION > 40200000)
+    int rc;
+    MPI_Count max_iov_bytes=INT_MAX;    // upper bound on the size of the returned iov array (arbitrary for VAPAA)
+    MPI_Count iov_len;                  // how many MPIX_Iov fit into the above
+    MPI_Count actual_iov_bytes;         // real size of the iov array to be returned
+    rc = MPIX_Type_iov_len(dt, max_iov_bytes, &iov_len, &actual_iov_bytes);
+    VAPAA_Assert(rc == MPI_SUCCESS);
+
+    MPIX_Iov * iov = malloc(iov_len * sizeof(MPIX_Iov));
+    VAPAA_Assert(iov != NULL);
+
+    MPI_Count actual_iov_len;
+    rc = MPIX_Type_iov(dt, 0, iov, iov_len, &actual_iov_len);
+    VAPAA_Assert(rc == MPI_SUCCESS);
+
+    *len = (size_t)actual_iov_len;
+
+    if (iov[0].iov_base != 0) {
+        VAPAA_Warning("MPIX_Iov iov_base (%p) is not zero, which is not supported.\n", iov[0].iov_base);
+        free(iov);
+        return NULL;
+    }
+
+    return iov;
+#else
+    #ifdef MPICH_NUMVERSION
+        #warning MPICH too old
+        VAPAA_Warning("MPICH %s does not have MPIX_Iov support",MPICH_NUMVERSION);
+    #else
+        #warning Not MPICH
+        VAPAA_Warning("Not MPICH so no MPIX_Iov support");
+    #endif
+    return NULL;
+    (void)dt;
+#endif
+}
+
 MPI_Datatype VAPAA_CFI_TO_MPI_TYPE(CFI_type_t type)
 {
          if (type==CFI_type_signed_char)          return MPI_CHAR;
@@ -762,21 +802,11 @@ int VAPAA_CFI_DESERIALIZE_SUBARRAY(const void * input, CFI_cdesc_t * desc)
 int VAPAA_MPIDT_PRINT_INFO(MPI_Datatype dt)
 {
 #if defined(MPICH) && defined(MPICH_NUMVERSION) && (MPICH_NUMVERSION > 40200000)
-    int rc;
-    MPI_Count max_iov_bytes=INT_MAX;    // upper bound on the size of the returned iov array (arbitrary for VAPAA)
-    MPI_Count iov_len;                  // how many MPIX_Iov fit into the above
-    MPI_Count actual_iov_bytes;         // real size of the iov array to be returned
-    rc = MPIX_Type_iov_len(dt, max_iov_bytes, &iov_len, &actual_iov_bytes);
-    VAPAA_Assert(rc == MPI_SUCCESS);
-
-    MPIX_Iov * iov = malloc(iov_len * sizeof(MPIX_Iov));
+    size_t actual_iov_len;
+    MPIX_Iov * iov = VAPAA_CREATE_MPIX_IOV(dt, &actual_iov_len);
     VAPAA_Assert(iov != NULL);
 
-    MPI_Count actual_iov_len;
-    rc = MPIX_Type_iov(dt, 0, iov, iov_len, &actual_iov_len);
-    VAPAA_Assert(rc == MPI_SUCCESS);
-
-    for (size_t i=0; i < (size_t)actual_iov_len; i++) {
+    for (size_t i=0; i < actual_iov_len; i++) {
         printf("iov[%zu] = { .iov_base = %p (offset = %zd), .iov_len = %zu }\n",
                 i, iov[i].iov_base, (intptr_t)iov[i].iov_base - (intptr_t)iov[0].iov_base, iov[i].iov_len );
     }
@@ -799,23 +829,13 @@ int VAPAA_MPIDT_PRINT_INFO(MPI_Datatype dt)
 int VAPAA_CFI_SERIALIZE_SUBARRAY_MPIDT_NONCONTIG(const CFI_cdesc_t * desc, void * output, size_t count, MPI_Datatype dt)
 {
     VAPAA_Assert(0);
-
-    int rc;
     (void)count;
 
-    // MPI datatype
-    MPI_Count max_iov_bytes=INT_MAX;    // upper bound on the size of the returned iov array
-    MPI_Count iov_len;                  // how many MPIX_Iov fit into the above
-    MPI_Count actual_iov_bytes;         // real size of the iov array to be returned
-    rc = MPIX_Type_iov_len(dt, max_iov_bytes, &iov_len, &actual_iov_bytes);
-    VAPAA_Assert(rc == MPI_SUCCESS);
+    //int rc;
 
-    MPIX_Iov * iov = malloc(iov_len * sizeof(MPIX_Iov));
+    size_t actual_iov_len;
+    MPIX_Iov * iov = VAPAA_CREATE_MPIX_IOV(dt, &actual_iov_len);
     VAPAA_Assert(iov != NULL);
-
-    MPI_Count actual_iov_len;
-    rc = MPIX_Type_iov(dt, 0, iov, iov_len, &actual_iov_len);
-    VAPAA_Assert(rc == MPI_SUCCESS);
 
     // CFI subarray
     const void *  base     = desc->base_addr;
@@ -914,21 +934,16 @@ int VAPAA_CFI_SERIALIZE_SUBARRAY_MPIDT_NONCONTIG(const CFI_cdesc_t * desc, void 
 
 int VAPAA_CFI_DESERIALIZE_SUBARRAY_MPIDT_NONCONTIG(const void * input, CFI_cdesc_t * desc, size_t count, MPI_Datatype dt)
 {
-    int rc;
+    //int rc;
 
     // have not figured out >1 yet
     VAPAA_Assert(count == 1);
 
-    // MPI datatype
-    MPI_Count max_iov_bytes=INT_MAX;    // upper bound on the size of the returned iov array
-    MPI_Count iov_len;                  // how many MPIX_Iov fit into the above
-    MPI_Count actual_iov_bytes;         // real size of the iov array to be returned
-    rc = MPIX_Type_iov_len(dt, max_iov_bytes, &iov_len, &actual_iov_bytes);
-    VAPAA_Assert(rc == MPI_SUCCESS);
-
-    MPIX_Iov * iov = malloc(iov_len * sizeof(MPIX_Iov));
+    size_t actual_iov_len;
+    MPIX_Iov * iov = VAPAA_CREATE_MPIX_IOV(dt, &actual_iov_len);
     VAPAA_Assert(iov != NULL);
 
+#if 0
     MPI_Aint extent, lb;
     rc = MPI_Type_get_extent(dt, &lb, &extent);
     VAPAA_Assert(rc == MPI_SUCCESS);
@@ -940,15 +955,7 @@ int VAPAA_CFI_DESERIALIZE_SUBARRAY_MPIDT_NONCONTIG(const void * input, CFI_cdesc
     printf("input = %p\n", input);
     rc = VAPAA_MPIDT_PRINT_INFO(dt);
     VAPAA_Assert(rc == MPI_SUCCESS);
-
-    MPI_Count actual_iov_len;
-    rc = MPIX_Type_iov(dt, 0, iov, iov_len, &actual_iov_len);
-    VAPAA_Assert(rc == MPI_SUCCESS);
-
-    if (iov[0].iov_base != 0) {
-        VAPAA_Warning("MPI datatype non-zero iov_base (%p) is not supported.\n", iov[0].iov_base);
-        return MPI_ERR_TYPE;
-    }
+#endif
 
     // CFI subarray
           void *  base     = desc->base_addr;
@@ -1167,23 +1174,10 @@ const void ** VAPAA_CFI_CREATE_DATATYPE_ADDRESSES(const void * input[], int coun
 {
 #if defined(MPICH) && defined(MPICH_NUMVERSION) && (MPICH_NUMVERSION > 40200000)
     int rc;
-    MPI_Count max_iov_bytes=INT_MAX;    // upper bound on the size of the returned iov array (arbitrary for VAPAA)
-    MPI_Count iov_len;                  // how many MPIX_Iov fit into the above
-    MPI_Count actual_iov_bytes;         // real size of the iov array to be returned
-    rc = MPIX_Type_iov_len(dt, max_iov_bytes, &iov_len, &actual_iov_bytes);
-    VAPAA_Assert(rc == MPI_SUCCESS);
 
-    MPIX_Iov * iov = malloc(iov_len * sizeof(MPIX_Iov));
+    size_t actual_iov_len;
+    MPIX_Iov * iov = VAPAA_CREATE_MPIX_IOV(dt, &actual_iov_len);
     VAPAA_Assert(iov != NULL);
-
-    MPI_Count actual_iov_len;
-    rc = MPIX_Type_iov(dt, 0, iov, iov_len, &actual_iov_len);
-    VAPAA_Assert(rc == MPI_SUCCESS);
-
-    if (iov[0].iov_base != 0) {
-        VAPAA_Warning("MPIX_Iov iov_base (%p) is not zero, which is not supported.\n", iov[0].iov_base);
-        return NULL;
-    }
 
     MPI_Aint lb, extent;
     rc = MPI_Type_get_extent(dt, &lb, &extent);
@@ -1226,23 +1220,10 @@ MPI_Datatype VAPAA_CFI_CREATE_INDEXED_FROM_CFI_AND_MPIDT(const void * input[], i
 {
 #if defined(MPICH) && defined(MPICH_NUMVERSION) && (MPICH_NUMVERSION > 40200000)
     int rc;
-    MPI_Count max_iov_bytes=INT_MAX;    // upper bound on the size of the returned iov array (arbitrary for VAPAA)
-    MPI_Count iov_len;                  // how many MPIX_Iov fit into the above
-    MPI_Count actual_iov_bytes;         // real size of the iov array to be returned
-    rc = MPIX_Type_iov_len(dt, max_iov_bytes, &iov_len, &actual_iov_bytes);
-    VAPAA_Assert(rc == MPI_SUCCESS);
 
-    MPIX_Iov * iov = malloc(iov_len * sizeof(MPIX_Iov));
+    size_t actual_iov_len;
+    MPIX_Iov * iov = VAPAA_CREATE_MPIX_IOV(dt, &actual_iov_len);
     VAPAA_Assert(iov != NULL);
-
-    MPI_Count actual_iov_len;
-    rc = MPIX_Type_iov(dt, 0, iov, iov_len, &actual_iov_len);
-    VAPAA_Assert(rc == MPI_SUCCESS);
-
-    if (iov[0].iov_base != 0) {
-        VAPAA_Warning("MPIX_Iov iov_base (%p) is not zero, which is not supported.\n", iov[0].iov_base);
-        return MPI_ERR_TYPE;
-    }
 
     MPI_Aint lb, extent;
     rc = MPI_Type_get_extent(dt, &lb, &extent);
