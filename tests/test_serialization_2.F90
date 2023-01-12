@@ -52,7 +52,7 @@ program main
     call MPI_Type_free(v)
 
     if (me.eq.0) then
-        print*,'serialization support is okay'
+        print*,'serialization 2 support is okay'
     end if
 
     call MPI_Finalize()
