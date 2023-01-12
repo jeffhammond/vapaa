@@ -4,6 +4,7 @@
 #include "ISO_Fortran_binding.h"
 #include "convert_constants.h"
 #include "vapaa_constants.h"
+#include "debug.h"
 
 // see mpi_error_f.F90 for the source of these values
 
@@ -102,8 +103,12 @@ int C_MPI_ERROR_CODE_C2F(int error_c)
     else if (error_c == MPI_T_ERR_PVAR_NO_ATOMIC      ) { return VAPAA_MPI_T_ERR_PVAR_NO_ATOMIC; }
     else if (error_c == MPI_ERR_LASTCODE              ) { return VAPAA_MPI_ERR_LASTCODE; }
     else {
-        fprintf(stderr, "Unknown error code returned from the C library: %d\n", error_c);
-        return 14; /* MPI_ERR_UNKNOWN */
+        int len;
+        char name[MPI_MAX_ERROR_STRING] = {0};
+        MPI_Error_string(error_c, name, &len);
+        VAPAA_Warning("Unknown error code returned from the C library: %d=%x, name=%s\n",
+                       error_c, error_c, name);
+        return VAPAA_MPI_ERR_UNKNOWN;
     }
 }
 
