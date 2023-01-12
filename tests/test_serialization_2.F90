@@ -26,22 +26,22 @@ program main
     do i=1,100
         call MPI_Barrier(MPI_COMM_WORLD)
     enddo
-    print*, me, 'IN A=[',A,']'
-    call MPI_Barrier(MPI_COMM_WORLD)
-    write(*,'(a,26a1,a)')  'REF B=[',B,']'
-    call MPI_Barrier(MPI_COMM_WORLD)
+    !print*, me, 'IN A=[',A,']'
+    !call MPI_Barrier(MPI_COMM_WORLD)
+    !write(*,'(a,26a1,a)')  'REF B=[',B,']'
+    !call MPI_Barrier(MPI_COMM_WORLD)
 
     call MPI_Bcast( A(1:104:2), 1, v, 0, MPI_COMM_WORLD)
     call MPI_Barrier(MPI_COMM_WORLD)
 
-    if (me.ne.0) print*, me, 'OUT A=[',A,']'
+    !if (me.ne.0) print*, me, 'OUT A=[',A,']'
 
     call MPI_Barrier(MPI_COMM_WORLD)
     if (me.ne.0) then
         if (any(A(1:104:4).ne.B)) then
             write(*,'(a,26a1,a)') 'A[...]=[',A(1:104:4),']'
             write(*,'(a,26a1,a)') 'B[ * ]=[',B,']'
-            !call MPI_Abort(MPI_COMM_WORLD,me)
+            call MPI_Abort(MPI_COMM_WORLD,me)
         end if
         if (any(A(2:104:4).ne.'X').or.any(A(3:104:4).ne.'X').or.any(A(4:104:4).ne.'X')) then
             write(*,'(a,104a1,a)') 'A=[',A,']'
@@ -50,7 +50,7 @@ program main
             write(*,'(a,26a1,a)')  'A[...]=[',A(3:104:4),']'
             write(*,'(a,26a1,a)')  'A[...]=[',A(4:104:4),']'
             write(*,'(a,26a1,a)')  'B=[',B,']'
-            !call MPI_Abort(MPI_COMM_WORLD,-me)
+            call MPI_Abort(MPI_COMM_WORLD,-me)
         end if
     end if
     call MPI_Barrier(MPI_COMM_WORLD)
