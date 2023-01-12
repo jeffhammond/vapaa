@@ -168,28 +168,8 @@ program main
 
     C = 0
     call MPI_Isend( A(2:8,2:7), 1, v(3), me, 99, MPI_COMM_WORLD, r(1), ierr)
-    !call MPI_Irecv( C, size(C), MPI_INTEGER, me, 99, MPI_COMM_WORLD, r(2), ierr)
-    X = 0
-    call MPI_Irecv( X, size(X), MPI_INTEGER, me, 99, MPI_COMM_WORLD, r(2), ierr)
+    call MPI_Irecv( C, size(C), MPI_INTEGER, me, 99, MPI_COMM_WORLD, r(2), ierr)
     call MPI_Waitall(2, r, s, ierr)
-
-    write(*,'(a)') 'X='
-    do j = 1, size(X,1)
-      write(*,'(30i4)') X(j,:)
-    end do
-
-    call MPI_Error_class(ierr, eclass)
-    call MPI_Error_string(eclass, string, len)
-    print*,'ERROR Waitall: ', ierr, eclass, trim(string)!, len
-
-    call MPI_Error_class(s(1) % MPI_ERROR, eclass)
-    call MPI_Error_string(eclass, string, len)
-    print*,'ERROR Status 1: ', s(1) % MPI_ERROR, eclass, trim(string)!, len
-    
-    call MPI_Error_class(s(2) % MPI_ERROR, eclass)
-    call MPI_Error_string(eclass, string, len)
-    print*,'ERROR Status 2: ', s(2) % MPI_ERROR, eclass, trim(string)!, len
-    
     if (any(C.ne.A(3:7,3:6))) then
         print*,'an error has occurred'
         if (me .eq. 0) then

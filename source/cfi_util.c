@@ -476,15 +476,6 @@ static int VAPAA_CFI_CREATE_INDEXED(const CFI_cdesc_t * desc, int count, MPI_Dat
 
     int * array_of_blocklengths = malloc(count * iov_elements * sizeof(int));
     VAPAA_Assert(array_of_blocklengths != NULL);
-    size_t index = 0;
-    for (int j=0; j < count; j++) {
-        for (size_t i=0; i < actual_iov_len; i++) {
-            const size_t len = iov[i].iov_len;
-            VAPAA_Assert(len < INT_MAX);
-            array_of_blocklengths[index] = (int)len;
-            index++;
-        }
-    }
 
     MPI_Aint * array_of_displacements = malloc(count * iov_elements * sizeof(MPI_Aint));
     VAPAA_Assert(array_of_displacements != NULL);
@@ -492,7 +483,7 @@ static int VAPAA_CFI_CREATE_INDEXED(const CFI_cdesc_t * desc, int count, MPI_Dat
     const void ** input = VAPAA_CFI_CREATE_ELEMENT_ADDRESSES(desc);
 
     printf("input[0] = %p = %zd\n", input[0], (intptr_t)input[0]);
-    index = 0;
+    size_t index = 0;
     for (int j=0; j < count; j++) {
         const ptrdiff_t type_displacement = j * extent;
         printf("type_displacement = %zd\n", type_displacement);
@@ -500,6 +491,7 @@ static int VAPAA_CFI_CREATE_INDEXED(const CFI_cdesc_t * desc, int count, MPI_Dat
             const ptrdiff_t iov_displacement = (intptr_t)iov[i].iov_base / elem_len;
             printf("iov_displacement = %zd\n", iov_displacement);
             for (size_t k=0; k < (size_t)iov[i].iov_len / elem_len; k++) {
+                array_of_blocklengths[index] = 1;
                 printf("k = %zd ", k);
                 const size_t offset = k + iov_displacement + type_displacement;
                 printf("offset = %zd ", offset);
@@ -518,6 +510,10 @@ static int VAPAA_CFI_CREATE_INDEXED(const CFI_cdesc_t * desc, int count, MPI_Dat
 
     const size_t n = index;
     VAPAA_Assert(n < INT_MAX);
+
+    for (size_t i=0; i<n; i++) {
+        printf("%zd: BL=%6d, DISP=%12zd\n", i, array_of_blocklengths[i], (ptrdiff_t)array_of_displacements[i]);
+    }
 
     MPI_Datatype elem_dt = VAPAA_CFI_TO_MPI_TYPE(desc->type);
     rc = PMPI_Type_create_hindexed((int)n, array_of_blocklengths, array_of_displacements,
