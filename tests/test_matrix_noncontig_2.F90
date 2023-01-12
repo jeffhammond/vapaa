@@ -1,16 +1,43 @@
 program main
     use mpi_f08
     implicit none
-    integer :: me, np, i, j
-    type(MPI_Datatype) :: v
-    integer, dimension(9,8) :: A
+    integer :: me, np, i, j, ierr, eclass
+    type(MPI_Datatype) :: v(3)
+    integer, dimension(9,8) :: A, X
     integer, dimension(7,6) :: B
     integer, dimension(5,4) :: C
     type(MPI_Request) :: r(2)
+    type(MPI_Status) :: s(2)
+    character(len=MPI_MAX_ERROR_STRING) :: string
+    integer :: len
 
     call MPI_Init()
     call MPI_Comm_rank(MPI_COMM_WORLD,me)
     call MPI_Comm_size(MPI_COMM_WORLD,np)
+
+    block
+        integer :: s
+        integer, dimension(2) :: sizes, subsizes, starts
+        sizes    = shape(A)
+        subsizes = shape(B)
+        starts   = 1
+        call MPI_Type_create_subarray(2, sizes, subsizes, starts, MPI_ORDER_FORTRAN, MPI_INTEGER, v(1))
+        call MPI_Type_size(v(1), s)
+        print*,'s=',s/4,size(B)
+        call MPI_Type_commit(v(1))
+    end block
+
+    block
+        integer :: s
+        integer, dimension(2) :: sizes, subsizes, starts
+        sizes    = shape(A)
+        subsizes = shape(C)
+        starts   = 2
+        call MPI_Type_create_subarray(2, sizes, subsizes, starts, MPI_ORDER_FORTRAN, MPI_INTEGER, v(2))
+        call MPI_Type_size(v(2), s)
+        print*,'s=',s/4,size(C)
+        call MPI_Type_commit(v(2))
+    end block
 
     ! we are going to use a subarray dt to send the C-sized inside of B that
     ! is itself the inside of A.  the inside of A is the size of B.
@@ -19,13 +46,11 @@ program main
         integer, dimension(2) :: sizes, subsizes, starts
         sizes    = shape(B)
         subsizes = shape(C)
-        starts   = 2
-        call MPI_Type_create_subarray(2, sizes, subsizes, starts, MPI_ORDER_FORTRAN, MPI_INTEGER, v)
-
-        call MPI_Type_size(v, s)
-        print*,'type size = ',s
-
-        call MPI_Type_commit(v)
+        starts   = 1
+        call MPI_Type_create_subarray(2, sizes, subsizes, starts, MPI_ORDER_FORTRAN, MPI_INTEGER, v(3))
+        call MPI_Type_size(v(3), s)
+        print*,'s=',s/4,size(C)
+        call MPI_Type_commit(v(3))
     end block
 
     do j = 1, size(A,2)
@@ -37,47 +62,153 @@ program main
 
     ! debug only
     write(*,'(a)') 'A='
-    do j = 1, size(A,2)
-      write(*,'(30i4)') A(:,j)
+    do j = 1, size(A,1)
+      write(*,'(30i4)') A(j,:)
     end do
 
+    !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    ! B = A(2:8,2:7) with subarray
+    !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
     B = 0
-    call MPI_Isend( A(2:8,2:7), size(A(2:8,2:7)), MPI_INTEGER, me, 99, MPI_COMM_WORLD, r(1))
-    call MPI_Irecv( B, size(B), MPI_INTEGER, me, 99, MPI_COMM_WORLD, r(2))
-    call MPI_Waitall(2, r, MPI_STATUSES_IGNORE)
+    call MPI_Isend( A(2:8,2:7), size(A(2:8,2:7)), MPI_INTEGER, me, 99, MPI_COMM_WORLD, r(1), ierr)
+    call MPI_Irecv( B, size(B), MPI_INTEGER, me, 99, MPI_COMM_WORLD, r(2), ierr)
+    call MPI_Waitall(2, r, s, ierr)
     if (any(B.ne.A(2:8,2:7))) then
         print*,'an error has occurred'
         if (me .eq. 0) then
-            !write(*,'(a,600i4,a)') 'A=[',A,']'
-            write(*,'(a,100i4,a)') 'A[...]=[',A(2:8,2:7),']'
-            write(*,'(a,100i4,a)') 'B[ * ]=[',B,']'
+            write(*,'(a)') 'B='
+            do j = 1, size(B,1)
+              write(*,'(30i4)') B(j,:)
+            end do
         endif
+    else
+        ! debug only
+        write(*,'(a)') 'B='
+        do j = 1, size(B,1)
+          write(*,'(30i4)') B(j,:)
+        end do
     endif
-    ! debug only
-    write(*,'(a)') 'B='
-    do j = 1, size(B,2)
-      write(*,'(30i4)') B(:,j)
-    end do
+
+    !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    ! B = A(2:8,2:7) with datatype
+    !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
     B = 0
-    call MPI_Isend( A(2:8,2:7), 1, v, me, 99, MPI_COMM_WORLD, r(1))
-    call MPI_Irecv( C, size(C), MPI_INTEGER, me, 99, MPI_COMM_WORLD, r(2))
-    call MPI_Waitall(2, r, MPI_STATUSES_IGNORE)
+    call MPI_Isend( A, 1, v(1), me, 99, MPI_COMM_WORLD, r(1), ierr)
+    call MPI_Irecv( B, size(B), MPI_INTEGER, me, 99, MPI_COMM_WORLD, r(2), ierr)
+    call MPI_Waitall(2, r, s, ierr)
+    if (any(B.ne.A(2:8,2:7))) then
+        print*,'an error has occurred'
+        if (me .eq. 0) then
+            write(*,'(a)') 'B='
+            do j = 1, size(B,1)
+              write(*,'(30i4)') B(j,:)
+            end do
+        endif
+    else
+        ! debug only
+        write(*,'(a)') 'B='
+        do j = 1, size(B,1)
+          write(*,'(30i4)') B(j,:)
+        end do
+    endif
+
+    !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    ! C = A(3:7,3:6) with subarray
+    !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+    C = 0
+    call MPI_Isend( A(3:7,3:6), size(A(3:7,3:6)), MPI_INTEGER, me, 99, MPI_COMM_WORLD, r(1), ierr)
+    call MPI_Irecv( C, size(C), MPI_INTEGER, me, 99, MPI_COMM_WORLD, r(2), ierr)
+    call MPI_Waitall(2, r, s, ierr)
     if (any(C.ne.A(3:7,3:6))) then
         print*,'an error has occurred'
         if (me .eq. 0) then
-            !write(*,'(a,600i4,a)') 'A=[',A,']'
-            write(*,'(a,100i4,a)') 'A[...]=[',A(3:7,3:6),']'
-            write(*,'(a,100i4,a)') 'C[ * ]=[',C,']'
+            write(*,'(a)') 'C='
+            do j = 1, size(C,1)
+              write(*,'(30i4)') C(j,:)
+            end do
         endif
+    else
+        ! debug only
+        write(*,'(a)') 'C='
+        do j = 1, size(C,1)
+          write(*,'(30i4)') C(j,:)
+        end do
     endif
-    ! debug only
-    write(*,'(a)') 'C='
-    do j = 1, size(C,2)
-      write(*,'(30i4)') C(:,j)
+
+    !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    ! C = A(3:7,3:6) with datatype
+    !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+    C = 0
+    call MPI_Isend( A, 1, v(2), me, 99, MPI_COMM_WORLD, r(1), ierr)
+    call MPI_Irecv( C, size(C), MPI_INTEGER, me, 99, MPI_COMM_WORLD, r(2), ierr)
+    call MPI_Waitall(2, r, s, ierr)
+    if (any(C.ne.A(3:7,3:6))) then
+        print*,'an error has occurred'
+        if (me .eq. 0) then
+            write(*,'(a)') 'C='
+            do j = 1, size(C,1)
+              write(*,'(30i4)') C(j,:)
+            end do
+        endif
+    else
+        ! debug only
+        write(*,'(a)') 'C='
+        do j = 1, size(C,1)
+          write(*,'(30i4)') C(j,:)
+        end do
+    endif
+
+    !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    ! C = A(3:7,3:6) with subbarray and datatype
+    !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+    C = 0
+    call MPI_Isend( A(2:8,2:7), 1, v(3), me, 99, MPI_COMM_WORLD, r(1), ierr)
+    !call MPI_Irecv( C, size(C), MPI_INTEGER, me, 99, MPI_COMM_WORLD, r(2), ierr)
+    X = 0
+    call MPI_Irecv( X, size(X), MPI_INTEGER, me, 99, MPI_COMM_WORLD, r(2), ierr)
+    call MPI_Waitall(2, r, s, ierr)
+
+    write(*,'(a)') 'X='
+    do j = 1, size(X,1)
+      write(*,'(30i4)') X(j,:)
     end do
 
-    call MPI_Type_free(v)
+    call MPI_Error_class(ierr, eclass)
+    call MPI_Error_string(eclass, string, len)
+    print*,'ERROR Waitall: ', ierr, eclass, trim(string)!, len
+
+    call MPI_Error_class(s(1) % MPI_ERROR, eclass)
+    call MPI_Error_string(eclass, string, len)
+    print*,'ERROR Status 1: ', s(1) % MPI_ERROR, eclass, trim(string)!, len
+    
+    call MPI_Error_class(s(2) % MPI_ERROR, eclass)
+    call MPI_Error_string(eclass, string, len)
+    print*,'ERROR Status 2: ', s(2) % MPI_ERROR, eclass, trim(string)!, len
+    
+    if (any(C.ne.A(3:7,3:6))) then
+        print*,'an error has occurred'
+        if (me .eq. 0) then
+            write(*,'(a)') 'C='
+            do j = 1, size(C,1)
+              write(*,'(30i4)') C(j,:)
+            end do
+        endif
+    else
+        ! debug only
+        write(*,'(a)') 'C='
+        do j = 1, size(C,1)
+          write(*,'(30i4)') C(j,:)
+        end do
+    endif
+
+    call MPI_Type_free(v(1))
+    call MPI_Type_free(v(2))
+    call MPI_Type_free(v(3))
 
     if (me.eq.0) then
         print*,'non-contiguous matrix support is okay'
