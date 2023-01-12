@@ -37,21 +37,10 @@ void CFI_MPI_Bcast(CFI_cdesc_t * desc, int * count, int * datatype_f, int * root
     if (1 == CFI_is_contiguous(desc)) {
         *ierror = MPI_Bcast(desc->base_addr, *count, datatype, *root, comm);
     }
-    // in theory, we can replace this test with a test for any contiguous datatype...
     else {
         MPI_Datatype subarray_type = MPI_DATATYPE_NULL;
-        //if ( VAPAA_MPI_DATATYPE_IS_BUILTIN(datatype) ) {
-            rc = VAPAA_CFI_CREATE_DATATYPE(desc, *count, datatype, &subarray_type);
-            VAPAA_Assert(rc == MPI_SUCCESS);
-/*
-        }
-        else {
-            const void ** before = VAPAA_CFI_CREATE_ELEMENT_ADDRESSES(desc);
-            MPI_Datatype elem_dt = VAPAA_CFI_TO_MPI_TYPE(desc->type);
-            subarray_type = VAPAA_CFI_CREATE_INDEXED_FROM_CFI_AND_MPIDT(before, *count, datatype, elem_dt);
-            free(before);
-        }
-*/
+        rc = VAPAA_CFI_CREATE_DATATYPE(desc, *count, datatype, &subarray_type);
+        VAPAA_Assert(rc == MPI_SUCCESS);
         rc = PMPI_Type_commit(&subarray_type);
         VAPAA_Assert(rc == MPI_SUCCESS);
         *ierror = MPI_Bcast(desc->base_addr, 1, subarray_type, *root, comm);
