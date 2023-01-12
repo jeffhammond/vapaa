@@ -74,7 +74,7 @@ void CFI_MPI_File_delete(CFI_cdesc_t * filename_d, int * info_f, int * ierror)
 }
 #endif
 
-void C_MPI_File_set_size(int * file_f, intptr_t * size_f, int * ierror)
+void C_MPI_File_set_size(int * file_f, size_t * size_f, int * ierror)
 {
     MPI_File file = C_MPI_FILE_F2C(*file_f);
     MPI_Offset size = *size_f;
@@ -82,7 +82,7 @@ void C_MPI_File_set_size(int * file_f, intptr_t * size_f, int * ierror)
     C_MPI_RC_FIX(*ierror);
 }
 
-void C_MPI_File_preallocate(int * file_f, intptr_t * size_f, int * ierror)
+void C_MPI_File_preallocate(int * file_f, size_t * size_f, int * ierror)
 {
     MPI_File file = C_MPI_FILE_F2C(*file_f);
     MPI_Offset size = *size_f;
@@ -99,7 +99,7 @@ void C_MPI_File_get_size(int * file_f, size_t * size_f, int * ierror)
     C_MPI_RC_FIX(*ierror);
 }
 
-void C_MPI_File_set_view(int * file_f, intptr_t * disp_f, int * etype_f, int * filetype_f, char ** pdatarep, int * info_f, int * ierror)
+void C_MPI_File_set_view(int * file_f, size_t * disp_f, int * etype_f, int * filetype_f, char ** pdatarep, int * info_f, int * ierror)
 {
     MPI_File file = C_MPI_FILE_F2C(*file_f);
     MPI_Offset disp = *disp_f;
@@ -112,7 +112,7 @@ void C_MPI_File_set_view(int * file_f, intptr_t * disp_f, int * etype_f, int * f
 }
 
 #ifdef HAVE_CFI
-void CFI_MPI_File_set_view(int * file_f, intptr_t * disp_f, int * etype_f, int * filetype_f, CFI_cdesc_t * datarep_d, int * info_f, int * ierror)
+void CFI_MPI_File_set_view(int * file_f, size_t * disp_f, int * etype_f, int * filetype_f, CFI_cdesc_t * datarep_d, int * info_f, int * ierror)
 {
     MPI_File file = C_MPI_FILE_F2C(*file_f);
     MPI_Offset disp = *disp_f;
@@ -125,7 +125,7 @@ void CFI_MPI_File_set_view(int * file_f, intptr_t * disp_f, int * etype_f, int *
 }
 #endif
 
-void C_MPI_File_read_at(int * file_f, intptr_t * offset_f, void * buffer, int * count_f, int * datatype_f, MPI_Status * status, int * ierror)
+void C_MPI_File_read_at(int * file_f, size_t * offset_f, void * buffer, int * count_f, int * datatype_f, MPI_Status * status, int * ierror)
 {
     MPI_File file = C_MPI_FILE_F2C(*file_f);
     MPI_Offset offset = *offset_f;
@@ -137,7 +137,7 @@ void C_MPI_File_read_at(int * file_f, intptr_t * offset_f, void * buffer, int * 
 }
 
 #ifdef HAVE_CFI
-void CFI_MPI_File_read_at(int * file_f, intptr_t * offset_f, CFI_cdesc_t * desc, int * count_f, int * datatype_f, MPI_Status * status, int * ierror)
+void CFI_MPI_File_read_at(int * file_f, size_t * offset_f, CFI_cdesc_t * desc, int * count_f, int * datatype_f, MPI_Status * status, int * ierror)
 {
     MPI_File file = C_MPI_FILE_F2C(*file_f);
     MPI_Offset offset = *offset_f;
@@ -154,7 +154,7 @@ void CFI_MPI_File_read_at(int * file_f, intptr_t * offset_f, CFI_cdesc_t * desc,
 }
 #endif
 
-void C_MPI_File_read_at_all(int * file_f, intptr_t * offset_f, void * buffer, int * count_f, int * datatype_f, MPI_Status * status, int * ierror)
+void C_MPI_File_read_at_all(int * file_f, size_t * offset_f, void * buffer, int * count_f, int * datatype_f, MPI_Status * status, int * ierror)
 {
     MPI_File file = C_MPI_FILE_F2C(*file_f);
     MPI_Offset offset = *offset_f;
@@ -166,7 +166,7 @@ void C_MPI_File_read_at_all(int * file_f, intptr_t * offset_f, void * buffer, in
 }
 
 #ifdef HAVE_CFI
-void CFI_MPI_File_read_at_all(int * file_f, intptr_t * offset_f, CFI_cdesc_t * desc, int * count_f, int * datatype_f, MPI_Status * status, int * ierror)
+void CFI_MPI_File_read_at_all(int * file_f, size_t * offset_f, CFI_cdesc_t * desc, int * count_f, int * datatype_f, MPI_Status * status, int * ierror)
 {
     MPI_File file = C_MPI_FILE_F2C(*file_f);
     MPI_Offset offset = *offset_f;
@@ -183,7 +183,7 @@ void CFI_MPI_File_read_at_all(int * file_f, intptr_t * offset_f, CFI_cdesc_t * d
 }
 #endif
 
-void C_MPI_File_write_at(int * file_f, intptr_t * offset_f, void * buffer, int * count_f, int * datatype_f, MPI_Status * status, int * ierror)
+void C_MPI_File_write_at(int * file_f, size_t * offset_f, void * buffer, int * count_f, int * datatype_f, MPI_Status * status, int * ierror)
 {
     MPI_File file = C_MPI_FILE_F2C(*file_f);
     MPI_Offset offset = *offset_f;
@@ -195,7 +195,7 @@ void C_MPI_File_write_at(int * file_f, intptr_t * offset_f, void * buffer, int *
 }
 
 #ifdef HAVE_CFI
-void CFI_MPI_File_write_at(int * file_f, intptr_t * offset_f, CFI_cdesc_t * desc, int * count_f, int * datatype_f, MPI_Status * status, int * ierror)
+void CFI_MPI_File_write_at(int * file_f, size_t * offset_f, CFI_cdesc_t * desc, int * count_f, int * datatype_f, MPI_Status * status, int * ierror)
 {
     MPI_File file = C_MPI_FILE_F2C(*file_f);
     MPI_Offset offset = *offset_f;
@@ -212,7 +212,7 @@ void CFI_MPI_File_write_at(int * file_f, intptr_t * offset_f, CFI_cdesc_t * desc
 }
 #endif
 
-void C_MPI_File_write_at_all(int * file_f, intptr_t * offset_f, void * buffer, int * count_f, int * datatype_f, MPI_Status * status, int * ierror)
+void C_MPI_File_write_at_all(int * file_f, size_t * offset_f, void * buffer, int * count_f, int * datatype_f, MPI_Status * status, int * ierror)
 {
     MPI_File file = C_MPI_FILE_F2C(*file_f);
     MPI_Offset offset = *offset_f;
@@ -224,7 +224,7 @@ void C_MPI_File_write_at_all(int * file_f, intptr_t * offset_f, void * buffer, i
 }
 
 #ifdef HAVE_CFI
-void CFI_MPI_File_write_at_all(int * file_f, intptr_t * offset_f, CFI_cdesc_t * desc, int * count_f, int * datatype_f, MPI_Status * status, int * ierror)
+void CFI_MPI_File_write_at_all(int * file_f, size_t * offset_f, CFI_cdesc_t * desc, int * count_f, int * datatype_f, MPI_Status * status, int * ierror)
 {
     MPI_File file = C_MPI_FILE_F2C(*file_f);
     MPI_Offset offset = *offset_f;

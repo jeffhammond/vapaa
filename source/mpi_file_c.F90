@@ -61,10 +61,10 @@ module mpi_file_c
     interface
         subroutine C_MPI_File_set_size(file, size, ierror) &
                    bind(C,name="C_MPI_File_set_size")
-            use iso_c_binding, only: c_int, c_intptr_t
+            use iso_c_binding, only: c_int, c_size_t
             implicit none
             integer(kind=c_int), intent(in) :: file
-            integer(kind=c_intptr_t), intent(in) :: size
+            integer(kind=c_size_t), intent(in) :: size
             integer(kind=c_int), intent(out) :: ierror
         end subroutine C_MPI_File_set_size
     end interface
@@ -72,10 +72,10 @@ module mpi_file_c
     interface
         subroutine C_MPI_File_preallocate(file, size, ierror) &
                    bind(C,name="C_MPI_File_preallocate")
-            use iso_c_binding, only: c_int, c_intptr_t
+            use iso_c_binding, only: c_int, c_size_t
             implicit none
             integer(kind=c_int), intent(in) :: file
-            integer(kind=c_intptr_t), intent(in) :: size
+            integer(kind=c_size_t), intent(in) :: size
             integer(kind=c_int), intent(out) :: ierror
         end subroutine C_MPI_File_preallocate
     end interface
@@ -94,10 +94,10 @@ module mpi_file_c
     interface
         subroutine C_MPI_File_set_view(file, disp, etype, filetype, datarep, info, ierror) &
                    bind(C,name="C_MPI_File_set_view")
-            use iso_c_binding, only: c_int, c_intptr_t, c_char
+            use iso_c_binding, only: c_int, c_size_t, c_char
             implicit none
             integer(kind=c_int), intent(in) :: file, etype, filetype, info
-            integer(kind=c_intptr_t), intent(in) :: disp
+            integer(kind=c_size_t), intent(in) :: disp
             character(kind=c_char), dimension(*), intent(in) :: datarep
             integer(kind=c_int), intent(out) :: ierror
         end subroutine C_MPI_File_set_view
@@ -107,10 +107,10 @@ module mpi_file_c
     interface
         subroutine CFI_MPI_File_set_view(file, disp, etype, filetype, datarep, info, ierror) &
                    bind(C,name="CFI_MPI_File_set_view")
-            use iso_c_binding, only: c_int, c_intptr_t, c_char
+            use iso_c_binding, only: c_int, c_size_t, c_char
             implicit none
             integer(kind=c_int), intent(in) :: file, etype, filetype, info
-            integer(kind=c_intptr_t), intent(in) :: disp
+            integer(kind=c_size_t), intent(in) :: disp
             type(*), dimension(..) :: datarep
             integer(kind=c_int), intent(out) :: ierror
         end subroutine CFI_MPI_File_set_view
@@ -120,11 +120,11 @@ module mpi_file_c
     interface
         subroutine C_MPI_File_read_at(file, offset, buf, count, datatype, status, ierror) &
                    bind(C,name="C_MPI_File_read_at")
-            use iso_c_binding, only: c_int, c_intptr_t
+            use iso_c_binding, only: c_int, c_size_t
             use mpi_handle_types, only: MPI_Status
             implicit none
             integer(kind=c_int), intent(in) :: file, count, datatype
-            integer(kind=c_intptr_t), intent(in) :: offset
+            integer(kind=c_size_t), intent(in) :: offset
             integer(kind=c_int), dimension(*) :: buf
             integer(kind=c_int), intent(out) :: ierror
             type(MPI_Status) :: status
@@ -135,11 +135,11 @@ module mpi_file_c
     interface
         subroutine CFI_MPI_File_read_at(file, offset, buf, count, datatype, status, ierror) &
                    bind(C,name="CFI_MPI_File_read_at")
-            use iso_c_binding, only: c_int, c_intptr_t
+            use iso_c_binding, only: c_int, c_size_t
             use mpi_handle_types, only: MPI_Status
             implicit none
             integer(kind=c_int), intent(in) :: file, count, datatype
-            integer(kind=c_intptr_t), intent(in) :: offset
+            integer(kind=c_size_t), intent(in) :: offset
             type(*), dimension(..) :: buf
             type(MPI_Status) :: status
             integer(kind=c_int), intent(out) :: ierror
@@ -150,11 +150,11 @@ module mpi_file_c
     interface
         subroutine C_MPI_File_read_at_all(file, offset, buf, count, datatype, status, ierror) &
                    bind(C,name="C_MPI_File_read_at_all")
-            use iso_c_binding, only: c_int, c_intptr_t
+            use iso_c_binding, only: c_int, c_size_t
             use mpi_handle_types, only: MPI_Status
             implicit none
             integer(kind=c_int), intent(in) :: file, count, datatype
-            integer(kind=c_intptr_t), intent(in) :: offset
+            integer(kind=c_size_t), intent(in) :: offset
             integer(kind=c_int), dimension(*) :: buf
             type(MPI_Status) :: status
             integer(kind=c_int), intent(out) :: ierror
@@ -165,11 +165,11 @@ module mpi_file_c
     interface
         subroutine CFI_MPI_File_read_at_all(file, offset, buf, count, datatype, status, ierror) &
                    bind(C,name="CFI_MPI_File_read_at_all")
-            use iso_c_binding, only: c_int, c_intptr_t
+            use iso_c_binding, only: c_int, c_size_t
             use mpi_handle_types, only: MPI_Status
             implicit none
             integer(kind=c_int), intent(in) :: file, count, datatype
-            integer(kind=c_intptr_t), intent(in) :: offset
+            integer(kind=c_size_t), intent(in) :: offset
             type(*), dimension(..) :: buf
             type(MPI_Status) :: status
             integer(kind=c_int), intent(out) :: ierror
@@ -180,7 +180,7 @@ module mpi_file_c
     interface
         subroutine C_MPI_File_read(file, buf, count, datatype, status, ierror) &
                    bind(C,name="C_MPI_File_read")
-            use iso_c_binding, only: c_int, c_intptr_t
+            use iso_c_binding, only: c_int, c_size_t
             use mpi_handle_types, only: MPI_Status
             implicit none
             integer(kind=c_int), intent(in) :: file, count, datatype
@@ -194,7 +194,7 @@ module mpi_file_c
     interface
         subroutine CFI_MPI_File_read(file, buf, count, datatype, status, ierror) &
                    bind(C,name="CFI_MPI_File_read")
-            use iso_c_binding, only: c_int, c_intptr_t
+            use iso_c_binding, only: c_int, c_size_t
             use mpi_handle_types, only: MPI_Status
             implicit none
             integer(kind=c_int), intent(in) :: file, count, datatype
@@ -208,7 +208,7 @@ module mpi_file_c
     interface
         subroutine C_MPI_File_read_all(file, buf, count, datatype, status, ierror) &
                    bind(C,name="C_MPI_File_read_all")
-            use iso_c_binding, only: c_int, c_intptr_t
+            use iso_c_binding, only: c_int, c_size_t
             use mpi_handle_types, only: MPI_Status
             implicit none
             integer(kind=c_int), intent(in) :: file, count, datatype
@@ -222,7 +222,7 @@ module mpi_file_c
     interface
         subroutine CFI_MPI_File_read_all(file, buf, count, datatype, status, ierror) &
                    bind(C,name="CFI_MPI_File_read_all")
-            use iso_c_binding, only: c_int, c_intptr_t
+            use iso_c_binding, only: c_int, c_size_t
             use mpi_handle_types, only: MPI_Status
             implicit none
             integer(kind=c_int), intent(in) :: file, count, datatype
@@ -236,11 +236,11 @@ module mpi_file_c
     interface
         subroutine C_MPI_File_write_at(file, offset, buf, count, datatype, status, ierror) &
                    bind(C,name="C_MPI_File_write_at")
-            use iso_c_binding, only: c_int, c_intptr_t
+            use iso_c_binding, only: c_int, c_size_t
             use mpi_handle_types, only: MPI_Status
             implicit none
             integer(kind=c_int), intent(in) :: file, count, datatype
-            integer(kind=c_intptr_t), intent(in) :: offset
+            integer(kind=c_size_t), intent(in) :: offset
             integer(kind=c_int), dimension(*), intent(in) :: buf
             integer(kind=c_int), intent(out) :: ierror
             type(MPI_Status) :: status
@@ -251,11 +251,11 @@ module mpi_file_c
     interface
         subroutine CFI_MPI_File_write_at(file, offset, buf, count, datatype, status, ierror) &
                    bind(C,name="CFI_MPI_File_write_at")
-            use iso_c_binding, only: c_int, c_intptr_t
+            use iso_c_binding, only: c_int, c_size_t
             use mpi_handle_types, only: MPI_Status
             implicit none
             integer(kind=c_int), intent(in) :: file, count, datatype
-            integer(kind=c_intptr_t), intent(in) :: offset
+            integer(kind=c_size_t), intent(in) :: offset
             type(*), dimension(..) :: buf
             type(MPI_Status) :: status
             integer(kind=c_int), intent(out) :: ierror
@@ -266,11 +266,11 @@ module mpi_file_c
     interface
         subroutine C_MPI_File_write_at_all(file, offset, buf, count, datatype, status, ierror) &
                    bind(C,name="C_MPI_File_write_at_all")
-            use iso_c_binding, only: c_int, c_intptr_t
+            use iso_c_binding, only: c_int, c_size_t
             use mpi_handle_types, only: MPI_Status
             implicit none
             integer(kind=c_int), intent(in) :: file, count, datatype
-            integer(kind=c_intptr_t), intent(in) :: offset
+            integer(kind=c_size_t), intent(in) :: offset
             integer(kind=c_int), dimension(*) :: buf
             type(MPI_Status) :: status
             integer(kind=c_int), intent(out) :: ierror
@@ -281,11 +281,11 @@ module mpi_file_c
     interface
         subroutine CFI_MPI_File_write_at_all(file, offset, buf, count, datatype, status, ierror) &
                    bind(C,name="CFI_MPI_File_write_at_all")
-            use iso_c_binding, only: c_int, c_intptr_t
+            use iso_c_binding, only: c_int, c_size_t
             use mpi_handle_types, only: MPI_Status
             implicit none
             integer(kind=c_int), intent(in) :: file, count, datatype
-            integer(kind=c_intptr_t), intent(in) :: offset
+            integer(kind=c_size_t), intent(in) :: offset
             type(*), dimension(..), intent(in) :: buf
             type(MPI_Status) :: status
             integer(kind=c_int), intent(out) :: ierror
@@ -296,7 +296,7 @@ module mpi_file_c
     interface
         subroutine C_MPI_File_write(file, buf, count, datatype, status, ierror) &
                    bind(C,name="C_MPI_File_write")
-            use iso_c_binding, only: c_int, c_intptr_t
+            use iso_c_binding, only: c_int, c_size_t
             use mpi_handle_types, only: MPI_Status
             implicit none
             integer(kind=c_int), intent(in) :: file, count, datatype
@@ -310,7 +310,7 @@ module mpi_file_c
     interface
         subroutine CFI_MPI_File_write(file, buf, count, datatype, status, ierror) &
                    bind(C,name="CFI_MPI_File_write")
-            use iso_c_binding, only: c_int, c_intptr_t
+            use iso_c_binding, only: c_int, c_size_t
             use mpi_handle_types, only: MPI_Status
             implicit none
             integer(kind=c_int), intent(in) :: file, count, datatype
@@ -324,7 +324,7 @@ module mpi_file_c
     interface
         subroutine C_MPI_File_write_all(file, buf, count, datatype, status, ierror) &
                    bind(C,name="C_MPI_File_write_all")
-            use iso_c_binding, only: c_int, c_intptr_t
+            use iso_c_binding, only: c_int, c_size_t
             use mpi_handle_types, only: MPI_Status
             implicit none
             integer(kind=c_int), intent(in) :: file, count, datatype
@@ -338,7 +338,7 @@ module mpi_file_c
     interface
         subroutine CFI_MPI_File_write_all(file, buf, count, datatype, status, ierror) &
                    bind(C,name="CFI_MPI_File_write_all")
-            use iso_c_binding, only: c_int, c_intptr_t
+            use iso_c_binding, only: c_int, c_size_t
             use mpi_handle_types, only: MPI_Status
             implicit none
             integer(kind=c_int), intent(in) :: file, count, datatype
