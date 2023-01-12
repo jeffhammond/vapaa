@@ -769,7 +769,7 @@ int VAPAA_MPIDT_PRINT_INFO(MPI_Datatype dt)
     rc = MPIX_Type_iov_len(dt, max_iov_bytes, &iov_len, &actual_iov_bytes);
     VAPAA_Assert(rc == MPI_SUCCESS);
 
-    MPIX_Iov * iov = malloc(actual_iov_bytes);
+    MPIX_Iov * iov = malloc(iov_len * sizeof(MPIX_Iov));
     VAPAA_Assert(iov != NULL);
 
     MPI_Count actual_iov_len;
@@ -810,7 +810,7 @@ int VAPAA_CFI_SERIALIZE_SUBARRAY_MPIDT_NONCONTIG(const CFI_cdesc_t * desc, void 
     rc = MPIX_Type_iov_len(dt, max_iov_bytes, &iov_len, &actual_iov_bytes);
     VAPAA_Assert(rc == MPI_SUCCESS);
 
-    MPIX_Iov * iov = malloc(actual_iov_bytes);
+    MPIX_Iov * iov = malloc(iov_len * sizeof(MPIX_Iov));
     VAPAA_Assert(iov != NULL);
 
     MPI_Count actual_iov_len;
@@ -926,7 +926,7 @@ int VAPAA_CFI_DESERIALIZE_SUBARRAY_MPIDT_NONCONTIG(const void * input, CFI_cdesc
     rc = MPIX_Type_iov_len(dt, max_iov_bytes, &iov_len, &actual_iov_bytes);
     VAPAA_Assert(rc == MPI_SUCCESS);
 
-    MPIX_Iov * iov = malloc(actual_iov_bytes);
+    MPIX_Iov * iov = malloc(iov_len * sizeof(MPIX_Iov));
     VAPAA_Assert(iov != NULL);
 
     MPI_Aint extent, lb;
@@ -1173,7 +1173,7 @@ const void ** VAPAA_CFI_CREATE_DATATYPE_ADDRESSES(const void * input[], int coun
     rc = MPIX_Type_iov_len(dt, max_iov_bytes, &iov_len, &actual_iov_bytes);
     VAPAA_Assert(rc == MPI_SUCCESS);
 
-    MPIX_Iov * iov = malloc(actual_iov_bytes);
+    MPIX_Iov * iov = malloc(iov_len * sizeof(MPIX_Iov));
     VAPAA_Assert(iov != NULL);
 
     MPI_Count actual_iov_len;
