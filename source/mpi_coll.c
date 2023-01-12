@@ -30,179 +30,33 @@ void C_MPI_Bcast(void * buffer, int * count, int * datatype_f, int * root, int *
 #ifdef HAVE_CFI
 void CFI_MPI_Bcast(CFI_cdesc_t * desc, int * count, int * datatype_f, int * root, int * comm_f, int * ierror)
 {
+    int rc;
     MPI_Datatype datatype = C_MPI_TYPE_F2C(*datatype_f);
     MPI_Comm comm = C_MPI_COMM_F2C(*comm_f);
 
     if (1 == CFI_is_contiguous(desc)) {
         *ierror = MPI_Bcast(desc->base_addr, *count, datatype, *root, comm);
-    } else
-    {
-        int rc;
-
-        // in theory, we can replace this test with a test for any contiguous datatype...
-        if ( VAPAA_MPI_DATATYPE_IS_BUILTIN(datatype) )
-        {
-            MPI_Datatype subarray_type = MPI_DATATYPE_NULL;
+    }
+    // in theory, we can replace this test with a test for any contiguous datatype...
+    else {
+        MPI_Datatype subarray_type = MPI_DATATYPE_NULL;
+        //if ( VAPAA_MPI_DATATYPE_IS_BUILTIN(datatype) ) {
             rc = VAPAA_CFI_CREATE_DATATYPE(desc, *count, datatype, &subarray_type);
             VAPAA_Assert(rc == MPI_SUCCESS);
-            rc = PMPI_Type_commit(&subarray_type);
-            VAPAA_Assert(rc == MPI_SUCCESS);
-            *ierror = MPI_Bcast(desc->base_addr, 1, subarray_type, *root, comm);
-            rc = PMPI_Type_free(&subarray_type);
-            VAPAA_Assert(rc == MPI_SUCCESS);
+/*
         }
-        // it is effectively impossible to reason about non-contig subarrays
-        // and non-contig datatypes, so we create a contiguous temporary buffer
-        else
-        {
-#if 0
-            VAPAA_Warning("Non-contiguous subarrays with user-defined datatypes is not supported.\n");
-            *ierror = MPI_ERR_TYPE;
-            C_MPI_RC_FIX(*ierror);
-            return;
-#endif
-            fflush(0);
-            usleep(100*1000);
+        else {
             const void ** before = VAPAA_CFI_CREATE_ELEMENT_ADDRESSES(desc);
-            fflush(0);
-            usleep(100*1000);
             MPI_Datatype elem_dt = VAPAA_CFI_TO_MPI_TYPE(desc->type);
-            MPI_Datatype indexed_datatype = VAPAA_CFI_CREATE_INDEXED_FROM_CFI_AND_MPIDT(before, *count, datatype, elem_dt);
-            rc = PMPI_Type_commit(&indexed_datatype);
-            VAPAA_Assert(rc == MPI_SUCCESS);
+            subarray_type = VAPAA_CFI_CREATE_INDEXED_FROM_CFI_AND_MPIDT(before, *count, datatype, elem_dt);
             free(before);
-            fflush(0);
-            usleep(100*1000);
-
-#if 0
-            int pack_size, type_size;
-
-            rc = PMPI_Pack_size(*count, datatype, comm, &pack_size);
-            VAPAA_Assert(rc == MPI_SUCCESS);
-            rc = PMPI_Type_size(datatype, &type_size);
-            VAPAA_Assert(rc == MPI_SUCCESS);
-            printf("1: pack size = %d type size = %d\n", pack_size, type_size);
-
-            rc = PMPI_Pack_size(1, indexed_datatype, comm, &pack_size);
-            VAPAA_Assert(rc == MPI_SUCCESS);
-            rc = PMPI_Type_size(indexed_datatype, &type_size);
-            VAPAA_Assert(rc == MPI_SUCCESS);
-            printf("2: pack size = %d type size = %d\n", pack_size, type_size);
-
-            void * packed = malloc(pack_size);
-            memset(packed,'#',pack_size);
-
-            int me;
-            rc = PMPI_Comm_rank(comm, &me);
-            VAPAA_Assert(rc == MPI_SUCCESS);
-
-            if (me == *root)
-            {
-                int position = 0;
-                rc = PMPI_Pack(desc->base_addr, 1, indexed_datatype, packed, pack_size, &position, comm);
-                VAPAA_Assert(rc == MPI_SUCCESS);
-
-                fflush(0);
-                usleep(100*1000);
-                printf("root pack=[");
-                for (int i=0; i<pack_size; i++) {
-                    printf("%c", ((char*)packed)[i]);
-                }
-                printf("]\n");
-                fflush(0);
-                usleep(100*1000);
-            }
-#endif
-            *ierror = MPI_Bcast(desc->base_addr, 1, indexed_datatype, *root, comm);
-            rc = MPI_Type_free(&indexed_datatype);
-            VAPAA_Assert(rc == MPI_SUCCESS);
-#if 0
-            int me;
-            rc = PMPI_Comm_rank(comm, &me);
-            VAPAA_Assert(rc == MPI_SUCCESS);
-
-            size_t scount   = VAPAA_CFI_GET_TOTAL_ELEMENTS(desc);
-            size_t bytes    = scount * desc->elem_len;
-            void * subarray = malloc(bytes);
-            memset(subarray,'$',bytes);
-
-            int pack_size, type_size;
-            rc = PMPI_Pack_size(*count, datatype, comm, &pack_size);
-            VAPAA_Assert(rc == MPI_SUCCESS);
-            rc = PMPI_Type_size(datatype, &type_size);
-            VAPAA_Assert(rc == MPI_SUCCESS);
-            void * packed = malloc(pack_size);
-            memset(packed,'#',pack_size);
-
-            printf("bytes=%zu pack_size=%d type_size=%d\n", bytes, pack_size, type_size);
-
-            if (me == *root)
-            {
-                rc = VAPAA_CFI_SERIALIZE_SUBARRAY(desc, subarray);
-#if 1
-                fflush(0);
-                usleep(100*1000);
-                printf("root subarray=[");
-                for (size_t i=0; i<bytes; i++) {
-                    printf("%c", ((char*)subarray)[i]);
-                }
-                printf("]\n");
-                fflush(0);
-                usleep(100*1000);
-#endif
-                int position = 0;
-                rc = PMPI_Pack(subarray, *count, datatype, packed, pack_size, &position, comm);
-                VAPAA_Assert(rc == MPI_SUCCESS);
-#if 1
-                fflush(0);
-                usleep(100*1000);
-                printf("root pack=[");
-                for (int i=0; i<pack_size; i++) {
-                    printf("%c", ((char*)packed)[i]);
-                }
-                printf("]\n");
-                fflush(0);
-                usleep(100*1000);
-#endif
-            }
-
-            *ierror = MPI_Bcast(packed, pack_size, MPI_PACKED, *root, comm);
-
-            if (me != *root)
-            {
-#if 1
-                fflush(0);
-                usleep(100*1000);
-                printf("recv pack=[");
-                for (int i=0; i<pack_size; i++) {
-                    printf("%c", ((char*)packed)[i]);
-                }
-                printf("]\n");
-                fflush(0);
-                usleep(100*1000);
-#endif
-                int position = 0;
-                rc = PMPI_Unpack(packed, pack_size, &position, subarray, 1, datatype, comm);
-                VAPAA_Assert(rc == MPI_SUCCESS);
-#if 1
-                fflush(0);
-                usleep(100*1000);
-                printf("recv subarray=[");
-                for (size_t i=0; i<bytes; i++) {
-                    printf("%c", ((char*)subarray)[i]);
-                }
-                printf("]\n");
-                fflush(0);
-                usleep(100*1000);
-#endif
-                //rc = VAPAA_CFI_DESERIALIZE_SUBARRAY(subarray, desc);
-                rc = VAPAA_CFI_DESERIALIZE_SUBARRAY_MPIDT_NONCONTIG(subarray, desc, *count, datatype);
-            }
-
-            free(packed);
-            free(subarray);
-#endif
         }
+*/
+        rc = PMPI_Type_commit(&subarray_type);
+        VAPAA_Assert(rc == MPI_SUCCESS);
+        *ierror = MPI_Bcast(desc->base_addr, 1, subarray_type, *root, comm);
+        rc = PMPI_Type_free(&subarray_type);
+        VAPAA_Assert(rc == MPI_SUCCESS);
     }
     C_MPI_RC_FIX(*ierror);
 }
