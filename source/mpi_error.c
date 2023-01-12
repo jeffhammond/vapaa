@@ -14,100 +14,117 @@
 
 int C_MPI_ERROR_CODE_C2F(int error_c)
 {
-         if (error_c == MPI_SUCCESS                   ) { return VAPAA_MPI_SUCCESS; }
-    else if (error_c == MPI_ERR_BUFFER                ) { return VAPAA_MPI_ERR_BUFFER; }
-    else if (error_c == MPI_ERR_COUNT                 ) { return VAPAA_MPI_ERR_COUNT; }
-    else if (error_c == MPI_ERR_TYPE                  ) { return VAPAA_MPI_ERR_TYPE; }
-    else if (error_c == MPI_ERR_TAG                   ) { return VAPAA_MPI_ERR_TAG; }
-    else if (error_c == MPI_ERR_COMM                  ) { return VAPAA_MPI_ERR_COMM; }
-    else if (error_c == MPI_ERR_RANK                  ) { return VAPAA_MPI_ERR_RANK; }
-    else if (error_c == MPI_ERR_REQUEST               ) { return VAPAA_MPI_ERR_REQUEST; }
-    else if (error_c == MPI_ERR_ROOT                  ) { return VAPAA_MPI_ERR_ROOT; }
-    else if (error_c == MPI_ERR_GROUP                 ) { return VAPAA_MPI_ERR_GROUP; }
-    else if (error_c == MPI_ERR_OP                    ) { return VAPAA_MPI_ERR_OP; }
-    else if (error_c == MPI_ERR_TOPOLOGY              ) { return VAPAA_MPI_ERR_TOPOLOGY; }
-    else if (error_c == MPI_ERR_DIMS                  ) { return VAPAA_MPI_ERR_DIMS; }
-    else if (error_c == MPI_ERR_ARG                   ) { return VAPAA_MPI_ERR_ARG; }
-    else if (error_c == MPI_ERR_UNKNOWN               ) { return VAPAA_MPI_ERR_UNKNOWN; }
-    else if (error_c == MPI_ERR_TRUNCATE              ) { return VAPAA_MPI_ERR_TRUNCATE; }
-    else if (error_c == MPI_ERR_OTHER                 ) { return VAPAA_MPI_ERR_OTHER; }
-    else if (error_c == MPI_ERR_INTERN                ) { return VAPAA_MPI_ERR_INTERN; }
-    else if (error_c == MPI_ERR_PENDING               ) { return VAPAA_MPI_ERR_PENDING; }
-    else if (error_c == MPI_ERR_IN_STATUS             ) { return VAPAA_MPI_ERR_IN_STATUS; }
-    else if (error_c == MPI_ERR_ACCESS                ) { return VAPAA_MPI_ERR_ACCESS; }
-    else if (error_c == MPI_ERR_AMODE                 ) { return VAPAA_MPI_ERR_AMODE; }
-    else if (error_c == MPI_ERR_ASSERT                ) { return VAPAA_MPI_ERR_ASSERT; }
-    else if (error_c == MPI_ERR_BAD_FILE              ) { return VAPAA_MPI_ERR_BAD_FILE; }
-    else if (error_c == MPI_ERR_BASE                  ) { return VAPAA_MPI_ERR_BASE; }
-    else if (error_c == MPI_ERR_CONVERSION            ) { return VAPAA_MPI_ERR_CONVERSION; }
-    else if (error_c == MPI_ERR_DISP                  ) { return VAPAA_MPI_ERR_DISP; }
-    else if (error_c == MPI_ERR_DUP_DATAREP           ) { return VAPAA_MPI_ERR_DUP_DATAREP; }
-    else if (error_c == MPI_ERR_FILE_EXISTS           ) { return VAPAA_MPI_ERR_FILE_EXISTS; }
-    else if (error_c == MPI_ERR_FILE_IN_USE           ) { return VAPAA_MPI_ERR_FILE_IN_USE; }
-    else if (error_c == MPI_ERR_FILE                  ) { return VAPAA_MPI_ERR_FILE; }
-    else if (error_c == MPI_ERR_INFO_KEY              ) { return VAPAA_MPI_ERR_INFO_KEY; }
-    else if (error_c == MPI_ERR_INFO_NOKEY            ) { return VAPAA_MPI_ERR_INFO_NOKEY; }
-    else if (error_c == MPI_ERR_INFO_VALUE            ) { return VAPAA_MPI_ERR_INFO_VALUE; }
-    else if (error_c == MPI_ERR_INFO                  ) { return VAPAA_MPI_ERR_INFO; }
-    else if (error_c == MPI_ERR_IO                    ) { return VAPAA_MPI_ERR_IO; }
-    else if (error_c == MPI_ERR_KEYVAL                ) { return VAPAA_MPI_ERR_KEYVAL; }
-    else if (error_c == MPI_ERR_LOCKTYPE              ) { return VAPAA_MPI_ERR_LOCKTYPE; }
-    else if (error_c == MPI_ERR_NAME                  ) { return VAPAA_MPI_ERR_NAME; }
-    else if (error_c == MPI_ERR_NO_MEM                ) { return VAPAA_MPI_ERR_NO_MEM; }
-    else if (error_c == MPI_ERR_NOT_SAME              ) { return VAPAA_MPI_ERR_NOT_SAME; }
-    else if (error_c == MPI_ERR_NO_SPACE              ) { return VAPAA_MPI_ERR_NO_SPACE; }
-    else if (error_c == MPI_ERR_NO_SUCH_FILE          ) { return VAPAA_MPI_ERR_NO_SUCH_FILE; }
-    else if (error_c == MPI_ERR_PORT                  ) { return VAPAA_MPI_ERR_PORT; }
-#if (MPI_VERSION >= 4)
-    else if (error_c == MPI_ERR_PROC_ABORTED          ) { return VAPAA_MPI_ERR_PROC_ABORTED; }
+    // "To make it possible for an application to interpret an error code,
+    //  the routine MPI_ERROR_CLASS converts any error code into one of a
+    //  small set of standard error codes, called error classes."
+    int error;
+    int rc = PMPI_Error_class(error_c, &error);
+    VAPAA_Assert(rc == MPI_SUCCESS);
+
+    // If, for some reason, you need to known the actual error returned from
+    // the MPI library, and not just the class, enable the following code.
+#if 0
+    int len;
+    char name[MPI_MAX_ERROR_STRING] = {0};
+    MPI_Error_string(error_c, name, &len);
+    VAPAA_Warning("Real error code returned from the C library: %d=%x, name=%s\n",
+                   error_c, error_c, name);
 #endif
-    else if (error_c == MPI_ERR_QUOTA                 ) { return VAPAA_MPI_ERR_QUOTA; }
-    else if (error_c == MPI_ERR_READ_ONLY             ) { return VAPAA_MPI_ERR_READ_ONLY; }
-    else if (error_c == MPI_ERR_RMA_ATTACH            ) { return VAPAA_MPI_ERR_RMA_ATTACH; }
-    else if (error_c == MPI_ERR_RMA_CONFLICT          ) { return VAPAA_MPI_ERR_RMA_CONFLICT; }
-    else if (error_c == MPI_ERR_RMA_RANGE             ) { return VAPAA_MPI_ERR_RMA_RANGE; }
-    else if (error_c == MPI_ERR_RMA_SHARED            ) { return VAPAA_MPI_ERR_RMA_SHARED; }
-    else if (error_c == MPI_ERR_RMA_SYNC              ) { return VAPAA_MPI_ERR_RMA_SYNC; }
-    else if (error_c == MPI_ERR_RMA_FLAVOR            ) { return VAPAA_MPI_ERR_RMA_FLAVOR; }
-    else if (error_c == MPI_ERR_SERVICE               ) { return VAPAA_MPI_ERR_SERVICE; }
+
+         if (error == MPI_SUCCESS                   ) { return VAPAA_MPI_SUCCESS; }
+    else if (error == MPI_ERR_BUFFER                ) { return VAPAA_MPI_ERR_BUFFER; }
+    else if (error == MPI_ERR_COUNT                 ) { return VAPAA_MPI_ERR_COUNT; }
+    else if (error == MPI_ERR_TYPE                  ) { return VAPAA_MPI_ERR_TYPE; }
+    else if (error == MPI_ERR_TAG                   ) { return VAPAA_MPI_ERR_TAG; }
+    else if (error == MPI_ERR_COMM                  ) { return VAPAA_MPI_ERR_COMM; }
+    else if (error == MPI_ERR_RANK                  ) { return VAPAA_MPI_ERR_RANK; }
+    else if (error == MPI_ERR_REQUEST               ) { return VAPAA_MPI_ERR_REQUEST; }
+    else if (error == MPI_ERR_ROOT                  ) { return VAPAA_MPI_ERR_ROOT; }
+    else if (error == MPI_ERR_GROUP                 ) { return VAPAA_MPI_ERR_GROUP; }
+    else if (error == MPI_ERR_OP                    ) { return VAPAA_MPI_ERR_OP; }
+    else if (error == MPI_ERR_TOPOLOGY              ) { return VAPAA_MPI_ERR_TOPOLOGY; }
+    else if (error == MPI_ERR_DIMS                  ) { return VAPAA_MPI_ERR_DIMS; }
+    else if (error == MPI_ERR_ARG                   ) { return VAPAA_MPI_ERR_ARG; }
+    else if (error == MPI_ERR_UNKNOWN               ) { return VAPAA_MPI_ERR_UNKNOWN; }
+    else if (error == MPI_ERR_TRUNCATE              ) { return VAPAA_MPI_ERR_TRUNCATE; }
+    else if (error == MPI_ERR_OTHER                 ) { return VAPAA_MPI_ERR_OTHER; }
+    else if (error == MPI_ERR_INTERN                ) { return VAPAA_MPI_ERR_INTERN; }
+    else if (error == MPI_ERR_PENDING               ) { return VAPAA_MPI_ERR_PENDING; }
+    else if (error == MPI_ERR_IN_STATUS             ) { return VAPAA_MPI_ERR_IN_STATUS; }
+    else if (error == MPI_ERR_ACCESS                ) { return VAPAA_MPI_ERR_ACCESS; }
+    else if (error == MPI_ERR_AMODE                 ) { return VAPAA_MPI_ERR_AMODE; }
+    else if (error == MPI_ERR_ASSERT                ) { return VAPAA_MPI_ERR_ASSERT; }
+    else if (error == MPI_ERR_BAD_FILE              ) { return VAPAA_MPI_ERR_BAD_FILE; }
+    else if (error == MPI_ERR_BASE                  ) { return VAPAA_MPI_ERR_BASE; }
+    else if (error == MPI_ERR_CONVERSION            ) { return VAPAA_MPI_ERR_CONVERSION; }
+    else if (error == MPI_ERR_DISP                  ) { return VAPAA_MPI_ERR_DISP; }
+    else if (error == MPI_ERR_DUP_DATAREP           ) { return VAPAA_MPI_ERR_DUP_DATAREP; }
+    else if (error == MPI_ERR_FILE_EXISTS           ) { return VAPAA_MPI_ERR_FILE_EXISTS; }
+    else if (error == MPI_ERR_FILE_IN_USE           ) { return VAPAA_MPI_ERR_FILE_IN_USE; }
+    else if (error == MPI_ERR_FILE                  ) { return VAPAA_MPI_ERR_FILE; }
+    else if (error == MPI_ERR_INFO_KEY              ) { return VAPAA_MPI_ERR_INFO_KEY; }
+    else if (error == MPI_ERR_INFO_NOKEY            ) { return VAPAA_MPI_ERR_INFO_NOKEY; }
+    else if (error == MPI_ERR_INFO_VALUE            ) { return VAPAA_MPI_ERR_INFO_VALUE; }
+    else if (error == MPI_ERR_INFO                  ) { return VAPAA_MPI_ERR_INFO; }
+    else if (error == MPI_ERR_IO                    ) { return VAPAA_MPI_ERR_IO; }
+    else if (error == MPI_ERR_KEYVAL                ) { return VAPAA_MPI_ERR_KEYVAL; }
+    else if (error == MPI_ERR_LOCKTYPE              ) { return VAPAA_MPI_ERR_LOCKTYPE; }
+    else if (error == MPI_ERR_NAME                  ) { return VAPAA_MPI_ERR_NAME; }
+    else if (error == MPI_ERR_NO_MEM                ) { return VAPAA_MPI_ERR_NO_MEM; }
+    else if (error == MPI_ERR_NOT_SAME              ) { return VAPAA_MPI_ERR_NOT_SAME; }
+    else if (error == MPI_ERR_NO_SPACE              ) { return VAPAA_MPI_ERR_NO_SPACE; }
+    else if (error == MPI_ERR_NO_SUCH_FILE          ) { return VAPAA_MPI_ERR_NO_SUCH_FILE; }
+    else if (error == MPI_ERR_PORT                  ) { return VAPAA_MPI_ERR_PORT; }
 #if (MPI_VERSION >= 4)
-    else if (error_c == MPI_ERR_SESSION               ) { return VAPAA_MPI_ERR_SESSION; }
+    else if (error == MPI_ERR_PROC_ABORTED          ) { return VAPAA_MPI_ERR_PROC_ABORTED; }
 #endif
-    else if (error_c == MPI_ERR_SIZE                  ) { return VAPAA_MPI_ERR_SIZE; }
-    else if (error_c == MPI_ERR_SPAWN                 ) { return VAPAA_MPI_ERR_SPAWN; }
-    else if (error_c == MPI_ERR_UNSUPPORTED_DATAREP   ) { return VAPAA_MPI_ERR_UNSUPPORTED_DATAREP; }
-    else if (error_c == MPI_ERR_UNSUPPORTED_OPERATION ) { return VAPAA_MPI_ERR_UNSUPPORTED_OPERATION; }
+    else if (error == MPI_ERR_QUOTA                 ) { return VAPAA_MPI_ERR_QUOTA; }
+    else if (error == MPI_ERR_READ_ONLY             ) { return VAPAA_MPI_ERR_READ_ONLY; }
+    else if (error == MPI_ERR_RMA_ATTACH            ) { return VAPAA_MPI_ERR_RMA_ATTACH; }
+    else if (error == MPI_ERR_RMA_CONFLICT          ) { return VAPAA_MPI_ERR_RMA_CONFLICT; }
+    else if (error == MPI_ERR_RMA_RANGE             ) { return VAPAA_MPI_ERR_RMA_RANGE; }
+    else if (error == MPI_ERR_RMA_SHARED            ) { return VAPAA_MPI_ERR_RMA_SHARED; }
+    else if (error == MPI_ERR_RMA_SYNC              ) { return VAPAA_MPI_ERR_RMA_SYNC; }
+    else if (error == MPI_ERR_RMA_FLAVOR            ) { return VAPAA_MPI_ERR_RMA_FLAVOR; }
+    else if (error == MPI_ERR_SERVICE               ) { return VAPAA_MPI_ERR_SERVICE; }
 #if (MPI_VERSION >= 4)
-    else if (error_c == MPI_ERR_VALUE_TOO_LARGE       ) { return VAPAA_MPI_ERR_VALUE_TOO_LARGE; }
+    else if (error == MPI_ERR_SESSION               ) { return VAPAA_MPI_ERR_SESSION; }
 #endif
-    else if (error_c == MPI_ERR_WIN                   ) { return VAPAA_MPI_ERR_WIN; }
-    else if (error_c == MPI_T_ERR_CANNOT_INIT         ) { return VAPAA_MPI_T_ERR_CANNOT_INIT; }
-    //else if (error_c == MPI_T_ERR_NOT_ACCESSIBLE      ) { return VAPAA_MPI_T_ERR_NOT_ACCESSIBLE; }
-    else if (error_c == MPI_T_ERR_NOT_INITIALIZED     ) { return VAPAA_MPI_T_ERR_NOT_INITIALIZED; }
+    else if (error == MPI_ERR_SIZE                  ) { return VAPAA_MPI_ERR_SIZE; }
+    else if (error == MPI_ERR_SPAWN                 ) { return VAPAA_MPI_ERR_SPAWN; }
+    else if (error == MPI_ERR_UNSUPPORTED_DATAREP   ) { return VAPAA_MPI_ERR_UNSUPPORTED_DATAREP; }
+    else if (error == MPI_ERR_UNSUPPORTED_OPERATION ) { return VAPAA_MPI_ERR_UNSUPPORTED_OPERATION; }
 #if (MPI_VERSION >= 4)
-    else if (error_c == MPI_T_ERR_NOT_SUPPORTED       ) { return VAPAA_MPI_T_ERR_NOT_SUPPORTED; }
+    else if (error == MPI_ERR_VALUE_TOO_LARGE       ) { return VAPAA_MPI_ERR_VALUE_TOO_LARGE; }
 #endif
-    else if (error_c == MPI_T_ERR_MEMORY              ) { return VAPAA_MPI_T_ERR_MEMORY; }
-    else if (error_c == MPI_T_ERR_INVALID             ) { return VAPAA_MPI_T_ERR_INVALID; }
-    else if (error_c == MPI_T_ERR_INVALID_INDEX       ) { return VAPAA_MPI_T_ERR_INVALID_INDEX; }
-    else if (error_c == MPI_T_ERR_INVALID_ITEM        ) { return VAPAA_MPI_T_ERR_INVALID_ITEM; }
-    else if (error_c == MPI_T_ERR_INVALID_SESSION     ) { return VAPAA_MPI_T_ERR_INVALID_SESSION; }
-    else if (error_c == MPI_T_ERR_INVALID_HANDLE      ) { return VAPAA_MPI_T_ERR_INVALID_HANDLE; }
-    else if (error_c == MPI_T_ERR_INVALID_NAME        ) { return VAPAA_MPI_T_ERR_INVALID_NAME; }
-    else if (error_c == MPI_T_ERR_OUT_OF_HANDLES      ) { return VAPAA_MPI_T_ERR_OUT_OF_HANDLES; }
-    else if (error_c == MPI_T_ERR_OUT_OF_SESSIONS     ) { return VAPAA_MPI_T_ERR_OUT_OF_SESSIONS; }
-    else if (error_c == MPI_T_ERR_CVAR_SET_NOT_NOW    ) { return VAPAA_MPI_T_ERR_CVAR_SET_NOT_NOW; }
-    else if (error_c == MPI_T_ERR_CVAR_SET_NEVER      ) { return VAPAA_MPI_T_ERR_CVAR_SET_NEVER; }
-    else if (error_c == MPI_T_ERR_PVAR_NO_WRITE       ) { return VAPAA_MPI_T_ERR_PVAR_NO_WRITE; }
-    else if (error_c == MPI_T_ERR_PVAR_NO_STARTSTOP   ) { return VAPAA_MPI_T_ERR_PVAR_NO_STARTSTOP; }
-    else if (error_c == MPI_T_ERR_PVAR_NO_ATOMIC      ) { return VAPAA_MPI_T_ERR_PVAR_NO_ATOMIC; }
-    else if (error_c == MPI_ERR_LASTCODE              ) { return VAPAA_MPI_ERR_LASTCODE; }
+    else if (error == MPI_ERR_WIN                   ) { return VAPAA_MPI_ERR_WIN; }
+    else if (error == MPI_T_ERR_CANNOT_INIT         ) { return VAPAA_MPI_T_ERR_CANNOT_INIT; }
+    //else if (error == MPI_T_ERR_NOT_ACCESSIBLE      ) { return VAPAA_MPI_T_ERR_NOT_ACCESSIBLE; }
+    else if (error == MPI_T_ERR_NOT_INITIALIZED     ) { return VAPAA_MPI_T_ERR_NOT_INITIALIZED; }
+#if (MPI_VERSION >= 4)
+    else if (error == MPI_T_ERR_NOT_SUPPORTED       ) { return VAPAA_MPI_T_ERR_NOT_SUPPORTED; }
+#endif
+    else if (error == MPI_T_ERR_MEMORY              ) { return VAPAA_MPI_T_ERR_MEMORY; }
+    else if (error == MPI_T_ERR_INVALID             ) { return VAPAA_MPI_T_ERR_INVALID; }
+    else if (error == MPI_T_ERR_INVALID_INDEX       ) { return VAPAA_MPI_T_ERR_INVALID_INDEX; }
+    else if (error == MPI_T_ERR_INVALID_ITEM        ) { return VAPAA_MPI_T_ERR_INVALID_ITEM; }
+    else if (error == MPI_T_ERR_INVALID_SESSION     ) { return VAPAA_MPI_T_ERR_INVALID_SESSION; }
+    else if (error == MPI_T_ERR_INVALID_HANDLE      ) { return VAPAA_MPI_T_ERR_INVALID_HANDLE; }
+    else if (error == MPI_T_ERR_INVALID_NAME        ) { return VAPAA_MPI_T_ERR_INVALID_NAME; }
+    else if (error == MPI_T_ERR_OUT_OF_HANDLES      ) { return VAPAA_MPI_T_ERR_OUT_OF_HANDLES; }
+    else if (error == MPI_T_ERR_OUT_OF_SESSIONS     ) { return VAPAA_MPI_T_ERR_OUT_OF_SESSIONS; }
+    else if (error == MPI_T_ERR_CVAR_SET_NOT_NOW    ) { return VAPAA_MPI_T_ERR_CVAR_SET_NOT_NOW; }
+    else if (error == MPI_T_ERR_CVAR_SET_NEVER      ) { return VAPAA_MPI_T_ERR_CVAR_SET_NEVER; }
+    else if (error == MPI_T_ERR_PVAR_NO_WRITE       ) { return VAPAA_MPI_T_ERR_PVAR_NO_WRITE; }
+    else if (error == MPI_T_ERR_PVAR_NO_STARTSTOP   ) { return VAPAA_MPI_T_ERR_PVAR_NO_STARTSTOP; }
+    else if (error == MPI_T_ERR_PVAR_NO_ATOMIC      ) { return VAPAA_MPI_T_ERR_PVAR_NO_ATOMIC; }
+    else if (error == MPI_ERR_LASTCODE              ) { return VAPAA_MPI_ERR_LASTCODE; }
     else {
         int len;
         char name[MPI_MAX_ERROR_STRING] = {0};
-        MPI_Error_string(error_c, name, &len);
-        VAPAA_Warning("Unknown error code returned from the C library: %d=%x, name=%s\n",
-                       error_c, error_c, name);
+        MPI_Error_string(error, name, &len);
+        VAPAA_Warning("Unknown error class returned from the C library: code=%d=%x, class=%d=%x, name=%s\n",
+                       error_c, error_c, error, error, name);
         return VAPAA_MPI_ERR_UNKNOWN;
     }
 }
