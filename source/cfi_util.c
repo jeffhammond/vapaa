@@ -22,7 +22,7 @@ static size_t VAPAA_CFI_GET_TOTAL_ELEMENTS(const CFI_cdesc_t * desc)
     return total_elems;
 }
 
-bool VAPAA_MPI_DATATYPE_IS_BUILTIN(MPI_Datatype t)
+static bool VAPAA_MPI_DATATYPE_IS_BUILTIN(MPI_Datatype t)
 {
     int ni, na, nd, c;
     int rc = PMPI_Type_get_envelope(t, &ni, &na, &nd, &c);
@@ -31,7 +31,7 @@ bool VAPAA_MPI_DATATYPE_IS_BUILTIN(MPI_Datatype t)
 }
 
 #if 0
-bool VAPAA_MPI_DATATYPE_IS_CONTIGUOUS(MPI_Datatype t)
+static bool VAPAA_MPI_DATATYPE_IS_CONTIGUOUS(MPI_Datatype t)
 {
     int rc, type_size;
     MPI_Aint lb, extent;
@@ -439,17 +439,18 @@ static const void ** VAPAA_CFI_CREATE_ELEMENT_ADDRESSES(const CFI_cdesc_t * desc
 // a vector of all of the element addresses in a subarray, and returns
 // the MPI indexed type associated with the vector of addresses
 // representing the subset of those that are contained in an MPI datatype
-static MPI_Datatype VAPAA_CFI_CREATE_INDEXED_FROM_CFI_AND_MPIDT(const void * input[], int count, MPI_Datatype dt, MPI_Datatype elem_dt)
+static int VAPAA_CFI_CREATE_INDEXED(const CFI_cdesc_t * desc, int count, MPI_Datatype input_datatype, 
+                                    MPI_Datatype * array_datatype)
 {
 #if defined(MPICH) && defined(MPICH_NUMVERSION) && (MPICH_NUMVERSION > 40200000)
     int rc;
 
     size_t actual_iov_len;
-    MPIX_Iov * iov = VAPAA_CREATE_MPIX_IOV(dt, &actual_iov_len);
+    MPIX_Iov * iov = VAPAA_CREATE_MPIX_IOV(input_datatype, &actual_iov_len);
     VAPAA_Assert(iov != NULL);
 
     MPI_Aint lb, extent;
-    rc = MPI_Type_get_extent(dt, &lb, &extent);
+    rc = MPI_Type_get_extent(input_datatype, &lb, &extent);
     VAPAA_Assert(rc == MPI_SUCCESS);
 
     //printf("J count=%d actual_iov_len=%zd extent=%zd\n", count, (size_t)actual_iov_len, extent);
@@ -467,6 +468,8 @@ static MPI_Datatype VAPAA_CFI_CREATE_INDEXED_FROM_CFI_AND_MPIDT(const void * inp
     MPI_Aint * array_of_displacements = malloc(count * actual_iov_len * sizeof(MPI_Aint));
     VAPAA_Assert(array_of_displacements != NULL);
 
+    const void ** input = VAPAA_CFI_CREATE_ELEMENT_ADDRESSES(desc);
+
     index = 0;
     for (int j=0; j < count; j++) {
         const ptrdiff_t type_displacement = j * extent;
@@ -478,19 +481,20 @@ static MPI_Datatype VAPAA_CFI_CREATE_INDEXED_FROM_CFI_AND_MPIDT(const void * inp
         }
     }
     free(iov);
+    free(input);
 
     const size_t n = count * actual_iov_len;
     VAPAA_Assert(n < INT_MAX);
 
-    MPI_Datatype indexed_datatype;
+    MPI_Datatype elem_dt = VAPAA_CFI_TO_MPI_TYPE(desc->type);
     rc = PMPI_Type_create_hindexed((int)n, array_of_blocklengths, array_of_displacements,
-                                   elem_dt, &indexed_datatype);
+                                   elem_dt, array_datatype);
     VAPAA_Assert(rc == MPI_SUCCESS);
 
     free(array_of_blocklengths);
     free(array_of_displacements);
 
-    return indexed_datatype;
+    return MPI_SUCCESS;
 #else
     #ifdef MPICH_NUMVERSION
         #warning MPICH too old
@@ -499,26 +503,21 @@ static MPI_Datatype VAPAA_CFI_CREATE_INDEXED_FROM_CFI_AND_MPIDT(const void * inp
         #warning Not MPICH
         VAPAA_Warning("Not MPICH so no MPIX_Iov support");
     #endif
-    return MPI_DATATYPE_NULL;
+    return MPI_ERR_INTERN;
 #endif
 }
 
-// This function only handles the case where the datatype passed to the communication function
-// is a named aka pre-defined aka built-in datatype, corresponding to the elements of the array.
 // This function does not commit datatypes.  That needs to happen elsewhere.
 int VAPAA_CFI_CREATE_DATATYPE(const CFI_cdesc_t * desc, int count, MPI_Datatype input_datatype, 
                               MPI_Datatype * array_datatype)
 {
-    const int elem_len = desc->elem_len;
+    int rc;
 
     if ( VAPAA_MPI_DATATYPE_IS_BUILTIN(input_datatype) )
     {
-        // this function is called after the descriptor is determined
-        // to be non-contiguous, so we do not need to handle that case.
+        const int rank     = desc->rank;
+        const int elem_len = desc->elem_len;
 
-        const int     rank     = desc->rank;
-
-        int rc = MPI_SUCCESS;
         const MPI_Datatype element_datatype = VAPAA_CFI_TO_MPI_TYPE(desc->type);
 
         // count up the total number of elements in the CFI array
@@ -677,6 +676,7 @@ int VAPAA_CFI_CREATE_DATATYPE(const CFI_cdesc_t * desc, int count, MPI_Datatype 
         }
         else if (rank < 15) {
             rc = VAPAA_CFI_CREATE_DATATYPE_15D(desc, count, input_datatype, array_datatype);
+            VAPAA_Assert(rc == MPI_SUCCESS);
         }
         else
         {
@@ -697,10 +697,8 @@ int VAPAA_CFI_CREATE_DATATYPE(const CFI_cdesc_t * desc, int count, MPI_Datatype 
     // MPI user-defined datatype
     else
     {
-        const void ** before = VAPAA_CFI_CREATE_ELEMENT_ADDRESSES(desc);
-        MPI_Datatype elem_dt = VAPAA_CFI_TO_MPI_TYPE(desc->type);
-        *array_datatype = VAPAA_CFI_CREATE_INDEXED_FROM_CFI_AND_MPIDT(before, count, input_datatype, elem_dt);
-        free(before);
+        rc = VAPAA_CFI_CREATE_INDEXED(desc, count, input_datatype, array_datatype);
+        VAPAA_Assert(rc == MPI_SUCCESS);
     }
     return MPI_SUCCESS;
 }
@@ -1141,6 +1139,7 @@ int VAPAA_CFI_DESERIALIZE_SUBARRAY_MPIDT_NONCONTIG(const void * input, CFI_cdesc
 }
 #endif
 
+#if 0
 // Takes the result of VAPAA_CFI_CREATE_ELEMENT_ADDRESSES, which is
 // a vector of all of the element addresses in a subarray, and returns
 // the vector of addresses representing the subset of those that are
@@ -1186,3 +1185,4 @@ const void ** VAPAA_CFI_CREATE_DATATYPE_ADDRESSES(const void * input[], int coun
     return NULL;
 #endif
 }
+#endif
