@@ -44,7 +44,7 @@ static bool VAPAA_MPI_DATATYPE_IS_CONTIGUOUS(MPI_Datatype t)
 #endif
 
 // return void* so we do not have to define MPIX_Iov when this function does not work anyways
-static void * VAPAA_CREATE_MPIX_IOV(MPI_Datatype dt, size_t * len)
+static void * VAPAA_CREATE_MPIX_IOV(MPI_Datatype dt, size_t * total_len, size_t * total_bytes)
 {
 #if defined(MPICH) && defined(MPICH_NUMVERSION) && (MPICH_NUMVERSION > 40200000)
     int rc;
@@ -61,13 +61,19 @@ static void * VAPAA_CREATE_MPIX_IOV(MPI_Datatype dt, size_t * len)
     rc = MPIX_Type_iov(dt, 0, iov, iov_len, &actual_iov_len);
     VAPAA_Assert(rc == MPI_SUCCESS);
 
-    *len = (size_t)actual_iov_len;
+    *total_len   = (size_t)actual_iov_len;
+    *total_bytes = (size_t)actual_iov_bytes;
 
+    printf("IOV: actual_iov_len=%zd actual_iov_bytes=%zd\n",
+            (size_t)actual_iov_len, (size_t)actual_iov_bytes);
+
+#if 0
     if (iov[0].iov_base != 0) {
         VAPAA_Warning("MPIX_Iov iov_base (%p) is not zero, which is not supported.\n", iov[0].iov_base);
         free(iov);
         return NULL;
     }
+#endif
 
     return iov;
 #else
@@ -128,13 +134,13 @@ MAYBE_UNUSED
 static int VAPAA_MPIDT_PRINT_INFO(MPI_Datatype dt)
 {
 #if defined(MPICH) && defined(MPICH_NUMVERSION) && (MPICH_NUMVERSION > 40200000)
-    size_t actual_iov_len;
-    MPIX_Iov * iov = VAPAA_CREATE_MPIX_IOV(dt, &actual_iov_len);
+    size_t actual_iov_len, total_bytes;
+    MPIX_Iov * iov = VAPAA_CREATE_MPIX_IOV(dt, &actual_iov_len, &total_bytes);
     VAPAA_Assert(iov != NULL);
 
     for (size_t i=0; i < actual_iov_len; i++) {
-        printf("iov[%zu] = { .iov_base = %p (offset = %zd), .iov_len = %zu }\n",
-                i, iov[i].iov_base, (intptr_t)iov[i].iov_base - (intptr_t)iov[0].iov_base, iov[i].iov_len );
+        printf("iov[%zu] = { .iov_base = %p = %zd .iov_len = %zu }\n",
+                i, iov[i].iov_base, (intptr_t)iov[i].iov_base, iov[i].iov_len );
     }
     free(iov);
 
@@ -351,6 +357,7 @@ static const void ** VAPAA_CFI_CREATE_ELEMENT_ADDRESSES(const CFI_cdesc_t * desc
     VAPAA_Assert(addresses != NULL);
 
     const void * base  = desc->base_addr;
+    const int elem_len = desc->elem_len;
     const int rank     = desc->rank;
     const int extent0  = (rank >  0) ? desc->dim[ 0].extent : 1;
     const int extent1  = (rank >  1) ? desc->dim[ 1].extent : 1;
@@ -415,7 +422,9 @@ static const void ** VAPAA_CFI_CREATE_ELEMENT_ADDRESSES(const CFI_cdesc_t * desc
                                           + stride13 * i13
                                           + stride14 * i14;
                    addresses[index] = (void*)base + displacement;
-                   //printf("CFI addresses[%zu] = %p\n", index, addresses[index]);
+                   printf("CFI addresses[%zu] = %p (%zd) buf=%d\n", index, addresses[index],
+                           (addresses[index] - addresses[0]) / elem_len,
+                           *(int*)addresses[index] );
                    index++;
                   }
                  }
@@ -445,45 +454,69 @@ static int VAPAA_CFI_CREATE_INDEXED(const CFI_cdesc_t * desc, int count, MPI_Dat
 #if defined(MPICH) && defined(MPICH_NUMVERSION) && (MPICH_NUMVERSION > 40200000)
     int rc;
 
-    size_t actual_iov_len;
-    MPIX_Iov * iov = VAPAA_CREATE_MPIX_IOV(input_datatype, &actual_iov_len);
+    const int elem_len = desc->elem_len;
+
+    size_t actual_iov_len, total_bytes;
+    MPIX_Iov * iov = VAPAA_CREATE_MPIX_IOV(input_datatype, &actual_iov_len, &total_bytes);
     VAPAA_Assert(iov != NULL);
 
     MPI_Aint lb, extent;
     rc = MPI_Type_get_extent(input_datatype, &lb, &extent);
     VAPAA_Assert(rc == MPI_SUCCESS);
 
-    //printf("J count=%d actual_iov_len=%zd extent=%zd\n", count, (size_t)actual_iov_len, extent);
+#if 1
+    rc = VAPAA_MPIDT_PRINT_INFO(input_datatype);
+    VAPAA_Assert(rc == MPI_SUCCESS);
+    fflush(0);
+    usleep(1000);
+#endif
 
-    int * array_of_blocklengths = malloc(count * actual_iov_len * sizeof(int));
+    size_t iov_elements = total_bytes / elem_len;
+    printf("iov_elements = %zd\n", iov_elements);
+
+    int * array_of_blocklengths = malloc(count * iov_elements * sizeof(int));
     VAPAA_Assert(array_of_blocklengths != NULL);
     size_t index = 0;
     for (int j=0; j < count; j++) {
-        for (size_t i=0; i < (size_t)actual_iov_len; i++) {
-            array_of_blocklengths[index] = 1;
+        for (size_t i=0; i < actual_iov_len; i++) {
+            const size_t len = iov[i].iov_len;
+            VAPAA_Assert(len < INT_MAX);
+            array_of_blocklengths[index] = (int)len;
             index++;
         }
     }
 
-    MPI_Aint * array_of_displacements = malloc(count * actual_iov_len * sizeof(MPI_Aint));
+    MPI_Aint * array_of_displacements = malloc(count * iov_elements * sizeof(MPI_Aint));
     VAPAA_Assert(array_of_displacements != NULL);
 
     const void ** input = VAPAA_CFI_CREATE_ELEMENT_ADDRESSES(desc);
 
+    printf("input[0] = %p = %zd\n", input[0], (intptr_t)input[0]);
     index = 0;
     for (int j=0; j < count; j++) {
         const ptrdiff_t type_displacement = j * extent;
-        for (size_t i=0; i < (size_t)actual_iov_len; i++) {
-            const size_t offset = (intptr_t)iov[i].iov_base + type_displacement;
-            array_of_displacements[index] = input[offset] - input[0];
-            //printf("CFI x MPI offset=%zd array_of_displacements[%zu] = %zd\n", offset, index, array_of_displacements[index]);
-            index++;
+        printf("type_displacement = %zd\n", type_displacement);
+        for (size_t i=0; i < actual_iov_len; i++) {
+            const ptrdiff_t iov_displacement = (intptr_t)iov[i].iov_base / elem_len;
+            printf("iov_displacement = %zd\n", iov_displacement);
+            for (size_t k=0; k < (size_t)iov[i].iov_len / elem_len; k++) {
+                printf("k = %zd ", k);
+                const size_t offset = k + iov_displacement + type_displacement;
+                printf("offset = %zd ", offset);
+                array_of_displacements[index] = input[offset] - input[0];
+                printf("input[offset] = %p = %zd ", input[offset], (intptr_t)input[offset]);
+                //printf("CFI x MPI offset=%zd input[offset]=%p array_of_displacements[%zu] = %zd\n",
+                //        offset, input[offset], index, array_of_displacements[index]);
+                printf("buf = %d ", *(int*)(input[offset]));
+                index++;
+                printf("\n");
+            }
         }
     }
     free(iov);
     free(input);
 
-    const size_t n = count * actual_iov_len;
+    const size_t n = index;
     VAPAA_Assert(n < INT_MAX);
 
     MPI_Datatype elem_dt = VAPAA_CFI_TO_MPI_TYPE(desc->type);
