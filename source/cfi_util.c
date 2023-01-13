@@ -64,8 +64,10 @@ static void * VAPAA_CREATE_MPIX_IOV(MPI_Datatype dt, size_t * total_len, size_t 
     *total_len   = (size_t)actual_iov_len;
     *total_bytes = (size_t)actual_iov_bytes;
 
+#if 0
     printf("IOV: actual_iov_len=%zd actual_iov_bytes=%zd\n",
             (size_t)actual_iov_len, (size_t)actual_iov_bytes);
+#endif
 
 #if 0
     if (iov[0].iov_base != 0) {
@@ -357,7 +359,7 @@ static const void ** VAPAA_CFI_CREATE_ELEMENT_ADDRESSES(const CFI_cdesc_t * desc
     VAPAA_Assert(addresses != NULL);
 
     const void * base  = desc->base_addr;
-    const int elem_len = desc->elem_len;
+    //const int elem_len = desc->elem_len;
     const int rank     = desc->rank;
     const int extent0  = (rank >  0) ? desc->dim[ 0].extent : 1;
     const int extent1  = (rank >  1) ? desc->dim[ 1].extent : 1;
@@ -422,9 +424,10 @@ static const void ** VAPAA_CFI_CREATE_ELEMENT_ADDRESSES(const CFI_cdesc_t * desc
                                           + stride13 * i13
                                           + stride14 * i14;
                    addresses[index] = (void*)base + displacement;
-                   printf("CFI addresses[%zu] = %p (%zd) buf=%d\n", index, addresses[index],
-                           (addresses[index] - addresses[0]) / elem_len,
-                           *(int*)addresses[index] );
+#if 0
+                   printf("CFI addresses[%zu] = %p (%zd)\n", index, addresses[index],
+                           (addresses[index] - addresses[0]) / elem_len);
+#endif
                    index++;
                   }
                  }
@@ -464,7 +467,7 @@ static int VAPAA_CFI_CREATE_INDEXED(const CFI_cdesc_t * desc, int count, MPI_Dat
     rc = MPI_Type_get_extent(input_datatype, &lb, &extent);
     VAPAA_Assert(rc == MPI_SUCCESS);
 
-#if 1
+#if 0
     rc = VAPAA_MPIDT_PRINT_INFO(input_datatype);
     VAPAA_Assert(rc == MPI_SUCCESS);
     fflush(0);
@@ -472,7 +475,7 @@ static int VAPAA_CFI_CREATE_INDEXED(const CFI_cdesc_t * desc, int count, MPI_Dat
 #endif
 
     size_t iov_elements = total_bytes / elem_len;
-    printf("iov_elements = %zd\n", iov_elements);
+    //printf("iov_elements = %zd\n", iov_elements);
 
     int * array_of_blocklengths = malloc(count * iov_elements * sizeof(int));
     VAPAA_Assert(array_of_blocklengths != NULL);
@@ -482,26 +485,24 @@ static int VAPAA_CFI_CREATE_INDEXED(const CFI_cdesc_t * desc, int count, MPI_Dat
 
     const void ** input = VAPAA_CFI_CREATE_ELEMENT_ADDRESSES(desc);
 
-    printf("input[0] = %p = %zd\n", input[0], (intptr_t)input[0]);
+    //printf("input[0] = %p = %zd\n", input[0], (intptr_t)input[0]);
     size_t index = 0;
     for (int j=0; j < count; j++) {
         const ptrdiff_t type_displacement = j * extent;
-        printf("type_displacement = %zd\n", type_displacement);
+        //printf("type_displacement = %zd\n", type_displacement);
         for (size_t i=0; i < actual_iov_len; i++) {
             const ptrdiff_t iov_displacement = (intptr_t)iov[i].iov_base / elem_len;
-            printf("iov_displacement = %zd\n", iov_displacement);
+            //printf("iov_displacement = %zd\n", iov_displacement);
             for (size_t k=0; k < (size_t)iov[i].iov_len / elem_len; k++) {
                 array_of_blocklengths[index] = 1;
-                printf("k = %zd ", k);
+                //printf("k = %zd ", k);
                 const size_t offset = k + iov_displacement + type_displacement;
-                printf("offset = %zd ", offset);
+                //printf("offset = %zd ", offset);
                 array_of_displacements[index] = input[offset] - input[0];
-                printf("input[offset] = %p = %zd ", input[offset], (intptr_t)input[offset]);
-                //printf("CFI x MPI offset=%zd input[offset]=%p array_of_displacements[%zu] = %zd\n",
-                //        offset, input[offset], index, array_of_displacements[index]);
-                printf("buf = %d ", *(int*)(input[offset]));
+                //printf("input[offset] = %p = %zd ", input[offset], (intptr_t)input[offset]);
+                //printf("buf = %d ", *(int*)(input[offset]));
                 index++;
-                printf("\n");
+                //printf("\n");
             }
         }
     }
@@ -511,9 +512,11 @@ static int VAPAA_CFI_CREATE_INDEXED(const CFI_cdesc_t * desc, int count, MPI_Dat
     const size_t n = index;
     VAPAA_Assert(n < INT_MAX);
 
+#if 0
     for (size_t i=0; i<n; i++) {
         printf("%zd: BL=%6d, DISP=%12zd\n", i, array_of_blocklengths[i], (ptrdiff_t)array_of_displacements[i]);
     }
+#endif
 
     MPI_Datatype elem_dt = VAPAA_CFI_TO_MPI_TYPE(desc->type);
     rc = PMPI_Type_create_hindexed((int)n, array_of_blocklengths, array_of_displacements,
