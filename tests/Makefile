@@ -15,7 +15,7 @@ all: test_core.x test_bcast.x test_reductions.x test_p2p.x \
      test_matrix_noncontig_2.x test_matrix_noncontig_3.x \
      test_datatype.x test_comm.x test_user_reduction.x mpich_uallreducef08.x \
      test_info.x test_error.x test_reduce_ops.x test_reduce_mxxloc.x \
-     test_serialization.x test_serialization_2.x
+     test_serialization.x test_serialization_2.x test_attr.F90
 
 %.x: %.o ../source/libmpi_f08.a
 	$(FC) $(FCFLAGS) $^ $(MPI_LIBS) -o $@

@@ -25,6 +25,7 @@ libmpi_f08.a: mpi_f08.o cfi_util.o debug.o \
 	      mpi_request_f.o mpi_request_c.o mpi_request.o \
 	      mpi_status_f.o mpi_status_c.o mpi_status.o \
 	      mpi_win_f.o mpi_win_c.o mpi_win.o \
+	      mpi_attr_f.o mpi_attr_c.o mpi_attr.o \
 	      mpi_error_f.o mpi_error_c.o mpi_error.o
 	$(AR) $(ARFLAGS) $@ $^
 
@@ -36,7 +37,7 @@ mpi_f08.o: mpi_f08.F90 \
 	   mpi_file_f.o mpi_group_f.o mpi_info_f.o mpi_message_f.o \
 	   mpi_file_f.o mpi_group_f.o mpi_info_f.o mpi_message_f.o \
 	   mpi_p2p_f.o mpi_op_f.o mpi_request_f.o mpi_status_f.o \
-	   mpi_rma_f.o mpi_win_f.o mpi_error_f.o
+	   mpi_rma_f.o mpi_win_f.o mpi_attr_f.o mpi_error_f.o
 	$(FC) $(FCFLAGS) -c $<
 
 debug.o: debug.c debug.h
@@ -227,6 +228,17 @@ mpi_error_c.o: mpi_error_c.F90 mpi_error.o mpi_global_constants.o
 	$(FC) $(FCFLAGS) -c $<
 
 mpi_error.o: mpi_error.c convert_handles.h convert_constants.h vapaa_constants.h
+	$(CC) $(CFLAGS) -c $<
+
+# ATTRIBUTES
+
+mpi_attr_f.o: mpi_attr_f.F90 mpi_attr_c.o mpi_handle_types.o mpi_global_constants.o
+	$(FC) $(FCFLAGS) -c $<
+
+mpi_attr_c.o: mpi_attr_c.F90 mpi_attr.o mpi_global_constants.o
+	$(FC) $(FCFLAGS) -c $<
+
+mpi_attr.o: mpi_attr.c convert_handles.h convert_constants.h vapaa_constants.h
 	$(CC) $(CFLAGS) -c $<
 
 clean:

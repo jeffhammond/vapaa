@@ -16,5 +16,6 @@ module mpi_f08
     use mpi_status_f
     use mpi_rma_f
     use mpi_win_f
+    use mpi_attr_f
     use mpi_error_f
 end module mpi_f08
