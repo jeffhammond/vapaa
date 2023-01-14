@@ -18,5 +18,9 @@ program main
 
     endif
 
+    if (me.eq.0) then
+        print*,'attribute support is okay'
+    end if
+
     call MPI_Finalize(ierror)
 end program main
