@@ -16,7 +16,8 @@ module mpi_coll_c
             use iso_c_binding, only: c_int
             implicit none
             integer(kind=c_int), dimension(*), intent(inout) :: buffer
-            integer(kind=c_int) :: count, datatype, root, comm, ierror
+            integer(kind=c_int), intent(in), value :: count, datatype, root, comm
+            integer(kind=c_int), intent(out) :: ierror
         end subroutine C_MPI_Bcast
     end interface
 
@@ -28,7 +29,8 @@ module mpi_coll_c
             use iso_c_binding, only: c_int
             implicit none
             type(*), dimension(..), intent(inout) :: buffer
-            integer(kind=c_int) :: count, datatype, root, comm, ierror
+            integer(kind=c_int), intent(in), value :: count, datatype, root, comm
+            integer(kind=c_int), intent(out) :: ierror
         end subroutine CFI_MPI_Bcast
     end interface
 #endif

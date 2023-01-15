@@ -19,31 +19,31 @@ void C_MPI_Barrier(int * comm_f, int * ierror)
     C_MPI_RC_FIX(*ierror);
 }
 
-void C_MPI_Bcast(void * buffer, int * count, int * datatype_f, int * root, int * comm_f, int * ierror)
+void C_MPI_Bcast(void * buffer, int count, int datatype_f, int root, int comm_f, int * ierror)
 {
-    MPI_Datatype datatype = C_MPI_TYPE_F2C(*datatype_f);
-    MPI_Comm comm = C_MPI_COMM_F2C(*comm_f);
-    *ierror = MPI_Bcast(buffer, *count, datatype, *root, comm);
+    MPI_Datatype datatype = C_MPI_TYPE_F2C(datatype_f);
+    MPI_Comm comm = C_MPI_COMM_F2C(comm_f);
+    *ierror = MPI_Bcast(buffer, count, datatype, root, comm);
     C_MPI_RC_FIX(*ierror);
 }
 
 #ifdef HAVE_CFI
-void CFI_MPI_Bcast(CFI_cdesc_t * desc, int * count, int * datatype_f, int * root, int * comm_f, int * ierror)
+void CFI_MPI_Bcast(CFI_cdesc_t * desc, int count, int datatype_f, int root, int comm_f, int * ierror)
 {
     int rc;
-    MPI_Datatype datatype = C_MPI_TYPE_F2C(*datatype_f);
-    MPI_Comm comm = C_MPI_COMM_F2C(*comm_f);
+    MPI_Datatype datatype = C_MPI_TYPE_F2C(datatype_f);
+    MPI_Comm comm = C_MPI_COMM_F2C(comm_f);
 
     if (1 == CFI_is_contiguous(desc)) {
-        *ierror = MPI_Bcast(desc->base_addr, *count, datatype, *root, comm);
+        *ierror = MPI_Bcast(desc->base_addr, count, datatype, root, comm);
     }
     else {
         MPI_Datatype subarray_type = MPI_DATATYPE_NULL;
-        rc = VAPAA_CFI_CREATE_DATATYPE(desc, *count, datatype, &subarray_type);
+        rc = VAPAA_CFI_CREATE_DATATYPE(desc, count, datatype, &subarray_type);
         VAPAA_Assert(rc == MPI_SUCCESS);
         rc = PMPI_Type_commit(&subarray_type);
         VAPAA_Assert(rc == MPI_SUCCESS);
-        *ierror = MPI_Bcast(desc->base_addr, 1, subarray_type, *root, comm);
+        *ierror = MPI_Bcast(desc->base_addr, 1, subarray_type, root, comm);
         rc = PMPI_Type_free(&subarray_type);
         VAPAA_Assert(rc == MPI_SUCCESS);
     }
