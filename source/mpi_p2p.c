@@ -100,6 +100,7 @@ void C_MPI_Testany(const int * count_f, int requests_f[], int * index_f, int * f
     MPI_Request * requests = malloc( count * sizeof(MPI_Request) );
     if (requests == NULL) {
         *ierror = MPI_ERR_OTHER;
+        C_MPI_RC_FIX(*ierror);
         return;
     }
 
