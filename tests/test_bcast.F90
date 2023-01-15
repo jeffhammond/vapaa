@@ -12,14 +12,16 @@ program main
     call MPI_Comm_size(MPI_COMM_WORLD,np)
 
     call MPI_Barrier(MPI_COMM_WORLD)
+#if 0
     do i=0,np
         if (me.eq.i) print*,'I am ',me,' of ',np,' of WORLD'
         call MPI_Barrier(MPI_COMM_WORLD)
     enddo
+#endif
 
     do i=0,20
         b = 2**i
-        if (me.eq.0) print*,'b=',b
+        !if (me.eq.0) print*,'b=',b
         allocate( x(b) )
         if (me.eq.0) then
             x = np
@@ -32,6 +34,10 @@ program main
         endif
         deallocate( x )
     enddo
+
+    if (me.eq.0) then
+        print*,'bcast is okay'
+    end if
 
     call MPI_Finalize(ierror)
 
