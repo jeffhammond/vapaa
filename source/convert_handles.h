@@ -192,6 +192,16 @@ static MPI_Request C_MPI_REQUEST_F2C(int request_f)
     } 
 }
 
+MAYBE_UNUSED
+static MPI_Win C_MPI_WIN_F2C(int win_f)
+{
+    if (win_f == VAPAA_MPI_WIN_NULL) {
+        return MPI_WIN_NULL;
+    } else {
+        return MPI_Win_f2c(win_f);
+    } 
+}
+
 /*******************************************************/
 
 /* TODO:
