@@ -35,7 +35,7 @@ The library verifies this assumption on initialization.
 
 ```fortran
     type, bind(C) :: MPI_Request
-      integer(kind=c_int) :: MPI_VAL // not the default Fortran integer
+      integer(kind=c_int) :: MPI_VAL ! not the default Fortran integer
     end type MPI_Request
 ```
 is equivalent to
