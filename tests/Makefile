@@ -4,7 +4,7 @@ AR := ar
 ARFLAGS := -r
 
 # obviously, you have to compile in ../source first
-FCFLAGS += -I../source -L../source -lmpi_f08
+FCFLAGS += -I../source
 
 #FCFLAGS += -Wno-unused-variable -Wno-unused-dummy-argument \
 	   -fmax-stack-var-size=1000000
