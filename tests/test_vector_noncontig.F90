@@ -28,6 +28,9 @@ program main
     !if (me.eq.0) print*,'B=',B
     if (any(B.ne.A(1:100:4))) then
         print*,'an error has occurred'
+        print*,A(1:100:4)
+        print*,B
+        stop 1
     endif
 
     B = 0
@@ -37,6 +40,9 @@ program main
     !if (me.eq.0) print*,'B=',B
     if (any(B.ne.A(1:100:4))) then
         print*,'an error has occurred'
+        print*,A(1:100:4)
+        print*,B
+        stop 2
     endif
 
     call MPI_Type_free(v)
