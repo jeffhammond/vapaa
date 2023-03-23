@@ -28,13 +28,13 @@ static MPI_Comm C_MPI_COMM_F2C(int comm_f)
 // if-else logic. (see below)
 
 #define DT_CASE(type) \
-    case VAPAA_##type: return type; break;
+    case VAPAA_##type: { return type; }
 
 MAYBE_UNUSED
 static MPI_Datatype C_MPI_TYPE_F2C(int type_f)
 {
     switch (type_f) {
-        case VAPAA_MPI_DATATYPE_NULL: return MPI_DATATYPE_NULL; break;
+        DT_CASE(MPI_DATATYPE_NULL               )
         DT_CASE(MPI_CHARACTER                   )
         DT_CASE(MPI_LOGICAL                     )
         DT_CASE(MPI_INTEGER                     )
@@ -155,13 +155,13 @@ static MPI_Message C_MPI_MESSAGE_F2C(int message_f)
 }
 
 #define OP_CASE(op) \
-    case VAPAA_##op: return op; break;
+    case VAPAA_##op: { return op; }
 
 MAYBE_UNUSED
 static MPI_Op C_MPI_OP_F2C(int op_f)
 {
     switch (op_f) {
-        case VAPAA_MPI_OP_NULL: return MPI_OP_NULL; break;
+        OP_CASE(MPI_OP_NULL)
         OP_CASE(MPI_MAX    )
         OP_CASE(MPI_MIN    )
         OP_CASE(MPI_SUM    )
