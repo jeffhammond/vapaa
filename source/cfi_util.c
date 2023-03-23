@@ -423,7 +423,7 @@ static const void ** VAPAA_CFI_CREATE_ELEMENT_ADDRESSES(const CFI_cdesc_t * desc
                                           + stride12 * i12
                                           + stride13 * i13
                                           + stride14 * i14;
-                   addresses[index] = (const intptr_t)base + displacement;
+                   addresses[index] = (void*)((intptr_t)base + displacement);
 #if 0
                    printf("CFI addresses[%zu] = %p (%zd)\n", index, addresses[index],
                            (addresses[index] - addresses[0]) / elem_len);
@@ -498,7 +498,7 @@ static int VAPAA_CFI_CREATE_INDEXED(const CFI_cdesc_t * desc, int count, MPI_Dat
                 //printf("k = %zd ", k);
                 const size_t offset = k + iov_displacement + type_displacement;
                 //printf("offset = %zd ", offset);
-                array_of_displacements[index] = input[offset] - input[0];
+                array_of_displacements[index] = (intptr_t)input[offset] - (intptr_t)input[0];
                 //printf("input[offset] = %p = %zd ", input[offset], (intptr_t)input[offset]);
                 //printf("buf = %d ", *(int*)(input[offset]));
                 index++;
@@ -573,9 +573,10 @@ int VAPAA_CFI_CREATE_DATATYPE(const CFI_cdesc_t * desc, int count, MPI_Datatype 
             // Check for non-zero lower-bounds, because I do not know how to handle this.
             // Fortunately, I have not found a scenario where this happens (maybe pointers?).
             for (int i=0; i < desc->rank; i++) {
+                printf("desc->dim[%d].lower_bound = %zu\n", i, desc->dim[i].lower_bound);
                 if (desc->dim[i].lower_bound != 0) {
                     VAPAA_Warning("non-zero lower-bounds (%zd) are not supported.\n", desc->dim[i].lower_bound);
-                    return MPI_ERR_BUFFER;
+                    //return MPI_ERR_BUFFER;
                 }
             }
         }
