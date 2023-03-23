@@ -79,6 +79,7 @@ static void * VAPAA_CREATE_MPIX_IOV(MPI_Datatype dt, size_t * total_len, size_t 
 
     return iov;
 #else
+    (void)dt;
     #ifdef MPICH_NUMVERSION
         #warning MPICH too old
         VAPAA_Warning("MPICH %s does not have MPIX_Iov support",MPICH_NUMVERSION);
@@ -87,7 +88,6 @@ static void * VAPAA_CREATE_MPIX_IOV(MPI_Datatype dt, size_t * total_len, size_t 
         VAPAA_Warning("Not MPICH so no MPIX_Iov support");
     #endif
     return NULL;
-    (void)dt;
 #endif
 }
 
@@ -423,7 +423,7 @@ static const void ** VAPAA_CFI_CREATE_ELEMENT_ADDRESSES(const CFI_cdesc_t * desc
                                           + stride12 * i12
                                           + stride13 * i13
                                           + stride14 * i14;
-                   addresses[index] = (void*)base + displacement;
+                   addresses[index] = (const intptr_t)base + displacement;
 #if 0
                    printf("CFI addresses[%zu] = %p (%zd)\n", index, addresses[index],
                            (addresses[index] - addresses[0]) / elem_len);
