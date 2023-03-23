@@ -126,7 +126,8 @@ module mpi_info_c
             use iso_c_binding, only: c_int, c_char
             implicit none
             integer(kind=c_int), intent(in) :: info
-            character(kind=c_char), dimension(*), intent(in) :: key, value
+            character(kind=c_char), dimension(*), intent(in) :: key
+            character(kind=c_char), dimension(*), intent(in) :: value
             integer(kind=c_int), intent(out) :: ierror
         end subroutine C_MPI_Info_set
     end interface
@@ -137,7 +138,8 @@ module mpi_info_c
             use iso_c_binding, only: c_int, c_char
             implicit none
             integer(kind=c_int), intent(in) :: info
-            type(*), dimension(..), intent(in) :: key, value
+            type(*), dimension(..), intent(in) :: key
+            type(*), dimension(..), intent(in) :: value
             integer(kind=c_int), intent(out) :: ierror
         end subroutine CFI_MPI_Info_set
     end interface
