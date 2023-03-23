@@ -306,7 +306,7 @@ module mpi_file_f
             use mpi_file_c, only: C_MPI_File_read_at
             type(MPI_File), intent(in) :: file
             integer(kind=MPI_OFFSET_KIND), intent(in) :: offset
-!dir$ ignore_tkr buffer
+!dir$ ignore_tkr buf
             integer, dimension(*) :: buf
             integer, intent(in) :: count
             type(MPI_Datatype), intent(in) :: datatype
@@ -349,7 +349,7 @@ module mpi_file_f
             use mpi_file_c, only: C_MPI_File_read_at_all
             type(MPI_File), intent(in) :: file
             integer(kind=MPI_OFFSET_KIND), intent(in) :: offset
-!dir$ ignore_tkr buffer
+!dir$ ignore_tkr buf
             integer, dimension(*) :: buf
             integer, intent(in) :: count
             type(MPI_Datatype), intent(in) :: datatype
@@ -390,7 +390,7 @@ module mpi_file_f
             use mpi_handle_types, only: MPI_File, MPI_Datatype, MPI_Status
             use mpi_file_c, only: C_MPI_File_read
             type(MPI_File), intent(in) :: file
-!dir$ ignore_tkr buffer
+!dir$ ignore_tkr buf
             integer, dimension(*) :: buf
             integer, intent(in) :: count
             type(MPI_Datatype), intent(in) :: datatype
@@ -425,7 +425,7 @@ module mpi_file_f
             use mpi_handle_types, only: MPI_File, MPI_Datatype, MPI_Status
             use mpi_file_c, only: C_MPI_File_read_all
             type(MPI_File), intent(in) :: file
-!dir$ ignore_tkr buffer
+!dir$ ignore_tkr buf
             integer, dimension(*) :: buf
             integer, intent(in) :: count
             type(MPI_Datatype), intent(in) :: datatype
@@ -462,7 +462,7 @@ module mpi_file_f
             use mpi_file_c, only: C_MPI_File_write_at
             type(MPI_File), intent(in) :: file
             integer(kind=MPI_OFFSET_KIND), intent(in) :: offset
-!dir$ ignore_tkr buffer
+!dir$ ignore_tkr buf
             integer, dimension(*), intent(in) :: buf
             integer, intent(in) :: count
             type(MPI_Datatype), intent(in) :: datatype
@@ -505,7 +505,7 @@ module mpi_file_f
             use mpi_file_c, only: C_MPI_File_write_at_all
             type(MPI_File), intent(in) :: file
             integer(kind=MPI_OFFSET_KIND), intent(in) :: offset
-!dir$ ignore_tkr buffer
+!dir$ ignore_tkr buf
             integer, dimension(*), intent(in) :: buf
             integer, intent(in) :: count
             type(MPI_Datatype), intent(in) :: datatype
@@ -546,7 +546,7 @@ module mpi_file_f
             use mpi_handle_types, only: MPI_File, MPI_Datatype, MPI_Status
             use mpi_file_c, only: C_MPI_File_write
             type(MPI_File), intent(in) :: file
-!dir$ ignore_tkr buffer
+!dir$ ignore_tkr buf
             integer, dimension(*), intent(in) :: buf
             integer, intent(in) :: count
             type(MPI_Datatype), intent(in) :: datatype
@@ -581,7 +581,7 @@ module mpi_file_f
             use mpi_handle_types, only: MPI_File, MPI_Datatype, MPI_Status
             use mpi_file_c, only: C_MPI_File_write_all
             type(MPI_File), intent(in) :: file
-!dir$ ignore_tkr buffer
+!dir$ ignore_tkr buf
             integer, dimension(*), intent(in) :: buf
             integer, intent(in) :: count
             type(MPI_Datatype), intent(in) :: datatype
