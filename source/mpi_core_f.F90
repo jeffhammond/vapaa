@@ -203,7 +203,6 @@ module mpi_core_f
         end subroutine MPI_Get_version_f08
 
         subroutine MPI_Get_library_version_f08(version, resultlen, ierror) 
-            use iso_c_binding, only: c_char, c_null_char
             use mpi_core_c, only: C_MPI_Get_library_version
             use mpi_global_constants, only: MPI_MAX_LIBRARY_VERSION_STRING
             character(len=MPI_MAX_LIBRARY_VERSION_STRING), intent(out) :: version
@@ -217,7 +216,6 @@ module mpi_core_f
 
 #ifdef HAVE_CFI
         subroutine MPI_Get_library_version_f08ts(version, resultlen, ierror)
-            use iso_c_binding, only: c_char, c_null_char
             use mpi_core_c, only: CFI_MPI_Get_library_version
             use mpi_global_constants, only: MPI_MAX_LIBRARY_VERSION_STRING
             character(len=MPI_MAX_LIBRARY_VERSION_STRING), intent(out) :: version
