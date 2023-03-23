@@ -30,6 +30,7 @@ program main
             write(*,'(a,100i4,a)') 'A[...]=[',A(1:10,1:20:2),']'
             write(*,'(a,100i4,a)') 'B[ * ]=[',B,']'
         endif
+        stop 1
     endif
 
     B = 0
@@ -43,6 +44,7 @@ program main
             write(*,'(a,100i4,a)') 'A[...]=[',A(1:30:3,1:20:2),']'
             write(*,'(a,100i4,a)') 'B[ * ]=[',B,']'
         endif
+        stop 2
     endif
 
     B = 0
@@ -57,6 +59,7 @@ program main
             write(*,'(a,100i4,a)') 'A[...]=[',A(1:30:3,1:20:2),']'
             write(*,'(a,100i4,a)') 'B[ * ]=[',B,']'
         endif
+        stop 3
     else
         B(10,10) = A(28,19) 
     endif
@@ -67,6 +70,7 @@ program main
             write(*,'(a,100i4,a)') 'A[...]=[',A(1:30:3,1:20:2),']'
             write(*,'(a,100i4,a)') 'B[ * ]=[',B,']'
         endif
+        stop 4
     endif
 
     if (me.eq.0) then

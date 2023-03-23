@@ -82,6 +82,7 @@ program main
               write(*,'(30i4)') B(j,:)
             end do
         endif
+        stop 1
     else
         ! debug only
         write(*,'(a)') 'B='
@@ -106,6 +107,7 @@ program main
               write(*,'(30i4)') B(j,:)
             end do
         endif
+        stop 2
     else
         ! debug only
         write(*,'(a)') 'B='
@@ -130,6 +132,7 @@ program main
               write(*,'(30i4)') C(j,:)
             end do
         endif
+        stop 3
     else
         ! debug only
         write(*,'(a)') 'C='
@@ -154,6 +157,7 @@ program main
               write(*,'(30i4)') C(j,:)
             end do
         endif
+        stop 4
     else
         ! debug only
         write(*,'(a)') 'C='
@@ -178,6 +182,7 @@ program main
               write(*,'(30i4)') C(j,:)
             end do
         endif
+        stop 5
     else
         ! debug only
         write(*,'(a)') 'C='
