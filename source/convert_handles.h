@@ -106,7 +106,7 @@ static MPI_Datatype C_MPI_TYPE_F2C(int type_f)
         DT_CASE(MPI_2REAL                       )
         DT_CASE(MPI_2DOUBLE_PRECISION           )
         DT_CASE(MPI_2INTEGER                    )
-        default: return MPI_Type_f2c(type_f); break;
+        default: { return MPI_Type_f2c(type_f); }
     }
 }
 
@@ -176,7 +176,7 @@ static MPI_Op C_MPI_OP_F2C(int op_f)
         OP_CASE(MPI_LXOR   )
         OP_CASE(MPI_REPLACE)
         OP_CASE(MPI_NO_OP  )
-        default: return MPI_Op_f2c(op_f); break;
+        default: { return MPI_Op_f2c(op_f); }
     } 
 }
 
