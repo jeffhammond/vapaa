@@ -6,7 +6,7 @@ module mpi_p2p_c
             use iso_c_binding, only: c_int
             use mpi_handle_types, only: MPI_Status
             implicit none
-            integer(kind=c_int), intent(in) :: source, tag, comm
+            integer(kind=c_int), intent(in), value :: source, tag, comm
             type(MPI_Status), intent(inout) :: status
             integer(kind=c_int), intent(out) :: ierror
         end subroutine C_MPI_Probe
@@ -18,7 +18,7 @@ module mpi_p2p_c
             use iso_c_binding, only: c_int
             use mpi_handle_types, only: MPI_Status
             implicit none
-            integer(kind=c_int), intent(in) :: source, tag, comm
+            integer(kind=c_int), intent(in), value :: source, tag, comm
             type(MPI_Status), intent(inout) :: status
             integer(kind=c_int), intent(out) :: message, ierror
         end subroutine C_MPI_Mprobe
@@ -42,8 +42,7 @@ module mpi_p2p_c
             use iso_c_binding, only: c_int
             use mpi_handle_types, only: MPI_Status, MPI_Request
             implicit none
-            integer(kind=c_int), intent(in) :: count
-            !integer(kind=c_int), intent(inout) :: requests(*)
+            integer(kind=c_int), intent(in), value :: count
             type(MPI_Request), intent(inout) :: requests(*)
             integer(kind=c_int), intent(out) :: flag, ierror
             type(MPI_Status), intent(inout) :: statuses(*)
@@ -57,8 +56,7 @@ module mpi_p2p_c
             use iso_c_binding, only: c_int
             use mpi_handle_types, only: MPI_Status, MPI_Request
             implicit none
-            integer(kind=c_int), intent(in) :: incount
-            !integer(kind=c_int), intent(inout) :: requests(*)
+            integer(kind=c_int), intent(in), value :: incount
             type(MPI_Request), intent(inout) :: requests(*)
             integer(kind=c_int), intent(out) :: outcount, indices(*)
             type(MPI_Status), intent(inout) :: statuses(*)
@@ -72,8 +70,7 @@ module mpi_p2p_c
             use iso_c_binding, only: c_int
             use mpi_handle_types, only: MPI_Status, MPI_Request
             implicit none
-            integer(kind=c_int), intent(in) :: count
-            !integer(kind=c_int), intent(inout) :: requests(*)
+            integer(kind=c_int), intent(in), value :: count
             type(MPI_Request), intent(inout) :: requests(*)
             integer(kind=c_int), intent(out) :: index, flag, ierror
             type(MPI_Status), intent(inout) :: status
@@ -98,11 +95,10 @@ module mpi_p2p_c
             use iso_c_binding, only: c_int
             use mpi_handle_types, only: MPI_Status, MPI_Request
             implicit none
-            integer(kind=c_int), intent(in) :: count
-            !integer(kind=c_int), intent(inout) :: requests(*)
+            integer(kind=c_int), intent(in), value :: count
             type(MPI_Request), intent(inout) :: requests(*)
+            type(MPI_Status), intent(out) :: statuses(*)
             integer(kind=c_int), intent(out) :: ierror
-            type(MPI_Status), intent(inout) :: statuses(*)
         end subroutine C_MPI_Waitall
     end interface
 
@@ -113,8 +109,7 @@ module mpi_p2p_c
             use iso_c_binding, only: c_int
             use mpi_handle_types, only: MPI_Status, MPI_Request
             implicit none
-            integer(kind=c_int), intent(in) :: incount
-            !integer(kind=c_int), intent(inout) :: requests(*)
+            integer(kind=c_int), intent(in), value :: incount
             type(MPI_Request), intent(inout) :: requests(*)
             integer(kind=c_int), intent(out) :: outcount, indices(*)
             type(MPI_Status), intent(inout) :: statuses(*)
@@ -128,8 +123,7 @@ module mpi_p2p_c
             use iso_c_binding, only: c_int
             use mpi_handle_types, only: MPI_Status, MPI_Request
             implicit none
-            integer(kind=c_int), intent(in) :: count
-            !integer(kind=c_int), intent(inout) :: requests(*)
+            integer(kind=c_int), intent(in), value :: count
             type(MPI_Request), intent(inout) :: requests(*)
             integer(kind=c_int), intent(out) :: index, ierror
             type(MPI_Status), intent(inout) :: status
@@ -143,7 +137,8 @@ module mpi_p2p_c
             use iso_c_binding, only: c_int
             implicit none
             integer(kind=c_int), dimension(*), intent(in) :: buffer
-            integer(kind=c_int) :: count, datatype, dest, tag, comm, ierror
+            integer(kind=c_int), intent(in), value :: count, datatype, dest, tag, comm
+            integer(kind=c_int), intent(out) :: ierror
         end subroutine C_MPI_Send
     end interface
 
@@ -155,7 +150,8 @@ module mpi_p2p_c
             use iso_c_binding, only: c_int
             implicit none
             type(*), dimension(..), intent(in) :: buffer
-            integer(kind=c_int) :: count, datatype, dest, tag, comm, ierror
+            integer(kind=c_int), intent(in), value :: count, datatype, dest, tag, comm
+            integer(kind=c_int), intent(out) :: ierror
         end subroutine CFI_MPI_Send
     end interface
 #endif
@@ -167,7 +163,7 @@ module mpi_p2p_c
             use iso_c_binding, only: c_int
             implicit none
             integer(kind=c_int), dimension(*), intent(in), asynchronous :: buffer
-            integer(kind=c_int), intent(in) :: count, datatype, dest, tag, comm
+            integer(kind=c_int), intent(in), value :: count, datatype, dest, tag, comm
             integer(kind=c_int), intent(out) :: request, ierror
         end subroutine C_MPI_Isend
     end interface
@@ -180,7 +176,8 @@ module mpi_p2p_c
             use iso_c_binding, only: c_int
             implicit none
             type(*), dimension(..), intent(in), asynchronous :: buffer
-            integer(kind=c_int) :: count, datatype, dest, tag, comm, request, ierror
+            integer(kind=c_int), intent(in), value :: count, datatype, dest, tag, comm
+            integer(kind=c_int), intent(out) :: request, ierror
         end subroutine CFI_MPI_Isend
     end interface
 #endif
@@ -193,8 +190,9 @@ module mpi_p2p_c
             use mpi_handle_types, only: MPI_Status
             implicit none
             integer(kind=c_int), dimension(*), intent(out) :: buffer
-            integer(kind=c_int) :: count, datatype, source, tag, comm, ierror
+            integer(kind=c_int), intent(in), value :: count, datatype, source, tag, comm
             type(MPI_Status), intent(out) :: status
+            integer(kind=c_int), intent(out) :: ierror
         end subroutine C_MPI_Recv
     end interface
 
@@ -207,8 +205,9 @@ module mpi_p2p_c
             use mpi_handle_types, only: MPI_Status
             implicit none
             type(*), dimension(..), intent(inout) :: buffer
-            integer(kind=c_int) :: count, datatype, source, tag, comm, ierror
+            integer(kind=c_int), intent(in), value :: count, datatype, source, tag, comm
             type(MPI_Status), intent(out) :: status
+            integer(kind=c_int), intent(out) :: ierror
         end subroutine CFI_MPI_Recv
     end interface
 #endif
@@ -220,7 +219,8 @@ module mpi_p2p_c
             use iso_c_binding, only: c_int
             implicit none
             integer(kind=c_int), dimension(*), intent(out), asynchronous :: buffer
-            integer(kind=c_int) :: count, datatype, source, tag, comm, request, ierror
+            integer(kind=c_int), intent(in), value :: count, datatype, source, tag, comm
+            integer(kind=c_int), intent(out) :: request, ierror
         end subroutine C_MPI_Irecv
     end interface
 
@@ -232,7 +232,8 @@ module mpi_p2p_c
             use iso_c_binding, only: c_int
             implicit none
             type(*), dimension(..), intent(inout), asynchronous :: buffer
-            integer(kind=c_int) :: count, datatype, source, tag, comm, request, ierror
+            integer(kind=c_int), intent(in), value :: count, datatype, source, tag, comm
+            integer(kind=c_int), intent(out) :: request, ierror
         end subroutine CFI_MPI_Irecv
     end interface
 #endif
@@ -245,7 +246,9 @@ module mpi_p2p_c
             implicit none
             integer(kind=c_int), dimension(*), intent(in) :: inbuf
             integer(kind=c_int), dimension(*), intent(inout) :: outbuf
-            integer(kind=c_int) :: incount, datatype, outsize, position, comm, ierror
+            integer(kind=c_int), intent(in), value :: incount, outsize, datatype, comm
+            integer(kind=c_int), intent(inout) :: position
+            integer(kind=c_int), intent(out) :: ierror
         end subroutine C_MPI_Pack
     end interface
 
@@ -258,7 +261,9 @@ module mpi_p2p_c
             implicit none
             type(*), dimension(..), intent(in) :: inbuf
             type(*), dimension(..), intent(inout) :: outbuf
-            integer(kind=c_int) :: incount, datatype, outsize, position, comm, ierror
+            integer(kind=c_int), intent(in), value :: incount, outsize, datatype, comm
+            integer(kind=c_int), intent(inout) :: position
+            integer(kind=c_int), intent(out) :: ierror
         end subroutine CFI_MPI_Pack
     end interface
 #endif
@@ -272,7 +277,9 @@ module mpi_p2p_c
             implicit none
             integer(kind=c_int), dimension(*), intent(in) :: inbuf
             integer(kind=c_int), dimension(*), intent(inout) :: outbuf
-            integer(kind=c_int) :: insize, position, outcount, datatype, comm, ierror
+            integer(kind=c_int), intent(in), value :: insize, outcount, datatype, comm
+            integer(kind=c_int), intent(inout) :: position
+            integer(kind=c_int), intent(out) :: ierror
         end subroutine C_MPI_Unpack
     end interface
 
@@ -286,7 +293,9 @@ module mpi_p2p_c
             implicit none
             type(*), dimension(..), intent(in) :: inbuf
             type(*), dimension(..), intent(inout) :: outbuf
-            integer(kind=c_int) :: insize, position, outcount, datatype, comm, ierror
+            integer(kind=c_int), intent(in), value :: insize, outcount, datatype, comm
+            integer(kind=c_int), intent(inout) :: position
+            integer(kind=c_int), intent(out) :: ierror
         end subroutine CFI_MPI_Unpack
     end interface
 #endif

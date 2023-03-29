@@ -1,12 +1,67 @@
 #ifndef CONVERT_HANDLES_H
 #define CONVERT_HANDLES_H
 
+#include <stddef.h>
 #include <mpi.h>
 #include "vapaa_constants.h"
 
 // TODO: move all the constants into a header file and use case-switch.
 
 #define MAYBE_UNUSED __attribute__((unused))
+
+struct F_MPI_Status
+{
+        // MPICH
+        int count_lo;
+        int count_hi_and_cancelled;
+        // public / standard
+        int MPI_SOURCE;
+        int MPI_TAG;
+        int MPI_ERROR;
+        // Open-MPI
+        int cancelled;
+        size_t ucount;
+};
+
+MAYBE_UNUSED
+static void C_MPI_STATUS_F2C(const struct F_MPI_Status * f, MPI_Status * c)
+{
+#if !(defined(MPICH) || defined(OPEN_MPI))
+#error Need Status ABI support
+#endif
+
+#if defined(MPICH)
+    c->count_lo               = f->count_lo;
+    c->count_hi_and_cancelled = f->count_hi_and_cancelled;
+#endif
+    c->MPI_SOURCE = f->MPI_SOURCE;
+    c->MPI_TAG    = f->MPI_TAG;
+    c->MPI_ERROR  = f->MPI_ERROR;
+#if defined(OPEN_MPI)
+    c->cancelled = f->cancelled;
+    c->ucount    = f->ucount;
+#endif
+}
+
+MAYBE_UNUSED
+static void C_MPI_STATUS_C2F(const MPI_Status * c, struct F_MPI_Status * f)
+{
+#if !(defined(MPICH) || defined(OPEN_MPI))
+#error Need Status ABI support
+#endif
+
+#if defined(MPICH)
+    f->count_lo               = c->count_lo;
+    f->count_hi_and_cancelled = c->count_hi_and_cancelled;
+#endif
+    f->MPI_SOURCE = c->MPI_SOURCE;
+    f->MPI_TAG    = c->MPI_TAG;
+    f->MPI_ERROR  = c->MPI_ERROR;
+#if defined(OPEN_MPI)
+    f->cancelled = c->cancelled;
+    f->ucount    = c->ucount;
+#endif
+}
 
 MAYBE_UNUSED
 static MPI_Comm C_MPI_COMM_F2C(int comm_f)
