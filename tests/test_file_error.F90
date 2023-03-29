@@ -1,11 +1,9 @@
 program main
     use mpi_f08
     implicit none
-    integer :: ierror, slen
-    integer :: me, np
-    type(MPI_File) :: f
+    integer :: ierror
+    integer :: me
     character(len=9) :: filename
-    character(len=MPI_MAX_ERROR_STRING) :: string
 
     call MPI_Init(ierror)
 
