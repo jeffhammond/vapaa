@@ -27,6 +27,7 @@ program main
     enddo
     call MPI_Barrier(MPI_COMM_WORLD)
 
+    call MPI_Barrier(MPI_COMM_WORLD);
     if(me.eq.0) print*,'BLOCKING'
 
     do i=0,20
@@ -56,6 +57,7 @@ program main
         deallocate( x )
     enddo
 
+    call MPI_Barrier(MPI_COMM_WORLD);
     if(me.eq.0) print*,'NONBLOCKING'
 
     do i=0,20
@@ -69,7 +71,7 @@ program main
         else
             x = -1
             call MPI_Irecv(x,b,MPI_INTEGER,me-1,i,MPI_COMM_WORLD,r)
-#if 1
+#if 0
             call MPI_Wait(r,MPI_STATUS_IGNORE)
 #else
             call MPI_Wait(r,s)
@@ -86,6 +88,7 @@ program main
         deallocate( x )
     enddo
 
+    call MPI_Barrier(MPI_COMM_WORLD);
     if(me.eq.0) print*,'WAITALL'
 
     allocate( vr(2*np) , x(2*np) )
