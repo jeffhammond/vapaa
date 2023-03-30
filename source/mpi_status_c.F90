@@ -7,7 +7,7 @@ module mpi_status_c
             use mpi_handle_types, only: MPI_Status
             implicit none
             type(MPI_Status), intent(inout) :: status
-            integer(kind=c_int), intent(in) :: datatype, count
+            integer(kind=c_int), intent(in), value :: datatype, count
             integer(kind=c_int), intent(out) :: ierror
         end subroutine C_MPI_Status_set_elements
     end interface
