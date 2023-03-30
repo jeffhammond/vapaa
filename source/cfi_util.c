@@ -573,7 +573,6 @@ int VAPAA_CFI_CREATE_DATATYPE(const CFI_cdesc_t * desc, int count, MPI_Datatype 
             // Check for non-zero lower-bounds, because I do not know how to handle this.
             // Fortunately, I have not found a scenario where this happens (maybe pointers?).
             for (int i=0; i < desc->rank; i++) {
-                printf("desc->dim[%d].lower_bound = %zu\n", i, desc->dim[i].lower_bound);
                 if (desc->dim[i].lower_bound != 0) {
                     VAPAA_Warning("non-zero lower-bounds (%zd) are not supported.\n", desc->dim[i].lower_bound);
                     //return MPI_ERR_BUFFER;
