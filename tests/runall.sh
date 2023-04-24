@@ -1,5 +1,7 @@
 #!/bin/bash
 
+MPIRUN=/opt/mpich/bin/mpirun
+
 for f in `ls -1 *.x` ; do
-    mpirun -n 4 ./$f || echo $f failed
+    ${MPIRUN} -n 4 ./$f || echo $f failed
 done
