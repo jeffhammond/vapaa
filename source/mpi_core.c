@@ -115,3 +115,5 @@ double C_MPI_Wtick(void)
 {
     return MPI_Wtick();
 }
+
+int CFI_is_contiguous(const CFI_cdesc_t * d) { return 0; }
