@@ -1,3 +1,5 @@
+! SPDX-License-Identifier: MIT
+
 module mpi_handle_operators
     use mpi_handle_types
     implicit none

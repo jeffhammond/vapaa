@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: MIT
+
 #include <stdio.h>
 #include <string.h> // memset
 #include <mpi.h>

@@ -1,3 +1,5 @@
+! SPDX-License-Identifier: MIT
+
 #include "vapaa_constants.h"
 
 module mpi_op_f

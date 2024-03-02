@@ -1,3 +1,5 @@
+! SPDX-License-Identifier: MIT
+
 module mpi_p2p_c
 
     interface

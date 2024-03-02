@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: MIT
+
 #include <stdio.h>
 #include <mpi.h>
 #include "ISO_Fortran_binding.h"

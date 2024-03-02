@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: MIT
+
 #include "ISO_Fortran_binding.h"
 
 void * f08_MPI_BOTTOM_address = {0};          // MPI_BOTTOM

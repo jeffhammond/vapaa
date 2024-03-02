@@ -1,3 +1,5 @@
+! SPDX-License-Identifier: MIT
+
 module mpi_f08
     use mpi_handle_types
     use mpi_handle_operators

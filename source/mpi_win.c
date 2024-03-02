@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: MIT
+
 #include <mpi.h>
 #include "vapaa_constants.h"
 

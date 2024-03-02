@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: MIT
+
 #include <mpi.h>
 #include "convert_handles.h"
 #include "convert_constants.h"

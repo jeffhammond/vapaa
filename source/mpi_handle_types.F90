@@ -1,3 +1,5 @@
+! SPDX-License-Identifier: MIT
+
 module mpi_handle_types
     use iso_c_binding, only: c_int, c_size_t
     implicit none

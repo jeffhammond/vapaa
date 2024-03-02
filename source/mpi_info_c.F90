@@ -1,3 +1,5 @@
+! SPDX-License-Identifier: MIT
+
 module mpi_info_c
 
     interface
