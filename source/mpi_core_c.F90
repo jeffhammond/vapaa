@@ -41,7 +41,7 @@ module mpi_core_c
 
     interface
         subroutine C_MPI_Finalized(flag, ierror) &
-                   bind(C,name="C_MPI_Finalize")
+                   bind(C,name="C_MPI_Finalized")
             use iso_c_binding, only: c_int
             implicit none
             integer(kind=c_int), intent(out) :: flag, ierror
