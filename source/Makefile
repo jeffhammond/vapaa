@@ -95,7 +95,7 @@ mpi_coll_f.o: mpi_coll_f.F90 mpi_coll_c.o mpi_handle_types.o mpi_global_constant
 mpi_coll_c.o: mpi_coll_c.F90 mpi_coll.o detect_sentinels.h
 	$(FC) $(FCFLAGS) -c $<
 
-mpi_coll.o: mpi_coll.c convert_handles.h convert_constants.h detect_builtins.h cfi_util.h
+mpi_coll.o: mpi_coll.c convert_handles.h convert_constants.h detect_builtins.h cfi_util.h trampoline.h
 	$(CC) $(CFLAGS) -c $<
 
 # DATATYPE
