@@ -2,19 +2,18 @@ program main
     use mpi_f08
     implicit none
     integer :: me, np, i
-    type(MPI_Datatype) :: v
-    integer, dimension(30,20) :: A
-    integer, dimension(10,10) :: B
+    integer, dimension(30,20), asynchronous :: A
+    integer, dimension(10,10), asynchronous :: B
     type(MPI_Request) :: r(2)
 
     call MPI_Init()
     call MPI_Comm_rank(MPI_COMM_WORLD,me)
     call MPI_Comm_size(MPI_COMM_WORLD,np)
 
-    !if (me.eq.0) then
-    !    print*,'MPI_SUBARRAYS_SUPPORTED=',MPI_SUBARRAYS_SUPPORTED
-    !    print*,'MPI_ASYNC_PROTECTS_NONBLOCKING=',MPI_ASYNC_PROTECTS_NONBLOCKING
-    !endif
+    if (me.eq.0) then
+        print*,'MPI_SUBARRAYS_SUPPORTED=',MPI_SUBARRAYS_SUPPORTED
+        print*,'MPI_ASYNC_PROTECTS_NONBLOCKING=',MPI_ASYNC_PROTECTS_NONBLOCKING
+    endif
 
     A = reshape([(i, i = 1,size(A))],shape(A))
     !if (me.eq.0) print*,'A=',A
