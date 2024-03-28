@@ -27,7 +27,7 @@ static ssize_t VAPAA_CFI_GET_TOTAL_ELEMENTS(const CFI_cdesc_t * desc)
 static bool VAPAA_MPI_DATATYPE_IS_BUILTIN(MPI_Datatype t)
 {
     int ni, na, nd, c;
-    int rc = PMPI_Type_get_envelope(t, &ni, &na, &nd, &c);
+    int rc = MPI_Type_get_envelope(t, &ni, &na, &nd, &c);
     VAPAA_Assert(rc == MPI_SUCCESS);
     return (c == MPI_COMBINER_NAMED);
 }
@@ -37,9 +37,9 @@ static bool VAPAA_MPI_DATATYPE_IS_CONTIGUOUS(MPI_Datatype t)
 {
     int rc, type_size;
     MPI_Aint lb, extent;
-    rc = PMPI_Type_size(t, &type_size);
+    rc = MPI_Type_size(t, &type_size);
     VAPAA_Assert(rc == MPI_SUCCESS);
-    rc = PMPI_Type_get_extent(t, &lb, &extent);
+    rc = MPI_Type_get_extent(t, &lb, &extent);
     VAPAA_Assert(rc == MPI_SUCCESS);
     return (type_size == extent);
 }
@@ -342,7 +342,7 @@ static int VAPAA_CFI_CREATE_DATATYPE_15D(const CFI_cdesc_t * desc, ssize_t count
        */ }
 
     const MPI_Datatype element_datatype = VAPAA_CFI_TO_MPI_TYPE(desc->type);
-    int rc = PMPI_Type_create_hindexed(count, array_of_blocklengths, array_of_displacements,
+    int rc = MPI_Type_create_hindexed(count, array_of_blocklengths, array_of_displacements,
                                        element_datatype, array_datatype);
     VAPAA_Assert(rc == MPI_SUCCESS);
 
@@ -523,7 +523,7 @@ static int VAPAA_CFI_CREATE_INDEXED(const CFI_cdesc_t * desc, int count, MPI_Dat
 #endif
 
     MPI_Datatype elem_dt = VAPAA_CFI_TO_MPI_TYPE(desc->type);
-    rc = PMPI_Type_create_hindexed((int)n, array_of_blocklengths, array_of_displacements,
+    rc = MPI_Type_create_hindexed((int)n, array_of_blocklengths, array_of_displacements,
                                    elem_dt, array_datatype);
     VAPAA_Assert(rc == MPI_SUCCESS);
 
@@ -609,7 +609,7 @@ int VAPAA_CFI_CREATE_DATATYPE(const CFI_cdesc_t * desc, int count, MPI_Datatype 
             // contiguous would suffice, but that is an unlikely use case that does not warrant specialization.
             const int      num_blocks = count;
             const MPI_Aint stride     = desc->dim[0].sm;
-            rc = PMPI_Type_create_hvector(num_blocks, 1, stride, element_datatype, array_datatype);
+            rc = MPI_Type_create_hvector(num_blocks, 1, stride, element_datatype, array_datatype);
             VAPAA_Assert(rc == MPI_SUCCESS);
         }
         else if (rank == 2 || count <= extent0*extent1)
@@ -625,7 +625,7 @@ int VAPAA_CFI_CREATE_DATATYPE(const CFI_cdesc_t * desc, int count, MPI_Datatype 
                 // if the first dimension is contiguous, we only need one datatype
                 if (stride0 == elem_len) {
                     const MPI_Aint stride1 = desc->dim[1].sm;
-                    rc = PMPI_Type_create_hvector(count / extent0, extent0, stride1, element_datatype, array_datatype);
+                    rc = MPI_Type_create_hvector(count / extent0, extent0, stride1, element_datatype, array_datatype);
                     VAPAA_Assert(rc == MPI_SUCCESS);
                 }
                 // if the first dimension is non-contiguous, create a temp for it,
@@ -633,14 +633,14 @@ int VAPAA_CFI_CREATE_DATATYPE(const CFI_cdesc_t * desc, int count, MPI_Datatype 
                 else
                 {
                     MPI_Datatype temp_datatype = MPI_DATATYPE_NULL;
-                    rc = PMPI_Type_create_hvector(extent0, 1, stride0, element_datatype, &temp_datatype);
+                    rc = MPI_Type_create_hvector(extent0, 1, stride0, element_datatype, &temp_datatype);
                     VAPAA_Assert(rc == MPI_SUCCESS);
 
                     const MPI_Aint stride1 = desc->dim[1].sm;
-                    rc = PMPI_Type_create_hvector(count / extent0, 1, stride1, temp_datatype, array_datatype);
+                    rc = MPI_Type_create_hvector(count / extent0, 1, stride1, temp_datatype, array_datatype);
                     VAPAA_Assert(rc == MPI_SUCCESS);
 
-                    rc = PMPI_Type_free(&temp_datatype);
+                    rc = MPI_Type_free(&temp_datatype);
                     VAPAA_Assert(rc == MPI_SUCCESS);
                 }
             }
@@ -670,7 +670,7 @@ int VAPAA_CFI_CREATE_DATATYPE(const CFI_cdesc_t * desc, int count, MPI_Datatype 
                 }
                 done2d:
 
-                rc = PMPI_Type_create_hindexed(count, array_of_blocklengths, array_of_displacements,
+                rc = MPI_Type_create_hindexed(count, array_of_blocklengths, array_of_displacements,
                                                element_datatype, array_datatype);
                 VAPAA_Assert(rc == MPI_SUCCESS);
 
@@ -707,7 +707,7 @@ int VAPAA_CFI_CREATE_DATATYPE(const CFI_cdesc_t * desc, int count, MPI_Datatype 
             }
             done3d:
 
-            rc = PMPI_Type_create_hindexed(count, array_of_blocklengths, array_of_displacements,
+            rc = MPI_Type_create_hindexed(count, array_of_blocklengths, array_of_displacements,
                                            element_datatype, array_datatype);
             VAPAA_Assert(rc == MPI_SUCCESS);
 
@@ -727,7 +727,7 @@ int VAPAA_CFI_CREATE_DATATYPE(const CFI_cdesc_t * desc, int count, MPI_Datatype 
         // verify that the type we have created holds the correct number of elements
         {
             int type_size;
-            PMPI_Type_size(*array_datatype, &type_size);
+            MPI_Type_size(*array_datatype, &type_size);
             if (type_size != count * elem_len) {
                 VAPAA_Warning("type_size (%d) != count (%zd) * elem_len (%zd).\n", type_size, count, elem_len);
                 return MPI_ERR_INTERN;

@@ -20,7 +20,7 @@ int C_MPI_ERROR_CODE_C2F(int error_c)
     //  the routine MPI_ERROR_CLASS converts any error code into one of a
     //  small set of standard error codes, called error classes."
     int error;
-    int rc = PMPI_Error_class(error_c, &error);
+    int rc = MPI_Error_class(error_c, &error);
     VAPAA_Assert(rc == MPI_SUCCESS);
 
     // If, for some reason, you need to known the actual error returned from

@@ -244,10 +244,10 @@ void CFI_MPI_Send(CFI_cdesc_t * desc, int count, int datatype_f, int dest, int t
         MPI_Datatype subarray_type = MPI_DATATYPE_NULL;
         rc = VAPAA_CFI_CREATE_DATATYPE(desc, count, datatype, &subarray_type);
         VAPAA_Assert(rc == MPI_SUCCESS);
-        rc = PMPI_Type_commit(&subarray_type);
+        rc = MPI_Type_commit(&subarray_type);
         VAPAA_Assert(rc == MPI_SUCCESS);
         *ierror = MPI_Send(desc->base_addr, 1, subarray_type, dest, tag, comm);
-        rc = PMPI_Type_free(&subarray_type);
+        rc = MPI_Type_free(&subarray_type);
         VAPAA_Assert(rc == MPI_SUCCESS);
     }
     C_MPI_RC_FIX(*ierror);
@@ -277,10 +277,10 @@ void CFI_MPI_Isend(CFI_cdesc_t * desc, int count, int datatype_f, int dest, int 
         MPI_Datatype subarray_type = MPI_DATATYPE_NULL;
         rc = VAPAA_CFI_CREATE_DATATYPE(desc, count, datatype, &subarray_type);
         VAPAA_Assert(rc == MPI_SUCCESS);
-        rc = PMPI_Type_commit(&subarray_type);
+        rc = MPI_Type_commit(&subarray_type);
         VAPAA_Assert(rc == MPI_SUCCESS);
         *ierror = MPI_Isend(desc->base_addr, 1, subarray_type, dest, tag, comm, &request);
-        rc = PMPI_Type_free(&subarray_type);
+        rc = MPI_Type_free(&subarray_type);
         VAPAA_Assert(rc == MPI_SUCCESS);
     }
     *request_f = MPI_Request_c2f(request);
@@ -315,11 +315,11 @@ void CFI_MPI_Recv(CFI_cdesc_t * desc, int count, int datatype_f, int source, int
         MPI_Datatype subarray_type = MPI_DATATYPE_NULL;
         rc = VAPAA_CFI_CREATE_DATATYPE(desc, count, datatype, &subarray_type);
         VAPAA_Assert(rc == MPI_SUCCESS);
-        rc = PMPI_Type_commit(&subarray_type);
+        rc = MPI_Type_commit(&subarray_type);
         VAPAA_Assert(rc == MPI_SUCCESS);
         *ierror = MPI_Recv(desc->base_addr, 1, subarray_type, source, tag, comm,
                            C_IS_MPI_STATUS_IGNORE(status) ? MPI_STATUS_IGNORE : status);
-        rc = PMPI_Type_free(&subarray_type);
+        rc = MPI_Type_free(&subarray_type);
         VAPAA_Assert(rc == MPI_SUCCESS);
     }
     C_MPI_RC_FIX(*ierror);
@@ -349,10 +349,10 @@ void CFI_MPI_Irecv(CFI_cdesc_t * desc, int count, int datatype_f, int source, in
         MPI_Datatype subarray_type = MPI_DATATYPE_NULL;
         rc = VAPAA_CFI_CREATE_DATATYPE(desc, count, datatype, &subarray_type);
         VAPAA_Assert(rc == MPI_SUCCESS);
-        rc = PMPI_Type_commit(&subarray_type);
+        rc = MPI_Type_commit(&subarray_type);
         VAPAA_Assert(rc == MPI_SUCCESS);
         *ierror = MPI_Irecv(desc->base_addr, 1, subarray_type, source, tag, comm, &request);
-        rc = PMPI_Type_free(&subarray_type);
+        rc = MPI_Type_free(&subarray_type);
         VAPAA_Assert(rc == MPI_SUCCESS);
     }
     *request_f = MPI_Request_c2f(request);
@@ -382,11 +382,11 @@ void CFI_MPI_Mrecv(CFI_cdesc_t * desc, int count, int datatype_f, int * message_
         MPI_Datatype subarray_type = MPI_DATATYPE_NULL;
         rc = VAPAA_CFI_CREATE_DATATYPE(desc, count, datatype, &subarray_type);
         VAPAA_Assert(rc == MPI_SUCCESS);
-        rc = PMPI_Type_commit(&subarray_type);
+        rc = MPI_Type_commit(&subarray_type);
         VAPAA_Assert(rc == MPI_SUCCESS);
         *ierror = MPI_Mrecv(desc->base_addr, 1, subarray_type, &message,
                             C_IS_MPI_STATUS_IGNORE(status) ? MPI_STATUS_IGNORE : status);
-        rc = PMPI_Type_free(&subarray_type);
+        rc = MPI_Type_free(&subarray_type);
         VAPAA_Assert(rc == MPI_SUCCESS);
     }
     C_MPI_RC_FIX(*ierror);
@@ -416,10 +416,10 @@ void CFI_MPI_Imrecv(CFI_cdesc_t * desc, int count, int datatype_f, int * message
         MPI_Datatype subarray_type = MPI_DATATYPE_NULL;
         rc = VAPAA_CFI_CREATE_DATATYPE(desc, count, datatype, &subarray_type);
         VAPAA_Assert(rc == MPI_SUCCESS);
-        rc = PMPI_Type_commit(&subarray_type);
+        rc = MPI_Type_commit(&subarray_type);
         VAPAA_Assert(rc == MPI_SUCCESS);
         *ierror = MPI_Imrecv(desc->base_addr, 1, subarray_type, &message, &request);
-        rc = PMPI_Type_free(&subarray_type);
+        rc = MPI_Type_free(&subarray_type);
         VAPAA_Assert(rc == MPI_SUCCESS);
     }
     *request_f = MPI_Request_c2f(request);
@@ -500,10 +500,10 @@ void CFI_MPI_Pack(CFI_cdesc_t * indesc, int incount, int datatype_f, CFI_cdesc_t
             MPI_Datatype subarray_type = MPI_DATATYPE_NULL;
             rc = VAPAA_CFI_CREATE_DATATYPE(indesc, incount, datatype, &subarray_type);
             VAPAA_Assert(rc == MPI_SUCCESS);
-            rc = PMPI_Type_commit(&subarray_type);
+            rc = MPI_Type_commit(&subarray_type);
             VAPAA_Assert(rc == MPI_SUCCESS);
             *ierror = MPI_Pack(indesc->base_addr, 1, subarray_type, outdesc->base_addr, outsize, position, comm);
-            rc = PMPI_Type_free(&subarray_type);
+            rc = MPI_Type_free(&subarray_type);
             VAPAA_Assert(rc == MPI_SUCCESS);
         }
     }
@@ -535,10 +535,10 @@ void CFI_MPI_Unpack(CFI_cdesc_t * indesc, int insize, int * position, CFI_cdesc_
             MPI_Datatype subarray_type = MPI_DATATYPE_NULL;
             rc = VAPAA_CFI_CREATE_DATATYPE(outdesc, outcount, datatype, &subarray_type);
             VAPAA_Assert(rc == MPI_SUCCESS);
-            rc = PMPI_Type_commit(&subarray_type);
+            rc = MPI_Type_commit(&subarray_type);
             VAPAA_Assert(rc == MPI_SUCCESS);
             *ierror = MPI_Unpack(indesc->base_addr, insize, position, outdesc->base_addr, 1, subarray_type, comm);
-            rc = PMPI_Type_free(&subarray_type);
+            rc = MPI_Type_free(&subarray_type);
             VAPAA_Assert(rc == MPI_SUCCESS);
         }
     }

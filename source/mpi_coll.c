@@ -43,10 +43,10 @@ void CFI_MPI_Bcast(CFI_cdesc_t * desc, int count, int datatype_f, int root, int 
         MPI_Datatype subarray_type = MPI_DATATYPE_NULL;
         rc = VAPAA_CFI_CREATE_DATATYPE(desc, count, datatype, &subarray_type);
         VAPAA_Assert(rc == MPI_SUCCESS);
-        rc = PMPI_Type_commit(&subarray_type);
+        rc = MPI_Type_commit(&subarray_type);
         VAPAA_Assert(rc == MPI_SUCCESS);
         *ierror = MPI_Bcast(desc->base_addr, 1, subarray_type, root, comm);
-        rc = PMPI_Type_free(&subarray_type);
+        rc = MPI_Type_free(&subarray_type);
         VAPAA_Assert(rc == MPI_SUCCESS);
     }
     C_MPI_RC_FIX(*ierror);
@@ -57,12 +57,6 @@ void C_MPI_Reduce(const void * input, void * output, int * count, int * datatype
 {
     MPI_Datatype datatype = C_MPI_TYPE_F2C(*datatype_f);
     MPI_Op op = C_MPI_OP_F2C(*op_f);
-    if ( ! C_MPI_OP_IS_BUILTIN(op) && C_MPI_TYPE_IS_BUILTIN(datatype) ) {
-        VAPAA_Warning("user-def reduce op with built-in type is not supported. See docs.\n");
-        *ierror = MPI_ERR_OP;
-        C_MPI_RC_FIX(*ierror);
-        return;
-    }
     MPI_Comm comm = C_MPI_COMM_F2C(*comm_f);
     if (C_IS_MPI_IN_PLACE(input))  input  = MPI_IN_PLACE;
     if (C_IS_MPI_IN_PLACE(output)) output = MPI_IN_PLACE;
@@ -80,13 +74,6 @@ void CFI_MPI_Reduce(CFI_cdesc_t * input, CFI_cdesc_t * output, int * count, int 
 
     MPI_Datatype datatype = C_MPI_TYPE_F2C(*datatype_f);
     MPI_Op op = C_MPI_OP_F2C(*op_f);
-    if ( ! C_MPI_OP_IS_BUILTIN(op) && C_MPI_TYPE_IS_BUILTIN(datatype) ) {
-        VAPAA_Warning("user-def reduce op with built-in type is not supported. See docs.\n");
-        *ierror = MPI_ERR_OP;
-        C_MPI_RC_FIX(*ierror);
-        return;
-    }
-
     MPI_Comm comm = C_MPI_COMM_F2C(*comm_f);
     if ( (1 == CFI_is_contiguous(input)) && (1 == CFI_is_contiguous(output)) ) {
         *ierror = MPI_Reduce(in_addr, out_addr, *count, datatype, op, *root, comm);
@@ -104,10 +91,10 @@ void CFI_MPI_Reduce(CFI_cdesc_t * input, CFI_cdesc_t * output, int * count, int 
         MPI_Datatype subarray_type = MPI_DATATYPE_NULL;
         rc = VAPAA_CFI_CREATE_DATATYPE(desc, *count, datatype, &subarray_type);
         VAPAA_Assert(rc == MPI_SUCCESS);
-        rc = PMPI_Type_commit(&subarray_type);
+        rc = MPI_Type_commit(&subarray_type);
         VAPAA_Assert(rc == MPI_SUCCESS);
         *ierror = MPI_Reduce(in_addr, out_addr, 1, subarray_type, op, *root, comm);
-        rc = PMPI_Type_free(&subarray_type);
+        rc = MPI_Type_free(&subarray_type);
         VAPAA_Assert(rc == MPI_SUCCESS);
 #endif
     }
@@ -119,12 +106,6 @@ void C_MPI_Allreduce(const void * input, void * output, int * count, int * datat
 {
     MPI_Datatype datatype = C_MPI_TYPE_F2C(*datatype_f);
     MPI_Op op = C_MPI_OP_F2C(*op_f);
-    if ( ! C_MPI_OP_IS_BUILTIN(op) && C_MPI_TYPE_IS_BUILTIN(datatype) ) {
-        VAPAA_Warning("user-def reduce op with built-in type is not supported. See docs.\n");
-        *ierror = MPI_ERR_OP;
-        C_MPI_RC_FIX(*ierror);
-        return;
-    }
     MPI_Comm comm = C_MPI_COMM_F2C(*comm_f);
     if (C_IS_MPI_IN_PLACE(input))  input  = MPI_IN_PLACE;
     if (C_IS_MPI_IN_PLACE(output)) output = MPI_IN_PLACE;
@@ -142,13 +123,6 @@ void CFI_MPI_Allreduce(CFI_cdesc_t * input, CFI_cdesc_t * output, int * count, i
 
     MPI_Datatype datatype = C_MPI_TYPE_F2C(*datatype_f);
     MPI_Op op = C_MPI_OP_F2C(*op_f);
-    if ( ! C_MPI_OP_IS_BUILTIN(op) && C_MPI_TYPE_IS_BUILTIN(datatype) ) {
-        VAPAA_Warning("user-def reduce op with built-in type is not supported. See docs.\n");
-        *ierror = MPI_ERR_OP;
-        C_MPI_RC_FIX(*ierror);
-        return;
-    }
-
     MPI_Comm comm = C_MPI_COMM_F2C(*comm_f);
     if ( (1 == CFI_is_contiguous(input)) && (1 == CFI_is_contiguous(output)) ) {
         *ierror = MPI_Allreduce(in_addr, out_addr, *count, datatype, op, comm);
@@ -160,10 +134,10 @@ void CFI_MPI_Allreduce(CFI_cdesc_t * input, CFI_cdesc_t * output, int * count, i
         MPI_Datatype subarray_type = MPI_DATATYPE_NULL;
         rc = VAPAA_CFI_CREATE_DATATYPE(desc, *count, datatype, &subarray_type);
         VAPAA_Assert(rc == MPI_SUCCESS);
-        rc = PMPI_Type_commit(&subarray_type);
+        rc = MPI_Type_commit(&subarray_type);
         VAPAA_Assert(rc == MPI_SUCCESS);
         *ierror = MPI_Allreduce(in_addr, out_addr, 1, subarray_type, op, comm);
-        rc = PMPI_Type_free(&subarray_type);
+        rc = MPI_Type_free(&subarray_type);
         VAPAA_Assert(rc == MPI_SUCCESS);
 #endif
     }
@@ -208,7 +182,7 @@ void CFI_MPI_Gather(CFI_cdesc_t * input, int * scount, int * stype_f, CFI_cdesc_
         in_count = 1;
         rc = VAPAA_CFI_CREATE_DATATYPE(input, *scount, stype, &in_type);
         VAPAA_Assert(rc == MPI_SUCCESS);
-        rc = PMPI_Type_commit(&in_type);
+        rc = MPI_Type_commit(&in_type);
         VAPAA_Assert(rc == MPI_SUCCESS);
     }
 
@@ -216,7 +190,7 @@ void CFI_MPI_Gather(CFI_cdesc_t * input, int * scount, int * stype_f, CFI_cdesc_
         out_count = 1;
         rc = VAPAA_CFI_CREATE_DATATYPE(output, *rcount, rtype, &out_type);
         VAPAA_Assert(rc == MPI_SUCCESS);
-        rc = PMPI_Type_commit(&out_type);
+        rc = MPI_Type_commit(&out_type);
         VAPAA_Assert(rc == MPI_SUCCESS);
     }
 
@@ -225,12 +199,12 @@ void CFI_MPI_Gather(CFI_cdesc_t * input, int * scount, int * stype_f, CFI_cdesc_
     C_MPI_RC_FIX(*ierror);
 
     if (!in_contiguous) {
-        rc = PMPI_Type_free(&in_type);
+        rc = MPI_Type_free(&in_type);
         VAPAA_Assert(rc == MPI_SUCCESS);
     }
 
     if (!out_contiguous) {
-        rc = PMPI_Type_free(&out_type);
+        rc = MPI_Type_free(&out_type);
         VAPAA_Assert(rc == MPI_SUCCESS);
     }
 }
@@ -273,7 +247,7 @@ void CFI_MPI_Allgather(CFI_cdesc_t * input, int * scount, int * stype_f, CFI_cde
         in_count = 1;
         rc = VAPAA_CFI_CREATE_DATATYPE(input, *scount, stype, &in_type);
         VAPAA_Assert(rc == MPI_SUCCESS);
-        rc = PMPI_Type_commit(&in_type);
+        rc = MPI_Type_commit(&in_type);
         VAPAA_Assert(rc == MPI_SUCCESS);
     }
 
@@ -281,7 +255,7 @@ void CFI_MPI_Allgather(CFI_cdesc_t * input, int * scount, int * stype_f, CFI_cde
         out_count = 1;
         rc = VAPAA_CFI_CREATE_DATATYPE(output, *rcount, rtype, &out_type);
         VAPAA_Assert(rc == MPI_SUCCESS);
-        rc = PMPI_Type_commit(&out_type);
+        rc = MPI_Type_commit(&out_type);
         VAPAA_Assert(rc == MPI_SUCCESS);
     }
 
@@ -290,12 +264,12 @@ void CFI_MPI_Allgather(CFI_cdesc_t * input, int * scount, int * stype_f, CFI_cde
     C_MPI_RC_FIX(*ierror);
 
     if (!in_contiguous) {
-        rc = PMPI_Type_free(&in_type);
+        rc = MPI_Type_free(&in_type);
         VAPAA_Assert(rc == MPI_SUCCESS);
     }
 
     if (!out_contiguous) {
-        rc = PMPI_Type_free(&out_type);
+        rc = MPI_Type_free(&out_type);
         VAPAA_Assert(rc == MPI_SUCCESS);
     }
 }
@@ -338,7 +312,7 @@ void CFI_MPI_Scatter(CFI_cdesc_t * input, int * scount, int * stype_f, CFI_cdesc
         in_count = 1;
         rc = VAPAA_CFI_CREATE_DATATYPE(input, *scount, stype, &in_type);
         VAPAA_Assert(rc == MPI_SUCCESS);
-        rc = PMPI_Type_commit(&in_type);
+        rc = MPI_Type_commit(&in_type);
         VAPAA_Assert(rc == MPI_SUCCESS);
     }
 
@@ -346,7 +320,7 @@ void CFI_MPI_Scatter(CFI_cdesc_t * input, int * scount, int * stype_f, CFI_cdesc
         out_count = 1;
         rc = VAPAA_CFI_CREATE_DATATYPE(output, *rcount, rtype, &out_type);
         VAPAA_Assert(rc == MPI_SUCCESS);
-        rc = PMPI_Type_commit(&out_type);
+        rc = MPI_Type_commit(&out_type);
         VAPAA_Assert(rc == MPI_SUCCESS);
     }
 
@@ -355,12 +329,12 @@ void CFI_MPI_Scatter(CFI_cdesc_t * input, int * scount, int * stype_f, CFI_cdesc
     C_MPI_RC_FIX(*ierror);
 
     if (!in_contiguous) {
-        rc = PMPI_Type_free(&in_type);
+        rc = MPI_Type_free(&in_type);
         VAPAA_Assert(rc == MPI_SUCCESS);
     }
 
     if (!out_contiguous) {
-        rc = PMPI_Type_free(&out_type);
+        rc = MPI_Type_free(&out_type);
         VAPAA_Assert(rc == MPI_SUCCESS);
     }
 }
@@ -403,7 +377,7 @@ void CFI_MPI_Alltoall(CFI_cdesc_t * input, int * scount, int * stype_f, CFI_cdes
         in_count = 1;
         rc = VAPAA_CFI_CREATE_DATATYPE(input, *scount, stype, &in_type);
         VAPAA_Assert(rc == MPI_SUCCESS);
-        rc = PMPI_Type_commit(&in_type);
+        rc = MPI_Type_commit(&in_type);
         VAPAA_Assert(rc == MPI_SUCCESS);
     }
 
@@ -411,7 +385,7 @@ void CFI_MPI_Alltoall(CFI_cdesc_t * input, int * scount, int * stype_f, CFI_cdes
         out_count = 1;
         rc = VAPAA_CFI_CREATE_DATATYPE(output, *rcount, rtype, &out_type);
         VAPAA_Assert(rc == MPI_SUCCESS);
-        rc = PMPI_Type_commit(&out_type);
+        rc = MPI_Type_commit(&out_type);
         VAPAA_Assert(rc == MPI_SUCCESS);
     }
 
@@ -420,12 +394,12 @@ void CFI_MPI_Alltoall(CFI_cdesc_t * input, int * scount, int * stype_f, CFI_cdes
     C_MPI_RC_FIX(*ierror);
 
     if (!in_contiguous) {
-        rc = PMPI_Type_free(&in_type);
+        rc = MPI_Type_free(&in_type);
         VAPAA_Assert(rc == MPI_SUCCESS);
     }
 
     if (!out_contiguous) {
-        rc = PMPI_Type_free(&out_type);
+        rc = MPI_Type_free(&out_type);
         VAPAA_Assert(rc == MPI_SUCCESS);
     }
 }

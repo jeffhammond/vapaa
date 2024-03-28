@@ -1,9 +1,12 @@
 #ifndef CONVERT_HANDLES_H
 #define CONVERT_HANDLES_H
 
+#include <stdio.h>
 #include <stddef.h>
+#include <string.h>
 #include <mpi.h>
 #include "vapaa_constants.h"
+#include "vapaa_f2c2f.h"
 
 // TODO: move all the constants into a header file and use case-switch.
 
@@ -21,12 +24,14 @@ struct F_MPI_Status
         // Open-MPI
         int cancelled;
         size_t ucount;
+        // MUK
+        int kielletty[5];
 };
 
 MAYBE_UNUSED
 static void C_MPI_STATUS_F2C(const struct F_MPI_Status * f, MPI_Status * c)
 {
-#if !(defined(MPICH) || defined(OPEN_MPI))
+#if !(defined(MPICH) || defined(OPEN_MPI) || defined(MUK))
 #error Need Status ABI support
 #endif
 
@@ -41,12 +46,15 @@ static void C_MPI_STATUS_F2C(const struct F_MPI_Status * f, MPI_Status * c)
     c->_cancelled = f->cancelled;
     c->_ucount    = f->ucount;
 #endif
+#if defined(MUK)
+    memcpy(&(c->__kielletty__), f->kielletty, 5*sizeof(int));
+#endif
 }
 
 MAYBE_UNUSED
 static void C_MPI_STATUS_C2F(const MPI_Status * c, struct F_MPI_Status * f)
 {
-#if !(defined(MPICH) || defined(OPEN_MPI))
+#if !(defined(MPICH) || defined(OPEN_MPI) || defined(MUK))
 #error Need Status ABI support
 #endif
 
@@ -60,6 +68,9 @@ static void C_MPI_STATUS_C2F(const MPI_Status * c, struct F_MPI_Status * f)
 #if defined(OPEN_MPI)
     f->cancelled = c->_cancelled;
     f->ucount    = c->_ucount;
+#endif
+#if defined(MUK)
+    memcpy(&(f->kielletty), c->__kielletty__, 5*sizeof(int));
 #endif
 }
 
@@ -231,7 +242,12 @@ static MPI_Op C_MPI_OP_F2C(int op_f)
         OP_CASE(MPI_LXOR   )
         OP_CASE(MPI_REPLACE)
         OP_CASE(MPI_NO_OP  )
-        default: { return MPI_Op_f2c(op_f); }
+        default: {
+            MPI_Op op_c;
+            int rc = find_op_f2c(op_f, &op_c);
+            if (rc != 1) printf("find_op_f2c failed\n");
+            return op_c;
+        }
     } 
 }
 

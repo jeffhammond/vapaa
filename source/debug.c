@@ -16,7 +16,7 @@
 void VAPAA_Assert_fail(const char *expr, const char *msg, const char *file, int line, const char *func)
 {
   int rank;
-  PMPI_Comm_rank(MPI_COMM_WORLD, &rank);
+  MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 
   if (msg == NULL) {
     fprintf(stderr, "[%d] VAPAA assert fail in %s() [%s:%d]: \"%s\"\n", rank, func, file, line, expr);
@@ -50,16 +50,16 @@ void VAPAA_Assert_fail(const char *expr, const char *msg, const char *file, int 
 
   fflush(NULL);
   {
-    double stall = PMPI_Wtime();
-    while (PMPI_Wtime() - stall < 1) ;
+    double stall = MPI_Wtime();
+    while (MPI_Wtime() - stall < 1) ;
   }
-  PMPI_Abort(MPI_COMM_WORLD, -1);
+  MPI_Abort(MPI_COMM_WORLD, -1);
 }
 
 void VAPAA_Warning(const char *fmt, ...)
 {
   int rank;
-  PMPI_Comm_rank(MPI_COMM_WORLD, &rank);
+  MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 
   va_list etc;
   int  disp;
