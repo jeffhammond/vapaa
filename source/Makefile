@@ -26,7 +26,8 @@ libmpi_f08.a: mpi_f08.o cfi_util.o debug.o \
 	      mpi_status_f.o mpi_status_c.o mpi_status.o \
 	      mpi_win_f.o mpi_win_c.o mpi_win.o \
 	      mpi_attr_f.o mpi_attr_c.o mpi_attr.o \
-	      mpi_error_f.o mpi_error_c.o mpi_error.o
+	      mpi_error_f.o mpi_error_c.o mpi_error.o \
+	      vapaa_f2c2f.o
 	$(AR) $(ARFLAGS) $@ $^
 
 mpi_f08.o: mpi_f08.F90 \
@@ -45,6 +46,9 @@ debug.o: debug.c debug.h
 
 cfi_util.o: cfi_util.c cfi_util.h
 	$(CC) $(CFLAGS) -c $<
+
+vapaa_f2c2f.o: vapaa_f2c2f.cc
+	$(CXX) $(CXXFLAGS) -c $<
 
 detect_sentinels.o: detect_sentinels.c
 	$(CC) $(CFLAGS) -c $<
@@ -172,7 +176,7 @@ mpi_op_f.o: mpi_op_f.F90 mpi_op_c.o mpi_handle_types.o mpi_global_constants.o
 mpi_op_c.o: mpi_op_c.F90 mpi_op.o
 	$(FC) $(FCFLAGS) -c $<
 
-mpi_op.o: mpi_op.c convert_handles.h convert_constants.h
+mpi_op.o: mpi_op.c convert_handles.h convert_constants.h vapaa_f2c2f.h
 	$(CC) $(CFLAGS) -c $<
 
 # REQUEST
