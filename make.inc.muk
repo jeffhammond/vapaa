@@ -1,0 +1,40 @@
+WARNFLAGS = -Wall -Wextra #-Werror
+
+# M1
+#FORTRAN_DIR = /opt/homebrew/Cellar/gcc/12.2.0/lib/gcc/current
+# Linux x86_64
+#FORTRAN_DIR = /usr/lib/gcc/x86_64-linux-gnu/11
+
+#FORTRAN_LIBS = -L$(FORTRAN_DIR) -lgfortran
+# M1
+# symlink ISO_Fortran_binding.h from $(FORTRAN_DIR)/gcc/aarch64-apple-darwin21/11/include to . because reasons
+#FORTRAN_INCLUDE = -I.
+
+#ABIFLAG = -DMPICH
+#ABIFLAG = -DOPEN_MPI
+ABIFLAG = -DMUK
+
+# MPICH devel
+MPICC = clang -I/Users/jhammond/Work/MPI/mukautuva $(ABIFLAG)
+MPI_LIBS = -g -I/Users/jhammond/Work/MPI/mukautuva -L/Users/jhammond/Work/MPI/mukautuva -lmuk
+# MPICH Homebrew
+#MPICC = /opt/homebrew/Cellar/mpich/4.0.3/bin/mpicc
+#MPI_LIBS = -g -Wl,-commons,use_dylibs -I/opt/homebrew/Cellar/mpich/4.0.3/include -L/opt/homebrew/Cellar/mpich/4.0.3/lib -lmpi -lpmpi
+# Open-MPI Homebrew
+#MPICC = /opt/homebrew/Cellar/open-mpi/4.1.4_2/bin/mpicc
+#MPI_LIBS = -g -L/opt/homebrew/Cellar/open-mpi/4.1.4_2/lib -L/opt/homebrew/opt/libevent/lib -lmpi
+
+# M1
+CC = ${MPICC}
+CFLAGS = $(WARNFLAGS) -g -std=c11 $(FORTRAN_INCLUDE) -DHAVE_CFI
+
+FC = gfortran
+FCFLAGS = $(WARNFLAGS) -g -DHAVE_CFI -std=f2018 #-fdefault-integer-8
+#FCFLAGS += -fall-intrinsics # for when we use LOC()
+
+# required on nuclear (x86_64)
+CFLAGS  += -fPIE
+FCFLAGS += -fPIE
+
+CXX = clang++
+CXXFLAGS = -std=c++20 -I/Users/jhammond/Work/MPI/mukautuva $(ABIFLAG)
