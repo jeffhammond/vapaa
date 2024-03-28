@@ -14,6 +14,8 @@
 #include "cfi_util.h"
 #include "debug.h"
 
+#include "trampoline.h"
+
 void C_MPI_Barrier(int * comm_f, int * ierror)
 {
     MPI_Comm comm = C_MPI_COMM_F2C(*comm_f);
@@ -57,12 +59,6 @@ void C_MPI_Reduce(const void * input, void * output, int * count, int * datatype
 {
     MPI_Datatype datatype = C_MPI_TYPE_F2C(*datatype_f);
     MPI_Op op = C_MPI_OP_F2C(*op_f);
-    if ( ! C_MPI_OP_IS_BUILTIN(op) && C_MPI_TYPE_IS_BUILTIN(datatype) ) {
-        VAPAA_Warning("user-def reduce op with built-in type is not supported. See docs.\n");
-        *ierror = MPI_ERR_OP;
-        C_MPI_RC_FIX(*ierror);
-        return;
-    }
     MPI_Comm comm = C_MPI_COMM_F2C(*comm_f);
     if (C_IS_MPI_IN_PLACE(input))  input  = MPI_IN_PLACE;
     if (C_IS_MPI_IN_PLACE(output)) output = MPI_IN_PLACE;
@@ -80,13 +76,6 @@ void CFI_MPI_Reduce(CFI_cdesc_t * input, CFI_cdesc_t * output, int * count, int 
 
     MPI_Datatype datatype = C_MPI_TYPE_F2C(*datatype_f);
     MPI_Op op = C_MPI_OP_F2C(*op_f);
-    if ( ! C_MPI_OP_IS_BUILTIN(op) && C_MPI_TYPE_IS_BUILTIN(datatype) ) {
-        VAPAA_Warning("user-def reduce op with built-in type is not supported. See docs.\n");
-        *ierror = MPI_ERR_OP;
-        C_MPI_RC_FIX(*ierror);
-        return;
-    }
-
     MPI_Comm comm = C_MPI_COMM_F2C(*comm_f);
     if ( (1 == CFI_is_contiguous(input)) && (1 == CFI_is_contiguous(output)) ) {
         *ierror = MPI_Reduce(in_addr, out_addr, *count, datatype, op, *root, comm);
@@ -119,16 +108,22 @@ void C_MPI_Allreduce(const void * input, void * output, int * count, int * datat
 {
     MPI_Datatype datatype = C_MPI_TYPE_F2C(*datatype_f);
     MPI_Op op = C_MPI_OP_F2C(*op_f);
-    if ( ! C_MPI_OP_IS_BUILTIN(op) && C_MPI_TYPE_IS_BUILTIN(datatype) ) {
-        VAPAA_Warning("user-def reduce op with built-in type is not supported. See docs.\n");
-        *ierror = MPI_ERR_OP;
-        C_MPI_RC_FIX(*ierror);
-        return;
-    }
     MPI_Comm comm = C_MPI_COMM_F2C(*comm_f);
     if (C_IS_MPI_IN_PLACE(input))  input  = MPI_IN_PLACE;
     if (C_IS_MPI_IN_PLACE(output)) output = MPI_IN_PLACE;
-    *ierror = MPI_Allreduce(input, output, *count, datatype, op, comm);
+
+    if (IS_PREDEFINED_OP(op)) {
+        *ierror = MPI_Allreduce(input, output, *count, datatype, op, comm);
+    }
+    else {
+        MPI_Datatype dup;
+        MPI_Type_dup(datatype,&dup);
+        MPI_User_function* user_fn = real_fn;
+        //find_comm_op_callback(op, &user_fn, NULL);
+        MPI_Type_set_attr(dup, TYPE_ATTR_FOR_USER_OP_FN, user_fn);
+        *ierror = MPI_Allreduce(input, output, *count, datatype, op, comm);
+        MPI_Type_free(&dup);
+    }
     C_MPI_RC_FIX(*ierror);
 }
 
@@ -142,13 +137,6 @@ void CFI_MPI_Allreduce(CFI_cdesc_t * input, CFI_cdesc_t * output, int * count, i
 
     MPI_Datatype datatype = C_MPI_TYPE_F2C(*datatype_f);
     MPI_Op op = C_MPI_OP_F2C(*op_f);
-    if ( ! C_MPI_OP_IS_BUILTIN(op) && C_MPI_TYPE_IS_BUILTIN(datatype) ) {
-        VAPAA_Warning("user-def reduce op with built-in type is not supported. See docs.\n");
-        *ierror = MPI_ERR_OP;
-        C_MPI_RC_FIX(*ierror);
-        return;
-    }
-
     MPI_Comm comm = C_MPI_COMM_F2C(*comm_f);
     if ( (1 == CFI_is_contiguous(input)) && (1 == CFI_is_contiguous(output)) ) {
         *ierror = MPI_Allreduce(in_addr, out_addr, *count, datatype, op, comm);
