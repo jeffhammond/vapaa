@@ -76,6 +76,14 @@ module mpi_p2p_f
 #endif
     end interface MPI_Irecv
 
+    interface MPI_Sendrecv
+#ifdef HAVE_CFI
+        module procedure MPI_Sendrecv_f08ts
+#else
+        module procedure MPI_Sendrecv_f08
+#endif
+    end interface MPI_Sendrecv
+
     interface MPI_Pack
 #ifdef HAVE_CFI
         module procedure MPI_Pack_f08ts
@@ -456,6 +464,61 @@ module mpi_p2p_f
             call CFI_MPI_Irecv(buffer, count_c, datatype % MPI_VAL, source_c, tag_c, comm % MPI_VAL, request % MPI_VAL, ierror_c)
             if (present(ierror)) ierror = ierror_c
         end subroutine MPI_Irecv_f08ts
+#endif
+
+        subroutine MPI_Sendrecv_f08(sbuffer, scount, sdatatype, dest, stag, &
+                                    rbuffer, rcount, rdatatype, src,  rtag, &
+                                    comm, stat, ierror) 
+            use mpi_handle_types, only: MPI_Comm, MPI_Datatype, MPI_Status
+            use mpi_p2p_c, only: C_MPI_Sendrecv
+!dir$ ignore_tkr sbuffer, rbuffer
+            integer, dimension(*), intent(in) :: sbuffer
+            integer, dimension(*), intent(inout) :: rbuffer
+            integer, intent(in) :: scount, rcount, dest, src, stag, rtag
+            type(MPI_Datatype), intent(in) :: sdatatype, rdatatype
+            type(MPI_Comm), intent(in) :: comm
+            type(MPI_Status), intent(inout) :: stat
+            integer, optional, intent(out) :: ierror
+            integer(kind=c_int) :: scount_c, rcount_c, dest_c, src_c, stag_c, rtag_c, ierror_c
+            ! buffer
+            scount_c = scount
+            dest_c = dest 
+            stag_c = stag
+            rcount_c = rcount
+            src_c = src 
+            rtag_c = rtag
+            call C_MPI_Sendrecv(sbuffer, scount_c, sdatatype % MPI_VAL, dest_c, stag_c, &
+                                rbuffer, rcount_c, rdatatype % MPI_VAL, src_c,  rtag_c, &
+                                comm % MPI_VAL, stat, ierror_c)
+            if (present(ierror)) ierror = ierror_c
+        end subroutine MPI_Sendrecv_f08
+
+#ifdef HAVE_CFI
+        subroutine MPI_Sendrecv_f08ts(sbuffer, scount, sdatatype, dest, stag, &
+                                      rbuffer, rcount, rdatatype, src,  rtag, &
+                                      comm, stat, ierror)
+            use mpi_handle_types, only: MPI_Comm, MPI_Datatype, MPI_Status
+            use mpi_p2p_c, only: CFI_MPI_Sendrecv
+            type(*), dimension(..), intent(in) :: sbuffer
+            type(*), dimension(..), intent(inout) :: rbuffer
+            integer, intent(in) :: scount, rcount, dest, src, stag, rtag
+            type(MPI_Datatype), intent(in) :: sdatatype, rdatatype
+            type(MPI_Comm), intent(in) :: comm
+            type(MPI_Status), intent(inout) :: stat
+            integer, optional, intent(out) :: ierror
+            integer(kind=c_int) :: count_c, dest_c, tag_c, ierror_c
+            ! buffer
+            scount_c = scount
+            dest_c = dest 
+            stag_c = stag
+            rcount_c = rcount
+            src_c = src 
+            rtag_c = rtag
+            call CFI_MPI_Sendrecv(sbuffer, scount_c, sdatatype % MPI_VAL, dest_c, stag_c, &
+                                  rbuffer, rcount_c, rdatatype % MPI_VAL, src_c,  rtag_c, &
+                                  comm % MPI_VAL, stat, ierror_c)
+            if (present(ierror)) ierror = ierror_c
+        end subroutine MPI_Sendrecv_f08ts
 #endif
 
         subroutine MPI_Pack_f08(inbuf, incount, datatype, outbuf, outsize, position, comm, ierror) 

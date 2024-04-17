@@ -241,6 +241,46 @@ module mpi_p2p_c
 #endif
 
     interface
+        subroutine C_MPI_Sendrecv(sbuffer, scount, sdatatype, dest, stag, &
+                                  rbuffer, rcount, rdatatype, src,  rtag, &
+                                  comm, status, ierror) &
+                   bind(C,name="C_MPI_Sendrecv")
+            use iso_c_binding, only: c_int
+            use mpi_handle_types, only: MPI_Status
+            implicit none
+            integer(kind=c_int), dimension(*), intent(in) :: sbuffer
+            integer(kind=c_int), dimension(*), intent(inout) :: rbuffer
+            integer(kind=c_int), intent(in), value :: scount, rcount
+            integer(kind=c_int), intent(in), value :: sdatatype, rdatatype
+            integer(kind=c_int), intent(in), value :: dest, src
+            integer(kind=c_int), intent(in), value :: stag, rtag, comm
+            type(MPI_Status), intent(out) :: status
+            integer(kind=c_int), intent(out) :: ierror
+        end subroutine C_MPI_Sendrecv
+    end interface
+
+#ifdef HAVE_CFI
+    interface
+        subroutine CFI_MPI_Sendrecv(sbuffer, scount, sdatatype, dest, stag, &
+                                  rbuffer, rcount, rdatatype, src,  rtag, &
+                                  comm, status, ierror) &
+                   bind(C,name="CFI_MPI_Sendrecv")
+            use iso_c_binding, only: c_int
+            use mpi_handle_types, only: MPI_Status
+            implicit none
+            type(*), dimension(..), intent(in) :: sbuffer
+            type(*), dimension(..), intent(inout) :: rbuffer
+            integer(kind=c_int), intent(in), value :: scount, rcount
+            integer(kind=c_int), intent(in), value :: sdatatype, rdatatype
+            integer(kind=c_int), intent(in), value :: dest, src
+            integer(kind=c_int), intent(in), value :: stag, rtag, comm
+            type(MPI_Status), intent(out) :: status
+            integer(kind=c_int), intent(out) :: ierror
+        end subroutine CFI_MPI_Sendrecv
+    end interface
+#endif
+
+    interface
         subroutine C_MPI_Pack(inbuf, incount, datatype, outbuf, outsize, position, comm, &
                               ierror) &
                    bind(C,name="C_MPI_Pack")
