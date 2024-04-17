@@ -188,6 +188,7 @@ module mpi_info_f
             if (present(ierror)) ierror = ierror_c
         end subroutine  MPI_Info_get_nthkey_f08
 
+#ifdef HAVE_CFI
         subroutine MPI_Info_get_nthkey_f08ts(info, n, key, ierror)
             use iso_c_binding, only: c_int, c_char, c_null_char
             use mpi_handle_types, only: MPI_Info
@@ -210,6 +211,7 @@ module mpi_info_f
             end do
             deallocate( key_c )
         end subroutine  MPI_Info_get_nthkey_f08ts
+#endif
 
         subroutine MPI_Info_get_string_f08(info, key, buflen, value, flag, ierror)
             use iso_c_binding, only: c_int, c_char, c_null_char
@@ -229,6 +231,7 @@ module mpi_info_f
             if (present(ierror)) ierror = ierror_c
         end subroutine  MPI_Info_get_string_f08
 
+#ifdef HAVE_CFI
         subroutine MPI_Info_get_string_f08ts(info, key, buflen, value, flag, ierror)
             use iso_c_binding, only: c_int, c_char, c_null_char
             use mpi_handle_types, only: MPI_Info
@@ -260,6 +263,7 @@ module mpi_info_f
             if (present(ierror)) ierror = ierror_c
             deallocate( key_c, value_c )
         end subroutine  MPI_Info_get_string_f08ts
+#endif
 
         subroutine MPI_Info_set_f08(info, key, value, ierror)
             use iso_c_binding, only: c_int
@@ -273,6 +277,7 @@ module mpi_info_f
             if (present(ierror)) ierror = ierror_c
         end subroutine  MPI_Info_set_f08
 
+#ifdef HAVE_CFI
         subroutine MPI_Info_set_f08ts(info, key, value, ierror)
             use iso_c_binding, only: c_int, c_char, c_null_char
             use mpi_handle_types, only: MPI_Info
@@ -298,5 +303,6 @@ module mpi_info_f
             if (present(ierror)) ierror = ierror_c
             deallocate( key_c, value_c )
         end subroutine  MPI_Info_set_f08ts
+#endif
 
 end module mpi_info_f
