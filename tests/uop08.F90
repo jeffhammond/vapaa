@@ -35,17 +35,7 @@ module m
 
 end module m
 
-subroutine uop( cin, cout, count, datatype )
-    use m
-    integer, dimension(*) :: cin, cout
-    integer :: count
-    type(MPI_Datatype) :: datatype
-    integer :: i
-    do i=1, count
-     cout(i) = cin(i) + cout(i)
-    enddo
-end
-
+#if 1
 subroutine uop08( cin, cout, count, datatype )
     use iso_c_binding, only: c_ptr, c_f_pointer
     use m
@@ -57,13 +47,25 @@ subroutine uop08( cin, cout, count, datatype )
     call c_f_pointer(cout, cout_r, [count])
     cout_r = cin_r + cout_r
 end
+#endif
 
 program main
     use m
-    external :: uop
+#if 0
+    interface
+    subroutine uop08( cin, cout, count, datatype )
+        use iso_c_binding, only: c_ptr, c_f_pointer
+        use m
+        type(c_ptr), value :: cin, cout
+        integer :: count
+        type(MPI_Datatype) :: datatype
+        integer, pointer :: cin_r(:), cout_r(:)
+    end
+    end interface
+#endif
     external :: uop08
     integer :: ierr
-    type(MPI_Op) :: sumop, sumop08
-    call MPI_Op_create( uop, .true., sumop, ierr )
-    call MPI_Op_create( uop08, .true., sumop08, ierr )
+    !type(MPI_Op) :: sumop, sumop08
+    !call MPI_Op_create( uop, .true., sumop, ierr )
+    !call MPI_Op_create( uop08, .true., sumop08, ierr )
 end
