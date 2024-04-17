@@ -25,6 +25,7 @@ module m
     interface MPI_Op_create
         subroutine MPI_Op_create_f08(user_fn, commute, op, ierror)
             import MPI_Op
+            import MPI_User_function
             procedure(MPI_User_function) :: user_fn
             logical, intent(in) :: commute
             type(MPI_Op), intent(out) :: op
