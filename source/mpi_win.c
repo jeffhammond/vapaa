@@ -93,7 +93,7 @@ void C_MPI_Free_mem(void * baseptr, int * ierror)
     C_MPI_RC_FIX(*ierror);
 }
 
-#if HAVE_CFI
+#ifdef HAVE_CFI
 void CFI_MPI_Free_mem(CFI_cdesc_t * desc, int * ierror)
 {
     if (1 == CFI_is_contiguous(desc)) {

@@ -88,7 +88,7 @@ module mpi_error_f
     integer, parameter :: MPI_ERR_LASTCODE                           = VAPAA_MPI_ERR_LASTCODE
 
     interface MPI_Error_string
-#if HAVE_CFI
+#ifdef HAVE_CFI
         module procedure MPI_Error_string_f08ts
 #else
         module procedure MPI_Error_string_f08

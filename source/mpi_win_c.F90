@@ -89,7 +89,7 @@ module mpi_win_c
         end subroutine C_MPI_Free_mem
     end interface
 
-#if HAVE_CFI
+#ifdef HAVE_CFI
     interface
         subroutine CFI_MPI_Free_mem(baseptr, ierror) &
                    bind(C,name="CFI_MPI_Free_mem")

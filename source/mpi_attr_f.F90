@@ -6,7 +6,7 @@ module mpi_attr_f
     implicit none
 
     interface MPI_Type_get_name
-#if HAVE_CFI
+#ifdef HAVE_CFI
         module procedure MPI_Type_get_name_f08ts
 #else
         module procedure MPI_Type_get_name_f08
@@ -14,7 +14,7 @@ module mpi_attr_f
     end interface MPI_Type_get_name
 
     interface MPI_Type_set_name
-#if HAVE_CFI
+#ifdef HAVE_CFI
         module procedure MPI_Type_set_name_f08ts
 #else
         module procedure MPI_Type_set_name_f08

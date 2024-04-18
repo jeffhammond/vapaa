@@ -39,7 +39,7 @@ module mpi_core_f
     end interface MPI_Get_version
 
     interface MPI_Get_library_version
-#if HAVE_CFI
+#ifdef HAVE_CFI
         module procedure MPI_Get_library_version_f08ts
 #else
         module procedure MPI_Get_library_version_f08
