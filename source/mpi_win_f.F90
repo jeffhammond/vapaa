@@ -151,7 +151,7 @@ module mpi_win_f
             if (present(ierror)) ierror = ierror_c
         end subroutine MPI_Free_mem_f08
 
-#if HAVE_CFI
+#ifdef HAVE_CFI
         subroutine MPI_Free_mem_f08ts(baseptr, ierror)
             use iso_c_binding, only: c_int
             use mpi_win_c, only: CFI_MPI_Free_mem
