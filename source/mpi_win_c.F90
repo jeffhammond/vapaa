@@ -7,8 +7,8 @@ module mpi_win_c
                    bind(C,name="C_MPI_Win_allocate")
             use iso_c_binding, only: c_int, c_size_t, c_ptr
             implicit none
-            integer(kind=c_size_t), intent(in) :: size
-            integer(kind=c_int), intent(in) :: disp_unit, info, comm
+            integer(kind=c_size_t), intent(in), value :: size
+            integer(kind=c_int), intent(in), value :: disp_unit, info, comm
             type(c_ptr), intent(out) :: baseptr
             integer(kind=c_int), intent(out) :: win, ierror
         end subroutine C_MPI_Win_allocate
@@ -19,12 +19,27 @@ module mpi_win_c
                    bind(C,name="C_MPI_Win_create")
             use iso_c_binding, only: c_int, c_size_t, c_ptr
             implicit none
-            type(c_ptr), intent(in) :: base
-            integer(kind=c_size_t), intent(in) :: size
-            integer(kind=c_int), intent(in) :: disp_unit, info, comm
+!dir$ ignore_tkr base
+            integer, dimension(*), intent(in), asynchronous :: base
+            integer(kind=c_size_t), intent(in), value :: size
+            integer(kind=c_int), intent(in), value :: disp_unit, info, comm
             integer(kind=c_int), intent(out) :: win, ierror
         end subroutine C_MPI_Win_create
     end interface
+
+#ifdef HAVE_CFI
+    interface
+        subroutine CFI_MPI_Win_create(base, size, disp_unit, info, comm, win, ierror) &
+                   bind(C,name="CFI_MPI_Win_create")
+            use iso_c_binding, only: c_int, c_size_t, c_ptr
+            implicit none
+            type(*), dimension(..), asynchronous :: base
+            integer(kind=c_size_t), intent(in), value :: size
+            integer(kind=c_int), intent(in), value :: disp_unit, info, comm
+            integer(kind=c_int), intent(out) :: win, ierror
+        end subroutine C_MPI_Win_create
+    end interface
+#endif
 
     interface
         subroutine C_MPI_Win_free(win, ierror) &

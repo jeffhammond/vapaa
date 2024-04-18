@@ -40,6 +40,22 @@ void C_MPI_Win_create(void * base, MPI_Aint size, int disp_unit, int info_f, int
     C_MPI_RC_FIX(*ierror);
 }
 
+#ifdef HAVE_CFI
+void CFI_MPI_Win_create(CFI_cdesc_t * desc, MPI_Aint size, int disp_unit, int info_f, int comm_f, int * win_f, int * ierror)
+{
+    MPI_Win win = MPI_WIN_NULL;
+    MPI_Info info = C_MPI_INFO_F2C(info_f);
+    MPI_Comm comm = C_MPI_COMM_F2C(comm_f);
+    if (1 == CFI_is_contiguous(desc)) {
+        *ierror = MPI_Win_create(desc->base_addr, size, disp_unit, info, comm, &win);
+    } else {
+        VAPAA_Assert_msg(0,"The base argument to MPI_Win_create must be simply contiguous!");
+    }
+    *win_f = MPI_Win_c2f(win);
+    C_MPI_RC_FIX(*ierror);
+}
+#endif
+
 void C_MPI_Win_free(int * win_f, int * ierror)
 {
     MPI_Win win = C_MPI_WIN_F2C(*win_f);
