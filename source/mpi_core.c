@@ -76,7 +76,7 @@ void C_MPI_Get_version(int * version, int * subversion, int * ierror)
     C_MPI_RC_FIX(*ierror);
 }
 
-void C_MPI_Get_library_version(char ** pversion, int * resultlen, int * ierror)
+void C_MPI_Get_library_version(char * version, int * resultlen, int * ierror)
 {
     // we can fix this with malloc...
     if (VAPAA_MPI_MAX_LIBRARY_VERSION_STRING < MPI_MAX_LIBRARY_VERSION_STRING) {
@@ -85,7 +85,6 @@ void C_MPI_Get_library_version(char ** pversion, int * resultlen, int * ierror)
                        "VAPAA_MPI_MAX_LIBRARY_VERSION_STRING=%d, MPI_MAX_LIBRARY_VERSION_STRING=%d\n",
                        VAPAA_MPI_MAX_LIBRARY_VERSION_STRING, MPI_MAX_LIBRARY_VERSION_STRING);
     }
-    char * version = *pversion;
     memset(version,0,VAPAA_MPI_MAX_LIBRARY_VERSION_STRING);
     *ierror = MPI_Get_library_version(version, resultlen);
     C_MPI_RC_FIX(*ierror);
