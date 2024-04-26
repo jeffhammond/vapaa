@@ -6,7 +6,7 @@ module detect_sentinels_c
         subroutine C_MPI_BOTTOM(inplace) &
                    bind(C,name="C_MPI_BOTTOM")
             implicit none
-#ifdef HAVE_CFI
+#if defined(HAVE_CFI) || defined(FLANG)
             type(*) :: inplace
 #else
             class(*) :: inplace
@@ -18,7 +18,7 @@ module detect_sentinels_c
         subroutine C_MPI_STATUS_IGNORE(inplace) &
                    bind(C,name="C_MPI_STATUS_IGNORE")
             implicit none
-#ifdef HAVE_CFI
+#if defined(HAVE_CFI) || defined(FLANG)
             type(*) :: inplace
 #else
             class(*) :: inplace
@@ -30,7 +30,7 @@ module detect_sentinels_c
         subroutine C_MPI_STATUSES_IGNORE(inplace) &
                    bind(C,name="C_MPI_STATUSES_IGNORE")
             implicit none
-#ifdef HAVE_CFI
+#if defined(HAVE_CFI) || defined(FLANG)
             type(*) :: inplace(..)
 #else
             class(*) :: inplace(..)
@@ -42,7 +42,7 @@ module detect_sentinels_c
         subroutine C_MPI_ERRCODES_IGNORE(inplace) &
                    bind(C,name="C_MPI_ERRCODES_IGNORE")
             implicit none
-#ifdef HAVE_CFI
+#if defined(HAVE_CFI) || defined(FLANG)
             type(*) :: inplace
 #else
             class(*) :: inplace
@@ -54,7 +54,7 @@ module detect_sentinels_c
         subroutine C_MPI_IN_PLACE(inplace) &
                    bind(C,name="C_MPI_IN_PLACE")
             implicit none
-#ifdef HAVE_CFI
+#if defined(HAVE_CFI) || defined(FLANG)
             type(*) :: inplace
 #else
             class(*) :: inplace
@@ -66,7 +66,7 @@ module detect_sentinels_c
         subroutine C_MPI_ARGV_NULL(inplace) &
                    bind(C,name="C_MPI_ARGV_NULL")
             implicit none
-#ifdef HAVE_CFI
+#if defined(HAVE_CFI) || defined(FLANG)
             type(*) :: inplace
 #else
             class(*) :: inplace
@@ -78,7 +78,7 @@ module detect_sentinels_c
         subroutine C_MPI_ARGVS_NULL(inplace) &
                    bind(C,name="C_MPI_ARGVS_NULL")
             implicit none
-#ifdef HAVE_CFI
+#if defined(HAVE_CFI) || defined(FLANG)
             type(*) :: inplace
 #else
             class(*) :: inplace
@@ -90,7 +90,7 @@ module detect_sentinels_c
         subroutine C_MPI_UNWEIGHTED(inplace) &
                    bind(C,name="C_MPI_UNWEIGHTED")
             implicit none
-#ifdef HAVE_CFI
+#if defined(HAVE_CFI) || defined(FLANG)
             type(*) :: inplace
 #else
             class(*) :: inplace
@@ -102,7 +102,7 @@ module detect_sentinels_c
         subroutine C_MPI_WEIGHTS_EMPTY(inplace) &
                    bind(C,name="C_MPI_WEIGHTS_EMPTY")
             implicit none
-#ifdef HAVE_CFI
+#if defined(HAVE_CFI) || defined(FLANG)
             type(*) :: inplace
 #else
             class(*) :: inplace
