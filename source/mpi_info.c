@@ -14,10 +14,9 @@ void C_MPI_Info_create(int * info_f, int * ierror)
     C_MPI_RC_FIX(*ierror);
 }
 
-void C_MPI_Info_delete(int * info_f, char ** pkey, int * ierror)
+void C_MPI_Info_delete(int * info_f, char * key, int * ierror)
 {
     MPI_Info info = C_MPI_INFO_F2C(*info_f);
-    char * key = *pkey;
     *ierror = MPI_Info_delete(info, key);
     C_MPI_RC_FIX(*ierror);
 }
@@ -56,10 +55,9 @@ void C_MPI_Info_get_nkeys(int * info_f, int * nkeys_f, int * ierror)
     C_MPI_RC_FIX(*ierror);
 }
 
-void C_MPI_Info_get_nthkey(int * info_f, int * n, char ** pkey, int * ierror)
+void C_MPI_Info_get_nthkey(int * info_f, int * n, char * key, int * ierror)
 {
     MPI_Info info = C_MPI_INFO_F2C(*info_f);
-    char * key = *pkey;
     *ierror = MPI_Info_get_nthkey(info, *n, key);
     C_MPI_RC_FIX(*ierror);
 }
@@ -74,11 +72,9 @@ void CFI_MPI_Info_get_nthkey(int * info_f, int * n, CFI_cdesc_t * key_d, int * i
 }
 #endif
 
-void C_MPI_Info_get_string(int * info_f, char ** pkey, int * buflen, char ** pval, int * flag, int * ierror)
+void C_MPI_Info_get_string(int * info_f, char * key, int * buflen, char * val, int * flag, int * ierror)
 {
     MPI_Info info = C_MPI_INFO_F2C(*info_f);
-    char * key = *pkey;
-    char * val = *pval;
     memset(val,0,*buflen);
 #if (MPI_VERSION >= 4)
     // In C, buflen includes the required space for the null terminator.
@@ -116,11 +112,9 @@ void CFI_MPI_Info_get_string(int * info_f, CFI_cdesc_t * key_d, int * buflen, CF
 }
 #endif
 
-void C_MPI_Info_set(int * info_f, char ** pkey, char ** pval, int * ierror)
+void C_MPI_Info_set(int * info_f, char * key, char * val, int * ierror)
 {
     MPI_Info info = C_MPI_INFO_F2C(*info_f);
-    char * key = *pkey;
-    char * val = *pval;
     *ierror = MPI_Info_set(info, key, val);
     C_MPI_RC_FIX(*ierror);
 }
