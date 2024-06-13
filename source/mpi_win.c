@@ -5,6 +5,7 @@
 #include "convert_handles.h"
 #include "convert_constants.h"
 #include "vapaa_constants.h"
+#include "debug.h"
 
 #if 0
 static int C_MPI_TRANSLATE_WIN_ASSERT(int f)
@@ -37,7 +38,7 @@ void CFI_MPI_Win_allocate(size_t size, int disp_unit, int info_f, int comm_f, CF
     MPI_Info info = C_MPI_INFO_F2C(info_f);
     MPI_Comm comm = C_MPI_COMM_F2C(comm_f);
     if (1 == CFI_is_contiguous(desc)) {
-        *ierror = MPI_Win_allocate(size, disp_unit, info, desc->base_addr, comm, &win);
+        *ierror = MPI_Win_allocate(size, disp_unit, info, comm, &(desc->base_addr), &win);
     } else {
         VAPAA_Assert_msg(0,"The base argument to MPI_Win_allocate must be simply contiguous!");
     }

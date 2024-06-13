@@ -26,8 +26,8 @@ module mpi_win_f
 
     contains
 
-        subroutine MPI_Win_allocate_f08(size, disp_unit, info, comm, base, win, ierror)
-            use iso_c_binding, only: c_int, c_size_t
+        subroutine MPI_Win_allocate_f08(size, disp_unit, info, comm, baseptr, win, ierror)
+            use iso_c_binding, only: c_int, c_size_t, c_ptr
             use mpi_global_constants, only: MPI_ADDRESS_KIND
             use mpi_handle_types, only: MPI_Win, MPI_Info
             use mpi_win_c, only: C_MPI_Win_allocate
@@ -35,41 +35,16 @@ module mpi_win_f
             integer, intent(in) :: disp_unit
             type(MPI_info), intent(in) :: info
             type(MPI_Win), intent(in) :: comm
-!dir$ ignore_tkr base
-            integer, dimension(*), intent(out), asynchronous :: base
+            type(c_ptr) :: baseptr
             type(MPI_Win), intent(out) :: win
             integer, optional, intent(out) :: ierror
             integer(kind=c_int) :: disp_unit_c, ierror_c
             integer(kind=c_size_t) :: size_c
             size_c      = size
             disp_unit_c = disp_unit
-            call C_MPI_Win_allocate(size, disp_unit, info % MPI_VAL, comm % MPI_VAL, base, win % MPI_VAL, ierror_c)
+            call C_MPI_Win_allocate(size, disp_unit, info % MPI_VAL, comm % MPI_VAL, baseptr, win % MPI_VAL, ierror_c)
             if (present(ierror)) ierror = ierror_c
         end subroutine MPI_Win_allocate_f08
-
-#ifdef HAVE_CFI
-        subroutine MPI_Win_allocate_f08ts(size, disp_unit, info, comm, base, win, ierror)
-            use iso_c_binding, only: c_int, c_size_t, c_ptr
-            use mpi_global_constants, only: MPI_ADDRESS_KIND
-            use mpi_handle_types, only: MPI_Win, MPI_Info
-            use mpi_comm_c, only: CFI_MPI_Win_allocate
-            integer(kind=MPI_ADDRESS_KIND), intent(in) :: size
-            integer, intent(in) :: disp_unit
-            type(MPI_info), intent(in) :: info
-            type(MPI_Win), intent(in) :: comm
-            type(*), dimension(..), asynchronous :: base
-            type(MPI_Win), intent(out) :: win
-            integer, optional, intent(out) :: ierror
-            integer(kind=c_int) :: disp_unit_c, ierror_c
-            integer(kind=c_size_t) :: size_c
-            type(c_ptr) :: baseptr_c
-            size_c      = size
-            disp_unit_c = disp_unit
-            call CFI_MPI_Win_allocate(size, disp_unit, info % MPI_VAL, comm % MPI_VAL, baseptr_c, win % MPI_VAL, ierror_c)
-            call c_f_pointer(baseptr_c, base)
-            if (present(ierror)) ierror = ierror_c
-        end subroutine MPI_Win_allocate_f08ts
-#endif
 
         subroutine MPI_Win_create_f08(base, size, disp_unit, info, comm, win, ierror)
             use iso_c_binding, only: c_int, c_size_t
@@ -97,7 +72,7 @@ module mpi_win_f
             use iso_c_binding, only: c_int, c_size_t
             use mpi_global_constants, only: MPI_ADDRESS_KIND
             use mpi_handle_types, only: MPI_Win, MPI_Info
-            use mpi_comm_c, only: CFI_MPI_Win_create
+            use mpi_win_c, only: CFI_MPI_Win_create
             type(*), dimension(..), asynchronous :: base
             integer(kind=MPI_ADDRESS_KIND), intent(in) :: size
             integer, intent(in) :: disp_unit
@@ -160,7 +135,7 @@ module mpi_win_f
             integer(kind=c_int) :: ierror_c
             call CFI_MPI_Free_mem(baseptr, ierror_c)
             if (present(ierror)) ierror = ierror_c
-        end subroutine MPI_Free_mem_f08
+        end subroutine MPI_Free_mem_f08ts
 #endif
 
 end module mpi_win_f

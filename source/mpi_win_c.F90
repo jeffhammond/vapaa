@@ -5,29 +5,14 @@ module mpi_win_c
     interface
         subroutine C_MPI_Win_allocate(size, disp_unit, info, comm, base, win, ierror) &
                    bind(C,name="C_MPI_Win_allocate")
-            use iso_c_binding, only: c_int, c_size_t
-            implicit none
-            integer(kind=c_size_t), intent(in), value :: size
-            integer(kind=c_int), intent(in), value :: disp_unit, info, comm
-!dir$ ignore_tkr base
-            integer, dimension(*), intent(out), asynchronous :: base
-            integer(kind=c_int), intent(out) :: win, ierror
-        end subroutine C_MPI_Win_allocate
-    end interface
-
-#ifdef HAVE_CFI
-    interface
-        subroutine CFI_MPI_Win_allocate(size, disp_unit, info, comm, base, win, ierror) &
-                   bind(C,name="CFI_MPI_Win_allocate")
             use iso_c_binding, only: c_int, c_size_t, c_ptr
             implicit none
             integer(kind=c_size_t), intent(in), value :: size
             integer(kind=c_int), intent(in), value :: disp_unit, info, comm
-            type(*), dimension(..), asynchronous :: base
+            type(c_ptr), intent(out) :: base
             integer(kind=c_int), intent(out) :: win, ierror
         end subroutine C_MPI_Win_allocate
     end interface
-#endif
 
     interface
         subroutine C_MPI_Win_create(base, size, disp_unit, info, comm, win, ierror) &
@@ -52,7 +37,7 @@ module mpi_win_c
             integer(kind=c_size_t), intent(in), value :: size
             integer(kind=c_int), intent(in), value :: disp_unit, info, comm
             integer(kind=c_int), intent(out) :: win, ierror
-        end subroutine C_MPI_Win_create
+        end subroutine CFI_MPI_Win_create
     end interface
 #endif
 
@@ -79,23 +64,23 @@ module mpi_win_c
     end interface
 
     interface
-        subroutine C_MPI_Free_mem(baseptr, ierror) &
+        subroutine C_MPI_Free_mem(base, ierror) &
                    bind(C,name="C_MPI_Free_mem")
             use iso_c_binding, only: c_int
             implicit none
-!dir$ ignore_tkr baseptr
-            integer, dimension(*), intent(in), asynchronous :: baseptr
+!dir$ ignore_tkr base
+            integer, dimension(*), intent(in), asynchronous :: base
             integer(kind=c_int), intent(out) :: ierror
         end subroutine C_MPI_Free_mem
     end interface
 
 #ifdef HAVE_CFI
     interface
-        subroutine CFI_MPI_Free_mem(baseptr, ierror) &
+        subroutine CFI_MPI_Free_mem(base, ierror) &
                    bind(C,name="CFI_MPI_Free_mem")
             use iso_c_binding, only: c_int
             implicit none
-            type(*), dimension(..), intent(in), asynchronous :: baseptr
+            type(*), dimension(..), intent(in), asynchronous :: base
             integer(kind=c_int), intent(out) :: ierror
         end subroutine CFI_MPI_Free_mem
     end interface
