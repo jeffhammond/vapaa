@@ -20,8 +20,8 @@ void C_MPI_Init(int * ierror)
     C_MPI_RC_FIX(*ierror);
 
     // DEBUG
-    MPI_Errhandler_set(MPI_COMM_WORLD, MPI_ERRORS_RETURN);
-    MPI_Errhandler_set(MPI_COMM_SELF, MPI_ERRORS_RETURN);
+    MPI_Comm_set_errhandler(MPI_COMM_WORLD, MPI_ERRORS_RETURN);
+    MPI_Comm_set_errhandler(MPI_COMM_SELF, MPI_ERRORS_RETURN);
 }
 
 void C_MPI_Finalize(int * ierror)
