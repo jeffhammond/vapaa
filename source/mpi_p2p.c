@@ -448,7 +448,7 @@ void CFI_MPI_Sendrecv(CFI_cdesc_t * sdesc, int scount, int sdatatype_f, int dest
     MPI_Datatype sdatatype = C_MPI_TYPE_F2C(sdatatype_f);
     MPI_Datatype rdatatype = C_MPI_TYPE_F2C(rdatatype_f);
     MPI_Comm comm = C_MPI_COMM_F2C(comm_f);
-    if (1 == CFI_is_contiguous(desc)) {
+    if ((1 == CFI_is_contiguous(sdesc)) && (1 == CFI_is_contiguous(sdesc))) {
         *ierror = MPI_Sendrecv(sdesc->base_addr, scount, sdatatype, dest, stag, 
                                rdesc->base_addr, rcount, rdatatype, src,  rtag,
                                comm, C_IS_MPI_STATUS_IGNORE(status) ? MPI_STATUS_IGNORE : status);
