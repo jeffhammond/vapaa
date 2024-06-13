@@ -506,7 +506,7 @@ module mpi_p2p_f
             type(MPI_Comm), intent(in) :: comm
             type(MPI_Status), intent(inout) :: stat
             integer, optional, intent(out) :: ierror
-            integer(kind=c_int) :: count_c, dest_c, tag_c, ierror_c
+            integer(kind=c_int) :: scount_c, rcount_c, dest_c, src_c, stag_c, rtag_c, ierror_c
             ! buffer
             scount_c = scount
             dest_c = dest 
