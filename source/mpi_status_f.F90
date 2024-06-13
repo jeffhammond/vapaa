@@ -15,7 +15,7 @@ module mpi_status_f
             use mpi_status_c, only: C_MPI_Status_set_elements
             type(MPI_Status), intent(inout) :: status
             type(MPI_Datatype), intent(in) :: datatype
-            integer, intent(out) :: count
+            integer, intent(in) :: count
             integer, optional, intent(out) :: ierror
             integer(kind=c_int) :: count_c, ierror_c
             count_c = count
