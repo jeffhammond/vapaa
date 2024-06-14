@@ -14,28 +14,28 @@ program main
     call MPI_Comm_size(MPI_COMM_WORLD,np)
     print*,'I am ',me,' of ',np,' of WORLD'
 
-    write(filename,'(i8)') me
+    write(filename,'(a4,i4)') 'file',me
     amode = IOR( MPI_MODE_CREATE, MPI_MODE_RDWR )
 
     call MPI_File_open(MPI_COMM_SELF,trim(adjustl(filename)),amode,MPI_INFO_NULL,f,ierror)
     if (ierror.ne.MPI_SUCCESS) then
         print*,'open failed'
         call MPI_Error_string(ierror, string, slen)    
-        print*,'why? ',string
+        print*,'why? ',trim(string)
     endif
 
     call MPI_File_close(f,ierror)
     if (ierror.ne.MPI_SUCCESS) then
         print*,'close failed'
         call MPI_Error_string(ierror, string, slen)    
-        print*,'why? ',string
+        print*,'why? ',trim(string)
     endif
 
     call MPI_File_delete(trim(adjustl(filename)),MPI_INFO_NULL)
     if (ierror.ne.MPI_SUCCESS) then
         print*,'delete failed'
         call MPI_Error_string(ierror, string, slen)    
-        print*,'why? ',string
+        print*,'why? ',trim(string)
     endif
 
     call MPI_Finalize(ierror)
