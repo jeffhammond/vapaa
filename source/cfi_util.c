@@ -82,6 +82,8 @@ static void * VAPAA_CREATE_MPIX_IOV(MPI_Datatype dt, size_t * total_len, size_t 
     return iov;
 #else
     (void)dt;
+    (void)total_len;
+    (void)total_bytes;
     #ifdef MPICH_NUMVERSION
         #warning MPICH too old
         VAPAA_Warning("MPICH %s does not have MPIX_Iov support",MPICH_NUMVERSION);
@@ -530,6 +532,10 @@ static int VAPAA_CFI_CREATE_INDEXED(const CFI_cdesc_t * desc, int count, MPI_Dat
 
     return MPI_SUCCESS;
 #else
+    (void)desc;
+    (void)count;
+    (void)input_datatype;
+    (void)array_datatype;
     #ifdef MPICH_NUMVERSION
         #warning MPICH too old
         VAPAA_Warning("MPICH %s does not have MPIX_Iov support",MPICH_NUMVERSION);

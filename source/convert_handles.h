@@ -38,8 +38,8 @@ static void C_MPI_STATUS_F2C(const struct F_MPI_Status * f, MPI_Status * c)
     c->MPI_TAG    = f->MPI_TAG;
     c->MPI_ERROR  = f->MPI_ERROR;
 #if defined(OPEN_MPI)
-    c->cancelled = f->cancelled;
-    c->ucount    = f->ucount;
+    c->_cancelled = f->cancelled;
+    c->_ucount    = f->ucount;
 #endif
 }
 
@@ -58,8 +58,8 @@ static void C_MPI_STATUS_C2F(const MPI_Status * c, struct F_MPI_Status * f)
     f->MPI_TAG    = c->MPI_TAG;
     f->MPI_ERROR  = c->MPI_ERROR;
 #if defined(OPEN_MPI)
-    f->cancelled = c->cancelled;
-    f->ucount    = c->ucount;
+    f->cancelled = c->_cancelled;
+    f->ucount    = c->_ucount;
 #endif
 }
 
