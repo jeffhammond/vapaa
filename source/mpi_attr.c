@@ -7,7 +7,7 @@
 #include "convert_constants.h"
 
 #define C_MPI_HANDLE_GET_NAME(Full,SHORT,Short)                                             \
-void C_MPI_##Short##_get_name(int * handle_f, char * name, int * resultlen, int * ierror) \
+void C_MPI_##Short##_get_name(int * handle_f, char * name, int * resultlen, int * ierror)   \
 {                                                                                           \
     MPI_##Full handle = C_MPI_##SHORT##_F2C(*handle_f);                                     \
     *ierror = MPI_##Short##_get_name(handle, name, resultlen);                              \
@@ -15,7 +15,7 @@ void C_MPI_##Short##_get_name(int * handle_f, char * name, int * resultlen, int 
 }
 
 #define C_MPI_HANDLE_SET_NAME(Full,SHORT,Short)                                             \
-void C_MPI_##Short##_set_name(int * handle_f, char * name, int * ierror)                  \
+void C_MPI_##Short##_set_name(int * handle_f, char * name, int * ierror)                    \
 {                                                                                           \
     MPI_##Full handle = C_MPI_##SHORT##_F2C(*handle_f);                                     \
     *ierror = MPI_##Short##_set_name(handle, name);                                         \

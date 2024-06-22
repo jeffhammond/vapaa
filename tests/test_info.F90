@@ -12,7 +12,6 @@ program main
 
     call MPI_Comm_rank(MPI_COMM_WORLD,me)
     call MPI_Comm_size(MPI_COMM_WORLD,np)
-    !print*,'I am ',me,' of ',np,' of WORLD'
 
     call MPI_Info_create(info)
 
@@ -21,9 +20,8 @@ program main
     call MPI_Info_set(info,'key3','val3')
 
     call MPI_Info_get_nkeys(info,nkeys)
-    !print*,'nkeys=',nkeys
     if (nkeys .ne. 3) then
-        print*,'nkeys=',nkeys
+        print*,'nkeys=',nkeys,' (should be 3)'
         call MPI_Abort(MPI_COMM_WORLD,nkeys)
     end if
 
@@ -34,15 +32,13 @@ program main
     call MPI_Info_free(info)
 
     call MPI_Info_get_nkeys(dup,nkeys)
-    !print*,'nkeys=',nkeys
     if (nkeys .ne. 2) then
-        print*,'nkeys=',nkeys
+        print*,'nkeys=',nkeys,' (should be 2)'
         call MPI_Abort(MPI_COMM_WORLD,nkeys)
     end if
 
     buflen=MPI_MAX_INFO_VAL
     call MPI_Info_get_string(dup,'key1',buflen,string,flag)
-    !print*,'key1=',trim(string),' buflen=',buflen,' flag=',flag,' (should be true)'
     if ((.not.flag).or.(buflen.ne.5).or.(string(1:4).ne.'val1')) then
         print*,'key1=',trim(string),' buflen=',buflen,' (should be 5)',' flag=',flag,' (should be true)'
         call MPI_Abort(MPI_COMM_WORLD,1)
@@ -50,7 +46,6 @@ program main
 
     buflen=MPI_MAX_INFO_VAL
     call MPI_Info_get_string(dup,'key2',buflen,string,flag)
-    !print*,'flag=',flag,' (should be false)'
     if (flag) then
         print*,'flag=',flag,' (should be false)'
         call MPI_Abort(MPI_COMM_WORLD,1)
