@@ -8,6 +8,8 @@
 #include "convert_handles.h"
 #include "convert_constants.h"
 
+int TYPE_ATTR_FOR_USER_OP_FN = MPI_KEYVAL_INVALID;
+
 // STANDARD STUFF
 
 void C_MPI_Init(int * ierror)
@@ -22,6 +24,12 @@ void C_MPI_Init(int * ierror)
     // DEBUG
     MPI_Comm_set_errhandler(MPI_COMM_WORLD, MPI_ERRORS_RETURN);
     MPI_Comm_set_errhandler(MPI_COMM_SELF, MPI_ERRORS_RETURN);
+
+    int rc;
+    rc = MPI_Type_create_keyval(MPI_TYPE_NULL_COPY_FN, MPI_TYPE_NULL_DELETE_FN, &TYPE_ATTR_FOR_USER_OP_FN, NULL);
+    if (rc != MPI_SUCCESS) {
+        printf("IMPL_Type_create_keyval(TYPE_ATTR_FOR_USER_OP_FN) failed: %d\n", rc);
+    }
 }
 
 void C_MPI_Finalize(int * ierror)
