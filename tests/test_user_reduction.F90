@@ -8,10 +8,10 @@ module m
          type(MPI_Datatype) :: datatype
          integer, pointer :: cin_r(:), cout_r(:)
          !print*,'My Reduce Op:', datatype % MPI_VAL, 'INTEGER?',datatype == MPI_INTEGER
-         !if (datatype .ne. MPI_INTEGER) then
-         !   print *, 'Invalid datatype (',datatype,') passed to user_op()'
-         !   return
-         !endif
+         if (datatype .ne. MPI_INTEGER) then
+            print *, 'Invalid datatype (',datatype,') passed to user_op()'
+            return
+         endif
          call c_f_pointer(cin, cin_r, [count])
          call c_f_pointer(cout, cout_r, [count])
          cout_r = cin_r + cout_r
@@ -39,7 +39,7 @@ program main
     external :: f
 #endif
     integer :: ierror
-    integer :: i, me, np, ref
+    integer :: me, np, ref
     integer, parameter :: b = 10
     integer :: ix(b), iy(b)
     type(MPI_Op) :: op

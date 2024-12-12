@@ -2,7 +2,7 @@ program main
     use iso_c_binding, only : c_null_char
     use mpi_f08
     implicit none
-    integer :: me,ierror,e,c
+    integer :: me,ierror
     character(len=MPI_MAX_OBJECT_NAME) :: si, so
     integer :: l
     type(MPI_Datatype) :: v

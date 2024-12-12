@@ -14,10 +14,10 @@
       integer :: count
       TYPE(MPI_Datatype) :: datatype
       integer, pointer :: cin_r(:), cout_r(:)
-      !if (datatype .ne. MPI_INTEGER) then
-      !   print *, 'Invalid datatype (',datatype,') passed to user_op()'
-      !   return
-      !endif
+      if (datatype .ne. MPI_INTEGER) then
+         print *, 'Invalid datatype (',datatype,') passed to user_op()'
+         return
+      endif
       call c_f_pointer(cin, cin_r, [count])
       call c_f_pointer(cout, cout_r, [count])
       cout_r = cin_r + cout_r

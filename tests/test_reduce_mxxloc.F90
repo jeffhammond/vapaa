@@ -4,7 +4,7 @@ program main
     integer :: ierror
     integer :: i, me, np
     integer, dimension(2) :: ix, iy, ref
-    type(MPI_Op) :: o
+    !type(MPI_Op) :: o
 
     call MPI_Init(ierror)
 
