@@ -16,7 +16,7 @@ make -j
 ctest
 ```
 
-I need to iron some details to make sure I pickup the MPI vendor name to pass the correct flags. 
+If you have trouble picking up the MPI vendor you can simply pass the flag `cmake -DMPI_VENDOR=XYZ`. For now, based on Jeff's Makefiles, the spellings needed for the compiler flags are `-DMPI_VENDOR=MPICH` and `-DMPI_VENDOR=OPEN_MPI`
 
 ## Design limitations
 
