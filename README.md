@@ -6,7 +6,7 @@ The name cames from the Finnish word, vapaa, which means "free" in the sense of 
 
 ## Building 
 
-Much to the hate of Jeff, I have added a CMake build system. Simply:
+Much to the hate of Jeff, I have added a CMake build system. For any CMake related questions please bother Jorge (jorge.galvezvallejo@anu.edu.au). Simply:
 
 ```
 mkdir build 
