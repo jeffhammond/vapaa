@@ -26,7 +26,7 @@ set(CMAKE_C_EXTENSIONS OFF)  # Optionally enforce standard compliance
 set(CMAKE_Fortran_STANDARD 2018)
 set(CMAKE_Fortran_STANDARD_REQUIRED ON)
 
-find_package(MPI)
+find_package(MPI REQUIRED)
 # Set the source directory path
 set(SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/source")
 
@@ -37,10 +37,31 @@ set(vapa_lib vapa)
 
 add_library(${vapa_lib} STATIC)
 
+if(DEFINED MPI_VENDOR)
+  set(FLAG_MPI ${MPI_VENDOR})
+  message(STATUS "MPI Vendor explicitly set to: ${MPI_VENDOR}")
+else()
+  if(MPI_Fortran_COMPILER MATCHES "openmpi|ompi")
+    set(FLAG_MPI -DOPEN_MPI)
+  elseif(MPI_Fortran_COMPILER MATCHES "mpich")
+    set(FLAG_MPI -DMPICH)
+  elseif(MPI_Fortran_COMPILER MATCHES "intel")
+    set(FLAG_MPI -DMPICH)
+  elseif(MPI_Fortran_COMPILER MATCHES "cray")
+    set(FLAG_MPI -DMPICH)
+  else()
+    set(FLAG_MPI "UnknownMPI")
+  endif()
+  message(STATUS "Automatically detected MPI Vendor: ${FLAG_MPI}")
+endif()
+
+# Output the final FLAG_MPI value
+message(STATUS "Final MPI Vendor Flag: ${FLAG_MPI}")
+
 #add_library(${math_lib} STATIC)
 target_compile_options(${vapa_lib} PRIVATE -Wall -Wextra -fPIE) 
 #target_compile_definitions(${vapa_lib} PRIVATE -DHAVE_CFI -DOPEN_MPI)
-target_compile_definitions(${vapa_lib} PRIVATE -DHAVE_CFI -DMPICH)
+target_compile_definitions(${vapa_lib} PRIVATE -DHAVE_CFI ${FLAG_MPI})
 target_link_libraries(${vapa_lib} PRIVATE MPI::MPI_Fortran MPI::MPI_C)
 
 # Set the library output and module directories
