@@ -39,7 +39,8 @@ add_library(${vapa_lib} STATIC)
 
 #add_library(${math_lib} STATIC)
 target_compile_options(${vapa_lib} PRIVATE -Wall -Wextra -fPIE) 
-target_compile_definitions(${vapa_lib} PRIVATE -DHAVE_CFI -DOPEN_MPI)
+#target_compile_definitions(${vapa_lib} PRIVATE -DHAVE_CFI -DOPEN_MPI)
+target_compile_definitions(${vapa_lib} PRIVATE -DHAVE_CFI -DMPICH)
 target_link_libraries(${vapa_lib} PRIVATE MPI::MPI_Fortran MPI::MPI_C)
 
 # Set the library output and module directories
