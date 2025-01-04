@@ -63,6 +63,7 @@ program main
 
     if (me.eq.0) then
         print*,'MPI_Info stuff is okay'
+        print *, 'Test passed'
     end if
 
     call MPI_Finalize()

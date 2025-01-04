@@ -65,6 +65,7 @@ program main
         else
             if (me.eq.0) then
                 print*,'MPI_Allreduce with ',opn(i),' is okay'
+        print *, 'Test passed'
             end if
         end if
     end do

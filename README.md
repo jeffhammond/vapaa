@@ -4,6 +4,20 @@ Implementing MPI Fortran 2018 support using only the MPI C API, mostly.  The goa
 
 The name cames from the Finnish word, vapaa, which means "free" in the sense of "free-range chickens" or "Dobby is a free elf".
 
+## Building 
+
+Much to the hate of Jeff, I have added a CMake build system. For any CMake related questions please bother Jorge (jorge.galvezvallejo@anu.edu.au). Simply:
+
+```
+mkdir build 
+cd build
+cmake ../ 
+make -j 
+ctest
+```
+
+If you have trouble picking up the MPI vendor you can simply pass the flag `cmake -DMPI_VENDOR=XYZ`. For now, based on Jeff's Makefiles, the spellings needed for the compiler flags are `-DMPI_VENDOR=MPICH` and `-DMPI_VENDOR=OPEN_MPI`
+
 ## Design limitations
 
 1. The Fortran MPI profiling interface is not supported.  All Fortran MPI procedures call their C MPI counterparts, so all profiling information will be obtained as if the application calls MPI from C directly.

@@ -52,6 +52,8 @@ program main
 
     if(me.eq.0) print*,'EVERYTHING IS OKAY'
 
+        if(me.eq.0) print *, 'Test passed'
+
     call MPI_Finalize(ierror)
 
 end program main

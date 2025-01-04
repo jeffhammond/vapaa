@@ -39,7 +39,7 @@ program main
     external :: f
 #endif
     integer :: ierror
-    integer :: me, np, ref
+    integer :: me, np, ref, me_2
     integer, parameter :: b = 10
     integer :: ix(b), iy(b)
     type(MPI_Op) :: op
@@ -67,6 +67,7 @@ program main
     iy = -1
     call MPI_Allreduce(ix, iy, b, MPI_INTEGER, MPI_SUM, MPI_COMM_WORLD)
     if (any(iy.ne.ref)) then
+    me_2 = 1
         print*,'an error has occurred in MPI_INTEGER+MPI_SUM'
         print*,iy
     endif
@@ -76,6 +77,7 @@ program main
     iy = -1
     call MPI_Allreduce(ix, iy, b, MPI_INTEGER, op, MPI_COMM_WORLD, ierror)
     if ((ierror.ne.MPI_ERR_OP)) then
+    me_2 = 1
         print*,'MPI_INTEGER+op did not fail as expected'
         print*,'ierror=',ierror
     endif
@@ -85,6 +87,7 @@ program main
     iy = -1
     call MPI_Allreduce(ix, iy, b, dt, op, MPI_COMM_WORLD)
     if (any(iy.ne.ref)) then
+    me_2 = 1
         print*,'an error has occurred in dt+op'
         print*,iy
     endif
@@ -96,5 +99,6 @@ program main
     if(me.eq.0) print*,'MPI_Allreduce with user-def op is okay'
 
     call MPI_Finalize()
+    if(me_2.eq.0) print *, 'Test passed'
 
 end program main

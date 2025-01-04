@@ -36,3 +36,5 @@ make.inc
 *.exe
 *.out
 *.app
+
+build/*

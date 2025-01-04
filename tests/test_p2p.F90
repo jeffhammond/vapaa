@@ -127,6 +127,7 @@ program main
     deallocate( vr , x )
 
     if(me.eq.0) print*,'EVERYTHING IS OKAY'
+    if(me.eq.0) print *, 'Test passed'
 
     !print*,'LOC:',LOC(r),LOC(r%MPI_VAL)
 

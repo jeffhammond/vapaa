@@ -22,4 +22,5 @@ program main
     print*,d.eq.MPI_DATATYPE_NULL,d==MPI_DATATYPE_NULL
     print*,d.ne.MPI_DATATYPE_NULL,d/=MPI_DATATYPE_NULL
     call MPI_Finalize(ierror)
+        print *, 'Test passed'
 end program main
