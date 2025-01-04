@@ -30,5 +30,6 @@ program main
     call MPI_Type_free(v)
 
     call MPI_Finalize()
+        print *, 'Test passed'
 
 end program main

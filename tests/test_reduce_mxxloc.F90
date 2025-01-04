@@ -38,6 +38,7 @@ program main
     else
         if (me.eq.0) then
             print*,'MPI_Allreduce with MPI_MINLOC is okay'
+        print *, 'Test passed'
         end if
     end if
 

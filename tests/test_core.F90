@@ -47,5 +47,6 @@ program main
     !call MPI_Finalized(flags(3,2))
 
     if (me.eq.0) print*,'init=',flags(:,1)!,' final=',flags(:,2)
+        print *, 'Test passed'
 
 end program main

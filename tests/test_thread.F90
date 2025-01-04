@@ -28,5 +28,6 @@ program main
     endif
 
     call MPI_Finalize()
+        print *, 'Test passed'
 
 end program main

@@ -52,7 +52,7 @@ set_target_properties(
                          Fortran_MODULE_DIRECTORY "${CMAKE_BINARY_DIR}/modules")
 
 add_subdirectory(source)
-#add_subdirectory(test)
+add_subdirectory(tests)
 #add_executable(${debug_exec_name} ${PROJECT_SOURCE_DIR}/app/main.f90)
 # Set the module directory for the executable
 #target_include_directories(${debug_exec_name}

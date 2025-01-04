@@ -75,6 +75,7 @@ program main
 
     if (me.eq.0) then
         print*,'non-contiguous matrix support is okay'
+        print *, 'Test passed'
     end if
 
     call MPI_Finalize()

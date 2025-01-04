@@ -57,5 +57,6 @@ program main
     end block
 
     call MPI_Finalize(ierror)
+        print *, 'Test passed'
 
 end program main

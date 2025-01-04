@@ -65,6 +65,7 @@ program main
 #endif
     external :: uop08
     integer :: ierr
+        print *, 'Test passed'
     !type(MPI_Op) :: sumop, sumop08
     !call MPI_Op_create( uop, .true., sumop, ierr )
     !call MPI_Op_create( uop08, .true., sumop08, ierr )

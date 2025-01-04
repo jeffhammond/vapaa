@@ -26,6 +26,7 @@ program main
 
     if (me.eq.0) then
         print*,'file errors fail as expected'
+        print *, 'Test passed'
     endif
 
     call MPI_Finalize(ierror)
