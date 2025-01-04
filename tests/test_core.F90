@@ -7,6 +7,7 @@ program main
     character(len=MPI_MAX_LIBRARY_VERSION_STRING) :: lib
     integer :: liblen
     logical :: flags(3,2)
+    integer :: error_count  = 0
     double precision :: t0,t1
 
     flags = .false.
@@ -15,6 +16,7 @@ program main
     !call MPI_Finalized(flags(1,2))
 
     call MPI_Init(ierror)
+    if(ierror.ne.0) error_count = error_count + 1
 
     t0 = MPI_Wtime()
 
@@ -42,11 +44,12 @@ program main
     print*,'time,tick=',t1-t0,MPI_Wtick()
 
     call MPI_Finalize(ierror)
+    if(ierror.ne.0) error_count = error_count + 1
 
     call MPI_Initialized(flags(3,1))
     !call MPI_Finalized(flags(3,2))
 
     if (me.eq.0) print*,'init=',flags(:,1)!,' final=',flags(:,2)
-        print *, 'Test passed'
+    if(error_count.eq.0)    print *, 'Test passed'
 
 end program main

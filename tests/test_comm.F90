@@ -6,9 +6,11 @@ program main
     integer :: ierror
     integer :: me, np
     integer :: i,res
+    integer :: error_count = 0
     type(MPI_Request) :: r
 
     call MPI_Init(ierror)
+    if(ierror.ne.0) error_count = error_count + 1
 
     call MPI_Comm_rank(MPI_COMM_WORLD,me)
     call MPI_Comm_size(MPI_COMM_WORLD,np)
@@ -43,6 +45,7 @@ program main
         call MPI_Dims_create(np, 2, dims)
         if (me.eq.0) print*,'dims=',dims
         call MPI_Cart_create(MPI_COMM_WORLD, 2, dims, periods, .true., cart, ierror)
+        if(ierror.ne.0) error_count = error_count + 1
         call MPI_Barrier(cart)
         call MPI_Comm_free(cart)
     end block
@@ -55,8 +58,9 @@ program main
         print*,'I am ',xme,' of ',xnp,' of this node'
         call MPI_Comm_free(node)
     end block
-
     call MPI_Finalize(ierror)
-        print *, 'Test passed'
+
+    if(ierror.ne.0) error_count = error_count + 1
+    if(error_count.eq.0)    print *, 'Test passed'
 
 end program main
