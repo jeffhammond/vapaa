@@ -9,7 +9,7 @@ cmake_policy(SET CMP0054 NEW)
 cmake_policy(SET CMP0048 NEW)
 
 project(
-  pic
+  vapaa
   VERSION 0.0.0
   LANGUAGES Fortran C)
 set(project_name vapaa)
