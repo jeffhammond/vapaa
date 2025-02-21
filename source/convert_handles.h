@@ -353,4 +353,15 @@ static int C_MPI_TYPE_C2F(MPI_Datatype type_c)
 
 #undef DT_ELIF
 
+MAYBE_UNUSED
+static int C_MPI_REQUEST_C2F(MPI_Request request_c)
+{
+    if (request_c == MPI_REQUEST_NULL) {
+        return VAPAA_MPI_REQUEST_NULL;
+    }
+    else {
+        return MPI_Request_c2f(request_c);
+    } 
+}
+
 #endif // CONVERT_HANDLES_H
