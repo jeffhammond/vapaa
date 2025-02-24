@@ -5,26 +5,38 @@
 #include "convert_constants.h"
 #include "cfi_util.h"
 #include "debug.h"
+#include "vapaa_constants.h"
 
-#if 0
 static int C_MPI_TRANSLATE_WIN_ASSERT(int f)
 {
     // all of the VAPAA constants are powers of two, to ensure bit logic works
     int c = 0;
-    if (f & VAPAA_MPI_NOCHECK  ) c |= MPI_MODE_NOCHECK;
-    if (f & VAPAA_MPI_NOSTORE  ) c |= MPI_MODE_NOSTORE;
-    if (f & VAPAA_MPI_NOPUT    ) c |= MPI_MODE_NOPUT;
-    if (f & VAPAA_MPI_NOPRECEDE) c |= MPI_MODE_NOPRECEDE;
-    if (f & VAPAA_MPI_NOSUCCEED) c |= MPI_MODE_NOSUCCEED;
+    if (f & VAPAA_MPI_MODE_NOCHECK  ) c |= MPI_MODE_NOCHECK;
+    if (f & VAPAA_MPI_MODE_NOSTORE  ) c |= MPI_MODE_NOSTORE;
+    if (f & VAPAA_MPI_MODE_NOPUT    ) c |= MPI_MODE_NOPUT;
+    if (f & VAPAA_MPI_MODE_NOPRECEDE) c |= MPI_MODE_NOPRECEDE;
+    if (f & VAPAA_MPI_MODE_NOSUCCEED) c |= MPI_MODE_NOSUCCEED;
     return c;
 }
-#endif
+
+static int C_MPI_TRANSLATE_LOCK_TYPE(int f)
+{
+    if (f == VAPAA_MPI_LOCK_SHARED) {
+        return MPI_LOCK_SHARED;
+    } else if (f == VAPAA_MPI_LOCK_EXCLUSIVE) {
+        return MPI_LOCK_EXCLUSIVE;
+    } else {
+        fprintf(stderr,"invalid lock type (%d)\n", f);
+        MPI_Abort(MPI_COMM_SELF,f);
+        return -1;
+    } 
+}
 
 void C_MPI_Win_fence(int assert, int win, int *ierror)
 {
     MPI_Win c_win = C_MPI_WIN_F2C(win);
     
-    *ierror = MPI_Win_fence(assert, c_win);
+    *ierror = MPI_Win_fence(C_MPI_TRANSLATE_WIN_ASSERT(assert), c_win);
     
     C_MPI_RC_FIX(*ierror);
 }
@@ -34,7 +46,7 @@ void C_MPI_Win_post(int group, int assert, int win, int *ierror)
     MPI_Group c_group = C_MPI_GROUP_F2C(group);
     MPI_Win c_win = C_MPI_WIN_F2C(win);
     
-    *ierror = MPI_Win_post(c_group, assert, c_win);
+    *ierror = MPI_Win_post(c_group, C_MPI_TRANSLATE_WIN_ASSERT(assert), c_win);
     
     C_MPI_RC_FIX(*ierror);
 }
@@ -44,7 +56,7 @@ void C_MPI_Win_start(int group, int assert, int win, int *ierror)
     MPI_Group c_group = C_MPI_GROUP_F2C(group);
     MPI_Win c_win = C_MPI_WIN_F2C(win);
     
-    *ierror = MPI_Win_start(c_group, assert, c_win);
+    *ierror = MPI_Win_start(c_group, C_MPI_TRANSLATE_WIN_ASSERT(assert), c_win);
     
     C_MPI_RC_FIX(*ierror);
 }
@@ -80,7 +92,7 @@ void C_MPI_Win_lock(int lock_type, int rank, int assert, int win, int *ierror)
 {
     MPI_Win c_win = C_MPI_WIN_F2C(win);
     
-    *ierror = MPI_Win_lock(lock_type, rank, assert, c_win);
+    *ierror = MPI_Win_lock(C_MPI_TRANSLATE_LOCK_TYPE(lock_type), rank, C_MPI_TRANSLATE_WIN_ASSERT(assert), c_win);
     
     C_MPI_RC_FIX(*ierror);
 }
