@@ -12,7 +12,7 @@
 
 // STANDARD STUFF
 
-void C_MPI_Compare_and_swap(void *origin_addr, void *compare_addr, void *result_addr,
+void C_MPI_Compare_and_swap(const void *origin_addr, const void *compare_addr, void *result_addr,
                            int datatype, int target_rank, MPI_Aint target_disp,
                            int win, int *ierror)
 {
@@ -26,9 +26,9 @@ void C_MPI_Compare_and_swap(void *origin_addr, void *compare_addr, void *result_
 }
 
 #ifdef HAVE_CFI
-void CFI_MPI_Compare_and_swap(CFI_cdesc_t *origin_desc, CFI_cdesc_t *compare_desc,
-                             CFI_cdesc_t *result_desc, int datatype, int target_rank,
-                             MPI_Aint target_disp, int win, int *ierror)
+void CFI_MPI_Compare_and_swap(const CFI_cdesc_t *origin_desc, const CFI_cdesc_t *compare_desc,
+                              CFI_cdesc_t *result_desc, int datatype, int target_rank,
+                              MPI_Aint target_disp, int win, int *ierror)
 {
     MPI_Datatype c_datatype = C_MPI_TYPE_F2C(datatype);
     MPI_Win c_win = C_MPI_WIN_F2C(win);
@@ -41,7 +41,7 @@ void CFI_MPI_Compare_and_swap(CFI_cdesc_t *origin_desc, CFI_cdesc_t *compare_des
 }
 #endif
 
-void C_MPI_Fetch_and_op(void *origin_addr, void *result_addr, int datatype,
+void C_MPI_Fetch_and_op(const void *origin_addr, void *result_addr, int datatype,
                         int target_rank, MPI_Aint target_disp, int op,
                         int win, int *ierror)
 {
@@ -56,7 +56,7 @@ void C_MPI_Fetch_and_op(void *origin_addr, void *result_addr, int datatype,
 }
 
 #ifdef HAVE_CFI
-void CFI_MPI_Fetch_and_op(CFI_cdesc_t *origin_desc, CFI_cdesc_t *result_desc,
+void CFI_MPI_Fetch_and_op(const CFI_cdesc_t *origin_desc, CFI_cdesc_t *result_desc,
                           int datatype, int target_rank, MPI_Aint target_disp,
                           int op, int win, int *ierror)
 {
@@ -71,7 +71,7 @@ void CFI_MPI_Fetch_and_op(CFI_cdesc_t *origin_desc, CFI_cdesc_t *result_desc,
 }
 #endif
 
-void C_MPI_Put(void *origin_addr, int origin_count, int origin_datatype,
+void C_MPI_Put(const void *origin_addr, int origin_count, int origin_datatype,
                int target_rank, MPI_Aint target_disp, int target_count,
                int target_datatype, int win, int *ierror)
 {
@@ -87,7 +87,7 @@ void C_MPI_Put(void *origin_addr, int origin_count, int origin_datatype,
 }
 
 #ifdef HAVE_CFI
-void CFI_MPI_Put(CFI_cdesc_t *desc, int origin_count, int origin_datatype,
+void CFI_MPI_Put(const CFI_cdesc_t *desc, int origin_count, int origin_datatype,
                  int target_rank, MPI_Aint target_disp, int target_count,
                  int target_datatype, int win, int *ierror)
 {
@@ -161,7 +161,7 @@ void CFI_MPI_Get(CFI_cdesc_t *desc, int origin_count, int origin_datatype,
 }
 #endif
 
-void C_MPI_Accumulate(void *origin_addr, int origin_count, int origin_datatype,
+void C_MPI_Accumulate(const void *origin_addr, int origin_count, int origin_datatype,
                       int target_rank, MPI_Aint target_disp, int target_count,
                       int target_datatype, int op, int win, int *ierror)
 {
@@ -178,7 +178,7 @@ void C_MPI_Accumulate(void *origin_addr, int origin_count, int origin_datatype,
 }
 
 #ifdef HAVE_CFI
-void CFI_MPI_Accumulate(CFI_cdesc_t *desc, int origin_count, int origin_datatype,
+void CFI_MPI_Accumulate(const CFI_cdesc_t *desc, int origin_count, int origin_datatype,
                         int target_rank, MPI_Aint target_disp, int target_count,
                         int target_datatype, int op, int win, int *ierror)
 {
@@ -209,7 +209,7 @@ void CFI_MPI_Accumulate(CFI_cdesc_t *desc, int origin_count, int origin_datatype
 #endif
 
 
-void C_MPI_Rput(void *origin_addr, int origin_count, int origin_datatype,
+void C_MPI_Rput(const void *origin_addr, int origin_count, int origin_datatype,
                 int target_rank, MPI_Aint target_disp, int target_count,
                 int target_datatype, int win, int *request, int *ierror)
 {
@@ -229,7 +229,7 @@ void C_MPI_Rput(void *origin_addr, int origin_count, int origin_datatype,
 }
 
 #ifdef HAVE_CFI
-void CFI_MPI_Rput(CFI_cdesc_t *desc, int origin_count, int origin_datatype,
+void CFI_MPI_Rput(const CFI_cdesc_t *desc, int origin_count, int origin_datatype,
                   int target_rank, MPI_Aint target_disp, int target_count,
                   int target_datatype, int win, int *request, int *ierror)
 {
@@ -317,7 +317,7 @@ void CFI_MPI_Rget(CFI_cdesc_t *desc, int origin_count, int origin_datatype,
 }
 #endif
 
-void C_MPI_Raccumulate(void *origin_addr, int origin_count, int origin_datatype,
+void C_MPI_Raccumulate(const void *origin_addr, int origin_count, int origin_datatype,
                        int target_rank, MPI_Aint target_disp, int target_count,
                        int target_datatype, int op, int win, int *request, int *ierror)
 {
@@ -338,7 +338,7 @@ void C_MPI_Raccumulate(void *origin_addr, int origin_count, int origin_datatype,
 }
 
 #ifdef HAVE_CFI
-void CFI_MPI_Raccumulate(CFI_cdesc_t *desc, int origin_count, int origin_datatype,
+void CFI_MPI_Raccumulate(const CFI_cdesc_t *desc, int origin_count, int origin_datatype,
                          int target_rank, MPI_Aint target_disp, int target_count,
                          int target_datatype, int op, int win, int *request, int *ierror)
 {
@@ -373,7 +373,7 @@ void CFI_MPI_Raccumulate(CFI_cdesc_t *desc, int origin_count, int origin_datatyp
 }
 #endif
 
-void C_MPI_Rget_accumulate(void *origin_addr, int origin_count, int origin_datatype,
+void C_MPI_Rget_accumulate(const void *origin_addr, int origin_count, int origin_datatype,
                           void *result_addr, int result_count, int result_datatype,
                           int target_rank, MPI_Aint target_disp, int target_count,
                           int target_datatype, int op, int win, int *request, int *ierror)
@@ -397,7 +397,7 @@ void C_MPI_Rget_accumulate(void *origin_addr, int origin_count, int origin_datat
 }
 
 #ifdef HAVE_CFI
-void CFI_MPI_Rget_accumulate(CFI_cdesc_t *origin_desc, int origin_count, int origin_datatype,
+void CFI_MPI_Rget_accumulate(const CFI_cdesc_t *origin_desc, int origin_count, int origin_datatype,
                             CFI_cdesc_t *result_desc, int result_count, int result_datatype,
                             int target_rank, MPI_Aint target_disp, int target_count,
                             int target_datatype, int op, int win, int *request, int *ierror)
