@@ -28,3 +28,38 @@ C_MPI_HANDLE_GET_NAME(Datatype,TYPE,Type)
 C_MPI_HANDLE_SET_NAME(Datatype,TYPE,Type)
 C_MPI_HANDLE_GET_NAME(Win,WIN,Win)
 C_MPI_HANDLE_SET_NAME(Win,WIN,Win)
+
+static int C_MPI_TRANSLATE_WIN_ATTR(int f)
+{
+    if (f == VAPAA_MPI_WIN_BASE) {
+        return MPI_WIN_BASE;
+    } else if (f == VAPAA_MPI_WIN_SIZE) {
+        return MPI_WIN_SIZE;
+    } else if (f == VAPAA_MPI_WIN_DISP_UNIT) {
+        return MPI_WIN_DISP_UNIT;
+    } else if (f == VAPAA_MPI_WIN_CREATE_FLAVOR) {
+        return MPI_WIN_CREATE_FLAVOR;
+    } else if (f == VAPAA_MPI_WIN_MODEL) {
+        return MPI_WIN_MODEL;
+    } else {
+        return f;
+    }
+}
+
+void C_MPI_Win_set_attr(int win, int win_keyval, void *attribute_val, int *ierror)
+{
+    MPI_Win c_win = C_MPI_WIN_F2C(win);
+
+    *ierror = MPI_Win_set_attr(c_win, C_MPI_TRANSLATE_WIN_ATTR(win_keyval), attribute_val);
+
+    C_MPI_RC_FIX(*ierror);
+}
+
+void C_MPI_Win_get_attr(int win, int win_keyval, void *attribute_val, int *ierror)
+{
+    MPI_Win c_win = C_MPI_WIN_F2C(win);
+
+    *ierror = MPI_Win_get_attr(c_win, C_MPI_TRANSLATE_WIN_ATTR(win_keyval), attribute_val);
+
+    C_MPI_RC_FIX(*ierror);
+}
