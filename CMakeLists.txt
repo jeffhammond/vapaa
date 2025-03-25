@@ -54,7 +54,7 @@ message(STATUS "Final MPI Vendor Flag: ${FLAG_MPI}")
 
 target_compile_options(${vapa_lib} PRIVATE -Wall -Wextra -fPIE) 
 target_compile_definitions(${vapa_lib} PRIVATE -DHAVE_CFI ${FLAG_MPI})
-target_link_libraries(${vapa_lib} PRIVATE MPI::MPI_Fortran MPI::MPI_C)
+target_link_libraries(${vapa_lib} PRIVATE MPI::MPI_C)
 
 # Set the library output and module directories
 set_target_properties(
