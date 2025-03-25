@@ -24,7 +24,7 @@ set(CMAKE_C_EXTENSIONS OFF)
 set(CMAKE_Fortran_STANDARD 2018)
 set(CMAKE_Fortran_STANDARD_REQUIRED ON)
 
-find_package(MPI REQUIRED)
+find_package(MPI REQUIRED COMPONENTS C)
 set(SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/source")
 
 # Create the static library
@@ -54,7 +54,7 @@ message(STATUS "Final MPI Vendor Flag: ${FLAG_MPI}")
 
 target_compile_options(${vapa_lib} PRIVATE -Wall -Wextra -fPIE) 
 target_compile_definitions(${vapa_lib} PRIVATE -DHAVE_CFI ${FLAG_MPI})
-target_link_libraries(${vapa_lib} PRIVATE MPI::MPI_Fortran MPI::MPI_C)
+target_link_libraries(${vapa_lib} PRIVATE MPI::MPI_C)
 
 # Set the library output and module directories
 set_target_properties(
