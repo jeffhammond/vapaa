@@ -107,6 +107,8 @@ static void VAPAA_CFI_GET_TYPE_NAME(CFI_type_t type, char * name)
     else if (type==CFI_type_int16_t)              snprintf(name,32,"%s", "int16_t");
     else if (type==CFI_type_int32_t)              snprintf(name,32,"%s", "int32_t");
     else if (type==CFI_type_int64_t)              snprintf(name,32,"%s", "int64_t");
+#if 0
+    // not supported by NAGFOR and probably unnecessary anyways
     else if (type==CFI_type_int_least8_t)         snprintf(name,32,"%s", "int_least8_t");
     else if (type==CFI_type_int_least16_t)        snprintf(name,32,"%s", "int_least16_t");
     else if (type==CFI_type_int_least32_t)        snprintf(name,32,"%s", "int_least32_t");
@@ -115,6 +117,7 @@ static void VAPAA_CFI_GET_TYPE_NAME(CFI_type_t type, char * name)
     else if (type==CFI_type_int_fast16_t)         snprintf(name,32,"%s", "int_fast16_t");
     else if (type==CFI_type_int_fast32_t)         snprintf(name,32,"%s", "int_fast32_t");
     else if (type==CFI_type_int_fast64_t)         snprintf(name,32,"%s", "int_fast64_t");
+#endif
     else if (type==CFI_type_intmax_t)             snprintf(name,32,"%s", "intmax_t");
     else if (type==CFI_type_intptr_t)             snprintf(name,32,"%s", "intptr_t");
     else if (type==CFI_type_ptrdiff_t)            snprintf(name,32,"%s", "ptrdiff_t");
