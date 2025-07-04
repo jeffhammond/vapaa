@@ -1,4 +1,4 @@
+file(GLOB SRC_C CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/*.c")
+file(GLOB SRC_FC CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/*.F90")
 
-file(GLOB C_files *.c)
-file(GLOB FC_files *.F90)
-target_sources(${vapa_lib} PRIVATE ${C_files} ${FC_files})
+target_sources(${vapa_lib} PRIVATE ${SRC_C} ${SRC_FC})
