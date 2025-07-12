@@ -68,7 +68,7 @@ message(STATUS "Final MPI Vendor Flag: ${FLAG_MPI}")
 
 set(WARNFLAGS "-Wall -Wextra -fPIE") 
 if(CMAKE_Fortran_COMPILER_ID MATCHES "GNU")
-    set(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} ${WARNFLAGS} -g -std=f2018")
+    set(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -g -std=f2018")
 elseif(CMAKE_Fortran_COMPILER_ID MATCHES "LLVMFlang")
     set(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS}  -g -std=f2018")
 elseif(CMAKE_Fortran_COMPILER_ID MATCHES "NAG")
