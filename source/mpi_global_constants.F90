@@ -66,6 +66,9 @@ module mpi_global_constants
     integer, parameter :: MPI_IO              = VAPAA_MPI_IO
     integer, parameter :: MPI_HOST            = VAPAA_MPI_HOST
     integer, parameter :: MPI_WTIME_IS_GLOBAL = VAPAA_MPI_WTIME_IS_GLOBAL
+    integer, parameter :: MPI_APPNUM          = VAPAA_MPI_APPNUM
+    integer, parameter :: MPI_LASTUSEDCODE    = VAPAA_MPI_LASTUSEDCODE
+    integer, parameter :: MPI_UNIVERSE_SIZE   = VAPAA_MPI_UNIVERSE_SIZE
 
     ! 2.5.4 Named Constants
     ! The constants that are required to be compile-time constants
