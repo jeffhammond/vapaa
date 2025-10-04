@@ -11,16 +11,21 @@
 
 struct F_MPI_Status
 {
-        // MPICH
+#if defined(MPICH)
         int count_lo;
         int count_hi_and_cancelled;
+#endif
         // public / standard
         int MPI_SOURCE;
         int MPI_TAG;
         int MPI_ERROR;
-        // Open-MPI
+#if defined(OPEN_MPI)
         int cancelled;
         size_t ucount;
+#endif
+#if defined(MPI_5_ABI)
+        int MPI_internal[5];
+#endif
 };
 
 MAYBE_UNUSED
@@ -41,6 +46,13 @@ static void C_MPI_STATUS_F2C(const struct F_MPI_Status * f, MPI_Status * c)
     c->_cancelled = f->cancelled;
     c->_ucount    = f->ucount;
 #endif
+#if defined(MPI_5_ABI)
+    c->MPI_internal[0] = f->MPI_internal[0];
+    c->MPI_internal[1] = f->MPI_internal[1];
+    c->MPI_internal[2] = f->MPI_internal[2];
+    c->MPI_internal[3] = f->MPI_internal[3];
+    c->MPI_internal[4] = f->MPI_internal[4];
+#endif
 }
 
 MAYBE_UNUSED
@@ -60,6 +72,13 @@ static void C_MPI_STATUS_C2F(const MPI_Status * c, struct F_MPI_Status * f)
 #if defined(OPEN_MPI)
     f->cancelled = c->_cancelled;
     f->ucount    = c->_ucount;
+#endif
+#if defined(MPI_5_ABI)
+    f->MPI_internal[0] = f->MPI_internal[0];
+    f->MPI_internal[1] = f->MPI_internal[1];
+    f->MPI_internal[2] = f->MPI_internal[2];
+    f->MPI_internal[3] = f->MPI_internal[3];
+    f->MPI_internal[4] = f->MPI_internal[4];
 #endif
 }
 
