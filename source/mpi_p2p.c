@@ -25,12 +25,17 @@ void C_MPI_Probe(int source, int tag, int comm_f, struct F_MPI_Status * status_f
     C_MPI_RC_FIX(*ierror);
 }
 
-void C_MPI_Mprobe(int source, int tag, int comm_f, int * message_f, MPI_Status * status, int * ierror)
+void C_MPI_Mprobe(int source, int tag, int comm_f, int * message_f, struct F_MPI_Status * status_f, int * ierror)
 {
     MPI_Message message;
     MPI_Comm comm = C_MPI_COMM_F2C(comm_f);
+    const bool need_status = C_IS_MPI_STATUS_IGNORE(status_f);
+    MPI_Status status;
     *ierror = MPI_Mprobe(C_MPI_PROC_NULL_DETECTOR(source), tag, comm, &message,
-                         C_IS_MPI_STATUS_IGNORE(status) ? MPI_STATUS_IGNORE : status);
+                         need_status ? &status : MPI_STATUS_IGNORE);
+    if (need_status) {
+        C_MPI_STATUS_C2F(&status, status_f);
+    }
     *message_f = MPI_Message_c2f(message);
     C_MPI_RC_FIX(*ierror);
 }
