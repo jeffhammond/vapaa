@@ -1,7 +1,7 @@
 #!/bin/bash
 
 #MPIRUN=$MPI_ROOT/bin/mpirun
-MPIRUN=/opt/mpich/bin/mpirun
+MPIRUN=/opt/homebrew/Cellar/mpich/4.3.1/bin/mpirun
 
 for f in `ls -1 *.x` ; do
     echo "*************************************************************"
