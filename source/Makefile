@@ -202,7 +202,7 @@ mpi_status.o: mpi_status.c convert_handles.h convert_constants.h
 mpi_rma_f.o: mpi_rma_f.F90 mpi_rma_c.o mpi_handle_types.o mpi_global_constants.o
 	$(FC) $(FCFLAGS) -c $<
 
-mpi_rma_c.o: mpi_rma_c.F90 mpi_rma.o
+mpi_rma_c.o: mpi_rma_c.F90 mpi_rma.o mpi_global_constants.o
 	$(FC) $(FCFLAGS) -c $<
 
 mpi_rma.o: mpi_rma.c convert_handles.h convert_constants.h detect_sentinels.h
@@ -213,7 +213,7 @@ mpi_rma.o: mpi_rma.c convert_handles.h convert_constants.h detect_sentinels.h
 mpi_win_f.o: mpi_win_f.F90 mpi_win_c.o mpi_handle_types.o mpi_global_constants.o
 	$(FC) $(FCFLAGS) -c $<
 
-mpi_win_c.o: mpi_win_c.F90 mpi_win.o
+mpi_win_c.o: mpi_win_c.F90 mpi_win.o mpi_global_constants.o
 	$(FC) $(FCFLAGS) -c $<
 
 mpi_win.o: mpi_win.c convert_handles.h convert_constants.h

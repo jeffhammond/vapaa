@@ -353,4 +353,37 @@ static int C_MPI_TYPE_C2F(MPI_Datatype type_c)
 
 #undef DT_ELIF
 
+MAYBE_UNUSED
+static int C_MPI_REQUEST_C2F(MPI_Request request_c)
+{
+    if (request_c == MPI_REQUEST_NULL) {
+        return VAPAA_MPI_REQUEST_NULL;
+    }
+    else {
+        return MPI_Request_c2f(request_c);
+    } 
+}
+
+MAYBE_UNUSED
+static int C_MPI_GROUP_C2F(MPI_Group group_c)
+{
+    if (group_c == MPI_GROUP_NULL) {
+        return VAPAA_MPI_GROUP_NULL;
+    }
+    else {
+        return MPI_Group_c2f(group_c);
+    }
+}
+
+MAYBE_UNUSED
+static int C_MPI_WIN_C2F(MPI_Win win_c)
+{
+    if (win_c == MPI_WIN_NULL) {
+        return VAPAA_MPI_WIN_NULL;
+    }
+    else {
+        return MPI_Win_c2f(win_c);
+    }
+}
+
 #endif // CONVERT_HANDLES_H
