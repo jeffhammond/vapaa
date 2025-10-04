@@ -38,11 +38,11 @@ void C_MPI_Win_set_attr(int win, int win_keyval, void *attribute_val, int *ierro
     C_MPI_RC_FIX(*ierror);
 }
 
-void C_MPI_Win_get_attr(int win, int win_keyval, void *attribute_val, int *ierror)
+void C_MPI_Win_get_attr(int win, int win_keyval, void *attribute_val, int *flag, int *ierror)
 {
     MPI_Win c_win = C_MPI_WIN_F2C(win);
 
-    *ierror = MPI_Win_get_attr(c_win, C_MPI_TRANSLATE_WIN_ATTR(win_keyval), attribute_val);
+    *ierror = MPI_Win_get_attr(c_win, C_MPI_TRANSLATE_WIN_ATTR(win_keyval), attribute_val, flag);
 
     C_MPI_RC_FIX(*ierror);
 }
