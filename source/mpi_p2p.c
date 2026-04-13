@@ -121,6 +121,7 @@ void C_MPI_Testany(int count, int requests_f[], int * index_f, int * flag_f, MPI
     *flag_f  = flag;
 
     free(requests);
+    C_MPI_RC_FIX(*ierror);
 }
 
 void C_MPI_Wait(int * request_f, MPI_Status * status, int * ierror)
