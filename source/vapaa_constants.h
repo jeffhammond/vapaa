@@ -17,6 +17,7 @@
 #define VAPAA_MPI_DATATYPE_NULL     -11
 #define VAPAA_MPI_FILE_NULL         -12
 #define VAPAA_MPI_GROUP_NULL        -13
+#define VAPAA_MPI_GROUP_EMPTY      -130
 #define VAPAA_MPI_INFO_NULL         -14
 #define VAPAA_MPI_MESSAGE_NULL      -15
 #define VAPAA_MPI_MESSAGE_NO_PROC  -150

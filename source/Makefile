@@ -35,7 +35,6 @@ mpi_f08.o: mpi_f08.F90 \
 	   mpi_handle_types.o mpi_handle_operators.o \
 	   mpi_core_f.o mpi_comm_f.o mpi_coll_f.o mpi_datatype_f.o \
 	   mpi_file_f.o mpi_group_f.o mpi_info_f.o mpi_message_f.o \
-	   mpi_file_f.o mpi_group_f.o mpi_info_f.o mpi_message_f.o \
 	   mpi_p2p_f.o mpi_op_f.o mpi_request_f.o mpi_status_f.o \
 	   mpi_rma_f.o mpi_win_f.o mpi_attr_f.o mpi_error_f.o
 	$(FC) $(FCFLAGS) -c $<

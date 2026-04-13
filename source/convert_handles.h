@@ -182,9 +182,11 @@ static MPI_Group C_MPI_GROUP_F2C(int group_f)
 {
     if (group_f == VAPAA_MPI_GROUP_NULL) {
         return MPI_GROUP_NULL;
+    } else if (group_f == VAPAA_MPI_GROUP_EMPTY) {
+        return MPI_GROUP_EMPTY;
     } else {
         return MPI_Group_f2c(group_f);
-    } 
+    }
 }
 
 MAYBE_UNUSED
