@@ -148,7 +148,6 @@ static MPI_Datatype C_MPI_TYPE_F2C(int type_f)
         DT_CASE(MPI_UINT16_T                    )
         DT_CASE(MPI_UINT32_T                    )
         DT_CASE(MPI_UINT64_T                    )
-        DT_CASE(MPI_C_COMPLEX                   )
         DT_CASE(MPI_C_FLOAT_COMPLEX             )
         DT_CASE(MPI_C_DOUBLE_COMPLEX            )
         DT_CASE(MPI_C_LONG_DOUBLE_COMPLEX       )
@@ -182,9 +181,11 @@ static MPI_Group C_MPI_GROUP_F2C(int group_f)
 {
     if (group_f == VAPAA_MPI_GROUP_NULL) {
         return MPI_GROUP_NULL;
+    } else if (group_f == VAPAA_MPI_GROUP_EMPTY) {
+        return MPI_GROUP_EMPTY;
     } else {
         return MPI_Group_f2c(group_f);
-    } 
+    }
 }
 
 MAYBE_UNUSED
@@ -333,7 +334,6 @@ static int C_MPI_TYPE_C2F(MPI_Datatype type_c)
     DT_ELIF(MPI_UINT16_T                    )
     DT_ELIF(MPI_UINT32_T                    )
     DT_ELIF(MPI_UINT64_T                    )
-    DT_ELIF(MPI_C_COMPLEX                   )
     DT_ELIF(MPI_C_FLOAT_COMPLEX             )
     DT_ELIF(MPI_C_DOUBLE_COMPLEX            )
     DT_ELIF(MPI_C_LONG_DOUBLE_COMPLEX       )

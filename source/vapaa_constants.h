@@ -1,124 +1,145 @@
 #ifndef VAPAA_CONSTANTS_H
 #define VAPAA_CONSTANTS_H
 
-#define VAPAA_MPI_THREAD_SINGLE     0
-#define VAPAA_MPI_THREAD_FUNNELED   1
-#define VAPAA_MPI_THREAD_SERIALIZED 2
-#define VAPAA_MPI_THREAD_MULTIPLE   3
+#define VAPAA_MPI_THREAD_SINGLE        0
+#define VAPAA_MPI_THREAD_FUNNELED   1024
+#define VAPAA_MPI_THREAD_SERIALIZED 2048
+#define VAPAA_MPI_THREAD_MULTIPLE   4096
 
-#define VAPAA_MPI_IDENT     0
-#define VAPAA_MPI_CONGRUENT 1
-#define VAPAA_MPI_SIMILAR   2
-#define VAPAA_MPI_UNEQUAL   3
+#define VAPAA_MPI_IDENT     201
+#define VAPAA_MPI_CONGRUENT 202
+#define VAPAA_MPI_SIMILAR   203
+#define VAPAA_MPI_UNEQUAL   204
 
-#define VAPAA_MPI_COMM_WORLD      -1000
-#define VAPAA_MPI_COMM_SELF        -100
-#define VAPAA_MPI_COMM_NULL         -10
-#define VAPAA_MPI_DATATYPE_NULL     -11
-#define VAPAA_MPI_FILE_NULL         -12
-#define VAPAA_MPI_GROUP_NULL        -13
-#define VAPAA_MPI_INFO_NULL         -14
-#define VAPAA_MPI_MESSAGE_NULL      -15
-#define VAPAA_MPI_MESSAGE_NO_PROC  -150
-#define VAPAA_MPI_OP_NULL           -16
-#define VAPAA_MPI_REQUEST_NULL      -17
-#define VAPAA_MPI_WIN_NULL          -18
-#define VAPAA_MPI_PROC_NULL         -19
-#define VAPAA_MPI_ANY_SOURCE      -2000
-#define VAPAA_MPI_ANY_TAG         -2001
+#define VAPAA_MPI_COMM_NULL        256
+#define VAPAA_MPI_COMM_WORLD       257
+#define VAPAA_MPI_COMM_SELF        258
 
-#define VAPAA_MPI_ORDER_C       321
-#define VAPAA_MPI_ORDER_FORTRAN 123
+#define VAPAA_MPI_GROUP_NULL       264
+#define VAPAA_MPI_GROUP_EMPTY      265
 
-#define VAPAA_MPI_COMM_TYPE_SHARED      5300
-#define VAPAA_MPI_COMM_TYPE_HW_UNGUIDED 5400
-#define VAPAA_MPI_COMM_TYPE_HW_GUIDED   5500
+#define VAPAA_MPI_WIN_NULL         272
+
+#define VAPAA_MPI_FILE_NULL        280
+
+#define VAPAA_MPI_MESSAGE_NULL     296
+#define VAPAA_MPI_MESSAGE_NO_PROC  297
+
+#define VAPAA_MPI_INFO_NULL        304
+
+#define VAPAA_MPI_OP_NULL          32
+
+#define VAPAA_MPI_REQUEST_NULL     384
+
+#define VAPAA_MPI_DATATYPE_NULL    512
+
+#define VAPAA_MPI_ANY_SOURCE       (-1)
+#define VAPAA_MPI_ANY_TAG          (-2)
+#define VAPAA_MPI_PROC_NULL        (-3)
+
+#define VAPAA_MPI_UNDEFINED        (-32766)
+
+#define VAPAA_MPI_ORDER_C          12
+#define VAPAA_MPI_ORDER_FORTRAN    15
+
+#define VAPAA_MPI_COMM_TYPE_SHARED        221
+#define VAPAA_MPI_COMM_TYPE_HW_UNGUIDED   222
+#define VAPAA_MPI_COMM_TYPE_HW_GUIDED     223
 
 #define VAPAA_MPI_MAX_PROCESSOR_NAME          256
 #define VAPAA_MPI_MAX_LIBRARY_VERSION_STRING 8192
 #define VAPAA_MPI_MAX_ERROR_STRING            512
-#define VAPAA_MPI_MAX_DATAREP_STRING           64
-#define VAPAA_MPI_MAX_INFO_KEY                255
+#define VAPAA_MPI_MAX_DATAREP_STRING          128
+#define VAPAA_MPI_MAX_INFO_KEY                256
 #define VAPAA_MPI_MAX_INFO_VAL               1024
 #define VAPAA_MPI_MAX_OBJECT_NAME             128
 #define VAPAA_MPI_MAX_PORT_NAME              1024
 
-#define VAPAA_MPI_MAX           -40000
-#define VAPAA_MPI_MIN           -40001
-#define VAPAA_MPI_SUM           -40002
-#define VAPAA_MPI_PROD          -40003
-#define VAPAA_MPI_MAXLOC        -40004
-#define VAPAA_MPI_MINLOC        -40005
-#define VAPAA_MPI_BAND          -40006
-#define VAPAA_MPI_BOR           -40007
-#define VAPAA_MPI_BXOR          -40008
-#define VAPAA_MPI_LAND          -40009
-#define VAPAA_MPI_LOR           -40010
-#define VAPAA_MPI_LXOR          -40011
-#define VAPAA_MPI_REPLACE       -40012
-#define VAPAA_MPI_NO_OP         -40013
+#define VAPAA_MPI_SUM        33
+#define VAPAA_MPI_MIN        34
+#define VAPAA_MPI_MAX        35
+#define VAPAA_MPI_PROD       36
+#define VAPAA_MPI_BAND       40
+#define VAPAA_MPI_BOR        41
+#define VAPAA_MPI_BXOR       42
+#define VAPAA_MPI_LAND       48
+#define VAPAA_MPI_LOR        49
+#define VAPAA_MPI_LXOR       50
+#define VAPAA_MPI_MINLOC     56
+#define VAPAA_MPI_MAXLOC     57
+#define VAPAA_MPI_REPLACE    60
+#define VAPAA_MPI_NO_OP      61
 
-#define VAPAA_MPI_CHARACTER                 -10000
-#define VAPAA_MPI_LOGICAL                   -10001
-#define VAPAA_MPI_INTEGER                   -10002
-#define VAPAA_MPI_REAL                      -10003
-#define VAPAA_MPI_DOUBLE_PRECISION          -10004
-#define VAPAA_MPI_COMPLEX                   -10005
-#define VAPAA_MPI_DOUBLE_COMPLEX            -10006
-#define VAPAA_MPI_INTEGER1                  -10007
-#define VAPAA_MPI_INTEGER2                  -10008
-#define VAPAA_MPI_INTEGER4                  -10009
-#define VAPAA_MPI_INTEGER8                  -10010
-#define VAPAA_MPI_INTEGER16                 -10011
-#define VAPAA_MPI_REAL2                     -10012
-#define VAPAA_MPI_REAL4                     -10013
-#define VAPAA_MPI_REAL8                     -10014
-#define VAPAA_MPI_REAL16                    -10015
-#define VAPAA_MPI_COMPLEX4                  -10016
-#define VAPAA_MPI_COMPLEX8                  -10017
-#define VAPAA_MPI_COMPLEX16                 -10018
-#define VAPAA_MPI_COMPLEX32                 -10019
-#define VAPAA_MPI_AINT                      -20000
-#define VAPAA_MPI_COUNT                     -20001
-#define VAPAA_MPI_OFFSET                    -20002
-#define VAPAA_MPI_BYTE                      -30000
-#define VAPAA_MPI_CHAR                      -30001
-#define VAPAA_MPI_UNSIGNED_CHAR             -30002
-#define VAPAA_MPI_SIGNED_CHAR               -30003
-#define VAPAA_MPI_WCHAR                     -30004
-#define VAPAA_MPI_SHORT                     -30005
-#define VAPAA_MPI_UNSIGNED_SHORT            -30006
-#define VAPAA_MPI_INT                       -30007
-#define VAPAA_MPI_LONG                      -30008
-#define VAPAA_MPI_UNSIGNED                  -30009
-#define VAPAA_MPI_UNSIGNED_LONG             -30010
-#define VAPAA_MPI_LONG_LONG_INT             -30011
-#define VAPAA_MPI_UNSIGNED_LONG_LONG        -30012
-#define VAPAA_MPI_FLOAT                     -30013
-#define VAPAA_MPI_DOUBLE                    -30014
-#define VAPAA_MPI_LONG_DOUBLE               -30015
-#define VAPAA_MPI_C_BOOL                    -30016
-#define VAPAA_MPI_INT8_T                    -30017
-#define VAPAA_MPI_INT16_T                   -30018
-#define VAPAA_MPI_INT32_T                   -30019
-#define VAPAA_MPI_INT64_T                   -30020
-#define VAPAA_MPI_UINT8_T                   -30021
-#define VAPAA_MPI_UINT16_T                  -30022
-#define VAPAA_MPI_UINT32_T                  -30023
-#define VAPAA_MPI_UINT64_T                  -30024
-#define VAPAA_MPI_C_COMPLEX                 -30025
-#define VAPAA_MPI_C_FLOAT_COMPLEX           -30026
-#define VAPAA_MPI_C_DOUBLE_COMPLEX          -30027
-#define VAPAA_MPI_C_LONG_DOUBLE_COMPLEX     -30028
-#define VAPAA_MPI_FLOAT_INT                 -40000
-#define VAPAA_MPI_DOUBLE_INT                -40001
-#define VAPAA_MPI_LONG_INT                  -40002
-#define VAPAA_MPI_2INT                      -40003
-#define VAPAA_MPI_SHORT_INT                 -40004
-#define VAPAA_MPI_LONG_DOUBLE_INT           -40005
-#define VAPAA_MPI_2REAL                     -40006
-#define VAPAA_MPI_2DOUBLE_PRECISION         -40007
-#define VAPAA_MPI_2INTEGER                  -40008
+#define VAPAA_MPI_CHARACTER          542
+#define VAPAA_MPI_LOGICAL            536
+#define VAPAA_MPI_INTEGER            537
+#define VAPAA_MPI_REAL               538
+#define VAPAA_MPI_DOUBLE_PRECISION   540
+#define VAPAA_MPI_COMPLEX            539
+#define VAPAA_MPI_DOUBLE_COMPLEX     541
+
+#define VAPAA_MPI_INTEGER1           705
+#define VAPAA_MPI_INTEGER2           713
+#define VAPAA_MPI_INTEGER4           721
+#define VAPAA_MPI_INTEGER8           729
+#define VAPAA_MPI_INTEGER16          737
+
+#define VAPAA_MPI_REAL2              714
+#define VAPAA_MPI_REAL4              722
+#define VAPAA_MPI_REAL8              730
+#define VAPAA_MPI_REAL16             738
+
+#define VAPAA_MPI_COMPLEX4           723
+#define VAPAA_MPI_COMPLEX8           731
+#define VAPAA_MPI_COMPLEX16          739
+#define VAPAA_MPI_COMPLEX32          747
+
+#define VAPAA_MPI_AINT               513
+#define VAPAA_MPI_COUNT              514
+#define VAPAA_MPI_OFFSET             515
+
+#define VAPAA_MPI_CHAR               579
+#define VAPAA_MPI_SIGNED_CHAR        580
+#define VAPAA_MPI_UNSIGNED_CHAR      581
+#define VAPAA_MPI_BYTE               583
+#define VAPAA_MPI_WCHAR              572
+#define VAPAA_MPI_SHORT              520
+#define VAPAA_MPI_UNSIGNED_SHORT     524
+#define VAPAA_MPI_INT                521
+#define VAPAA_MPI_UNSIGNED           525
+#define VAPAA_MPI_LONG               522
+#define VAPAA_MPI_UNSIGNED_LONG      526
+#define VAPAA_MPI_LONG_LONG_INT      523
+#define VAPAA_MPI_UNSIGNED_LONG_LONG 527
+#define VAPAA_MPI_FLOAT              528
+#define VAPAA_MPI_DOUBLE             532
+#define VAPAA_MPI_LONG_DOUBLE        544
+
+#define VAPAA_MPI_C_BOOL                568
+#define VAPAA_MPI_C_FLOAT_COMPLEX       530
+#define VAPAA_MPI_C_COMPLEX             VAPAA_MPI_C_FLOAT_COMPLEX
+#define VAPAA_MPI_C_DOUBLE_COMPLEX      534
+#define VAPAA_MPI_C_LONG_DOUBLE_COMPLEX 548
+
+#define VAPAA_MPI_INT8_T             576
+#define VAPAA_MPI_UINT8_T            577
+#define VAPAA_MPI_INT16_T            584
+#define VAPAA_MPI_UINT16_T           585
+#define VAPAA_MPI_INT32_T            592
+#define VAPAA_MPI_UINT32_T           593
+#define VAPAA_MPI_INT64_T            600
+#define VAPAA_MPI_UINT64_T           601
+
+#define VAPAA_MPI_FLOAT_INT          552
+#define VAPAA_MPI_DOUBLE_INT         553
+#define VAPAA_MPI_LONG_INT           554
+#define VAPAA_MPI_2INT               555
+#define VAPAA_MPI_SHORT_INT          556
+#define VAPAA_MPI_LONG_DOUBLE_INT    557
+
+#define VAPAA_MPI_2REAL              560
+#define VAPAA_MPI_2DOUBLE_PRECISION  561
+#define VAPAA_MPI_2INTEGER           562
 
 #define VAPAA_MPI_SUCCESS                     0
 #define VAPAA_MPI_ERR_BUFFER                  1
@@ -164,42 +185,45 @@
 #define VAPAA_MPI_ERR_NO_SPACE               41
 #define VAPAA_MPI_ERR_NO_SUCH_FILE           42
 #define VAPAA_MPI_ERR_PORT                   43
-#define VAPAA_MPI_ERR_PROC_ABORTED           44
-#define VAPAA_MPI_ERR_QUOTA                  45
-#define VAPAA_MPI_ERR_READ_ONLY              46
-#define VAPAA_MPI_ERR_RMA_ATTACH             47
-#define VAPAA_MPI_ERR_RMA_CONFLICT           48
-#define VAPAA_MPI_ERR_RMA_RANGE              49
-#define VAPAA_MPI_ERR_RMA_SHARED             50
-#define VAPAA_MPI_ERR_RMA_SYNC               51
-#define VAPAA_MPI_ERR_RMA_FLAVOR             52
-#define VAPAA_MPI_ERR_SERVICE                53
-#define VAPAA_MPI_ERR_SESSION                54
-#define VAPAA_MPI_ERR_SIZE                   55
-#define VAPAA_MPI_ERR_SPAWN                  56
-#define VAPAA_MPI_ERR_UNSUPPORTED_DATAREP    57
-#define VAPAA_MPI_ERR_UNSUPPORTED_OPERATION  58
+#define VAPAA_MPI_ERR_QUOTA                  44
+#define VAPAA_MPI_ERR_READ_ONLY              45
+#define VAPAA_MPI_ERR_RMA_ATTACH             46
+#define VAPAA_MPI_ERR_RMA_CONFLICT           47
+#define VAPAA_MPI_ERR_RMA_RANGE              48
+#define VAPAA_MPI_ERR_RMA_SHARED             49
+#define VAPAA_MPI_ERR_RMA_SYNC               50
+#define VAPAA_MPI_ERR_SERVICE                51
+#define VAPAA_MPI_ERR_SIZE                   52
+#define VAPAA_MPI_ERR_SPAWN                  53
+#define VAPAA_MPI_ERR_UNSUPPORTED_DATAREP    54
+#define VAPAA_MPI_ERR_UNSUPPORTED_OPERATION  55
+#define VAPAA_MPI_ERR_WIN                    56
+#define VAPAA_MPI_ERR_RMA_FLAVOR             57
+#define VAPAA_MPI_ERR_PROC_ABORTED           58
 #define VAPAA_MPI_ERR_VALUE_TOO_LARGE        59
-#define VAPAA_MPI_ERR_WIN                    60
-#define VAPAA_MPI_T_ERR_CANNOT_INIT          61
-#define VAPAA_MPI_T_ERR_NOT_ACCESSIBLE       62
-#define VAPAA_MPI_T_ERR_NOT_INITIALIZED      63
-#define VAPAA_MPI_T_ERR_NOT_SUPPORTED        64
-#define VAPAA_MPI_T_ERR_MEMORY               65
-#define VAPAA_MPI_T_ERR_INVALID              66
-#define VAPAA_MPI_T_ERR_INVALID_INDEX        67
-#define VAPAA_MPI_T_ERR_INVALID_ITEM         68
-#define VAPAA_MPI_T_ERR_INVALID_SESSION      69
-#define VAPAA_MPI_T_ERR_INVALID_HANDLE       70
-#define VAPAA_MPI_T_ERR_INVALID_NAME         71
-#define VAPAA_MPI_T_ERR_OUT_OF_HANDLES       72
-#define VAPAA_MPI_T_ERR_OUT_OF_SESSIONS      73
-#define VAPAA_MPI_T_ERR_CVAR_SET_NOT_NOW     74
-#define VAPAA_MPI_T_ERR_CVAR_SET_NEVER       75
-#define VAPAA_MPI_T_ERR_PVAR_NO_WRITE        76
-#define VAPAA_MPI_T_ERR_PVAR_NO_STARTSTOP    77
-#define VAPAA_MPI_T_ERR_PVAR_NO_ATOMIC       78
-#define VAPAA_MPI_ERR_LASTCODE               79
+#define VAPAA_MPI_ERR_SESSION                60
+#define VAPAA_MPI_ERR_ERRHANDLER             61
+#define VAPAA_MPI_ERR_ABI                    62
+#define VAPAA_MPI_ERR_LASTCODE           16383
+
+#define VAPAA_MPI_T_ERR_CANNOT_INIT       1001
+#define VAPAA_MPI_T_ERR_NOT_ACCESSIBLE    1002
+#define VAPAA_MPI_T_ERR_NOT_INITIALIZED   1003
+#define VAPAA_MPI_T_ERR_NOT_SUPPORTED     1004
+#define VAPAA_MPI_T_ERR_MEMORY            1005
+#define VAPAA_MPI_T_ERR_INVALID           1006
+#define VAPAA_MPI_T_ERR_INVALID_INDEX     1007
+#define VAPAA_MPI_T_ERR_INVALID_ITEM      1008
+#define VAPAA_MPI_T_ERR_INVALID_SESSION   1009
+#define VAPAA_MPI_T_ERR_INVALID_HANDLE    1010
+#define VAPAA_MPI_T_ERR_INVALID_NAME      1011
+#define VAPAA_MPI_T_ERR_OUT_OF_HANDLES    1012
+#define VAPAA_MPI_T_ERR_OUT_OF_SESSIONS   1013
+#define VAPAA_MPI_T_ERR_CVAR_SET_NOT_NOW  1014
+#define VAPAA_MPI_T_ERR_CVAR_SET_NEVER    1015
+#define VAPAA_MPI_T_ERR_PVAR_NO_WRITE     1016
+#define VAPAA_MPI_T_ERR_PVAR_NO_STARTSTOP 1017
+#define VAPAA_MPI_T_ERR_PVAR_NO_ATOMIC    1018
 
 #define VAPAA_MPI_MODE_APPEND             1
 #define VAPAA_MPI_MODE_CREATE             2
@@ -211,28 +235,26 @@
 #define VAPAA_MPI_MODE_UNIQUE_OPEN      128
 #define VAPAA_MPI_MODE_WRONLY           256
 
-#define VAPAA_MPI_WIN_FLAVOR_ALLOCATE    10
-#define VAPAA_MPI_WIN_FLAVOR_CREATE      12
-#define VAPAA_MPI_WIN_FLAVOR_DYNAMIC    205
-#define VAPAA_MPI_WIN_FLAVOR_SHARED     165
+#define VAPAA_MPI_MODE_NOCHECK         1024
+#define VAPAA_MPI_MODE_NOPRECEDE       2048
+#define VAPAA_MPI_MODE_NOPUT           4096
+#define VAPAA_MPI_MODE_NOSTORE         8192
+#define VAPAA_MPI_MODE_NOSUCCEED      16384
 
-#define VAPAA_MPI_WIN_UNIFIED             1
-#define VAPAA_MPI_WIN_SEPARATE            2
-                                          
-#define VAPAA_MPI_LOCK_SHARED             4
-#define VAPAA_MPI_LOCK_EXCLUSIVE          8
+#define VAPAA_MPI_WIN_FLAVOR_CREATE    311
+#define VAPAA_MPI_WIN_FLAVOR_ALLOCATE  312
+#define VAPAA_MPI_WIN_FLAVOR_DYNAMIC   313
+#define VAPAA_MPI_WIN_FLAVOR_SHARED    314
 
-#define VAPAA_MPI_MODE_NOCHECK           32
-#define VAPAA_MPI_MODE_NOSTORE           64
-#define VAPAA_MPI_MODE_NOPUT            128
-#define VAPAA_MPI_MODE_NOPRECEDE        256
-#define VAPAA_MPI_MODE_NOSUCCEED        512
+#define VAPAA_MPI_WIN_UNIFIED          321
+#define VAPAA_MPI_WIN_SEPARATE         322
 
-#define VAPAA_MPI_UNDEFINED          -99999
+#define VAPAA_MPI_LOCK_EXCLUSIVE       301
+#define VAPAA_MPI_LOCK_SHARED          302
 
-#define VAPAA_MPI_TAG_UB                900
-#define VAPAA_MPI_IO                    901
-#define VAPAA_MPI_HOST                  902
-#define VAPAA_MPI_WTIME_IS_GLOBAL       903
+#define VAPAA_MPI_TAG_UB               501
+#define VAPAA_MPI_IO                   502
+#define VAPAA_MPI_HOST                 503
+#define VAPAA_MPI_WTIME_IS_GLOBAL      504
 
 #endif

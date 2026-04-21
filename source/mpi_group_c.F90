@@ -105,4 +105,38 @@ module mpi_group_c
         end subroutine C_MPI_Group_free
     end interface
 
+    interface
+        subroutine C_MPI_Group_range_incl(group, n, ranges, newgroup, ierror) &
+                   bind(C,name="C_MPI_Group_range_incl")
+            use iso_c_binding, only: c_int
+            implicit none
+            integer(kind=c_int), intent(in) :: group
+            integer(kind=c_int), intent(in) :: n
+            integer(kind=c_int), intent(in) :: ranges(3,*)
+            integer(kind=c_int), intent(out) :: newgroup, ierror
+        end subroutine C_MPI_Group_range_incl
+    end interface
+
+    interface
+        subroutine C_MPI_Group_range_excl(group, n, ranges, newgroup, ierror) &
+                   bind(C,name="C_MPI_Group_range_excl")
+            use iso_c_binding, only: c_int
+            implicit none
+            integer(kind=c_int), intent(in) :: group
+            integer(kind=c_int), intent(in) :: n
+            integer(kind=c_int), intent(in) :: ranges(3,*)
+            integer(kind=c_int), intent(out) :: newgroup, ierror
+        end subroutine C_MPI_Group_range_excl
+    end interface
+
+    interface
+        subroutine C_MPI_Comm_group(comm, group, ierror) &
+                   bind(C,name="C_MPI_Comm_group")
+            use iso_c_binding, only: c_int
+            implicit none
+            integer(kind=c_int), intent(in) :: comm
+            integer(kind=c_int), intent(out) :: group, ierror
+        end subroutine C_MPI_Comm_group
+    end interface
+
 end module mpi_group_c

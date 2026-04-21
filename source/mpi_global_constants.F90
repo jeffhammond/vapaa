@@ -30,6 +30,7 @@ module mpi_global_constants
     type(MPI_Datatype), parameter :: MPI_DATATYPE_NULL = MPI_Datatype(MPI_VAL = VAPAA_MPI_DATATYPE_NULL)
     type(MPI_File), parameter     :: MPI_FILE_NULL     = MPI_File(MPI_VAL     = VAPAA_MPI_FILE_NULL    )
     type(MPI_Group), parameter    :: MPI_GROUP_NULL    = MPI_Group(MPI_VAL    = VAPAA_MPI_GROUP_NULL   )
+    type(MPI_Group), parameter    :: MPI_GROUP_EMPTY   = MPI_Group(MPI_VAL    = VAPAA_MPI_GROUP_EMPTY  )
     type(MPI_Info), parameter     :: MPI_INFO_NULL     = MPI_Info(MPI_VAL     = VAPAA_MPI_INFO_NULL    )
     type(MPI_Message), parameter  :: MPI_MESSAGE_NULL  = MPI_Message(MPI_VAL  = VAPAA_MPI_MESSAGE_NULL )
     type(MPI_Op), parameter       :: MPI_OP_NULL       = MPI_Op(MPI_VAL       = VAPAA_MPI_OP_NULL      )
