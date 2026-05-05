@@ -18,7 +18,15 @@ int C_MPI_ERROR_CODE_C2F(int error_c);
 MAYBE_UNUSED
 static inline int C_MPI_PROC_NULL_DETECTOR(int rank)
 {
-    return (rank == VAPAA_MPI_PROC_NULL ? MPI_PROC_NULL : rank);
+    if (rank == VAPAA_MPI_PROC_NULL)  return MPI_PROC_NULL;
+    if (rank == VAPAA_MPI_ANY_SOURCE) return MPI_ANY_SOURCE;
+    return rank;
+}
+
+MAYBE_UNUSED
+static inline int C_MPI_TAG_SENTINEL_F2C(int tag)
+{
+    return (tag == VAPAA_MPI_ANY_TAG ? MPI_ANY_TAG : tag);
 }
 
 

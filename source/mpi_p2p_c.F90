@@ -15,6 +15,18 @@ module mpi_p2p_c
     end interface
 
     interface
+        subroutine C_MPI_Iprobe(source, tag, comm, flag, status, ierror) &
+                   bind(C,name="C_MPI_Iprobe")
+            use iso_c_binding, only: c_int
+            use mpi_handle_types, only: MPI_Status
+            implicit none
+            integer(kind=c_int), intent(in), value :: source, tag, comm
+            integer(kind=c_int), intent(out) :: flag, ierror
+            type(MPI_Status), intent(inout) :: status
+        end subroutine C_MPI_Iprobe
+    end interface
+
+    interface
         subroutine C_MPI_Mprobe(source, tag, comm, message, status, ierror) &
                    bind(C,name="C_MPI_Mprobe")
             use iso_c_binding, only: c_int

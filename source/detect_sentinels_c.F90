@@ -9,9 +9,9 @@ module detect_sentinels_c
                    bind(C,name="C_MPI_BOTTOM")
             implicit none
 #ifdef USE_TYPE
-            type(*) :: inplace
+            type(*) :: inplace(..)
 #else
-            class(*) :: inplace
+            class(*) :: inplace(..)
 #endif
         end subroutine C_MPI_BOTTOM
     end interface
@@ -21,9 +21,9 @@ module detect_sentinels_c
                    bind(C,name="C_MPI_STATUS_IGNORE")
             implicit none
 #ifdef USE_TYPE
-            type(*) :: inplace
+            type(*) :: inplace(..)
 #else
-            class(*) :: inplace
+            class(*) :: inplace(..)
 #endif
         end subroutine C_MPI_STATUS_IGNORE
     end interface
@@ -45,9 +45,9 @@ module detect_sentinels_c
                    bind(C,name="C_MPI_ERRCODES_IGNORE")
             implicit none
 #ifdef USE_TYPE
-            type(*) :: inplace
+            type(*) :: inplace(..)
 #else
-            class(*) :: inplace
+            class(*) :: inplace(..)
 #endif
         end subroutine C_MPI_ERRCODES_IGNORE
     end interface
@@ -57,9 +57,9 @@ module detect_sentinels_c
                    bind(C,name="C_MPI_IN_PLACE")
             implicit none
 #ifdef USE_TYPE
-            type(*) :: inplace
+            type(*) :: inplace(..)
 #else
-            class(*) :: inplace
+            class(*) :: inplace(..)
 #endif
         end subroutine C_MPI_IN_PLACE
     end interface
@@ -69,9 +69,9 @@ module detect_sentinels_c
                    bind(C,name="C_MPI_ARGV_NULL")
             implicit none
 #ifdef USE_TYPE
-            type(*) :: inplace
+            type(*) :: inplace(..)
 #else
-            class(*) :: inplace
+            class(*) :: inplace(..)
 #endif
         end subroutine C_MPI_ARGV_NULL
     end interface
@@ -81,9 +81,9 @@ module detect_sentinels_c
                    bind(C,name="C_MPI_ARGVS_NULL")
             implicit none
 #ifdef USE_TYPE
-            type(*) :: inplace
+            type(*) :: inplace(..)
 #else
-            class(*) :: inplace
+            class(*) :: inplace(..)
 #endif
         end subroutine C_MPI_ARGVS_NULL
     end interface
@@ -93,9 +93,9 @@ module detect_sentinels_c
                    bind(C,name="C_MPI_UNWEIGHTED")
             implicit none
 #ifdef USE_TYPE
-            type(*) :: inplace
+            type(*) :: inplace(..)
 #else
-            class(*) :: inplace
+            class(*) :: inplace(..)
 #endif
         end subroutine C_MPI_UNWEIGHTED
     end interface
@@ -105,9 +105,9 @@ module detect_sentinels_c
                    bind(C,name="C_MPI_WEIGHTS_EMPTY")
             implicit none
 #ifdef USE_TYPE
-            type(*) :: inplace
+            type(*) :: inplace(..)
 #else
-            class(*) :: inplace
+            class(*) :: inplace(..)
 #endif
         end subroutine C_MPI_WEIGHTS_EMPTY
     end interface

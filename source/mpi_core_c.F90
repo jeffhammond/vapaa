@@ -99,6 +99,28 @@ module mpi_core_c
 #endif
 
     interface
+        subroutine C_MPI_Get_processor_name(name, resultlen, ierror) &
+                   bind(C,name="C_MPI_Get_processor_name")
+            use iso_c_binding, only: c_int, c_char
+            implicit none
+            character(kind=c_char), dimension(*), intent(out) :: name
+            integer(kind=c_int), intent(out) :: resultlen, ierror
+        end subroutine C_MPI_Get_processor_name
+    end interface
+
+#ifdef HAVE_CFI
+    interface
+        subroutine CFI_MPI_Get_processor_name(name, resultlen, ierror) &
+                   bind(C,name="CFI_MPI_Get_processor_name")
+            use iso_c_binding, only: c_int
+            implicit none
+            type(*), dimension(..), intent(inout) :: name
+            integer(kind=c_int), intent(out) :: resultlen, ierror
+        end subroutine CFI_MPI_Get_processor_name
+    end interface
+#endif
+
+    interface
         function C_MPI_Wtime() result(time) &
                  bind(C,name="C_MPI_Wtime")
             use iso_c_binding, only: c_double
