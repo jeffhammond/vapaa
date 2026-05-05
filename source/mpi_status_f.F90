@@ -8,6 +8,10 @@ module mpi_status_f
         module procedure MPI_Status_set_elements_f08
     end interface MPI_Status_set_elements
 
+    interface MPI_Get_count
+        module procedure MPI_Get_count_f08
+    end interface MPI_Get_count
+
     contains
 
         subroutine MPI_Status_set_elements_f08(status, datatype, count, ierror)
@@ -22,5 +26,18 @@ module mpi_status_f
             call C_MPI_Status_set_elements(status, datatype % MPI_VAL, count_c, ierror_c)
             if (present(ierror)) ierror = ierror_c
         end subroutine MPI_Status_set_elements_f08
+
+        subroutine MPI_Get_count_f08(status, datatype, count, ierror)
+            use mpi_handle_types, only: MPI_Status, MPI_Datatype
+            use mpi_status_c, only: C_MPI_Get_count
+            type(MPI_Status), intent(in) :: status
+            type(MPI_Datatype), intent(in) :: datatype
+            integer, intent(out) :: count
+            integer, optional, intent(out) :: ierror
+            integer(kind=c_int) :: count_c, ierror_c
+            call C_MPI_Get_count(status, datatype % MPI_VAL, count_c, ierror_c)
+            count = count_c
+            if (present(ierror)) ierror = ierror_c
+        end subroutine MPI_Get_count_f08
 
 end module mpi_status_f
