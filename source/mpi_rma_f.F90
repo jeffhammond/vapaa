@@ -18,27 +18,51 @@ module mpi_rma_f
     integer, parameter :: MPI_LOCK_EXCLUSIVE         = VAPAA_MPI_LOCK_EXCLUSIVE
 
     interface MPI_Get
+#ifdef HAVE_CFI
+        module procedure MPI_Get_f08ts
+#else
         module procedure MPI_Get_f08
+#endif
     end interface MPI_Get
 
     interface MPI_Put
+#ifdef HAVE_CFI
+        module procedure MPI_Put_f08ts
+#else
         module procedure MPI_Put_f08
+#endif
     end interface MPI_Put
 
     interface MPI_Rget
+#ifdef HAVE_CFI
+        module procedure MPI_Rget_f08ts
+#else
         module procedure MPI_Rget_f08
+#endif
     end interface MPI_Rget
 
     interface MPI_Rput
+#ifdef HAVE_CFI
+        module procedure MPI_Rput_f08ts
+#else
         module procedure MPI_Rput_f08
+#endif
     end interface MPI_Rput
 
     interface MPI_Accumulate
+#ifdef HAVE_CFI
+        module procedure MPI_Accumulate_f08ts
+#else
         module procedure MPI_Accumulate_f08
+#endif
     end interface MPI_Accumulate
 
     interface MPI_Fetch_and_op
+#ifdef HAVE_CFI
+        module procedure MPI_Fetch_and_op_f08ts
+#else
         module procedure MPI_Fetch_and_op_f08
+#endif
     end interface MPI_Fetch_and_op
 
     contains
@@ -67,6 +91,31 @@ module mpi_rma_f
             if (present(ierror)) ierror = ierror_c
         end subroutine MPI_Get_f08
 
+#ifdef HAVE_CFI
+        subroutine MPI_Get_f08ts(origin_addr, origin_count, origin_datatype, &
+                                 target_rank, target_disp, target_count, target_datatype, &
+                                 win, ierror)
+            use mpi_handle_types, only: MPI_Datatype, MPI_Win
+            use mpi_rma_c, only: CFI_MPI_Get
+            type(*), dimension(..), asynchronous :: origin_addr
+            integer, intent(in) :: origin_count, target_rank, target_count
+            integer(kind=c_intptr_t), intent(in) :: target_disp
+            type(MPI_Datatype), intent(in) :: origin_datatype, target_datatype
+            type(MPI_Win), intent(in) :: win
+            integer, optional, intent(out) :: ierror
+            integer(kind=c_int) :: origin_count_c, target_rank_c, target_count_c, ierror_c
+            integer(kind=c_intptr_t) :: target_disp_c
+            origin_count_c = origin_count
+            target_rank_c  = target_rank
+            target_count_c = target_count
+            target_disp_c  = target_disp
+            call CFI_MPI_Get(origin_addr, origin_count_c, origin_datatype % MPI_VAL, &
+                             target_rank_c, target_disp_c, target_count_c, target_datatype % MPI_VAL, &
+                             win % MPI_VAL, ierror_c)
+            if (present(ierror)) ierror = ierror_c
+        end subroutine MPI_Get_f08ts
+#endif
+
         subroutine MPI_Put_f08(origin_addr, origin_count, origin_datatype, &
                                target_rank, target_disp, target_count, target_datatype, &
                                win, ierror)
@@ -90,6 +139,31 @@ module mpi_rma_f
                            win % MPI_VAL, ierror_c)
             if (present(ierror)) ierror = ierror_c
         end subroutine MPI_Put_f08
+
+#ifdef HAVE_CFI
+        subroutine MPI_Put_f08ts(origin_addr, origin_count, origin_datatype, &
+                                 target_rank, target_disp, target_count, target_datatype, &
+                                 win, ierror)
+            use mpi_handle_types, only: MPI_Datatype, MPI_Win
+            use mpi_rma_c, only: CFI_MPI_Put
+            type(*), dimension(..), asynchronous :: origin_addr
+            integer, intent(in) :: origin_count, target_rank, target_count
+            integer(kind=c_intptr_t), intent(in) :: target_disp
+            type(MPI_Datatype), intent(in) :: origin_datatype, target_datatype
+            type(MPI_Win), intent(in) :: win
+            integer, optional, intent(out) :: ierror
+            integer(kind=c_int) :: origin_count_c, target_rank_c, target_count_c, ierror_c
+            integer(kind=c_intptr_t) :: target_disp_c
+            origin_count_c = origin_count
+            target_rank_c  = target_rank
+            target_count_c = target_count
+            target_disp_c  = target_disp
+            call CFI_MPI_Put(origin_addr, origin_count_c, origin_datatype % MPI_VAL, &
+                             target_rank_c, target_disp_c, target_count_c, target_datatype % MPI_VAL, &
+                             win % MPI_VAL, ierror_c)
+            if (present(ierror)) ierror = ierror_c
+        end subroutine MPI_Put_f08ts
+#endif
 
         subroutine MPI_Rget_f08(origin_addr, origin_count, origin_datatype, &
                                 target_rank, target_disp, target_count, target_datatype, &
@@ -116,6 +190,32 @@ module mpi_rma_f
             if (present(ierror)) ierror = ierror_c
         end subroutine MPI_Rget_f08
 
+#ifdef HAVE_CFI
+        subroutine MPI_Rget_f08ts(origin_addr, origin_count, origin_datatype, &
+                                  target_rank, target_disp, target_count, target_datatype, &
+                                  win, request, ierror)
+            use mpi_handle_types, only: MPI_Datatype, MPI_Win, MPI_Request
+            use mpi_rma_c, only: CFI_MPI_Rget
+            type(*), dimension(..), asynchronous :: origin_addr
+            integer, intent(in) :: origin_count, target_rank, target_count
+            integer(kind=c_intptr_t), intent(in) :: target_disp
+            type(MPI_Datatype), intent(in) :: origin_datatype, target_datatype
+            type(MPI_Win), intent(in) :: win
+            type(MPI_Request), intent(out) :: request
+            integer, optional, intent(out) :: ierror
+            integer(kind=c_int) :: origin_count_c, target_rank_c, target_count_c, ierror_c
+            integer(kind=c_intptr_t) :: target_disp_c
+            origin_count_c = origin_count
+            target_rank_c  = target_rank
+            target_count_c = target_count
+            target_disp_c  = target_disp
+            call CFI_MPI_Rget(origin_addr, origin_count_c, origin_datatype % MPI_VAL, &
+                              target_rank_c, target_disp_c, target_count_c, target_datatype % MPI_VAL, &
+                              win % MPI_VAL, request % MPI_VAL, ierror_c)
+            if (present(ierror)) ierror = ierror_c
+        end subroutine MPI_Rget_f08ts
+#endif
+
         subroutine MPI_Rput_f08(origin_addr, origin_count, origin_datatype, &
                                 target_rank, target_disp, target_count, target_datatype, &
                                 win, request, ierror)
@@ -140,6 +240,32 @@ module mpi_rma_f
                             win % MPI_VAL, request % MPI_VAL, ierror_c)
             if (present(ierror)) ierror = ierror_c
         end subroutine MPI_Rput_f08
+
+#ifdef HAVE_CFI
+        subroutine MPI_Rput_f08ts(origin_addr, origin_count, origin_datatype, &
+                                  target_rank, target_disp, target_count, target_datatype, &
+                                  win, request, ierror)
+            use mpi_handle_types, only: MPI_Datatype, MPI_Win, MPI_Request
+            use mpi_rma_c, only: CFI_MPI_Rput
+            type(*), dimension(..), asynchronous :: origin_addr
+            integer, intent(in) :: origin_count, target_rank, target_count
+            integer(kind=c_intptr_t), intent(in) :: target_disp
+            type(MPI_Datatype), intent(in) :: origin_datatype, target_datatype
+            type(MPI_Win), intent(in) :: win
+            type(MPI_Request), intent(out) :: request
+            integer, optional, intent(out) :: ierror
+            integer(kind=c_int) :: origin_count_c, target_rank_c, target_count_c, ierror_c
+            integer(kind=c_intptr_t) :: target_disp_c
+            origin_count_c = origin_count
+            target_rank_c  = target_rank
+            target_count_c = target_count
+            target_disp_c  = target_disp
+            call CFI_MPI_Rput(origin_addr, origin_count_c, origin_datatype % MPI_VAL, &
+                              target_rank_c, target_disp_c, target_count_c, target_datatype % MPI_VAL, &
+                              win % MPI_VAL, request % MPI_VAL, ierror_c)
+            if (present(ierror)) ierror = ierror_c
+        end subroutine MPI_Rput_f08ts
+#endif
 
         subroutine MPI_Accumulate_f08(origin_addr, origin_count, origin_datatype, &
                                       target_rank, target_disp, target_count, target_datatype, &
@@ -166,6 +292,32 @@ module mpi_rma_f
             if (present(ierror)) ierror = ierror_c
         end subroutine MPI_Accumulate_f08
 
+#ifdef HAVE_CFI
+        subroutine MPI_Accumulate_f08ts(origin_addr, origin_count, origin_datatype, &
+                                        target_rank, target_disp, target_count, target_datatype, &
+                                        op, win, ierror)
+            use mpi_handle_types, only: MPI_Datatype, MPI_Op, MPI_Win
+            use mpi_rma_c, only: CFI_MPI_Accumulate
+            type(*), dimension(..), asynchronous :: origin_addr
+            integer, intent(in) :: origin_count, target_rank, target_count
+            integer(kind=c_intptr_t), intent(in) :: target_disp
+            type(MPI_Datatype), intent(in) :: origin_datatype, target_datatype
+            type(MPI_Op), intent(in) :: op
+            type(MPI_Win), intent(in) :: win
+            integer, optional, intent(out) :: ierror
+            integer(kind=c_int) :: origin_count_c, target_rank_c, target_count_c, ierror_c
+            integer(kind=c_intptr_t) :: target_disp_c
+            origin_count_c = origin_count
+            target_rank_c  = target_rank
+            target_count_c = target_count
+            target_disp_c  = target_disp
+            call CFI_MPI_Accumulate(origin_addr, origin_count_c, origin_datatype % MPI_VAL, &
+                                    target_rank_c, target_disp_c, target_count_c, target_datatype % MPI_VAL, &
+                                    op % MPI_VAL, win % MPI_VAL, ierror_c)
+            if (present(ierror)) ierror = ierror_c
+        end subroutine MPI_Accumulate_f08ts
+#endif
+
         subroutine MPI_Fetch_and_op_f08(origin_addr, result_addr, datatype, &
                                         target_rank, target_disp, op, win, ierror)
             use mpi_handle_types, only: MPI_Datatype, MPI_Op, MPI_Win
@@ -187,5 +339,28 @@ module mpi_rma_f
                                     target_rank_c, target_disp_c, op % MPI_VAL, win % MPI_VAL, ierror_c)
             if (present(ierror)) ierror = ierror_c
         end subroutine MPI_Fetch_and_op_f08
+
+#ifdef HAVE_CFI
+        subroutine MPI_Fetch_and_op_f08ts(origin_addr, result_addr, datatype, &
+                                          target_rank, target_disp, op, win, ierror)
+            use mpi_handle_types, only: MPI_Datatype, MPI_Op, MPI_Win
+            use mpi_rma_c, only: CFI_MPI_Fetch_and_op
+            type(*), dimension(..), asynchronous :: origin_addr
+            type(*), dimension(..), asynchronous :: result_addr
+            integer, intent(in) :: target_rank
+            integer(kind=c_intptr_t), intent(in) :: target_disp
+            type(MPI_Datatype), intent(in) :: datatype
+            type(MPI_Op), intent(in) :: op
+            type(MPI_Win), intent(in) :: win
+            integer, optional, intent(out) :: ierror
+            integer(kind=c_int) :: target_rank_c, ierror_c
+            integer(kind=c_intptr_t) :: target_disp_c
+            target_rank_c = target_rank
+            target_disp_c = target_disp
+            call CFI_MPI_Fetch_and_op(origin_addr, result_addr, datatype % MPI_VAL, &
+                                      target_rank_c, target_disp_c, op % MPI_VAL, win % MPI_VAL, ierror_c)
+            if (present(ierror)) ierror = ierror_c
+        end subroutine MPI_Fetch_and_op_f08ts
+#endif
 
 end module mpi_rma_f

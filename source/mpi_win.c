@@ -58,7 +58,7 @@ void C_MPI_Win_allocate(intptr_t size, int disp_unit, int info_f, int comm_f, vo
     MPI_Info info = C_MPI_INFO_F2C(info_f);
     MPI_Comm comm = C_MPI_COMM_F2C(comm_f);
     MPI_Win win;
-    *ierror = MPI_Win_allocate((MPI_Aint)size, disp_unit, info, comm, baseptr, &win);
+    *ierror = MPI_Win_allocate((MPI_Aint)size, disp_unit, info, comm, (void*)baseptr, &win);
     *win_f = MPI_Win_c2f(win);
     C_MPI_RC_FIX(*ierror);
 }
