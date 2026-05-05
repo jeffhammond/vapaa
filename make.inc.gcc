@@ -1,7 +1,11 @@
 WARNFLAGS = -Wall -Wextra -Werror
+# macOS
+WARNFLAGS += -Wno-error=expansion-to-defined
+WARNFLAGS += -Wno-error=unused-variable
 
 # M1
 #FORTRAN_DIR = /opt/homebrew/Cellar/gcc/12.2.0/lib/gcc/current
+FORTRAN_DIR = /opt/homebrew/Cellar/gcc/15.1.0/lib/gcc/current/gcc/aarch64-apple-darwin24/15
 # Linux x86_64
 #FORTRAN_DIR = /usr/lib/gcc/x86_64-linux-gnu/11
 
@@ -9,18 +13,20 @@ WARNFLAGS = -Wall -Wextra -Werror
 # M1
 # symlink ISO_Fortran_binding.h from $(FORTRAN_DIR)/gcc/aarch64-apple-darwin21/11/include to . because reasons
 #FORTRAN_INCLUDE = -I.
+FORTRAN_INCLUDE = -I$(FORTRAN_DIR)/include
 # Linux GCC-12
 #FORTRAN_INCLUDE = -I/usr/lib/gcc/x86_64-linux-gnu/12/include/
 
-MPI_LIBS = -g -Wl,-commons,use_dylibs -I/opt/homebrew/Cellar/mpich/4.0.2_1/include -L/opt/homebrew/Cellar/mpich/4.0.2_1/lib -lmpi -lpmpi
+MPI_DIR = /opt/homebrew/Cellar/mpich/4.3.1
+MPI_LIBS = -g -Wl,-commons,use_dylibs -I$(MPI_DIR)/include -L$(MPI_DIR)/lib -lmpi -lpmpi
 #MPI_LIBS = -g -L/opt/homebrew/Cellar/open-mpi/4.1.4_2/lib -L/opt/homebrew/opt/libevent/lib -lmpi
 
 # M1
-CC = mpicc
+CC = MPICH_CC=gcc-15 mpicc
 CFLAGS = $(WARNFLAGS) -g -std=c11 $(FORTRAN_INCLUDE) -DHAVE_CFI
 
-FC = gfortran
-FCFLAGS = $(WARNFLAGS) -g -std=f2018 -DHAVE_CFI
+FC = gfortran-15
+FCFLAGS = $(WARNFLAGS) -g -std=f2018 -frecursive -DHAVE_CFI
 #FCFLAGS += -fall-intrinsics # for when we use LOC()
 
 # required on nuclear (x86_64)
