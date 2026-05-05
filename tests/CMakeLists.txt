@@ -31,10 +31,12 @@ foreach(TEST_SOURCE ${TEST_SOURCES})
   add_executable(${TEST_NAME} ${TEST_SOURCE})
 
   # Link the library to the test
-  target_compile_options(${TEST_NAME} PRIVATE -Wall -Wextra -g -std=f2018 -DHAVE_CFI -fPIE)
-target_include_directories(${TEST_NAME}
-                           PRIVATE "${PROJECT_BINARY_DIR}/include")
-  target_link_libraries(${TEST_NAME} PRIVATE ${vapa_lib})
+  target_compile_options(${TEST_NAME} PRIVATE -Wall -Wextra -g -std=f2018 -fPIE)
+  target_compile_definitions(${TEST_NAME} PRIVATE HAVE_CFI)
+  target_link_libraries(${TEST_NAME} PRIVATE ${vapaa_lib})
+  # this is because on mac it compiles so fast it can trigger race conditions, wait for 
+  # the vapa lib to be built
+  add_dependencies(${TEST_NAME} ${vapaa_lib})
 
   # Set the output directory for the executables
   set_target_properties(${TEST_NAME} PROPERTIES

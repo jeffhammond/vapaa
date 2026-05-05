@@ -57,9 +57,9 @@ configure_file("${ISO_FORTRAN_BINDING_HEADER}"
 set(SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/source")
 
 # Create the static library
-set(vapa_lib vapaa)
+set(vapaa_lib vapaa)
 
-add_library(${vapa_lib} STATIC)
+add_library(${vapaa_lib} STATIC)
 
 # MPI vendor selection.
 #
@@ -113,18 +113,18 @@ else()
   message(STATUS "Auto-detected MPI vendor from mpi.h: ${FLAG_MPI}")
 endif()
 
-target_compile_options(${vapa_lib} PRIVATE -Wall -Wextra -fPIE)
-target_compile_definitions(${vapa_lib} PRIVATE HAVE_CFI ${FLAG_MPI})
-target_include_directories(${vapa_lib} PRIVATE ${ISO_FORTRAN_BINDING_STAGE_DIR})
-target_link_libraries(${vapa_lib} PRIVATE MPI::MPI_C)
+target_compile_options(${vapaa_lib} PRIVATE -Wall -Wextra -fPIE)
+target_compile_definitions(${vapaa_lib} PRIVATE HAVE_CFI ${FLAG_MPI})
+target_include_directories(${vapaa_lib} PRIVATE ${ISO_FORTRAN_BINDING_STAGE_DIR})
+target_link_libraries(${vapaa_lib} PRIVATE MPI::MPI_C)
 
 # Set the library output and module directories
 set_target_properties(
-  ${vapa_lib}
+  ${vapaa_lib}
   PROPERTIES ARCHIVE_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}/lib"
              Fortran_MODULE_DIRECTORY "${PROJECT_BINARY_DIR}/include")
 
-target_include_directories(${vapa_lib}
+target_include_directories(${vapaa_lib}
   PUBLIC
     $<BUILD_INTERFACE:${PROJECT_BINARY_DIR}/include>
     $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
@@ -136,7 +136,7 @@ if(VAPAA_ENABLE_TESTING)
 add_subdirectory(tests)
 endif()
 
-install(TARGETS ${vapa_lib}
+install(TARGETS ${vapaa_lib}
   EXPORT vapaaTargets
   ARCHIVE DESTINATION lib
   LIBRARY DESTINATION lib
