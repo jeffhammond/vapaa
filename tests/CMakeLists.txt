@@ -14,7 +14,7 @@ set(VAPAA_MPICH_ONLY_TESTS
   test_user_reduction
 )
 
-if(NOT FLAG_MPI MATCHES "MPICH")
+if(NOT FLAG_MPI STREQUAL "MPICH")
   string(REPLACE ";" ", " _vapaa_skipped_tests "${VAPAA_MPICH_ONLY_TESTS}")
   message(WARNING
     "MPI vendor is not MPICH (FLAG_MPI=${FLAG_MPI}); the following tests "
@@ -50,7 +50,7 @@ target_include_directories(${TEST_NAME}
     PASS_REGULAR_EXPRESSION "Test passed" # Adjust this to match expected output
   )
 
-  if(NOT FLAG_MPI MATCHES "MPICH" AND TEST_NAME IN_LIST VAPAA_MPICH_ONLY_TESTS)
+  if(NOT FLAG_MPI STREQUAL "MPICH" AND TEST_NAME IN_LIST VAPAA_MPICH_ONLY_TESTS)
     set_tests_properties(${TEST_NAME} PROPERTIES
       DISABLED TRUE)
   endif()

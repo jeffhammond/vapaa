@@ -16,7 +16,7 @@ make -j
 ctest
 ```
 
-If you have trouble picking up the MPI vendor you can simply pass the flag `cmake -DMPI_VENDOR=XYZ`. For now, based on Jeff's Makefiles, the spellings needed for the compiler flags are `-DMPI_VENDOR=MPICH` and `-DMPI_VENDOR=OPEN_MPI`
+The MPI vendor is auto-detected by probing `mpi.h` for the `MPICH` or `OPEN_MPI` macros (CMake cannot infer it reliably from the compiler wrapper alone — for example, on Cray the same wrapper can sit on top of either). If detection fails, or you want to override it, pass `-DVAPAA_MPI_VENDOR=MPICH` or `-DVAPAA_MPI_VENDOR=OPEN_MPI` to `cmake`.
 
 ## Design limitations
 

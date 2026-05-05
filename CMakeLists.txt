@@ -61,30 +61,60 @@ set(vapa_lib vapaa)
 
 add_library(${vapa_lib} STATIC)
 
-if(DEFINED MPI_VENDOR)
-  set(FLAG_MPI ${MPI_VENDOR})
-  message(STATUS "MPI Vendor explicitly set to: ${MPI_VENDOR}")
-else()
-  if(MPI_Fortran_COMPILER MATCHES "openmpi|ompi")
-    set(FLAG_MPI -DOPEN_MPI)
-  elseif(MPI_Fortran_COMPILER MATCHES "mpich")
-    set(FLAG_MPI -DMPICH)
-  elseif(MPI_Fortran_COMPILER MATCHES "intel")
-    set(FLAG_MPI -DMPICH)
-  elseif(MPI_Fortran_COMPILER MATCHES "cray")
-    set(FLAG_MPI -DMPICH)
-  else()
-    #set(FLAG_MPI "UnknownMPI")
-    set(FLAG_MPI -DOPEN_MPI)
-    message(WARNING "Automatic detection failed, assuming OpenMPI")
+# MPI vendor selection.
+#
+# CMake cannot reliably tell which MPI implementation is in use from the
+# compiler wrapper alone (e.g. on Cray the same `cc` wrapper can sit on top of
+# MPICH, Cray-MPICH, or other libraries). The reliable way is to probe mpi.h
+# itself for vendor macros. Users may also pin the choice explicitly via
+# -DVAPAA_MPI_VENDOR=MPICH or -DVAPAA_MPI_VENDOR=OPEN_MPI.
+set(VAPAA_MPI_VENDOR "" CACHE STRING "MPI vendor: MPICH or OPEN_MPI (auto-detected if empty)")
+set_property(CACHE VAPAA_MPI_VENDOR PROPERTY STRINGS "" MPICH OPEN_MPI)
+
+if(VAPAA_MPI_VENDOR)
+  if(NOT VAPAA_MPI_VENDOR MATCHES "^(MPICH|OPEN_MPI)$")
+    message(FATAL_ERROR "VAPAA_MPI_VENDOR must be either MPICH or OPEN_MPI (got: ${VAPAA_MPI_VENDOR})")
   endif()
-  message(STATUS "Automatically detected MPI Vendor: ${FLAG_MPI}")
+  set(FLAG_MPI ${VAPAA_MPI_VENDOR})
+  message(STATUS "MPI vendor explicitly set to: ${VAPAA_MPI_VENDOR}")
+else()
+  include(CheckCSourceCompiles)
+  set(_save_includes ${CMAKE_REQUIRED_INCLUDES})
+  set(_save_libraries ${CMAKE_REQUIRED_LIBRARIES})
+  set(CMAKE_REQUIRED_INCLUDES ${MPI_C_INCLUDE_DIRS})
+  set(CMAKE_REQUIRED_LIBRARIES ${MPI_C_LIBRARIES})
+  check_c_source_compiles("
+    #include <mpi.h>
+    #ifndef MPICH
+    #error not mpich
+    #endif
+    int main(void) { return 0; }
+  " VAPAA_MPI_IS_MPICH)
+  check_c_source_compiles("
+    #include <mpi.h>
+    #ifndef OPEN_MPI
+    #error not openmpi
+    #endif
+    int main(void) { return 0; }
+  " VAPAA_MPI_IS_OPENMPI)
+  set(CMAKE_REQUIRED_INCLUDES ${_save_includes})
+  set(CMAKE_REQUIRED_LIBRARIES ${_save_libraries})
+
+  if(VAPAA_MPI_IS_MPICH)
+    set(FLAG_MPI MPICH)
+  elseif(VAPAA_MPI_IS_OPENMPI)
+    set(FLAG_MPI OPEN_MPI)
+  else()
+    message(FATAL_ERROR
+      "Could not auto-detect MPI vendor from mpi.h (neither MPICH nor "
+      "OPEN_MPI macro is defined). Re-run cmake with -DVAPAA_MPI_VENDOR=MPICH or "
+      "-DVAPAA_MPI_VENDOR=OPEN_MPI.")
+  endif()
+  message(STATUS "Auto-detected MPI vendor from mpi.h: ${FLAG_MPI}")
 endif()
 
-message(STATUS "Final MPI Vendor Flag: ${FLAG_MPI}")
-
 target_compile_options(${vapa_lib} PRIVATE -Wall -Wextra -fPIE)
-target_compile_definitions(${vapa_lib} PRIVATE -DHAVE_CFI ${FLAG_MPI})
+target_compile_definitions(${vapa_lib} PRIVATE HAVE_CFI ${FLAG_MPI})
 target_include_directories(${vapa_lib} PRIVATE ${ISO_FORTRAN_BINDING_STAGE_DIR})
 target_link_libraries(${vapa_lib} PRIVATE MPI::MPI_C)
 
