@@ -126,7 +126,7 @@ module mpi_p2p_f
             integer, intent(in) :: source, tag
             type(MPI_Comm), intent(in) :: comm
             logical, intent(out) :: flag
-            type(MPI_Status), intent(inout) :: stat
+            type(MPI_Status), intent(out) :: stat
             integer, optional, intent(out) :: ierror
             integer(kind=c_int) :: source_c, tag_c, flag_c, ierror_c
             source_c = source

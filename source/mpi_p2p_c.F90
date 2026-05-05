@@ -22,7 +22,7 @@ module mpi_p2p_c
             implicit none
             integer(kind=c_int), intent(in), value :: source, tag, comm
             integer(kind=c_int), intent(out) :: flag, ierror
-            type(MPI_Status), intent(inout) :: status
+            type(MPI_Status), intent(out) :: status
         end subroutine C_MPI_Iprobe
     end interface
 

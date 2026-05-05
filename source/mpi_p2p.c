@@ -32,7 +32,7 @@ void C_MPI_Iprobe(int source, int tag, int comm_f, int * flag, struct F_MPI_Stat
     MPI_Status status;
     *ierror = MPI_Iprobe(C_MPI_PROC_NULL_DETECTOR(source), C_MPI_TAG_SENTINEL_F2C(tag), comm, flag,
                          need_status ? &status : MPI_STATUS_IGNORE);
-    if (need_status) {
+    if (need_status && *flag) {
         C_MPI_STATUS_C2F(&status, status_f);
     }
     C_MPI_RC_FIX(*ierror);

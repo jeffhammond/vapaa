@@ -47,7 +47,7 @@ module mpi_core_f
     end interface MPI_Get_library_version
 
     interface MPI_Get_processor_name
-#if HAVE_CFI
+#ifdef HAVE_CFI
         module procedure MPI_Get_processor_name_f08ts
 #else
         module procedure MPI_Get_processor_name_f08

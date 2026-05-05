@@ -3,20 +3,39 @@ file(GLOB TEST_SOURCES "*.F90")
 
 # Number of MPI processes
 set(MPI_NUM_PROCESSES 4)
+
+# These tests exercise non-contiguous CFI datatypes (MPIX_Iov) or rely on
+# MPICH-specific datatype-handle semantics. Skip them when not building
+# against MPICH so CTest reports them as disabled rather than failed.
+set(VAPAA_MPICH_ONLY_TESTS
+  mpich_uallreducef08
+  test_matrix_noncontig_2
+  test_serialization_2
+  test_user_reduction
+)
+
+if(NOT FLAG_MPI MATCHES "MPICH")
+  string(REPLACE ";" ", " _vapaa_skipped_tests "${VAPAA_MPICH_ONLY_TESTS}")
+  message(WARNING
+    "MPI vendor is not MPICH (FLAG_MPI=${FLAG_MPI}); the following tests "
+    "require MPICH MPIX_Iov support and will be marked DISABLED: "
+    "${_vapaa_skipped_tests}")
+endif()
+
 # Iterate over the test files and create executables
 foreach(TEST_SOURCE ${TEST_SOURCES})
   # Extract the file name without the extension
   get_filename_component(TEST_NAME ${TEST_SOURCE} NAME_WE)
-  
+
   # Add the executable for this test
   add_executable(${TEST_NAME} ${TEST_SOURCE})
-  
+
   # Link the library to the test
   target_compile_options(${TEST_NAME} PRIVATE -Wall -Wextra -g -std=f2018 -DHAVE_CFI -fPIE)
 target_include_directories(${TEST_NAME}
                            PRIVATE "${PROJECT_BINARY_DIR}/include")
   target_link_libraries(${TEST_NAME} PRIVATE ${vapa_lib})
-  
+
   # Set the output directory for the executables
   set_target_properties(${TEST_NAME} PROPERTIES
     RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/tests"
@@ -30,5 +49,10 @@ target_include_directories(${TEST_NAME}
     WORKING_DIRECTORY "${CMAKE_BINARY_DIR}/tests"
     PASS_REGULAR_EXPRESSION "Test passed" # Adjust this to match expected output
   )
+
+  if(NOT FLAG_MPI MATCHES "MPICH" AND TEST_NAME IN_LIST VAPAA_MPICH_ONLY_TESTS)
+    set_tests_properties(${TEST_NAME} PROPERTIES
+      DISABLED TRUE)
+  endif()
 endforeach()
 
