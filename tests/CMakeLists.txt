@@ -14,7 +14,7 @@ foreach(TEST_SOURCE ${TEST_SOURCES})
   # Link the library to the test
   target_compile_options(${TEST_NAME} PRIVATE -Wall -Wextra -g -std=f2018 -DHAVE_CFI -fPIE)
 target_include_directories(${TEST_NAME}
-                           PRIVATE "${CMAKE_BINARY_DIR}/modules")
+                           PRIVATE "${PROJECT_BINARY_DIR}/include")
   target_link_libraries(${TEST_NAME} PRIVATE ${vapa_lib})
   
   # Set the output directory for the executables
