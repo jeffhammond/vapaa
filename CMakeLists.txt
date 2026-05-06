@@ -28,7 +28,7 @@ set(CMAKE_C_EXTENSIONS OFF)
 set(CMAKE_Fortran_STANDARD 2018)
 set(CMAKE_Fortran_STANDARD_REQUIRED ON)
 
-find_package(MPI REQUIRED COMPONENTS C Fortran)
+find_package(MPI REQUIRED COMPONENTS C)
 
 # this was needed on mac for some reason (?)
 find_file(ISO_FORTRAN_BINDING_HEADER
