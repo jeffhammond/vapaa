@@ -8,6 +8,10 @@ module mpi_p2p_f
         module procedure MPI_Probe_f08
     end interface MPI_Probe
 
+    interface MPI_Iprobe
+        module procedure MPI_Iprobe_f08
+    end interface MPI_Iprobe
+
     interface MPI_Mprobe
         module procedure MPI_Mprobe_f08
     end interface MPI_Mprobe
@@ -102,7 +106,7 @@ module mpi_p2p_f
 
     contains
 
-        subroutine MPI_Probe_f08(source, tag, comm, stat, ierror) 
+        subroutine MPI_Probe_f08(source, tag, comm, stat, ierror)
             use mpi_handle_types, only: MPI_Comm, MPI_Status
             use mpi_p2p_c, only: C_MPI_Probe
             integer, intent(in) :: source, tag
@@ -115,6 +119,22 @@ module mpi_p2p_f
             call C_MPI_Probe(source_c, tag_c, comm % MPI_VAL, stat, ierror_c)
             if (present(ierror)) ierror = ierror_c
         end subroutine MPI_Probe_f08
+
+        subroutine MPI_Iprobe_f08(source, tag, comm, flag, stat, ierror)
+            use mpi_handle_types, only: MPI_Comm, MPI_Status
+            use mpi_p2p_c, only: C_MPI_Iprobe
+            integer, intent(in) :: source, tag
+            type(MPI_Comm), intent(in) :: comm
+            logical, intent(out) :: flag
+            type(MPI_Status), intent(out) :: stat
+            integer, optional, intent(out) :: ierror
+            integer(kind=c_int) :: source_c, tag_c, flag_c, ierror_c
+            source_c = source
+            tag_c    = tag
+            call C_MPI_Iprobe(source_c, tag_c, comm % MPI_VAL, flag_c, stat, ierror_c)
+            flag = (flag_c .ne. 0)
+            if (present(ierror)) ierror = ierror_c
+        end subroutine MPI_Iprobe_f08
 
         subroutine MPI_Mprobe_f08(source, tag, comm, message, stat, ierror) 
             use mpi_handle_types, only: MPI_Comm, MPI_Message, MPI_Status

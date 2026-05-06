@@ -46,6 +46,14 @@ module mpi_core_f
 #endif
     end interface MPI_Get_library_version
 
+    interface MPI_Get_processor_name
+#ifdef HAVE_CFI
+        module procedure MPI_Get_processor_name_f08ts
+#else
+        module procedure MPI_Get_processor_name_f08
+#endif
+    end interface MPI_Get_processor_name
+
     interface MPI_Wtime
         module procedure MPI_Wtime_f08
     end interface MPI_Wtime
@@ -228,6 +236,32 @@ module mpi_core_f
             resultlen = resultlen_c
             if (present(ierror)) ierror = ierror_c
         end subroutine MPI_Get_library_version_f08ts
+#endif
+
+        subroutine MPI_Get_processor_name_f08(name, resultlen, ierror)
+            use mpi_core_c, only: C_MPI_Get_processor_name
+            use mpi_global_constants, only: MPI_MAX_PROCESSOR_NAME
+            character(len=MPI_MAX_PROCESSOR_NAME), intent(out) :: name
+            integer, intent(out) :: resultlen
+            integer, optional, intent(out) :: ierror
+            integer(kind=c_int) :: resultlen_c, ierror_c
+            call C_MPI_Get_processor_name(name, resultlen_c, ierror_c)
+            resultlen = resultlen_c
+            if (present(ierror)) ierror = ierror_c
+        end subroutine MPI_Get_processor_name_f08
+
+#ifdef HAVE_CFI
+        subroutine MPI_Get_processor_name_f08ts(name, resultlen, ierror)
+            use mpi_core_c, only: CFI_MPI_Get_processor_name
+            use mpi_global_constants, only: MPI_MAX_PROCESSOR_NAME
+            character(len=MPI_MAX_PROCESSOR_NAME), intent(out) :: name
+            integer, intent(out) :: resultlen
+            integer, optional, intent(out) :: ierror
+            integer(kind=c_int) :: resultlen_c, ierror_c
+            call CFI_MPI_Get_processor_name(name, resultlen_c, ierror_c)
+            resultlen = resultlen_c
+            if (present(ierror)) ierror = ierror_c
+        end subroutine MPI_Get_processor_name_f08ts
 #endif
 
         function MPI_Wtime_f08() result(time)

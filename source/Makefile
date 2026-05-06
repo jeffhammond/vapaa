@@ -24,6 +24,7 @@ libmpi_f08.a: mpi_f08.o cfi_util.o debug.o \
 	      mpi_op_f.o mpi_op_c.o mpi_op.o \
 	      mpi_request_f.o mpi_request_c.o mpi_request.o \
 	      mpi_status_f.o mpi_status_c.o mpi_status.o \
+	      mpi_rma_f.o mpi_rma_c.o mpi_rma.o \
 	      mpi_win_f.o mpi_win_c.o mpi_win.o \
 	      mpi_attr_f.o mpi_attr_c.o mpi_attr.o \
 	      mpi_error_f.o mpi_error_c.o mpi_error.o

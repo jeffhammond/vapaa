@@ -107,6 +107,33 @@ void CFI_MPI_Get_library_version(CFI_cdesc_t * version_d, int * resultlen, int *
 }
 #endif
 
+void C_MPI_Get_processor_name(char * name, int * resultlen, int * ierror)
+{
+    char tmp[MPI_MAX_PROCESSOR_NAME];
+    int len = 0;
+    *ierror = MPI_Get_processor_name(tmp, &len);
+    C_MPI_RC_FIX(*ierror);
+    int copy_len = (len < VAPAA_MPI_MAX_PROCESSOR_NAME) ? len : VAPAA_MPI_MAX_PROCESSOR_NAME;
+    memset(name, 0, VAPAA_MPI_MAX_PROCESSOR_NAME);
+    memcpy(name, tmp, copy_len);
+    *resultlen = copy_len;
+}
+
+#ifdef HAVE_CFI
+void CFI_MPI_Get_processor_name(CFI_cdesc_t * name_d, int * resultlen, int * ierror)
+{
+    char tmp[MPI_MAX_PROCESSOR_NAME];
+    int len = 0;
+    *ierror = MPI_Get_processor_name(tmp, &len);
+    C_MPI_RC_FIX(*ierror);
+    char * name = name_d->base_addr;
+    int copy_len = (len < VAPAA_MPI_MAX_PROCESSOR_NAME) ? len : VAPAA_MPI_MAX_PROCESSOR_NAME;
+    memset(name, 0, VAPAA_MPI_MAX_PROCESSOR_NAME);
+    memcpy(name, tmp, copy_len);
+    *resultlen = copy_len;
+}
+#endif
+
 double C_MPI_Wtime(void)
 {
     return MPI_Wtime();
