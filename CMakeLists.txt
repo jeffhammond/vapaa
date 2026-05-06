@@ -30,30 +30,6 @@ set(CMAKE_Fortran_STANDARD_REQUIRED ON)
 
 find_package(MPI REQUIRED COMPONENTS C)
 
-# this was needed on mac for some reason (?)
-find_file(ISO_FORTRAN_BINDING_HEADER
-  NAMES ISO_Fortran_binding.h
-  HINTS ${MPI_Fortran_INCLUDE_DIRS})
-if(NOT ISO_FORTRAN_BINDING_HEADER)
-  execute_process(
-    COMMAND ${CMAKE_Fortran_COMPILER} -print-file-name=include
-    OUTPUT_VARIABLE _fc_include_dir
-    OUTPUT_STRIP_TRAILING_WHITESPACE
-    RESULT_VARIABLE _fc_include_rc)
-  if(_fc_include_rc EQUAL 0 AND EXISTS "${_fc_include_dir}/ISO_Fortran_binding.h")
-    set(ISO_FORTRAN_BINDING_HEADER "${_fc_include_dir}/ISO_Fortran_binding.h"
-        CACHE FILEPATH "Path to ISO_Fortran_binding.h" FORCE)
-  endif()
-endif()
-if(NOT ISO_FORTRAN_BINDING_HEADER)
-  message(FATAL_ERROR "Could not locate ISO_Fortran_binding.h - set ISO_FORTRAN_BINDING_HEADER manually.")
-endif()
-message(STATUS "ISO_Fortran_binding.h found at: ${ISO_FORTRAN_BINDING_HEADER}")
-set(ISO_FORTRAN_BINDING_STAGE_DIR "${PROJECT_BINARY_DIR}/iso_fortran_binding")
-file(MAKE_DIRECTORY "${ISO_FORTRAN_BINDING_STAGE_DIR}")
-configure_file("${ISO_FORTRAN_BINDING_HEADER}"
-               "${ISO_FORTRAN_BINDING_STAGE_DIR}/ISO_Fortran_binding.h" COPYONLY)
-
 set(SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/source")
 
 # Create the static library
@@ -115,7 +91,6 @@ endif()
 
 target_compile_options(${vapaa_lib} PRIVATE -Wall -Wextra -fPIE)
 target_compile_definitions(${vapaa_lib} PRIVATE HAVE_CFI ${FLAG_MPI})
-target_include_directories(${vapaa_lib} PRIVATE ${ISO_FORTRAN_BINDING_STAGE_DIR})
 target_link_libraries(${vapaa_lib} PRIVATE MPI::MPI_C)
 
 # Set the library output and module directories
