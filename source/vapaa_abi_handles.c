@@ -58,12 +58,16 @@
 
 DEFINE_HANDLE_TABLE(comm, MPI_Comm, 0x40010000)
 DEFINE_HANDLE_TABLE(datatype, MPI_Datatype, 0x40020000)
+DEFINE_HANDLE_TABLE(errhandler, MPI_Errhandler, 0x400a0000)
 DEFINE_HANDLE_TABLE(file, MPI_File, 0x40030000)
 DEFINE_HANDLE_TABLE(group, MPI_Group, 0x40040000)
 DEFINE_HANDLE_TABLE(info, MPI_Info, 0x40050000)
 DEFINE_HANDLE_TABLE(message, MPI_Message, 0x40060000)
 DEFINE_HANDLE_TABLE(op, MPI_Op, 0x40070000)
 DEFINE_HANDLE_TABLE(request, MPI_Request, 0x40080000)
+#if MPI_VERSION >= 4
+DEFINE_HANDLE_TABLE(session, MPI_Session, 0x400b0000)
+#endif
 DEFINE_HANDLE_TABLE(win, MPI_Win, 0x40090000)
 
 static MPI_Datatype datatype_or_fallback(MPI_Datatype datatype, MPI_Datatype fallback)
@@ -92,6 +96,31 @@ int VAPAA_MPI_Comm_toint(MPI_Comm comm)
     if (comm == MPI_COMM_WORLD) { return VAPAA_MPI_COMM_WORLD; }
     if (comm == MPI_COMM_SELF)  { return VAPAA_MPI_COMM_SELF; }
     return comm_store(comm);
+}
+
+MPI_Errhandler VAPAA_MPI_Errhandler_fromint(int errhandler)
+{
+    MPI_Errhandler value;
+    switch (errhandler) {
+        case VAPAA_MPI_ERRHANDLER_NULL:  return MPI_ERRHANDLER_NULL;
+        case VAPAA_MPI_ERRORS_ARE_FATAL: return MPI_ERRORS_ARE_FATAL;
+        case VAPAA_MPI_ERRORS_ABORT:     return MPI_ERRORS_ABORT;
+        case VAPAA_MPI_ERRORS_RETURN:    return MPI_ERRORS_RETURN;
+        default:
+            if (errhandler_lookup_key(errhandler, &value)) {
+                return value;
+            }
+            return MPI_Errhandler_f2c(errhandler);
+    }
+}
+
+int VAPAA_MPI_Errhandler_toint(MPI_Errhandler errhandler)
+{
+    if (errhandler == MPI_ERRHANDLER_NULL)  { return VAPAA_MPI_ERRHANDLER_NULL; }
+    if (errhandler == MPI_ERRORS_ARE_FATAL) { return VAPAA_MPI_ERRORS_ARE_FATAL; }
+    if (errhandler == MPI_ERRORS_ABORT)     { return VAPAA_MPI_ERRORS_ABORT; }
+    if (errhandler == MPI_ERRORS_RETURN)    { return VAPAA_MPI_ERRORS_RETURN; }
+    return errhandler_store(errhandler);
 }
 
 MPI_File VAPAA_MPI_File_fromint(int file)
@@ -247,6 +276,28 @@ int VAPAA_MPI_Request_toint(MPI_Request request)
     }
     return request_store(request);
 }
+
+#if MPI_VERSION >= 4
+MPI_Session VAPAA_MPI_Session_fromint(int session)
+{
+    MPI_Session value;
+    if (session == VAPAA_MPI_SESSION_NULL) {
+        return MPI_SESSION_NULL;
+    }
+    if (session_lookup_key(session, &value)) {
+        return value;
+    }
+    return MPI_Session_f2c(session);
+}
+
+int VAPAA_MPI_Session_toint(MPI_Session session)
+{
+    if (session == MPI_SESSION_NULL) {
+        return VAPAA_MPI_SESSION_NULL;
+    }
+    return session_store(session);
+}
+#endif
 
 MPI_Datatype VAPAA_MPI_Type_fromint(int datatype)
 {

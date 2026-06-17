@@ -40,6 +40,18 @@ module mpi_group_f
         module procedure MPI_Group_excl_f08
     end interface MPI_Group_excl
 
+    interface MPI_Group_range_incl
+        module procedure MPI_Group_range_incl_f08
+    end interface MPI_Group_range_incl
+
+    interface MPI_Group_range_excl
+        module procedure MPI_Group_range_excl_f08
+    end interface MPI_Group_range_excl
+
+    interface MPI_Group_from_session_pset
+        module procedure MPI_Group_from_session_pset_f08
+    end interface MPI_Group_from_session_pset
+
     interface MPI_Group_free
         module procedure MPI_Group_free_f08
     end interface MPI_Group_free
@@ -181,6 +193,56 @@ module mpi_group_f
             call C_MPI_Group_excl(group % MPI_VAL, n_c, ranks_c, newgroup % MPI_VAL, ierror_c)
             if (present(ierror)) ierror = ierror_c
         end subroutine MPI_Group_excl_f08
+
+        subroutine MPI_Group_range_incl_f08(group, n, ranges, newgroup, ierror)
+            use mpi_handle_types, only: MPI_Group
+            use mpi_group_c, only: C_MPI_Group_range_incl
+            type(MPI_Group), intent(in) :: group
+            integer, intent(in) :: n, ranges(3,n)
+            type(MPI_Group), intent(out) :: newgroup
+            integer, optional, intent(out) :: ierror
+            integer(kind=c_int) :: n_c, ranges_c(3,n), ierror_c
+            n_c = n
+            ranges_c = ranges
+            call C_MPI_Group_range_incl(group % MPI_VAL, n_c, ranges_c, newgroup % MPI_VAL, ierror_c)
+            if (present(ierror)) ierror = ierror_c
+        end subroutine MPI_Group_range_incl_f08
+
+        subroutine MPI_Group_range_excl_f08(group, n, ranges, newgroup, ierror)
+            use mpi_handle_types, only: MPI_Group
+            use mpi_group_c, only: C_MPI_Group_range_excl
+            type(MPI_Group), intent(in) :: group
+            integer, intent(in) :: n, ranges(3,n)
+            type(MPI_Group), intent(out) :: newgroup
+            integer, optional, intent(out) :: ierror
+            integer(kind=c_int) :: n_c, ranges_c(3,n), ierror_c
+            n_c = n
+            ranges_c = ranges
+            call C_MPI_Group_range_excl(group % MPI_VAL, n_c, ranges_c, newgroup % MPI_VAL, ierror_c)
+            if (present(ierror)) ierror = ierror_c
+        end subroutine MPI_Group_range_excl_f08
+
+        subroutine MPI_Group_from_session_pset_f08(session, pset_name, newgroup, ierror)
+            use iso_c_binding, only: c_char, c_null_char
+            use mpi_handle_types, only: MPI_Group, MPI_Session
+            use mpi_group_c, only: C_MPI_Group_from_session_pset
+            type(MPI_Session), intent(in) :: session
+            character(len=*), intent(in) :: pset_name
+            type(MPI_Group), intent(out) :: newgroup
+            integer, optional, intent(out) :: ierror
+            integer(kind=c_int) :: ierror_c
+            integer :: i, ls
+            character(kind=c_char), dimension(:), allocatable :: pset_name_c
+            ls = len(pset_name)
+            allocate(pset_name_c(ls + 1))
+            pset_name_c = c_null_char
+            do i = 1, ls
+                pset_name_c(i) = pset_name(i:i)
+            end do
+            call C_MPI_Group_from_session_pset(session % MPI_VAL, pset_name_c, newgroup % MPI_VAL, ierror_c)
+            if (present(ierror)) ierror = ierror_c
+            deallocate(pset_name_c)
+        end subroutine MPI_Group_from_session_pset_f08
 
         subroutine MPI_Group_free_f08(group, ierror)
             use mpi_handle_types, only: MPI_Group

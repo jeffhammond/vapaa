@@ -11,7 +11,6 @@ module mpi_info_c
         end subroutine C_MPI_Info_create
     end interface
 
-#if 0
     interface
         subroutine C_MPI_Info_create_env(info, ierror) &
                    bind(C,name="C_MPI_Info_create_env")
@@ -20,7 +19,6 @@ module mpi_info_c
             integer(kind=c_int), intent(out) :: info, ierror
         end subroutine C_MPI_Info_create_env
     end interface
-#endif
 
     interface
         subroutine C_MPI_Info_delete(info, key, ierror) &
@@ -120,6 +118,28 @@ module mpi_info_c
             type(*), dimension(..), intent(inout) :: value
             integer(kind=c_int), intent(out) :: flag, ierror
         end subroutine CFI_MPI_Info_get_string
+    end interface
+
+    interface
+        subroutine C_MPI_Info_get_valuelen(info, key, valuelen, flag, ierror) &
+                   bind(C,name="C_MPI_Info_get_valuelen")
+            use iso_c_binding, only: c_int, c_char
+            implicit none
+            integer(kind=c_int), intent(in) :: info
+            character(kind=c_char), dimension(*), intent(in) :: key
+            integer(kind=c_int), intent(out) :: valuelen, flag, ierror
+        end subroutine C_MPI_Info_get_valuelen
+    end interface
+
+    interface
+        subroutine CFI_MPI_Info_get_valuelen(info, key, valuelen, flag, ierror) &
+                   bind(C,name="CFI_MPI_Info_get_valuelen")
+            use iso_c_binding, only: c_int
+            implicit none
+            integer(kind=c_int), intent(in) :: info
+            type(*), dimension(..), intent(in) :: key
+            integer(kind=c_int), intent(out) :: valuelen, flag, ierror
+        end subroutine CFI_MPI_Info_get_valuelen
     end interface
 
     interface

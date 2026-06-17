@@ -63,7 +63,6 @@ module mpi_comm_c
         end subroutine C_MPI_Comm_idup
     end interface
 
-#if 0
     interface
         subroutine C_MPI_Comm_idup_with_info(comm, info, newcomm, request, ierror) &
                    bind(C,name="C_MPI_Comm_idup_with_info")
@@ -74,7 +73,6 @@ module mpi_comm_c
             integer(kind=c_int), intent(out) :: request, ierror
         end subroutine C_MPI_Comm_idup_with_info
     end interface
-#endif
 
     interface
         subroutine C_MPI_Comm_create(comm, group, newcomm, ierror) &
@@ -142,8 +140,9 @@ module mpi_comm_c
                    bind(C,name="C_MPI_Dims_create")
             use iso_c_binding, only: c_int
             implicit none
-            integer(kind=c_int), intent(in) :: nnodes, ndims, ierror
+            integer(kind=c_int), intent(in) :: nnodes, ndims
             integer(kind=c_int), intent(inout) :: dims(ndims)
+            integer(kind=c_int), intent(out) :: ierror
         end subroutine C_MPI_Dims_create
     end interface
 
@@ -155,6 +154,197 @@ module mpi_comm_c
             integer(kind=c_int), intent(in) :: comm, rank, maxdims
             integer(kind=c_int), intent(out) :: coords(*), ierror
         end subroutine C_MPI_Cart_coords
+    end interface
+
+    interface
+        subroutine C_MPI_Cart_get(comm, maxdims, dims, periods, coords, ierror) &
+                   bind(C,name="C_MPI_Cart_get")
+            use iso_c_binding, only: c_int
+            implicit none
+            integer(kind=c_int), intent(in) :: comm, maxdims
+            integer(kind=c_int), intent(out) :: dims(*), periods(*), coords(*), ierror
+        end subroutine C_MPI_Cart_get
+    end interface
+
+    interface
+        subroutine C_MPI_Cart_map(comm, ndims, dims, periods, newrank, ierror) &
+                   bind(C,name="C_MPI_Cart_map")
+            use iso_c_binding, only: c_int
+            implicit none
+            integer(kind=c_int), intent(in) :: comm, ndims
+            integer(kind=c_int), intent(in) :: dims(*), periods(*)
+            integer(kind=c_int), intent(out) :: newrank, ierror
+        end subroutine C_MPI_Cart_map
+    end interface
+
+    interface
+        subroutine C_MPI_Cart_rank(comm, coords, rank, ierror) &
+                   bind(C,name="C_MPI_Cart_rank")
+            use iso_c_binding, only: c_int
+            implicit none
+            integer(kind=c_int), intent(in) :: comm
+            integer(kind=c_int), intent(in) :: coords(*)
+            integer(kind=c_int), intent(out) :: rank, ierror
+        end subroutine C_MPI_Cart_rank
+    end interface
+
+    interface
+        subroutine C_MPI_Cart_shift(comm, direction, disp, rank_source, rank_dest, ierror) &
+                   bind(C,name="C_MPI_Cart_shift")
+            use iso_c_binding, only: c_int
+            implicit none
+            integer(kind=c_int), intent(in) :: comm, direction, disp
+            integer(kind=c_int), intent(out) :: rank_source, rank_dest, ierror
+        end subroutine C_MPI_Cart_shift
+    end interface
+
+    interface
+        subroutine C_MPI_Cart_sub(comm, remain_dims, newcomm, ierror) &
+                   bind(C,name="C_MPI_Cart_sub")
+            use iso_c_binding, only: c_int
+            implicit none
+            integer(kind=c_int), intent(in) :: comm
+            integer(kind=c_int), intent(in) :: remain_dims(*)
+            integer(kind=c_int), intent(out) :: newcomm, ierror
+        end subroutine C_MPI_Cart_sub
+    end interface
+
+    interface
+        subroutine C_MPI_Cartdim_get(comm, ndims, ierror) &
+                   bind(C,name="C_MPI_Cartdim_get")
+            use iso_c_binding, only: c_int
+            implicit none
+            integer(kind=c_int), intent(in) :: comm
+            integer(kind=c_int), intent(out) :: ndims, ierror
+        end subroutine C_MPI_Cartdim_get
+    end interface
+
+    interface
+        subroutine C_MPI_Dist_graph_create(comm_old, n, sources, degrees, destinations, weights, &
+                                           info, reorder, comm_dist_graph, ierror) &
+                   bind(C,name="C_MPI_Dist_graph_create")
+            use iso_c_binding, only: c_int
+            implicit none
+            integer(kind=c_int), intent(in) :: comm_old, n, info, reorder
+            integer(kind=c_int), intent(in) :: sources(*), degrees(*), destinations(*), weights(*)
+            integer(kind=c_int), intent(out) :: comm_dist_graph, ierror
+        end subroutine C_MPI_Dist_graph_create
+    end interface
+
+    interface
+        subroutine C_MPI_Dist_graph_create_adjacent(comm_old, indegree, sources, sourceweights, &
+                                                    outdegree, destinations, destweights, info, &
+                                                    reorder, comm_dist_graph, ierror) &
+                   bind(C,name="C_MPI_Dist_graph_create_adjacent")
+            use iso_c_binding, only: c_int
+            implicit none
+            integer(kind=c_int), intent(in) :: comm_old, indegree, outdegree, info, reorder
+            integer(kind=c_int), intent(in) :: sources(*), sourceweights(*), destinations(*), destweights(*)
+            integer(kind=c_int), intent(out) :: comm_dist_graph, ierror
+        end subroutine C_MPI_Dist_graph_create_adjacent
+    end interface
+
+    interface
+        subroutine C_MPI_Dist_graph_neighbors(comm, maxindegree, sources, sourceweights, &
+                                              maxoutdegree, destinations, destweights, ierror) &
+                   bind(C,name="C_MPI_Dist_graph_neighbors")
+            use iso_c_binding, only: c_int
+            implicit none
+            integer(kind=c_int), intent(in) :: comm, maxindegree, maxoutdegree
+            integer(kind=c_int), intent(out) :: sources(*), destinations(*), ierror
+            integer(kind=c_int) :: sourceweights(*), destweights(*)
+        end subroutine C_MPI_Dist_graph_neighbors
+    end interface
+
+    interface
+        subroutine C_MPI_Dist_graph_neighbors_count(comm, indegree, outdegree, weighted, ierror) &
+                   bind(C,name="C_MPI_Dist_graph_neighbors_count")
+            use iso_c_binding, only: c_int
+            implicit none
+            integer(kind=c_int), intent(in) :: comm
+            integer(kind=c_int), intent(out) :: indegree, outdegree, weighted, ierror
+        end subroutine C_MPI_Dist_graph_neighbors_count
+    end interface
+
+    interface
+        subroutine C_MPI_Graph_create(comm_old, nnodes, indx, edges, reorder, comm_graph, ierror) &
+                   bind(C,name="C_MPI_Graph_create")
+            use iso_c_binding, only: c_int
+            implicit none
+            integer(kind=c_int), intent(in) :: comm_old, nnodes, reorder
+            integer(kind=c_int), intent(in) :: indx(*), edges(*)
+            integer(kind=c_int), intent(out) :: comm_graph, ierror
+        end subroutine C_MPI_Graph_create
+    end interface
+
+    interface
+        subroutine C_MPI_Graph_get(comm, maxindex, maxedges, indx, edges, ierror) &
+                   bind(C,name="C_MPI_Graph_get")
+            use iso_c_binding, only: c_int
+            implicit none
+            integer(kind=c_int), intent(in) :: comm, maxindex, maxedges
+            integer(kind=c_int), intent(out) :: indx(*), edges(*), ierror
+        end subroutine C_MPI_Graph_get
+    end interface
+
+    interface
+        subroutine C_MPI_Graph_map(comm, nnodes, indx, edges, newrank, ierror) &
+                   bind(C,name="C_MPI_Graph_map")
+            use iso_c_binding, only: c_int
+            implicit none
+            integer(kind=c_int), intent(in) :: comm, nnodes
+            integer(kind=c_int), intent(in) :: indx(*), edges(*)
+            integer(kind=c_int), intent(out) :: newrank, ierror
+        end subroutine C_MPI_Graph_map
+    end interface
+
+    interface
+        subroutine C_MPI_Graph_neighbors(comm, rank, maxneighbors, neighbors, ierror) &
+                   bind(C,name="C_MPI_Graph_neighbors")
+            use iso_c_binding, only: c_int
+            implicit none
+            integer(kind=c_int), intent(in) :: comm, rank, maxneighbors
+            integer(kind=c_int), intent(out) :: neighbors(*), ierror
+        end subroutine C_MPI_Graph_neighbors
+    end interface
+
+    interface
+        subroutine C_MPI_Graph_neighbors_count(comm, rank, nneighbors, ierror) &
+                   bind(C,name="C_MPI_Graph_neighbors_count")
+            use iso_c_binding, only: c_int
+            implicit none
+            integer(kind=c_int), intent(in) :: comm, rank
+            integer(kind=c_int), intent(out) :: nneighbors, ierror
+        end subroutine C_MPI_Graph_neighbors_count
+    end interface
+
+    interface
+        subroutine C_MPI_Graphdims_get(comm, nnodes, nedges, ierror) &
+                   bind(C,name="C_MPI_Graphdims_get")
+            use iso_c_binding, only: c_int
+            implicit none
+            integer(kind=c_int), intent(in) :: comm
+            integer(kind=c_int), intent(out) :: nnodes, nedges, ierror
+        end subroutine C_MPI_Graphdims_get
+    end interface
+
+    interface
+        subroutine C_MPI_Topo_test(comm, status, ierror) &
+                   bind(C,name="C_MPI_Topo_test")
+            use iso_c_binding, only: c_int
+            implicit none
+            integer(kind=c_int), intent(in) :: comm
+            integer(kind=c_int), intent(out) :: status, ierror
+        end subroutine C_MPI_Topo_test
+    end interface
+
+    interface
+        subroutine C_MPI_Get_hw_resource_info(hw_info, ierror) &
+                   bind(C,name="C_MPI_Get_hw_resource_info")
+            use iso_c_binding, only: c_int
+            implicit none
+            integer(kind=c_int), intent(out) :: hw_info, ierror
+        end subroutine C_MPI_Get_hw_resource_info
     end interface
 
 end module mpi_comm_c

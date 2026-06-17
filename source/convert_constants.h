@@ -26,6 +26,8 @@ MAYBE_UNUSED static inline int C_MPI_THREAD_LEVEL_F2C(int level) { return level;
 MAYBE_UNUSED static inline int C_MPI_THREAD_LEVEL_C2F(int level) { return level; }
 MAYBE_UNUSED static inline int C_MPI_COMPARE_RESULT_F2C(int result) { return result; }
 MAYBE_UNUSED static inline int C_MPI_COMPARE_RESULT_C2F(int result) { return result; }
+MAYBE_UNUSED static inline int C_MPI_UNDEFINED_C2F(int value) { return value; }
+MAYBE_UNUSED static inline int C_MPI_TOPOLOGY_C2F(int topology) { return topology; }
 
 #else
 
@@ -168,6 +170,32 @@ static int C_MPI_COMPARE_RESULT_C2F(int result_c)
     } else {
         fprintf(stderr, "invalid comparison result (%d)\n", result_c);
         MPI_Abort(MPI_COMM_SELF, result_c);
+        return -1;
+    }
+}
+
+MAYBE_UNUSED
+static inline int C_MPI_UNDEFINED_C2F(int value)
+{
+    return value == MPI_UNDEFINED ? VAPAA_MPI_UNDEFINED : value;
+}
+
+MAYBE_UNUSED
+static int C_MPI_TOPOLOGY_C2F(int topology_c)
+{
+    if (topology_c == MPI_UNDEFINED) {
+       return VAPAA_MPI_UNDEFINED;
+    } else if (topology_c == MPI_CART) {
+       return VAPAA_MPI_CART;
+    } else if (topology_c == MPI_GRAPH) {
+       return VAPAA_MPI_GRAPH;
+#ifdef MPI_DIST_GRAPH
+    } else if (topology_c == MPI_DIST_GRAPH) {
+       return VAPAA_MPI_DIST_GRAPH;
+#endif
+    } else {
+        fprintf(stderr, "invalid topology (%d)\n", topology_c);
+        MPI_Abort(MPI_COMM_SELF, topology_c);
         return -1;
     }
 }

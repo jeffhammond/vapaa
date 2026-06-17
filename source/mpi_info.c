@@ -14,6 +14,18 @@ void C_MPI_Info_create(int * info_f, int * ierror)
     C_MPI_RC_FIX(*ierror);
 }
 
+void C_MPI_Info_create_env(int * info_f, int * ierror)
+{
+    MPI_Info info = MPI_INFO_NULL;
+#if MPI_VERSION >= 4
+    *ierror = MPI_Info_create_env(0, NULL, &info);
+#else
+    *ierror = MPI_ERR_UNSUPPORTED_OPERATION;
+#endif
+    *info_f = C_MPI_INFO_TOINT(info);
+    C_MPI_RC_FIX(*ierror);
+}
+
 void C_MPI_Info_delete(int * info_f, char * key, int * ierror)
 {
     MPI_Info info = C_MPI_INFO_FROMINT(*info_f);
@@ -90,6 +102,13 @@ void C_MPI_Info_get_string(int * info_f, char * key, int * buflen, char * val, i
     C_MPI_RC_FIX(*ierror);
 }
 
+void C_MPI_Info_get_valuelen(int * info_f, char * key, int * valuelen, int * flag, int * ierror)
+{
+    MPI_Info info = C_MPI_INFO_FROMINT(*info_f);
+    *ierror = MPI_Info_get_valuelen(info, key, valuelen, flag);
+    C_MPI_RC_FIX(*ierror);
+}
+
 #ifdef HAVE_CFI
 void CFI_MPI_Info_get_string(int * info_f, CFI_cdesc_t * key_d, int * buflen, CFI_cdesc_t * val_d, int * flag, int * ierror)
 {
@@ -108,6 +127,16 @@ void CFI_MPI_Info_get_string(int * info_f, CFI_cdesc_t * key_d, int * buflen, CF
         (*buflen)++;
     }
 #endif
+    C_MPI_RC_FIX(*ierror);
+}
+#endif
+
+#ifdef HAVE_CFI
+void CFI_MPI_Info_get_valuelen(int * info_f, CFI_cdesc_t * key_d, int * valuelen, int * flag, int * ierror)
+{
+    MPI_Info info = C_MPI_INFO_FROMINT(*info_f);
+    char * key = key_d -> base_addr;
+    *ierror = MPI_Info_get_valuelen(info, key, valuelen, flag);
     C_MPI_RC_FIX(*ierror);
 }
 #endif

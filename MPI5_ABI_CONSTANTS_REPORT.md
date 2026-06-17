@@ -154,6 +154,76 @@ Two tests were updated to reflect this split:
   `MPI_ERR_OP` result when it is not supported, and no longer rejects a valid
   derived datatype handle in the user callback.
 
+## MPI-5 Fortran Function Coverage
+
+A follow-up implementation pass added wrappers for every MPI-5 `mpi_f08`
+generic interface name that was missing from Vapaa. The coverage inventory used
+the MPICH 5.0.0 generated MPI-5 `mpi_f08.f90` module as the reference:
+
+```sh
+python3 - <<'PY'
+import pathlib, re
+mpich = pathlib.Path(
+    '/tmp/mpich-5.0.0-abi-fort-build/src/binding/fortran/use_mpi_f08/mpi_f08.f90'
+).read_text(errors='ignore')
+vapaa = '\n'.join(
+    p.read_text(errors='ignore') for p in pathlib.Path('source').glob('*_f.F90')
+)
+missing = sorted(
+    set(re.findall(r'^\s*INTERFACE\s+(MPI_\w+)', mpich, re.I | re.M))
+    - set(re.findall(r'^\s*INTERFACE\s+(MPI_\w+)', vapaa, re.I | re.M))
+)
+print('missing', len(missing))
+for name in missing:
+    print(name)
+PY
+```
+
+Result after the wrapper pass:
+
+```text
+missing 0
+```
+
+The new wrappers follow Vapaa's existing layering:
+
+- Fortran `mpi_f08` generic interfaces live in small domain modules and are
+  re-exported by `source/mpi_f08.F90`.
+- Typed Fortran handles remain Vapaa integer handles.
+- C bridge procedures convert handles through the existing `*_FROMINT` and
+  `*_TOINT` macros, so MPI-5 ABI builds use `MPI_*_fromint/toint` and legacy
+  builds keep the restored compatibility path.
+- CFI descriptor wrappers use the same contiguous-buffer checks and status
+  handling style as the existing Vapaa wrappers.
+
+New direct-wrapper modules added by this pass:
+
+- `source/mpi_direct_misc_*`: `MPI_Sendrecv_replace`, scans, reduce-scatter,
+  reduce-local, external pack/unpack, pack-size, and `MPI_Op_commutative`.
+- `source/mpi_direct_collective_*`: nonblocking collectives, persistent
+  collectives, MPI-5 `MPI_Isendrecv` routines, `MPI_Alltoallw`, and
+  neighborhood collectives.
+- `source/mpi_direct_file_data_*`: nonblocking, split collective, ordered, and
+  shared MPI-IO data-access routines.
+- `source/mpi_direct_callback*` and `source/mpi_f08_callbacks.F90`: errhandler
+  creation, keyval creation, generalized requests, `MPI_Op_create_c`,
+  data-representation registration, and process-spawn entry points.
+- `source/mpi_direct_win_*`: one-sided data movement wrappers including
+  `MPI_Put`, `MPI_Get`, accumulate/get-accumulate variants, request-based RMA,
+  compare-and-swap, and fetch-and-op.
+
+Important scope notes:
+
+- The inventory verifies coverage by MPI-5 generic interface name. Several
+  wrappers, including some pre-existing Vapaa wrappers, still expose Vapaa's
+  integer-count style rather than duplicating every MPICH `_c` large-count
+  overload in the generated module.
+- New CFI wrappers generally require contiguous actual arguments. Noncontiguous
+  descriptor support remains limited by the existing MPIX-Iov-dependent path.
+- `MPI_Comm_spawn` and `MPI_Comm_spawn_multiple` currently convert command,
+  info, communicator, and errcode arguments, but pass `MPI_ARGV_NULL` and
+  `MPI_ARGVS_NULL` for argv arrays.
+
 ## No MPI-5 ABI `f2c/c2f` Use
 
 The MPI-5 ABI binaries were checked for handle conversion symbols:
@@ -531,6 +601,8 @@ U MPI_Abi_set_fortran_booleans
 U MPI_Abi_set_fortran_info
 U MPI_Comm_fromint
 U MPI_Comm_toint
+U MPI_Errhandler_fromint
+U MPI_Errhandler_toint
 U MPI_File_fromint
 U MPI_File_toint
 U MPI_Group_fromint
@@ -543,6 +615,8 @@ U MPI_Op_fromint
 U MPI_Op_toint
 U MPI_Request_fromint
 U MPI_Request_toint
+U MPI_Session_fromint
+U MPI_Session_toint
 U MPI_Type_fromint
 U MPI_Type_toint
 U MPI_Win_fromint

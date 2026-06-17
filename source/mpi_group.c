@@ -95,10 +95,43 @@ void C_MPI_Group_excl(int * group_f, int * n, int * ranks, int * newgroup_f, int
     C_MPI_RC_FIX(*ierror);
 }
 
-// TODO
-// MPI_Group_range_incl
-// MPI_Group_range_excl
-// MPI_Group_from_session_pset
+void C_MPI_Group_range_incl(int * group_f, int * n, int ranges_f[][3], int * newgroup_f, int * ierror)
+{
+    MPI_Group newgroup = MPI_GROUP_NULL;
+    MPI_Group group = C_MPI_GROUP_FROMINT(*group_f);
+    *ierror = MPI_Group_range_incl(group, *n, ranges_f, &newgroup);
+    *newgroup_f = C_MPI_GROUP_TOINT(newgroup);
+    C_MPI_RC_FIX(*ierror);
+}
+
+void C_MPI_Group_range_excl(int * group_f, int * n, int ranges_f[][3], int * newgroup_f, int * ierror)
+{
+    MPI_Group newgroup = MPI_GROUP_NULL;
+    MPI_Group group = C_MPI_GROUP_FROMINT(*group_f);
+    *ierror = MPI_Group_range_excl(group, *n, ranges_f, &newgroup);
+    *newgroup_f = C_MPI_GROUP_TOINT(newgroup);
+    C_MPI_RC_FIX(*ierror);
+}
+
+#if MPI_VERSION >= 4
+void C_MPI_Group_from_session_pset(int * session_f, char * pset_name, int * newgroup_f, int * ierror)
+{
+    MPI_Group newgroup = MPI_GROUP_NULL;
+    MPI_Session session = C_MPI_SESSION_FROMINT(*session_f);
+    *ierror = MPI_Group_from_session_pset(session, pset_name, &newgroup);
+    *newgroup_f = C_MPI_GROUP_TOINT(newgroup);
+    C_MPI_RC_FIX(*ierror);
+}
+#else
+void C_MPI_Group_from_session_pset(int * session_f, char * pset_name, int * newgroup_f, int * ierror)
+{
+    (void) session_f;
+    (void) pset_name;
+    *newgroup_f = VAPAA_MPI_GROUP_NULL;
+    *ierror = MPI_ERR_UNSUPPORTED_OPERATION;
+    C_MPI_RC_FIX(*ierror);
+}
+#endif
 
 void C_MPI_Group_free(int * group_f, int * ierror)
 {

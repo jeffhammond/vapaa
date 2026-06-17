@@ -40,6 +40,14 @@ module mpi_coll_f
 #endif
     end interface MPI_Gather
 
+    interface MPI_Gatherv
+#ifdef HAVE_CFI
+        module procedure MPI_Gatherv_f08ts
+#else
+        module procedure MPI_Gatherv_f08
+#endif
+    end interface MPI_Gatherv
+
     interface MPI_Allgather
 #ifdef HAVE_CFI
         module procedure MPI_Allgather_f08ts
@@ -47,6 +55,14 @@ module mpi_coll_f
         module procedure MPI_Allgather_f08
 #endif
     end interface MPI_Allgather
+
+    interface MPI_Allgatherv
+#ifdef HAVE_CFI
+        module procedure MPI_Allgatherv_f08ts
+#else
+        module procedure MPI_Allgatherv_f08
+#endif
+    end interface MPI_Allgatherv
 
     interface MPI_Scatter
 #ifdef HAVE_CFI
@@ -56,6 +72,14 @@ module mpi_coll_f
 #endif
     end interface MPI_Scatter
 
+    interface MPI_Scatterv
+#ifdef HAVE_CFI
+        module procedure MPI_Scatterv_f08ts
+#else
+        module procedure MPI_Scatterv_f08
+#endif
+    end interface MPI_Scatterv
+
     interface MPI_Alltoall
 #ifdef HAVE_CFI
         module procedure MPI_Alltoall_f08ts
@@ -63,6 +87,14 @@ module mpi_coll_f
         module procedure MPI_Alltoall_f08
 #endif
     end interface MPI_Alltoall
+
+    interface MPI_Alltoallv
+#ifdef HAVE_CFI
+        module procedure MPI_Alltoallv_f08ts
+#else
+        module procedure MPI_Alltoallv_f08
+#endif
+    end interface MPI_Alltoallv
 
     contains
 
@@ -219,6 +251,45 @@ module mpi_coll_f
         end subroutine MPI_Gather_f08ts
 #endif
 
+        subroutine MPI_Gatherv_f08(input, scount, stype, output, rcounts, rdisps, rtype, root, comm, ierror)
+            use mpi_handle_types, only: MPI_Comm, MPI_Datatype
+            use mpi_coll_c, only: C_MPI_Gatherv
+!dir$ ignore_tkr input, output
+            integer, dimension(*), intent(in)    :: input
+            integer, dimension(*), intent(inout) :: output
+            integer, intent(in) :: scount, root
+            integer, intent(in), dimension(*) :: rcounts, rdisps
+            type(MPI_Datatype), intent(in) :: stype, rtype
+            type(MPI_Comm), intent(in) :: comm
+            integer, optional, intent(out) :: ierror
+            integer(kind=c_int) :: scount_c, root_c, ierror_c
+            scount_c = scount
+            root_c = root
+            call C_MPI_Gatherv(input, scount_c, stype % MPI_VAL, output, rcounts, rdisps, rtype % MPI_VAL, &
+                               root_c, comm % MPI_VAL, ierror_c)
+            if (present(ierror)) ierror = ierror_c
+        end subroutine MPI_Gatherv_f08
+
+#ifdef HAVE_CFI
+        subroutine MPI_Gatherv_f08ts(input, scount, stype, output, rcounts, rdisps, rtype, root, comm, ierror)
+            use mpi_handle_types, only: MPI_Comm, MPI_Datatype
+            use mpi_coll_c, only: CFI_MPI_Gatherv
+            type(*), dimension(..), intent(in)    :: input
+            type(*), dimension(..), intent(inout) :: output
+            integer, intent(in) :: scount, root
+            integer, intent(in), dimension(*) :: rcounts, rdisps
+            type(MPI_Datatype), intent(in) :: stype, rtype
+            type(MPI_Comm), intent(in) :: comm
+            integer, optional, intent(out) :: ierror
+            integer(kind=c_int) :: scount_c, root_c, ierror_c
+            scount_c = scount
+            root_c = root
+            call CFI_MPI_Gatherv(input, scount_c, stype % MPI_VAL, output, rcounts, rdisps, rtype % MPI_VAL, &
+                                 root_c, comm % MPI_VAL, ierror_c)
+            if (present(ierror)) ierror = ierror_c
+        end subroutine MPI_Gatherv_f08ts
+#endif
+
         subroutine MPI_Allgather_f08(input, scount, stype, output, rcount, rtype, comm, ierror) 
             use mpi_handle_types, only: MPI_Comm, MPI_Datatype
             use mpi_coll_c, only: C_MPI_Allgather
@@ -252,6 +323,43 @@ module mpi_coll_f
             call CFI_MPI_Allgather(input, scount_c, stype % MPI_VAL, output, rcount_c, rtype % MPI_VAL, comm % MPI_VAL, ierror_c)
             if (present(ierror)) ierror = ierror_c
         end subroutine MPI_Allgather_f08ts
+#endif
+
+        subroutine MPI_Allgatherv_f08(input, scount, stype, output, rcounts, rdisps, rtype, comm, ierror)
+            use mpi_handle_types, only: MPI_Comm, MPI_Datatype
+            use mpi_coll_c, only: C_MPI_Allgatherv
+!dir$ ignore_tkr input, output
+            integer, dimension(*), intent(in)    :: input
+            integer, dimension(*), intent(inout) :: output
+            integer, intent(in) :: scount
+            integer, intent(in), dimension(*) :: rcounts, rdisps
+            type(MPI_Datatype), intent(in) :: stype, rtype
+            type(MPI_Comm), intent(in) :: comm
+            integer, optional, intent(out) :: ierror
+            integer(kind=c_int) :: scount_c, ierror_c
+            scount_c = scount
+            call C_MPI_Allgatherv(input, scount_c, stype % MPI_VAL, output, rcounts, rdisps, rtype % MPI_VAL, &
+                                  comm % MPI_VAL, ierror_c)
+            if (present(ierror)) ierror = ierror_c
+        end subroutine MPI_Allgatherv_f08
+
+#ifdef HAVE_CFI
+        subroutine MPI_Allgatherv_f08ts(input, scount, stype, output, rcounts, rdisps, rtype, comm, ierror)
+            use mpi_handle_types, only: MPI_Comm, MPI_Datatype
+            use mpi_coll_c, only: CFI_MPI_Allgatherv
+            type(*), dimension(..), intent(in)    :: input
+            type(*), dimension(..), intent(inout) :: output
+            integer, intent(in) :: scount
+            integer, intent(in), dimension(*) :: rcounts, rdisps
+            type(MPI_Datatype), intent(in) :: stype, rtype
+            type(MPI_Comm), intent(in) :: comm
+            integer, optional, intent(out) :: ierror
+            integer(kind=c_int) :: scount_c, ierror_c
+            scount_c = scount
+            call CFI_MPI_Allgatherv(input, scount_c, stype % MPI_VAL, output, rcounts, rdisps, rtype % MPI_VAL, &
+                                    comm % MPI_VAL, ierror_c)
+            if (present(ierror)) ierror = ierror_c
+        end subroutine MPI_Allgatherv_f08ts
 #endif
 
         subroutine MPI_Scatter_f08(input, scount, stype, output, rcount, rtype, root, comm, ierror) 
@@ -291,6 +399,45 @@ module mpi_coll_f
                                  root_c, comm % MPI_VAL, ierror_c)
             if (present(ierror)) ierror = ierror_c
         end subroutine MPI_Scatter_f08ts
+#endif
+
+        subroutine MPI_Scatterv_f08(input, scounts, sdisps, stype, output, rcount, rtype, root, comm, ierror)
+            use mpi_handle_types, only: MPI_Comm, MPI_Datatype
+            use mpi_coll_c, only: C_MPI_Scatterv
+!dir$ ignore_tkr input, output
+            integer, dimension(*), intent(in)    :: input
+            integer, dimension(*), intent(inout) :: output
+            integer, intent(in), dimension(*) :: scounts, sdisps
+            integer, intent(in) :: rcount, root
+            type(MPI_Datatype), intent(in) :: stype, rtype
+            type(MPI_Comm), intent(in) :: comm
+            integer, optional, intent(out) :: ierror
+            integer(kind=c_int) :: rcount_c, root_c, ierror_c
+            rcount_c = rcount
+            root_c = root
+            call C_MPI_Scatterv(input, scounts, sdisps, stype % MPI_VAL, output, rcount_c, rtype % MPI_VAL, &
+                                root_c, comm % MPI_VAL, ierror_c)
+            if (present(ierror)) ierror = ierror_c
+        end subroutine MPI_Scatterv_f08
+
+#ifdef HAVE_CFI
+        subroutine MPI_Scatterv_f08ts(input, scounts, sdisps, stype, output, rcount, rtype, root, comm, ierror)
+            use mpi_handle_types, only: MPI_Comm, MPI_Datatype
+            use mpi_coll_c, only: CFI_MPI_Scatterv
+            type(*), dimension(..), intent(in)    :: input
+            type(*), dimension(..), intent(inout) :: output
+            integer, intent(in), dimension(*) :: scounts, sdisps
+            integer, intent(in) :: rcount, root
+            type(MPI_Datatype), intent(in) :: stype, rtype
+            type(MPI_Comm), intent(in) :: comm
+            integer, optional, intent(out) :: ierror
+            integer(kind=c_int) :: rcount_c, root_c, ierror_c
+            rcount_c = rcount
+            root_c = root
+            call CFI_MPI_Scatterv(input, scounts, sdisps, stype % MPI_VAL, output, rcount_c, rtype % MPI_VAL, &
+                                  root_c, comm % MPI_VAL, ierror_c)
+            if (present(ierror)) ierror = ierror_c
+        end subroutine MPI_Scatterv_f08ts
 #endif
 
         subroutine MPI_Alltoall_f08(input, scount, stype, output, rcount, rtype, comm, ierror) 
@@ -366,4 +513,3 @@ module mpi_coll_f
 #endif
 
 end module mpi_coll_f
-

@@ -40,6 +40,10 @@ module mpi_handle_types
       integer(kind=c_int) :: MPI_VAL
     end type MPI_Datatype
 
+    type, bind(C) :: MPI_Errhandler
+      integer(kind=c_int) :: MPI_VAL
+    end type MPI_Errhandler
+
     type, bind(C) :: MPI_File
       integer(kind=c_int) :: MPI_VAL
     end type MPI_File
@@ -63,6 +67,10 @@ module mpi_handle_types
     type, bind(C) :: MPI_Request
       integer(kind=c_int) :: MPI_VAL
     end type MPI_Request
+
+    type, bind(C) :: MPI_Session
+      integer(kind=c_int) :: MPI_VAL
+    end type MPI_Session
 
     type, bind(C) :: MPI_Win
       integer(kind=c_int) :: MPI_VAL

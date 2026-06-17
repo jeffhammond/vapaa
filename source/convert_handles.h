@@ -116,6 +116,18 @@ static int C_MPI_TYPE_TOINT(MPI_Datatype type_c)
 }
 
 MAYBE_UNUSED
+static MPI_Errhandler C_MPI_ERRHANDLER_FROMINT(int errhandler_f)
+{
+    return VAPAA_MPI_Errhandler_fromint(errhandler_f);
+}
+
+MAYBE_UNUSED
+static int C_MPI_ERRHANDLER_TOINT(MPI_Errhandler errhandler_c)
+{
+    return VAPAA_MPI_Errhandler_toint(errhandler_c);
+}
+
+MAYBE_UNUSED
 static MPI_File C_MPI_FILE_FROMINT(int file_f)
 {
     return VAPAA_MPI_File_fromint(file_f);
@@ -186,6 +198,20 @@ static int C_MPI_REQUEST_TOINT(MPI_Request request_c)
 {
     return VAPAA_MPI_Request_toint(request_c);
 }
+
+#if MPI_VERSION >= 4
+MAYBE_UNUSED
+static MPI_Session C_MPI_SESSION_FROMINT(int session_f)
+{
+    return VAPAA_MPI_Session_fromint(session_f);
+}
+
+MAYBE_UNUSED
+static int C_MPI_SESSION_TOINT(MPI_Session session_c)
+{
+    return VAPAA_MPI_Session_toint(session_c);
+}
+#endif
 
 MAYBE_UNUSED
 static MPI_Win C_MPI_WIN_FROMINT(int win_f)

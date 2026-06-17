@@ -4,6 +4,7 @@
 #include <string.h> // memset
 #include <mpi.h>
 #include "ISO_Fortran_binding.h"
+#include "convert_handles.h"
 #include "convert_constants.h"
 #include "vapaa_constants.h"
 #include "debug.h"
@@ -265,3 +266,196 @@ void C_MPI_Error_class(int * errorcode_f, int * errorclass, int * ierror)
     *ierror = MPI_Error_class(errorcode_c, errorclass);
     C_MPI_RC_FIX(*ierror);
 }
+
+void C_MPI_Add_error_class(int * errorclass, int * ierror)
+{
+    *ierror = MPI_Add_error_class(errorclass);
+    C_MPI_RC_FIX(*ierror);
+}
+
+void C_MPI_Add_error_code(int * errorclass, int * errorcode, int * ierror)
+{
+    *ierror = MPI_Add_error_code(*errorclass, errorcode);
+    C_MPI_RC_FIX(*ierror);
+}
+
+void C_MPI_Add_error_string(int * errorcode, char * string, int * ierror)
+{
+    *ierror = MPI_Add_error_string(*errorcode, string);
+    C_MPI_RC_FIX(*ierror);
+}
+
+#if MPI_VERSION >= 5
+void C_MPI_Remove_error_class(int * errorclass, int * ierror)
+{
+    *ierror = MPI_Remove_error_class(*errorclass);
+    C_MPI_RC_FIX(*ierror);
+}
+
+void C_MPI_Remove_error_code(int * errorcode, int * ierror)
+{
+    *ierror = MPI_Remove_error_code(*errorcode);
+    C_MPI_RC_FIX(*ierror);
+}
+
+void C_MPI_Remove_error_string(int * errorcode, int * ierror)
+{
+    *ierror = MPI_Remove_error_string(*errorcode);
+    C_MPI_RC_FIX(*ierror);
+}
+#else
+void C_MPI_Remove_error_class(int * errorclass, int * ierror)
+{
+    (void) errorclass;
+    *ierror = MPI_ERR_UNSUPPORTED_OPERATION;
+    C_MPI_RC_FIX(*ierror);
+}
+
+void C_MPI_Remove_error_code(int * errorcode, int * ierror)
+{
+    (void) errorcode;
+    *ierror = MPI_ERR_UNSUPPORTED_OPERATION;
+    C_MPI_RC_FIX(*ierror);
+}
+
+void C_MPI_Remove_error_string(int * errorcode, int * ierror)
+{
+    (void) errorcode;
+    *ierror = MPI_ERR_UNSUPPORTED_OPERATION;
+    C_MPI_RC_FIX(*ierror);
+}
+#endif
+
+void C_MPI_Errhandler_free(int * errhandler_f, int * ierror)
+{
+    MPI_Errhandler errhandler = C_MPI_ERRHANDLER_FROMINT(*errhandler_f);
+    *ierror = MPI_Errhandler_free(&errhandler);
+    *errhandler_f = C_MPI_ERRHANDLER_TOINT(errhandler);
+    C_MPI_RC_FIX(*ierror);
+}
+
+void C_MPI_Comm_call_errhandler(int * comm_f, int * errorcode_f, int * ierror)
+{
+    MPI_Comm comm = C_MPI_COMM_FROMINT(*comm_f);
+    int errorcode = C_MPI_ERROR_CODE_F2C(*errorcode_f);
+    *ierror = MPI_Comm_call_errhandler(comm, errorcode);
+    C_MPI_RC_FIX(*ierror);
+}
+
+void C_MPI_Comm_get_errhandler(int * comm_f, int * errhandler_f, int * ierror)
+{
+    MPI_Errhandler errhandler = MPI_ERRHANDLER_NULL;
+    MPI_Comm comm = C_MPI_COMM_FROMINT(*comm_f);
+    *ierror = MPI_Comm_get_errhandler(comm, &errhandler);
+    *errhandler_f = C_MPI_ERRHANDLER_TOINT(errhandler);
+    C_MPI_RC_FIX(*ierror);
+}
+
+void C_MPI_Comm_set_errhandler(int * comm_f, int * errhandler_f, int * ierror)
+{
+    MPI_Comm comm = C_MPI_COMM_FROMINT(*comm_f);
+    MPI_Errhandler errhandler = C_MPI_ERRHANDLER_FROMINT(*errhandler_f);
+    *ierror = MPI_Comm_set_errhandler(comm, errhandler);
+    C_MPI_RC_FIX(*ierror);
+}
+
+void C_MPI_File_call_errhandler(int * file_f, int * errorcode_f, int * ierror)
+{
+    MPI_File file = C_MPI_FILE_FROMINT(*file_f);
+    int errorcode = C_MPI_ERROR_CODE_F2C(*errorcode_f);
+    *ierror = MPI_File_call_errhandler(file, errorcode);
+    C_MPI_RC_FIX(*ierror);
+}
+
+void C_MPI_File_get_errhandler(int * file_f, int * errhandler_f, int * ierror)
+{
+    MPI_Errhandler errhandler = MPI_ERRHANDLER_NULL;
+    MPI_File file = C_MPI_FILE_FROMINT(*file_f);
+    *ierror = MPI_File_get_errhandler(file, &errhandler);
+    *errhandler_f = C_MPI_ERRHANDLER_TOINT(errhandler);
+    C_MPI_RC_FIX(*ierror);
+}
+
+void C_MPI_File_set_errhandler(int * file_f, int * errhandler_f, int * ierror)
+{
+    MPI_File file = C_MPI_FILE_FROMINT(*file_f);
+    MPI_Errhandler errhandler = C_MPI_ERRHANDLER_FROMINT(*errhandler_f);
+    *ierror = MPI_File_set_errhandler(file, errhandler);
+    C_MPI_RC_FIX(*ierror);
+}
+
+void C_MPI_Win_call_errhandler(int * win_f, int * errorcode_f, int * ierror)
+{
+    MPI_Win win = C_MPI_WIN_FROMINT(*win_f);
+    int errorcode = C_MPI_ERROR_CODE_F2C(*errorcode_f);
+    *ierror = MPI_Win_call_errhandler(win, errorcode);
+    C_MPI_RC_FIX(*ierror);
+}
+
+void C_MPI_Win_get_errhandler(int * win_f, int * errhandler_f, int * ierror)
+{
+    MPI_Errhandler errhandler = MPI_ERRHANDLER_NULL;
+    MPI_Win win = C_MPI_WIN_FROMINT(*win_f);
+    *ierror = MPI_Win_get_errhandler(win, &errhandler);
+    *errhandler_f = C_MPI_ERRHANDLER_TOINT(errhandler);
+    C_MPI_RC_FIX(*ierror);
+}
+
+void C_MPI_Win_set_errhandler(int * win_f, int * errhandler_f, int * ierror)
+{
+    MPI_Win win = C_MPI_WIN_FROMINT(*win_f);
+    MPI_Errhandler errhandler = C_MPI_ERRHANDLER_FROMINT(*errhandler_f);
+    *ierror = MPI_Win_set_errhandler(win, errhandler);
+    C_MPI_RC_FIX(*ierror);
+}
+
+#if MPI_VERSION >= 4
+void C_MPI_Session_call_errhandler(int * session_f, int * errorcode_f, int * ierror)
+{
+    MPI_Session session = C_MPI_SESSION_FROMINT(*session_f);
+    int errorcode = C_MPI_ERROR_CODE_F2C(*errorcode_f);
+    *ierror = MPI_Session_call_errhandler(session, errorcode);
+    C_MPI_RC_FIX(*ierror);
+}
+
+void C_MPI_Session_get_errhandler(int * session_f, int * errhandler_f, int * ierror)
+{
+    MPI_Errhandler errhandler = MPI_ERRHANDLER_NULL;
+    MPI_Session session = C_MPI_SESSION_FROMINT(*session_f);
+    *ierror = MPI_Session_get_errhandler(session, &errhandler);
+    *errhandler_f = C_MPI_ERRHANDLER_TOINT(errhandler);
+    C_MPI_RC_FIX(*ierror);
+}
+
+void C_MPI_Session_set_errhandler(int * session_f, int * errhandler_f, int * ierror)
+{
+    MPI_Session session = C_MPI_SESSION_FROMINT(*session_f);
+    MPI_Errhandler errhandler = C_MPI_ERRHANDLER_FROMINT(*errhandler_f);
+    *ierror = MPI_Session_set_errhandler(session, errhandler);
+    C_MPI_RC_FIX(*ierror);
+}
+#else
+void C_MPI_Session_call_errhandler(int * session_f, int * errorcode_f, int * ierror)
+{
+    (void) session_f;
+    (void) errorcode_f;
+    *ierror = MPI_ERR_UNSUPPORTED_OPERATION;
+    C_MPI_RC_FIX(*ierror);
+}
+
+void C_MPI_Session_get_errhandler(int * session_f, int * errhandler_f, int * ierror)
+{
+    (void) session_f;
+    *errhandler_f = VAPAA_MPI_ERRHANDLER_NULL;
+    *ierror = MPI_ERR_UNSUPPORTED_OPERATION;
+    C_MPI_RC_FIX(*ierror);
+}
+
+void C_MPI_Session_set_errhandler(int * session_f, int * errhandler_f, int * ierror)
+{
+    (void) session_f;
+    (void) errhandler_f;
+    *ierror = MPI_ERR_UNSUPPORTED_OPERATION;
+    C_MPI_RC_FIX(*ierror);
+}
+#endif

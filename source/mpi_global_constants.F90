@@ -18,6 +18,11 @@ module mpi_global_constants
     integer, parameter :: MPI_SIMILAR   = VAPAA_MPI_SIMILAR
     integer, parameter :: MPI_UNEQUAL   = VAPAA_MPI_UNEQUAL
 
+    ! topology types
+    integer, parameter :: MPI_CART       = VAPAA_MPI_CART
+    integer, parameter :: MPI_GRAPH      = VAPAA_MPI_GRAPH
+    integer, parameter :: MPI_DIST_GRAPH = VAPAA_MPI_DIST_GRAPH
+
     ! TODO: These now work as initializers, but they need to be handled
     !       everywhere they can be used.  That will be tedious...
 
@@ -28,6 +33,7 @@ module mpi_global_constants
     ! NULL handles
     type(MPI_Comm), parameter     :: MPI_COMM_NULL     = MPI_Comm(MPI_VAL     = VAPAA_MPI_COMM_NULL    )
     type(MPI_Datatype), parameter :: MPI_DATATYPE_NULL = MPI_Datatype(MPI_VAL = VAPAA_MPI_DATATYPE_NULL)
+    type(MPI_Errhandler), parameter :: MPI_ERRHANDLER_NULL = MPI_Errhandler(MPI_VAL = VAPAA_MPI_ERRHANDLER_NULL)
     type(MPI_File), parameter     :: MPI_FILE_NULL     = MPI_File(MPI_VAL     = VAPAA_MPI_FILE_NULL    )
     type(MPI_Group), parameter    :: MPI_GROUP_NULL    = MPI_Group(MPI_VAL    = VAPAA_MPI_GROUP_NULL   )
     type(MPI_Group), parameter    :: MPI_GROUP_EMPTY   = MPI_Group(MPI_VAL    = VAPAA_MPI_GROUP_EMPTY  )
@@ -36,7 +42,12 @@ module mpi_global_constants
     type(MPI_Message), parameter  :: MPI_MESSAGE_NULL  = MPI_Message(MPI_VAL  = VAPAA_MPI_MESSAGE_NULL )
     type(MPI_Op), parameter       :: MPI_OP_NULL       = MPI_Op(MPI_VAL       = VAPAA_MPI_OP_NULL      )
     type(MPI_Request), parameter  :: MPI_REQUEST_NULL  = MPI_Request(MPI_VAL  = VAPAA_MPI_REQUEST_NULL )
+    type(MPI_Session), parameter  :: MPI_SESSION_NULL  = MPI_Session(MPI_VAL  = VAPAA_MPI_SESSION_NULL )
     type(MPI_Win), parameter      :: MPI_WIN_NULL      = MPI_Win(MPI_VAL      = VAPAA_MPI_WIN_NULL     )
+
+    type(MPI_Errhandler), parameter :: MPI_ERRORS_ARE_FATAL = MPI_Errhandler(MPI_VAL = VAPAA_MPI_ERRORS_ARE_FATAL)
+    type(MPI_Errhandler), parameter :: MPI_ERRORS_ABORT     = MPI_Errhandler(MPI_VAL = VAPAA_MPI_ERRORS_ABORT)
+    type(MPI_Errhandler), parameter :: MPI_ERRORS_RETURN    = MPI_Errhandler(MPI_VAL = VAPAA_MPI_ERRORS_RETURN)
 
     ! Magic sentinels
     ! The constants that cannot be used in initialization expressions or assignments in Fortran are as follows:
@@ -78,6 +89,34 @@ module mpi_global_constants
     ! 5.1.3 MPI_TYPE_CREATE_SUBARRAY
     integer, parameter :: MPI_ORDER_C       = VAPAA_MPI_ORDER_C
     integer, parameter :: MPI_ORDER_FORTRAN = VAPAA_MPI_ORDER_FORTRAN
+
+    integer, parameter :: MPI_DISTRIBUTE_NONE      = VAPAA_MPI_DISTRIBUTE_NONE
+    integer, parameter :: MPI_DISTRIBUTE_BLOCK     = VAPAA_MPI_DISTRIBUTE_BLOCK
+    integer, parameter :: MPI_DISTRIBUTE_CYCLIC    = VAPAA_MPI_DISTRIBUTE_CYCLIC
+    integer, parameter :: MPI_DISTRIBUTE_DFLT_DARG = VAPAA_MPI_DISTRIBUTE_DFLT_DARG
+
+    integer, parameter :: MPI_COMBINER_NAMED          = VAPAA_MPI_COMBINER_NAMED
+    integer, parameter :: MPI_COMBINER_DUP            = VAPAA_MPI_COMBINER_DUP
+    integer, parameter :: MPI_COMBINER_CONTIGUOUS     = VAPAA_MPI_COMBINER_CONTIGUOUS
+    integer, parameter :: MPI_COMBINER_VECTOR         = VAPAA_MPI_COMBINER_VECTOR
+    integer, parameter :: MPI_COMBINER_HVECTOR        = VAPAA_MPI_COMBINER_HVECTOR
+    integer, parameter :: MPI_COMBINER_INDEXED        = VAPAA_MPI_COMBINER_INDEXED
+    integer, parameter :: MPI_COMBINER_HINDEXED       = VAPAA_MPI_COMBINER_HINDEXED
+    integer, parameter :: MPI_COMBINER_INDEXED_BLOCK  = VAPAA_MPI_COMBINER_INDEXED_BLOCK
+    integer, parameter :: MPI_COMBINER_HINDEXED_BLOCK = VAPAA_MPI_COMBINER_HINDEXED_BLOCK
+    integer, parameter :: MPI_COMBINER_STRUCT         = VAPAA_MPI_COMBINER_STRUCT
+    integer, parameter :: MPI_COMBINER_SUBARRAY       = VAPAA_MPI_COMBINER_SUBARRAY
+    integer, parameter :: MPI_COMBINER_DARRAY         = VAPAA_MPI_COMBINER_DARRAY
+    integer, parameter :: MPI_COMBINER_F90_REAL       = VAPAA_MPI_COMBINER_F90_REAL
+    integer, parameter :: MPI_COMBINER_F90_COMPLEX    = VAPAA_MPI_COMBINER_F90_COMPLEX
+    integer, parameter :: MPI_COMBINER_F90_INTEGER    = VAPAA_MPI_COMBINER_F90_INTEGER
+    integer, parameter :: MPI_COMBINER_RESIZED        = VAPAA_MPI_COMBINER_RESIZED
+    integer, parameter :: MPI_COMBINER_VALUE_INDEX    = VAPAA_MPI_COMBINER_VALUE_INDEX
+
+    integer, parameter :: MPIX_TYPECLASS_LOGICAL = VAPAA_MPIX_TYPECLASS_LOGICAL
+    integer, parameter :: MPI_TYPECLASS_INTEGER  = VAPAA_MPI_TYPECLASS_INTEGER
+    integer, parameter :: MPI_TYPECLASS_REAL     = VAPAA_MPI_TYPECLASS_REAL
+    integer, parameter :: MPI_TYPECLASS_COMPLEX  = VAPAA_MPI_TYPECLASS_COMPLEX
 
     ! 7.4 MPI_COMM_SPLIT_TYPE
     integer, parameter :: MPI_COMM_TYPE_SHARED      = VAPAA_MPI_COMM_TYPE_SHARED

@@ -4,6 +4,7 @@
 #include "convert_handles.h"
 #include "convert_constants.h"
 #include "vapaa_constants.h"
+#include "detect_sentinels.h"
 
 static int C_MPI_TRANSLATE_SPLIT_TYPE(int f)
 {
@@ -27,6 +28,17 @@ static int C_MPI_TRANSLATE_SPLIT_TYPE(int f)
         // impossible
         MPI_Abort(MPI_COMM_WORLD,f);
         return -1;
+    }
+}
+
+static int * C_MPI_WEIGHTS_F2C(int *weights)
+{
+    if (C_IS_MPI_UNWEIGHTED(weights)) {
+        return MPI_UNWEIGHTED;
+    } else if (C_IS_MPI_WEIGHTS_EMPTY(weights)) {
+        return MPI_WEIGHTS_EMPTY;
+    } else {
+        return weights;
     }
 }
 
@@ -94,6 +106,16 @@ void C_MPI_Comm_idup_with_info(int * comm_f, int * info_f, int * newcomm_f, int 
     *ierror = MPI_Comm_idup_with_info(comm, info, &newcomm, &request);
     *newcomm_f = C_MPI_COMM_TOINT(newcomm);
     *request_f = C_MPI_REQUEST_TOINT(request);
+    C_MPI_RC_FIX(*ierror);
+}
+#else
+void C_MPI_Comm_idup_with_info(int * comm_f, int * info_f, int * newcomm_f, int * request_f, int * ierror)
+{
+    (void) comm_f;
+    (void) info_f;
+    *newcomm_f = VAPAA_MPI_COMM_NULL;
+    *request_f = VAPAA_MPI_REQUEST_NULL;
+    *ierror = MPI_ERR_UNSUPPORTED_OPERATION;
     C_MPI_RC_FIX(*ierror);
 }
 #endif
@@ -165,5 +187,167 @@ void C_MPI_Cart_coords(int * comm_f, int * rank, int * maxdims, int * coords, in
 {
     MPI_Comm comm = C_MPI_COMM_FROMINT(*comm_f);
     *ierror = MPI_Cart_coords(comm, *rank, *maxdims, coords);
+    C_MPI_RC_FIX(*ierror);
+}
+
+void C_MPI_Cart_get(int * comm_f, int * maxdims, int * dims, int * periods, int * coords, int * ierror)
+{
+    MPI_Comm comm = C_MPI_COMM_FROMINT(*comm_f);
+    *ierror = MPI_Cart_get(comm, *maxdims, dims, periods, coords);
+    C_MPI_RC_FIX(*ierror);
+}
+
+void C_MPI_Cart_map(int * comm_f, int * ndims, int * dims, int * periods, int * newrank, int * ierror)
+{
+    MPI_Comm comm = C_MPI_COMM_FROMINT(*comm_f);
+    *ierror = MPI_Cart_map(comm, *ndims, dims, periods, newrank);
+    *newrank = C_MPI_UNDEFINED_C2F(*newrank);
+    C_MPI_RC_FIX(*ierror);
+}
+
+void C_MPI_Cart_rank(int * comm_f, int * coords, int * rank, int * ierror)
+{
+    MPI_Comm comm = C_MPI_COMM_FROMINT(*comm_f);
+    *ierror = MPI_Cart_rank(comm, coords, rank);
+    *rank = C_MPI_UNDEFINED_C2F(*rank);
+    C_MPI_RC_FIX(*ierror);
+}
+
+void C_MPI_Cart_shift(int * comm_f, int * direction, int * disp, int * rank_source, int * rank_dest, int * ierror)
+{
+    MPI_Comm comm = C_MPI_COMM_FROMINT(*comm_f);
+    *ierror = MPI_Cart_shift(comm, *direction, *disp, rank_source, rank_dest);
+    *rank_source = C_MPI_SOURCE_C2F(*rank_source);
+    *rank_dest = C_MPI_SOURCE_C2F(*rank_dest);
+    C_MPI_RC_FIX(*ierror);
+}
+
+void C_MPI_Cart_sub(int * comm_f, int * remain_dims, int * newcomm_f, int * ierror)
+{
+    MPI_Comm newcomm = MPI_COMM_NULL;
+    MPI_Comm comm = C_MPI_COMM_FROMINT(*comm_f);
+    *ierror = MPI_Cart_sub(comm, remain_dims, &newcomm);
+    *newcomm_f = C_MPI_COMM_TOINT(newcomm);
+    C_MPI_RC_FIX(*ierror);
+}
+
+void C_MPI_Cartdim_get(int * comm_f, int * ndims, int * ierror)
+{
+    MPI_Comm comm = C_MPI_COMM_FROMINT(*comm_f);
+    *ierror = MPI_Cartdim_get(comm, ndims);
+    C_MPI_RC_FIX(*ierror);
+}
+
+void C_MPI_Dist_graph_create(int * comm_old_f, int * n, int * sources, int * degrees, int * destinations,
+                             int * weights_f, int * info_f, int * reorder, int * comm_dist_graph_f, int * ierror)
+{
+    MPI_Comm comm_dist_graph = MPI_COMM_NULL;
+    MPI_Comm comm_old = C_MPI_COMM_FROMINT(*comm_old_f);
+    MPI_Info info = C_MPI_INFO_FROMINT(*info_f);
+    int *weights = C_MPI_WEIGHTS_F2C(weights_f);
+    *ierror = MPI_Dist_graph_create(comm_old, *n, sources, degrees, destinations, weights,
+                                    info, *reorder, &comm_dist_graph);
+    *comm_dist_graph_f = C_MPI_COMM_TOINT(comm_dist_graph);
+    C_MPI_RC_FIX(*ierror);
+}
+
+void C_MPI_Dist_graph_create_adjacent(int * comm_old_f, int * indegree, int * sources, int * sourceweights_f,
+                                      int * outdegree, int * destinations, int * destweights_f, int * info_f,
+                                      int * reorder, int * comm_dist_graph_f, int * ierror)
+{
+    MPI_Comm comm_dist_graph = MPI_COMM_NULL;
+    MPI_Comm comm_old = C_MPI_COMM_FROMINT(*comm_old_f);
+    MPI_Info info = C_MPI_INFO_FROMINT(*info_f);
+    int *sourceweights = C_MPI_WEIGHTS_F2C(sourceweights_f);
+    int *destweights = C_MPI_WEIGHTS_F2C(destweights_f);
+    *ierror = MPI_Dist_graph_create_adjacent(comm_old, *indegree, sources, sourceweights,
+                                             *outdegree, destinations, destweights,
+                                             info, *reorder, &comm_dist_graph);
+    *comm_dist_graph_f = C_MPI_COMM_TOINT(comm_dist_graph);
+    C_MPI_RC_FIX(*ierror);
+}
+
+void C_MPI_Dist_graph_neighbors(int * comm_f, int * maxindegree, int * sources, int * sourceweights_f,
+                                int * maxoutdegree, int * destinations, int * destweights_f, int * ierror)
+{
+    MPI_Comm comm = C_MPI_COMM_FROMINT(*comm_f);
+    int *sourceweights = C_MPI_WEIGHTS_F2C(sourceweights_f);
+    int *destweights = C_MPI_WEIGHTS_F2C(destweights_f);
+    *ierror = MPI_Dist_graph_neighbors(comm, *maxindegree, sources, sourceweights,
+                                       *maxoutdegree, destinations, destweights);
+    C_MPI_RC_FIX(*ierror);
+}
+
+void C_MPI_Dist_graph_neighbors_count(int * comm_f, int * indegree, int * outdegree, int * weighted, int * ierror)
+{
+    MPI_Comm comm = C_MPI_COMM_FROMINT(*comm_f);
+    *ierror = MPI_Dist_graph_neighbors_count(comm, indegree, outdegree, weighted);
+    C_MPI_RC_FIX(*ierror);
+}
+
+void C_MPI_Graph_create(int * comm_old_f, int * nnodes, int * indx, int * edges, int * reorder,
+                        int * comm_graph_f, int * ierror)
+{
+    MPI_Comm comm_graph = MPI_COMM_NULL;
+    MPI_Comm comm_old = C_MPI_COMM_FROMINT(*comm_old_f);
+    *ierror = MPI_Graph_create(comm_old, *nnodes, indx, edges, *reorder, &comm_graph);
+    *comm_graph_f = C_MPI_COMM_TOINT(comm_graph);
+    C_MPI_RC_FIX(*ierror);
+}
+
+void C_MPI_Graph_get(int * comm_f, int * maxindex, int * maxedges, int * indx, int * edges, int * ierror)
+{
+    MPI_Comm comm = C_MPI_COMM_FROMINT(*comm_f);
+    *ierror = MPI_Graph_get(comm, *maxindex, *maxedges, indx, edges);
+    C_MPI_RC_FIX(*ierror);
+}
+
+void C_MPI_Graph_map(int * comm_f, int * nnodes, int * indx, int * edges, int * newrank, int * ierror)
+{
+    MPI_Comm comm = C_MPI_COMM_FROMINT(*comm_f);
+    *ierror = MPI_Graph_map(comm, *nnodes, indx, edges, newrank);
+    *newrank = C_MPI_UNDEFINED_C2F(*newrank);
+    C_MPI_RC_FIX(*ierror);
+}
+
+void C_MPI_Graph_neighbors(int * comm_f, int * rank, int * maxneighbors, int * neighbors, int * ierror)
+{
+    MPI_Comm comm = C_MPI_COMM_FROMINT(*comm_f);
+    *ierror = MPI_Graph_neighbors(comm, *rank, *maxneighbors, neighbors);
+    C_MPI_RC_FIX(*ierror);
+}
+
+void C_MPI_Graph_neighbors_count(int * comm_f, int * rank, int * nneighbors, int * ierror)
+{
+    MPI_Comm comm = C_MPI_COMM_FROMINT(*comm_f);
+    *ierror = MPI_Graph_neighbors_count(comm, *rank, nneighbors);
+    C_MPI_RC_FIX(*ierror);
+}
+
+void C_MPI_Graphdims_get(int * comm_f, int * nnodes, int * nedges, int * ierror)
+{
+    MPI_Comm comm = C_MPI_COMM_FROMINT(*comm_f);
+    *ierror = MPI_Graphdims_get(comm, nnodes, nedges);
+    C_MPI_RC_FIX(*ierror);
+}
+
+void C_MPI_Topo_test(int * comm_f, int * status_f, int * ierror)
+{
+    MPI_Comm comm = C_MPI_COMM_FROMINT(*comm_f);
+    int status;
+    *ierror = MPI_Topo_test(comm, &status);
+    *status_f = C_MPI_TOPOLOGY_C2F(status);
+    C_MPI_RC_FIX(*ierror);
+}
+
+void C_MPI_Get_hw_resource_info(int * hw_info_f, int * ierror)
+{
+    MPI_Info hw_info = MPI_INFO_NULL;
+#if MPI_VERSION >= 5
+    *ierror = MPI_Get_hw_resource_info(&hw_info);
+#else
+    *ierror = MPI_ERR_UNSUPPORTED_OPERATION;
+#endif
+    *hw_info_f = C_MPI_INFO_TOINT(hw_info);
     C_MPI_RC_FIX(*ierror);
 }

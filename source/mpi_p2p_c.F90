@@ -27,6 +27,30 @@ module mpi_p2p_c
     end interface
 
     interface
+        subroutine C_MPI_Iprobe(source, tag, comm, flag, status, ierror) &
+                   bind(C,name="C_MPI_Iprobe")
+            use iso_c_binding, only: c_int
+            use mpi_handle_types, only: MPI_Status
+            implicit none
+            integer(kind=c_int), intent(in), value :: source, tag, comm
+            integer(kind=c_int), intent(out) :: flag, ierror
+            type(MPI_Status), intent(inout) :: status
+        end subroutine C_MPI_Iprobe
+    end interface
+
+    interface
+        subroutine C_MPI_Improbe(source, tag, comm, flag, message, status, ierror) &
+                   bind(C,name="C_MPI_Improbe")
+            use iso_c_binding, only: c_int
+            use mpi_handle_types, only: MPI_Status
+            implicit none
+            integer(kind=c_int), intent(in), value :: source, tag, comm
+            integer(kind=c_int), intent(out) :: flag, message, ierror
+            type(MPI_Status), intent(inout) :: status
+        end subroutine C_MPI_Improbe
+    end interface
+
+    interface
         subroutine C_MPI_Test(request, flag, status, ierror) &
                    bind(C,name="C_MPI_Test")
             use iso_c_binding, only: c_int
@@ -159,6 +183,125 @@ module mpi_p2p_c
 #endif
 
     interface
+        subroutine C_MPI_Bsend(buffer, count, datatype, dest, tag, comm, &
+                               ierror) &
+                   bind(C,name="C_MPI_Bsend")
+            use iso_c_binding, only: c_int
+            implicit none
+            integer(kind=c_int), dimension(*), intent(in) :: buffer
+            integer(kind=c_int), intent(in), value :: count, datatype, dest, tag, comm
+            integer(kind=c_int), intent(out) :: ierror
+        end subroutine C_MPI_Bsend
+    end interface
+
+#ifdef HAVE_CFI
+    interface
+        subroutine CFI_MPI_Bsend(buffer, count, datatype, dest, tag, comm, &
+                                 ierror) &
+                   bind(C,name="CFI_MPI_Bsend")
+            use iso_c_binding, only: c_int
+            implicit none
+            type(*), dimension(..), intent(in) :: buffer
+            integer(kind=c_int), intent(in), value :: count, datatype, dest, tag, comm
+            integer(kind=c_int), intent(out) :: ierror
+        end subroutine CFI_MPI_Bsend
+    end interface
+#endif
+
+    interface
+        subroutine C_MPI_Ssend(buffer, count, datatype, dest, tag, comm, &
+                               ierror) &
+                   bind(C,name="C_MPI_Ssend")
+            use iso_c_binding, only: c_int
+            implicit none
+            integer(kind=c_int), dimension(*), intent(in) :: buffer
+            integer(kind=c_int), intent(in), value :: count, datatype, dest, tag, comm
+            integer(kind=c_int), intent(out) :: ierror
+        end subroutine C_MPI_Ssend
+    end interface
+
+#ifdef HAVE_CFI
+    interface
+        subroutine CFI_MPI_Ssend(buffer, count, datatype, dest, tag, comm, &
+                                 ierror) &
+                   bind(C,name="CFI_MPI_Ssend")
+            use iso_c_binding, only: c_int
+            implicit none
+            type(*), dimension(..), intent(in) :: buffer
+            integer(kind=c_int), intent(in), value :: count, datatype, dest, tag, comm
+            integer(kind=c_int), intent(out) :: ierror
+        end subroutine CFI_MPI_Ssend
+    end interface
+#endif
+
+    interface
+        subroutine C_MPI_Rsend(buffer, count, datatype, dest, tag, comm, &
+                               ierror) &
+                   bind(C,name="C_MPI_Rsend")
+            use iso_c_binding, only: c_int
+            implicit none
+            integer(kind=c_int), dimension(*), intent(in) :: buffer
+            integer(kind=c_int), intent(in), value :: count, datatype, dest, tag, comm
+            integer(kind=c_int), intent(out) :: ierror
+        end subroutine C_MPI_Rsend
+    end interface
+
+#ifdef HAVE_CFI
+    interface
+        subroutine CFI_MPI_Rsend(buffer, count, datatype, dest, tag, comm, &
+                                 ierror) &
+                   bind(C,name="CFI_MPI_Rsend")
+            use iso_c_binding, only: c_int
+            implicit none
+            type(*), dimension(..), intent(in) :: buffer
+            integer(kind=c_int), intent(in), value :: count, datatype, dest, tag, comm
+            integer(kind=c_int), intent(out) :: ierror
+        end subroutine CFI_MPI_Rsend
+    end interface
+#endif
+
+#ifdef HAVE_CFI
+    interface
+        subroutine CFI_MPI_Buffer_attach(buffer, size, ierror) &
+                   bind(C,name="CFI_MPI_Buffer_attach")
+            use iso_c_binding, only: c_int
+            implicit none
+            type(*), dimension(..), asynchronous :: buffer
+            integer(kind=c_int), intent(in), value :: size
+            integer(kind=c_int), intent(out) :: ierror
+        end subroutine CFI_MPI_Buffer_attach
+    end interface
+#endif
+
+    interface
+        subroutine C_MPI_Buffer_detach(buffer_addr, size, ierror) &
+                   bind(C,name="C_MPI_Buffer_detach")
+            use iso_c_binding, only: c_int, c_ptr
+            implicit none
+            type(c_ptr), intent(out) :: buffer_addr
+            integer(kind=c_int), intent(out) :: size, ierror
+        end subroutine C_MPI_Buffer_detach
+    end interface
+
+    interface
+        subroutine C_MPI_Buffer_flush(ierror) &
+                   bind(C,name="C_MPI_Buffer_flush")
+            use iso_c_binding, only: c_int
+            implicit none
+            integer(kind=c_int), intent(out) :: ierror
+        end subroutine C_MPI_Buffer_flush
+    end interface
+
+    interface
+        subroutine C_MPI_Buffer_iflush(request, ierror) &
+                   bind(C,name="C_MPI_Buffer_iflush")
+            use iso_c_binding, only: c_int
+            implicit none
+            integer(kind=c_int), intent(out) :: request, ierror
+        end subroutine C_MPI_Buffer_iflush
+    end interface
+
+    interface
         subroutine C_MPI_Isend(buffer, count, datatype, dest, tag, comm, request, &
                               ierror) &
                    bind(C,name="C_MPI_Isend")
@@ -181,6 +324,84 @@ module mpi_p2p_c
             integer(kind=c_int), intent(in), value :: count, datatype, dest, tag, comm
             integer(kind=c_int), intent(out) :: request, ierror
         end subroutine CFI_MPI_Isend
+    end interface
+#endif
+
+    interface
+        subroutine C_MPI_Ibsend(buffer, count, datatype, dest, tag, comm, request, &
+                                ierror) &
+                   bind(C,name="C_MPI_Ibsend")
+            use iso_c_binding, only: c_int
+            implicit none
+            integer(kind=c_int), dimension(*), intent(in), asynchronous :: buffer
+            integer(kind=c_int), intent(in), value :: count, datatype, dest, tag, comm
+            integer(kind=c_int), intent(out) :: request, ierror
+        end subroutine C_MPI_Ibsend
+    end interface
+
+#ifdef HAVE_CFI
+    interface
+        subroutine CFI_MPI_Ibsend(buffer, count, datatype, dest, tag, comm, request, &
+                                  ierror) &
+                   bind(C,name="CFI_MPI_Ibsend")
+            use iso_c_binding, only: c_int
+            implicit none
+            type(*), dimension(..), intent(in), asynchronous :: buffer
+            integer(kind=c_int), intent(in), value :: count, datatype, dest, tag, comm
+            integer(kind=c_int), intent(out) :: request, ierror
+        end subroutine CFI_MPI_Ibsend
+    end interface
+#endif
+
+    interface
+        subroutine C_MPI_Issend(buffer, count, datatype, dest, tag, comm, request, &
+                                ierror) &
+                   bind(C,name="C_MPI_Issend")
+            use iso_c_binding, only: c_int
+            implicit none
+            integer(kind=c_int), dimension(*), intent(in), asynchronous :: buffer
+            integer(kind=c_int), intent(in), value :: count, datatype, dest, tag, comm
+            integer(kind=c_int), intent(out) :: request, ierror
+        end subroutine C_MPI_Issend
+    end interface
+
+#ifdef HAVE_CFI
+    interface
+        subroutine CFI_MPI_Issend(buffer, count, datatype, dest, tag, comm, request, &
+                                  ierror) &
+                   bind(C,name="CFI_MPI_Issend")
+            use iso_c_binding, only: c_int
+            implicit none
+            type(*), dimension(..), intent(in), asynchronous :: buffer
+            integer(kind=c_int), intent(in), value :: count, datatype, dest, tag, comm
+            integer(kind=c_int), intent(out) :: request, ierror
+        end subroutine CFI_MPI_Issend
+    end interface
+#endif
+
+    interface
+        subroutine C_MPI_Irsend(buffer, count, datatype, dest, tag, comm, request, &
+                                ierror) &
+                   bind(C,name="C_MPI_Irsend")
+            use iso_c_binding, only: c_int
+            implicit none
+            integer(kind=c_int), dimension(*), intent(in), asynchronous :: buffer
+            integer(kind=c_int), intent(in), value :: count, datatype, dest, tag, comm
+            integer(kind=c_int), intent(out) :: request, ierror
+        end subroutine C_MPI_Irsend
+    end interface
+
+#ifdef HAVE_CFI
+    interface
+        subroutine CFI_MPI_Irsend(buffer, count, datatype, dest, tag, comm, request, &
+                                  ierror) &
+                   bind(C,name="CFI_MPI_Irsend")
+            use iso_c_binding, only: c_int
+            implicit none
+            type(*), dimension(..), intent(in), asynchronous :: buffer
+            integer(kind=c_int), intent(in), value :: count, datatype, dest, tag, comm
+            integer(kind=c_int), intent(out) :: request, ierror
+        end subroutine CFI_MPI_Irsend
     end interface
 #endif
 
@@ -237,6 +458,285 @@ module mpi_p2p_c
             integer(kind=c_int), intent(in), value :: count, datatype, source, tag, comm
             integer(kind=c_int), intent(out) :: request, ierror
         end subroutine CFI_MPI_Irecv
+    end interface
+#endif
+
+    interface
+        subroutine C_MPI_Send_init(buffer, count, datatype, dest, tag, comm, request, &
+                                   ierror) &
+                   bind(C,name="C_MPI_Send_init")
+            use iso_c_binding, only: c_int
+            implicit none
+            integer(kind=c_int), dimension(*), intent(in), asynchronous :: buffer
+            integer(kind=c_int), intent(in), value :: count, datatype, dest, tag, comm
+            integer(kind=c_int), intent(out) :: request, ierror
+        end subroutine C_MPI_Send_init
+    end interface
+
+#ifdef HAVE_CFI
+    interface
+        subroutine CFI_MPI_Send_init(buffer, count, datatype, dest, tag, comm, request, &
+                                     ierror) &
+                   bind(C,name="CFI_MPI_Send_init")
+            use iso_c_binding, only: c_int
+            implicit none
+            type(*), dimension(..), intent(in), asynchronous :: buffer
+            integer(kind=c_int), intent(in), value :: count, datatype, dest, tag, comm
+            integer(kind=c_int), intent(out) :: request, ierror
+        end subroutine CFI_MPI_Send_init
+    end interface
+#endif
+
+    interface
+        subroutine C_MPI_Bsend_init(buffer, count, datatype, dest, tag, comm, request, &
+                                    ierror) &
+                   bind(C,name="C_MPI_Bsend_init")
+            use iso_c_binding, only: c_int
+            implicit none
+            integer(kind=c_int), dimension(*), intent(in), asynchronous :: buffer
+            integer(kind=c_int), intent(in), value :: count, datatype, dest, tag, comm
+            integer(kind=c_int), intent(out) :: request, ierror
+        end subroutine C_MPI_Bsend_init
+    end interface
+
+#ifdef HAVE_CFI
+    interface
+        subroutine CFI_MPI_Bsend_init(buffer, count, datatype, dest, tag, comm, request, &
+                                      ierror) &
+                   bind(C,name="CFI_MPI_Bsend_init")
+            use iso_c_binding, only: c_int
+            implicit none
+            type(*), dimension(..), intent(in), asynchronous :: buffer
+            integer(kind=c_int), intent(in), value :: count, datatype, dest, tag, comm
+            integer(kind=c_int), intent(out) :: request, ierror
+        end subroutine CFI_MPI_Bsend_init
+    end interface
+#endif
+
+    interface
+        subroutine C_MPI_Ssend_init(buffer, count, datatype, dest, tag, comm, request, &
+                                    ierror) &
+                   bind(C,name="C_MPI_Ssend_init")
+            use iso_c_binding, only: c_int
+            implicit none
+            integer(kind=c_int), dimension(*), intent(in), asynchronous :: buffer
+            integer(kind=c_int), intent(in), value :: count, datatype, dest, tag, comm
+            integer(kind=c_int), intent(out) :: request, ierror
+        end subroutine C_MPI_Ssend_init
+    end interface
+
+#ifdef HAVE_CFI
+    interface
+        subroutine CFI_MPI_Ssend_init(buffer, count, datatype, dest, tag, comm, request, &
+                                      ierror) &
+                   bind(C,name="CFI_MPI_Ssend_init")
+            use iso_c_binding, only: c_int
+            implicit none
+            type(*), dimension(..), intent(in), asynchronous :: buffer
+            integer(kind=c_int), intent(in), value :: count, datatype, dest, tag, comm
+            integer(kind=c_int), intent(out) :: request, ierror
+        end subroutine CFI_MPI_Ssend_init
+    end interface
+#endif
+
+    interface
+        subroutine C_MPI_Rsend_init(buffer, count, datatype, dest, tag, comm, request, &
+                                    ierror) &
+                   bind(C,name="C_MPI_Rsend_init")
+            use iso_c_binding, only: c_int
+            implicit none
+            integer(kind=c_int), dimension(*), intent(in), asynchronous :: buffer
+            integer(kind=c_int), intent(in), value :: count, datatype, dest, tag, comm
+            integer(kind=c_int), intent(out) :: request, ierror
+        end subroutine C_MPI_Rsend_init
+    end interface
+
+#ifdef HAVE_CFI
+    interface
+        subroutine CFI_MPI_Rsend_init(buffer, count, datatype, dest, tag, comm, request, &
+                                      ierror) &
+                   bind(C,name="CFI_MPI_Rsend_init")
+            use iso_c_binding, only: c_int
+            implicit none
+            type(*), dimension(..), intent(in), asynchronous :: buffer
+            integer(kind=c_int), intent(in), value :: count, datatype, dest, tag, comm
+            integer(kind=c_int), intent(out) :: request, ierror
+        end subroutine CFI_MPI_Rsend_init
+    end interface
+#endif
+
+    interface
+        subroutine C_MPI_Recv_init(buffer, count, datatype, source, tag, comm, request, &
+                                   ierror) &
+                   bind(C,name="C_MPI_Recv_init")
+            use iso_c_binding, only: c_int
+            implicit none
+            integer(kind=c_int), dimension(*), intent(inout), asynchronous :: buffer
+            integer(kind=c_int), intent(in), value :: count, datatype, source, tag, comm
+            integer(kind=c_int), intent(out) :: request, ierror
+        end subroutine C_MPI_Recv_init
+    end interface
+
+#ifdef HAVE_CFI
+    interface
+        subroutine CFI_MPI_Recv_init(buffer, count, datatype, source, tag, comm, request, &
+                                     ierror) &
+                   bind(C,name="CFI_MPI_Recv_init")
+            use iso_c_binding, only: c_int
+            implicit none
+            type(*), dimension(..), intent(inout), asynchronous :: buffer
+            integer(kind=c_int), intent(in), value :: count, datatype, source, tag, comm
+            integer(kind=c_int), intent(out) :: request, ierror
+        end subroutine CFI_MPI_Recv_init
+    end interface
+#endif
+
+    interface
+        subroutine C_MPI_Pready(partition, request, ierror) &
+                   bind(C,name="C_MPI_Pready")
+            use iso_c_binding, only: c_int
+            implicit none
+            integer(kind=c_int), intent(in) :: partition, request
+            integer(kind=c_int), intent(out) :: ierror
+        end subroutine C_MPI_Pready
+    end interface
+
+    interface
+        subroutine C_MPI_Pready_list(length, partitions, request, ierror) &
+                   bind(C,name="C_MPI_Pready_list")
+            use iso_c_binding, only: c_int
+            implicit none
+            integer(kind=c_int), intent(in) :: length, request
+            integer(kind=c_int), intent(in) :: partitions(*)
+            integer(kind=c_int), intent(out) :: ierror
+        end subroutine C_MPI_Pready_list
+    end interface
+
+    interface
+        subroutine C_MPI_Pready_range(partition_low, partition_high, request, ierror) &
+                   bind(C,name="C_MPI_Pready_range")
+            use iso_c_binding, only: c_int
+            implicit none
+            integer(kind=c_int), intent(in) :: partition_low, partition_high, request
+            integer(kind=c_int), intent(out) :: ierror
+        end subroutine C_MPI_Pready_range
+    end interface
+
+    interface
+        subroutine C_MPI_Parrived(request, partition, flag, ierror) &
+                   bind(C,name="C_MPI_Parrived")
+            use iso_c_binding, only: c_int
+            implicit none
+            integer(kind=c_int), intent(in) :: request, partition
+            integer(kind=c_int), intent(out) :: flag, ierror
+        end subroutine C_MPI_Parrived
+    end interface
+
+    interface
+        subroutine C_MPI_Psend_init(buffer, partitions, count, datatype, dest, tag, comm, info, request, &
+                                    ierror) &
+                   bind(C,name="C_MPI_Psend_init")
+            use iso_c_binding, only: c_int
+            implicit none
+            integer(kind=c_int), dimension(*), intent(in), asynchronous :: buffer
+            integer(kind=c_int), intent(in), value :: partitions, count, datatype, dest, tag, comm, info
+            integer(kind=c_int), intent(out) :: request, ierror
+        end subroutine C_MPI_Psend_init
+    end interface
+
+#ifdef HAVE_CFI
+    interface
+        subroutine CFI_MPI_Psend_init(buffer, partitions, count, datatype, dest, tag, comm, info, request, &
+                                      ierror) &
+                   bind(C,name="CFI_MPI_Psend_init")
+            use iso_c_binding, only: c_int
+            implicit none
+            type(*), dimension(..), intent(in), asynchronous :: buffer
+            integer(kind=c_int), intent(in), value :: partitions, count, datatype, dest, tag, comm, info
+            integer(kind=c_int), intent(out) :: request, ierror
+        end subroutine CFI_MPI_Psend_init
+    end interface
+#endif
+
+    interface
+        subroutine C_MPI_Precv_init(buffer, partitions, count, datatype, source, tag, comm, info, request, &
+                                    ierror) &
+                   bind(C,name="C_MPI_Precv_init")
+            use iso_c_binding, only: c_int
+            implicit none
+            integer(kind=c_int), dimension(*), intent(inout), asynchronous :: buffer
+            integer(kind=c_int), intent(in), value :: partitions, count, datatype, source, tag, comm, info
+            integer(kind=c_int), intent(out) :: request, ierror
+        end subroutine C_MPI_Precv_init
+    end interface
+
+#ifdef HAVE_CFI
+    interface
+        subroutine CFI_MPI_Precv_init(buffer, partitions, count, datatype, source, tag, comm, info, request, &
+                                      ierror) &
+                   bind(C,name="CFI_MPI_Precv_init")
+            use iso_c_binding, only: c_int
+            implicit none
+            type(*), dimension(..), intent(inout), asynchronous :: buffer
+            integer(kind=c_int), intent(in), value :: partitions, count, datatype, source, tag, comm, info
+            integer(kind=c_int), intent(out) :: request, ierror
+        end subroutine CFI_MPI_Precv_init
+    end interface
+#endif
+
+    interface
+        subroutine C_MPI_Mrecv(buffer, count, datatype, message, status, ierror) &
+                   bind(C,name="C_MPI_Mrecv")
+            use iso_c_binding, only: c_int
+            use mpi_handle_types, only: MPI_Status
+            implicit none
+            integer(kind=c_int), dimension(*), intent(inout) :: buffer
+            integer(kind=c_int), intent(in), value :: count, datatype
+            integer(kind=c_int), intent(inout) :: message
+            type(MPI_Status), intent(inout) :: status
+            integer(kind=c_int), intent(out) :: ierror
+        end subroutine C_MPI_Mrecv
+    end interface
+
+#ifdef HAVE_CFI
+    interface
+        subroutine CFI_MPI_Mrecv(buffer, count, datatype, message, status, ierror) &
+                   bind(C,name="CFI_MPI_Mrecv")
+            use iso_c_binding, only: c_int
+            use mpi_handle_types, only: MPI_Status
+            implicit none
+            type(*), dimension(..), intent(inout) :: buffer
+            integer(kind=c_int), intent(in), value :: count, datatype
+            integer(kind=c_int), intent(inout) :: message
+            type(MPI_Status), intent(inout) :: status
+            integer(kind=c_int), intent(out) :: ierror
+        end subroutine CFI_MPI_Mrecv
+    end interface
+#endif
+
+    interface
+        subroutine C_MPI_Imrecv(buffer, count, datatype, message, request, ierror) &
+                   bind(C,name="C_MPI_Imrecv")
+            use iso_c_binding, only: c_int
+            implicit none
+            integer(kind=c_int), dimension(*), intent(inout), asynchronous :: buffer
+            integer(kind=c_int), intent(in), value :: count, datatype
+            integer(kind=c_int), intent(inout) :: message
+            integer(kind=c_int), intent(out) :: request, ierror
+        end subroutine C_MPI_Imrecv
+    end interface
+
+#ifdef HAVE_CFI
+    interface
+        subroutine CFI_MPI_Imrecv(buffer, count, datatype, message, request, ierror) &
+                   bind(C,name="CFI_MPI_Imrecv")
+            use iso_c_binding, only: c_int
+            implicit none
+            type(*), dimension(..), intent(inout), asynchronous :: buffer
+            integer(kind=c_int), intent(in), value :: count, datatype
+            integer(kind=c_int), intent(inout) :: message
+            integer(kind=c_int), intent(out) :: request, ierror
+        end subroutine CFI_MPI_Imrecv
     end interface
 #endif
 

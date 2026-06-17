@@ -181,6 +181,12 @@ void C_MPI_Query_thread(int * provided_f, int * ierror)
     C_MPI_RC_FIX(*ierror);
 }
 
+void C_MPI_Is_thread_main(int * flag, int * ierror)
+{
+    *ierror = MPI_Is_thread_main(flag);
+    C_MPI_RC_FIX(*ierror);
+}
+
 void C_MPI_Abort(int * comm_f, int * errorcode, int * ierror)
 {
     MPI_Comm comm = C_MPI_COMM_FROMINT(*comm_f);
@@ -205,6 +211,19 @@ void C_MPI_Get_library_version(char * version, int * resultlen, int * ierror)
     }
     memset(version,0,VAPAA_MPI_MAX_LIBRARY_VERSION_STRING);
     *ierror = MPI_Get_library_version(version, resultlen);
+    C_MPI_RC_FIX(*ierror);
+}
+
+void C_MPI_Get_processor_name(char * name, int * resultlen, int * ierror)
+{
+    if (VAPAA_MPI_MAX_PROCESSOR_NAME < MPI_MAX_PROCESSOR_NAME) {
+        fprintf(stderr,"C_MPI_Get_processor_name: buffer is not large enough - "
+                       "bad things are going to happen now!\n"
+                       "VAPAA_MPI_MAX_PROCESSOR_NAME=%d, MPI_MAX_PROCESSOR_NAME=%d\n",
+                       VAPAA_MPI_MAX_PROCESSOR_NAME, MPI_MAX_PROCESSOR_NAME);
+    }
+    memset(name,0,VAPAA_MPI_MAX_PROCESSOR_NAME);
+    *ierror = MPI_Get_processor_name(name, resultlen);
     C_MPI_RC_FIX(*ierror);
 }
 
@@ -233,4 +252,10 @@ double C_MPI_Wtime(void)
 double C_MPI_Wtick(void)
 {
     return MPI_Wtick();
+}
+
+void C_MPI_Pcontrol(int * level, int * ierror)
+{
+    *ierror = MPI_Pcontrol(*level);
+    C_MPI_RC_FIX(*ierror);
 }

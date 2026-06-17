@@ -12,6 +12,151 @@
 
 // STANDARD STUFF
 
+typedef int (*C_MPI_Sendlike_fn)(const void *, int, MPI_Datatype, int, int, MPI_Comm);
+typedef int (*C_MPI_Isendlike_fn)(const void *, int, MPI_Datatype, int, int, MPI_Comm, MPI_Request *);
+typedef int (*C_MPI_Sendinit_fn)(const void *, int, MPI_Datatype, int, int, MPI_Comm, MPI_Request *);
+typedef int (*C_MPI_Recvinit_fn)(void *, int, MPI_Datatype, int, int, MPI_Comm, MPI_Request *);
+
+static void C_MPI_Sendlike(void *buffer, int count, int datatype_f, int dest, int tag, int comm_f,
+                           C_MPI_Sendlike_fn fn, int *ierror)
+{
+    MPI_Datatype datatype = C_MPI_TYPE_FROMINT(datatype_f);
+    MPI_Comm comm = C_MPI_COMM_FROMINT(comm_f);
+    *ierror = fn(buffer, count, datatype, C_MPI_DEST_F2C(dest), C_MPI_TAG_F2C(tag), comm);
+    C_MPI_RC_FIX(*ierror);
+}
+
+#ifdef HAVE_CFI
+static void CFI_MPI_Sendlike(CFI_cdesc_t *desc, int count, int datatype_f, int dest, int tag, int comm_f,
+                             C_MPI_Sendlike_fn fn, int *ierror)
+{
+    MPI_Datatype datatype = C_MPI_TYPE_FROMINT(datatype_f);
+    MPI_Comm comm = C_MPI_COMM_FROMINT(comm_f);
+    if (1 == CFI_is_contiguous(desc)) {
+        *ierror = fn(desc->base_addr, count, datatype, C_MPI_DEST_F2C(dest), C_MPI_TAG_F2C(tag), comm);
+    } else {
+        int rc;
+        MPI_Datatype subarray_type = MPI_DATATYPE_NULL;
+        rc = VAPAA_CFI_CREATE_DATATYPE(desc, count, datatype, &subarray_type);
+        VAPAA_Assert(rc == MPI_SUCCESS);
+        rc = PMPI_Type_commit(&subarray_type);
+        VAPAA_Assert(rc == MPI_SUCCESS);
+        *ierror = fn(desc->base_addr, 1, subarray_type, C_MPI_DEST_F2C(dest), C_MPI_TAG_F2C(tag), comm);
+        rc = PMPI_Type_free(&subarray_type);
+        VAPAA_Assert(rc == MPI_SUCCESS);
+    }
+    C_MPI_RC_FIX(*ierror);
+}
+#endif
+
+static void C_MPI_Isendlike(void *buffer, int count, int datatype_f, int dest, int tag, int comm_f,
+                            C_MPI_Isendlike_fn fn, int *request_f, int *ierror)
+{
+    MPI_Request request = MPI_REQUEST_NULL;
+    MPI_Datatype datatype = C_MPI_TYPE_FROMINT(datatype_f);
+    MPI_Comm comm = C_MPI_COMM_FROMINT(comm_f);
+    *ierror = fn(buffer, count, datatype, C_MPI_DEST_F2C(dest), C_MPI_TAG_F2C(tag), comm, &request);
+    *request_f = C_MPI_REQUEST_TOINT(request);
+    C_MPI_RC_FIX(*ierror);
+}
+
+#ifdef HAVE_CFI
+static void CFI_MPI_Isendlike(CFI_cdesc_t *desc, int count, int datatype_f, int dest, int tag, int comm_f,
+                              C_MPI_Isendlike_fn fn, int *request_f, int *ierror)
+{
+    MPI_Request request = MPI_REQUEST_NULL;
+    MPI_Datatype datatype = C_MPI_TYPE_FROMINT(datatype_f);
+    MPI_Comm comm = C_MPI_COMM_FROMINT(comm_f);
+    if (1 == CFI_is_contiguous(desc)) {
+        *ierror = fn(desc->base_addr, count, datatype, C_MPI_DEST_F2C(dest), C_MPI_TAG_F2C(tag), comm, &request);
+    } else {
+        int rc;
+        MPI_Datatype subarray_type = MPI_DATATYPE_NULL;
+        rc = VAPAA_CFI_CREATE_DATATYPE(desc, count, datatype, &subarray_type);
+        VAPAA_Assert(rc == MPI_SUCCESS);
+        rc = PMPI_Type_commit(&subarray_type);
+        VAPAA_Assert(rc == MPI_SUCCESS);
+        *ierror = fn(desc->base_addr, 1, subarray_type, C_MPI_DEST_F2C(dest), C_MPI_TAG_F2C(tag), comm, &request);
+        rc = PMPI_Type_free(&subarray_type);
+        VAPAA_Assert(rc == MPI_SUCCESS);
+    }
+    *request_f = C_MPI_REQUEST_TOINT(request);
+    C_MPI_RC_FIX(*ierror);
+}
+#endif
+
+static void C_MPI_Sendinit(void *buffer, int count, int datatype_f, int dest, int tag, int comm_f,
+                           C_MPI_Sendinit_fn fn, int *request_f, int *ierror)
+{
+    MPI_Request request = MPI_REQUEST_NULL;
+    MPI_Datatype datatype = C_MPI_TYPE_FROMINT(datatype_f);
+    MPI_Comm comm = C_MPI_COMM_FROMINT(comm_f);
+    *ierror = fn(buffer, count, datatype, C_MPI_DEST_F2C(dest), C_MPI_TAG_F2C(tag), comm, &request);
+    *request_f = C_MPI_REQUEST_TOINT(request);
+    C_MPI_RC_FIX(*ierror);
+}
+
+#ifdef HAVE_CFI
+static void CFI_MPI_Sendinit(CFI_cdesc_t *desc, int count, int datatype_f, int dest, int tag, int comm_f,
+                             C_MPI_Sendinit_fn fn, int *request_f, int *ierror)
+{
+    MPI_Request request = MPI_REQUEST_NULL;
+    MPI_Datatype datatype = C_MPI_TYPE_FROMINT(datatype_f);
+    MPI_Comm comm = C_MPI_COMM_FROMINT(comm_f);
+    if (1 == CFI_is_contiguous(desc)) {
+        *ierror = fn(desc->base_addr, count, datatype, C_MPI_DEST_F2C(dest), C_MPI_TAG_F2C(tag), comm, &request);
+    } else {
+        int rc;
+        MPI_Datatype subarray_type = MPI_DATATYPE_NULL;
+        rc = VAPAA_CFI_CREATE_DATATYPE(desc, count, datatype, &subarray_type);
+        VAPAA_Assert(rc == MPI_SUCCESS);
+        rc = PMPI_Type_commit(&subarray_type);
+        VAPAA_Assert(rc == MPI_SUCCESS);
+        *ierror = fn(desc->base_addr, 1, subarray_type, C_MPI_DEST_F2C(dest), C_MPI_TAG_F2C(tag), comm, &request);
+        rc = PMPI_Type_free(&subarray_type);
+        VAPAA_Assert(rc == MPI_SUCCESS);
+    }
+    *request_f = C_MPI_REQUEST_TOINT(request);
+    C_MPI_RC_FIX(*ierror);
+}
+#endif
+
+static void C_MPI_Recvinit(void *buffer, int count, int datatype_f, int source, int tag, int comm_f,
+                           C_MPI_Recvinit_fn fn, int *request_f, int *ierror)
+{
+    MPI_Request request = MPI_REQUEST_NULL;
+    MPI_Datatype datatype = C_MPI_TYPE_FROMINT(datatype_f);
+    MPI_Comm comm = C_MPI_COMM_FROMINT(comm_f);
+    *ierror = fn(buffer, count, datatype, C_MPI_SOURCE_F2C(source), C_MPI_TAG_F2C(tag), comm, &request);
+    *request_f = C_MPI_REQUEST_TOINT(request);
+    C_MPI_RC_FIX(*ierror);
+}
+
+#ifdef HAVE_CFI
+static void CFI_MPI_Recvinit(CFI_cdesc_t *desc, int count, int datatype_f, int source, int tag, int comm_f,
+                             C_MPI_Recvinit_fn fn, int *request_f, int *ierror)
+{
+    MPI_Request request = MPI_REQUEST_NULL;
+    MPI_Datatype datatype = C_MPI_TYPE_FROMINT(datatype_f);
+    MPI_Comm comm = C_MPI_COMM_FROMINT(comm_f);
+    if (1 == CFI_is_contiguous(desc)) {
+        *ierror = fn(desc->base_addr, count, datatype, C_MPI_SOURCE_F2C(source), C_MPI_TAG_F2C(tag), comm, &request);
+    } else {
+        int rc;
+        MPI_Datatype subarray_type = MPI_DATATYPE_NULL;
+        rc = VAPAA_CFI_CREATE_DATATYPE(desc, count, datatype, &subarray_type);
+        VAPAA_Assert(rc == MPI_SUCCESS);
+        rc = PMPI_Type_commit(&subarray_type);
+        VAPAA_Assert(rc == MPI_SUCCESS);
+        *ierror = fn(desc->base_addr, 1, subarray_type, C_MPI_SOURCE_F2C(source), C_MPI_TAG_F2C(tag), comm, &request);
+        rc = PMPI_Type_free(&subarray_type);
+        VAPAA_Assert(rc == MPI_SUCCESS);
+    }
+    *request_f = C_MPI_REQUEST_TOINT(request);
+    C_MPI_RC_FIX(*ierror);
+}
+#endif
+
 void C_MPI_Probe(int source, int tag, int comm_f, struct F_MPI_Status * status_f, int * ierror)
 {
     MPI_Comm comm = C_MPI_COMM_FROMINT(comm_f);
@@ -31,6 +176,24 @@ void C_MPI_Mprobe(int source, int tag, int comm_f, int * message_f, MPI_Status *
     MPI_Comm comm = C_MPI_COMM_FROMINT(comm_f);
     *ierror = MPI_Mprobe(C_MPI_SOURCE_F2C(source), C_MPI_TAG_F2C(tag), comm, &message,
                          C_IS_MPI_STATUS_IGNORE(status) ? MPI_STATUS_IGNORE : status);
+    *message_f = C_MPI_MESSAGE_TOINT(message);
+    C_MPI_RC_FIX(*ierror);
+}
+
+void C_MPI_Iprobe(int source, int tag, int comm_f, int * flag, MPI_Status * status, int * ierror)
+{
+    MPI_Comm comm = C_MPI_COMM_FROMINT(comm_f);
+    *ierror = MPI_Iprobe(C_MPI_SOURCE_F2C(source), C_MPI_TAG_F2C(tag), comm, flag,
+                         C_IS_MPI_STATUS_IGNORE(status) ? MPI_STATUS_IGNORE : status);
+    C_MPI_RC_FIX(*ierror);
+}
+
+void C_MPI_Improbe(int source, int tag, int comm_f, int * flag, int * message_f, MPI_Status * status, int * ierror)
+{
+    MPI_Message message = MPI_MESSAGE_NULL;
+    MPI_Comm comm = C_MPI_COMM_FROMINT(comm_f);
+    *ierror = MPI_Improbe(C_MPI_SOURCE_F2C(source), C_MPI_TAG_F2C(tag), comm, flag, &message,
+                          C_IS_MPI_STATUS_IGNORE(status) ? MPI_STATUS_IGNORE : status);
     *message_f = C_MPI_MESSAGE_TOINT(message);
     C_MPI_RC_FIX(*ierror);
 }
@@ -254,6 +417,83 @@ void CFI_MPI_Send(CFI_cdesc_t * desc, int count, int datatype_f, int dest, int t
 }
 #endif
 
+void C_MPI_Bsend(void * buffer, int count, int datatype_f, int dest, int tag, int comm_f, int * ierror)
+{
+    C_MPI_Sendlike(buffer, count, datatype_f, dest, tag, comm_f, MPI_Bsend, ierror);
+}
+
+#ifdef HAVE_CFI
+void CFI_MPI_Bsend(CFI_cdesc_t * desc, int count, int datatype_f, int dest, int tag, int comm_f, int * ierror)
+{
+    CFI_MPI_Sendlike(desc, count, datatype_f, dest, tag, comm_f, MPI_Bsend, ierror);
+}
+#endif
+
+void C_MPI_Ssend(void * buffer, int count, int datatype_f, int dest, int tag, int comm_f, int * ierror)
+{
+    C_MPI_Sendlike(buffer, count, datatype_f, dest, tag, comm_f, MPI_Ssend, ierror);
+}
+
+#ifdef HAVE_CFI
+void CFI_MPI_Ssend(CFI_cdesc_t * desc, int count, int datatype_f, int dest, int tag, int comm_f, int * ierror)
+{
+    CFI_MPI_Sendlike(desc, count, datatype_f, dest, tag, comm_f, MPI_Ssend, ierror);
+}
+#endif
+
+void C_MPI_Rsend(void * buffer, int count, int datatype_f, int dest, int tag, int comm_f, int * ierror)
+{
+    C_MPI_Sendlike(buffer, count, datatype_f, dest, tag, comm_f, MPI_Rsend, ierror);
+}
+
+#ifdef HAVE_CFI
+void CFI_MPI_Rsend(CFI_cdesc_t * desc, int count, int datatype_f, int dest, int tag, int comm_f, int * ierror)
+{
+    CFI_MPI_Sendlike(desc, count, datatype_f, dest, tag, comm_f, MPI_Rsend, ierror);
+}
+#endif
+
+#ifdef HAVE_CFI
+void CFI_MPI_Buffer_attach(CFI_cdesc_t * desc, int size, int * ierror)
+{
+    if (1 == CFI_is_contiguous(desc)) {
+        *ierror = MPI_Buffer_attach(desc->base_addr, size);
+    } else {
+        VAPAA_Warning("MPI_Buffer_attach requires a contiguous buffer.\n");
+        *ierror = MPI_ERR_ARG;
+    }
+    C_MPI_RC_FIX(*ierror);
+}
+#endif
+
+void C_MPI_Buffer_detach(void ** buffer_addr, int * size, int * ierror)
+{
+    *ierror = MPI_Buffer_detach(buffer_addr, size);
+    C_MPI_RC_FIX(*ierror);
+}
+
+void C_MPI_Buffer_flush(int * ierror)
+{
+#if MPI_VERSION >= 4
+    *ierror = MPI_Buffer_flush();
+#else
+    *ierror = MPI_ERR_UNSUPPORTED_OPERATION;
+#endif
+    C_MPI_RC_FIX(*ierror);
+}
+
+void C_MPI_Buffer_iflush(int * request_f, int * ierror)
+{
+    MPI_Request request = MPI_REQUEST_NULL;
+#if MPI_VERSION >= 4
+    *ierror = MPI_Buffer_iflush(&request);
+#else
+    *ierror = MPI_ERR_UNSUPPORTED_OPERATION;
+#endif
+    *request_f = C_MPI_REQUEST_TOINT(request);
+    C_MPI_RC_FIX(*ierror);
+}
+
 void C_MPI_Isend(void * buffer, int count, int datatype_f, int dest, int tag, int comm_f, int * request_f, int * ierror)
 {
     MPI_Request request = MPI_REQUEST_NULL;
@@ -285,6 +525,97 @@ void CFI_MPI_Isend(CFI_cdesc_t * desc, int count, int datatype_f, int dest, int 
     }
     *request_f = C_MPI_REQUEST_TOINT(request);
     C_MPI_RC_FIX(*ierror);
+}
+#endif
+
+void C_MPI_Ibsend(void * buffer, int count, int datatype_f, int dest, int tag, int comm_f, int * request_f, int * ierror)
+{
+    C_MPI_Isendlike(buffer, count, datatype_f, dest, tag, comm_f, MPI_Ibsend, request_f, ierror);
+}
+
+#ifdef HAVE_CFI
+void CFI_MPI_Ibsend(CFI_cdesc_t * desc, int count, int datatype_f, int dest, int tag, int comm_f,
+                    int * request_f, int * ierror)
+{
+    CFI_MPI_Isendlike(desc, count, datatype_f, dest, tag, comm_f, MPI_Ibsend, request_f, ierror);
+}
+#endif
+
+void C_MPI_Issend(void * buffer, int count, int datatype_f, int dest, int tag, int comm_f, int * request_f, int * ierror)
+{
+    C_MPI_Isendlike(buffer, count, datatype_f, dest, tag, comm_f, MPI_Issend, request_f, ierror);
+}
+
+#ifdef HAVE_CFI
+void CFI_MPI_Issend(CFI_cdesc_t * desc, int count, int datatype_f, int dest, int tag, int comm_f,
+                    int * request_f, int * ierror)
+{
+    CFI_MPI_Isendlike(desc, count, datatype_f, dest, tag, comm_f, MPI_Issend, request_f, ierror);
+}
+#endif
+
+void C_MPI_Irsend(void * buffer, int count, int datatype_f, int dest, int tag, int comm_f, int * request_f, int * ierror)
+{
+    C_MPI_Isendlike(buffer, count, datatype_f, dest, tag, comm_f, MPI_Irsend, request_f, ierror);
+}
+
+#ifdef HAVE_CFI
+void CFI_MPI_Irsend(CFI_cdesc_t * desc, int count, int datatype_f, int dest, int tag, int comm_f,
+                    int * request_f, int * ierror)
+{
+    CFI_MPI_Isendlike(desc, count, datatype_f, dest, tag, comm_f, MPI_Irsend, request_f, ierror);
+}
+#endif
+
+void C_MPI_Send_init(void * buffer, int count, int datatype_f, int dest, int tag, int comm_f, int * request_f, int * ierror)
+{
+    C_MPI_Sendinit(buffer, count, datatype_f, dest, tag, comm_f, MPI_Send_init, request_f, ierror);
+}
+
+#ifdef HAVE_CFI
+void CFI_MPI_Send_init(CFI_cdesc_t * desc, int count, int datatype_f, int dest, int tag, int comm_f,
+                       int * request_f, int * ierror)
+{
+    CFI_MPI_Sendinit(desc, count, datatype_f, dest, tag, comm_f, MPI_Send_init, request_f, ierror);
+}
+#endif
+
+void C_MPI_Bsend_init(void * buffer, int count, int datatype_f, int dest, int tag, int comm_f, int * request_f, int * ierror)
+{
+    C_MPI_Sendinit(buffer, count, datatype_f, dest, tag, comm_f, MPI_Bsend_init, request_f, ierror);
+}
+
+#ifdef HAVE_CFI
+void CFI_MPI_Bsend_init(CFI_cdesc_t * desc, int count, int datatype_f, int dest, int tag, int comm_f,
+                        int * request_f, int * ierror)
+{
+    CFI_MPI_Sendinit(desc, count, datatype_f, dest, tag, comm_f, MPI_Bsend_init, request_f, ierror);
+}
+#endif
+
+void C_MPI_Ssend_init(void * buffer, int count, int datatype_f, int dest, int tag, int comm_f, int * request_f, int * ierror)
+{
+    C_MPI_Sendinit(buffer, count, datatype_f, dest, tag, comm_f, MPI_Ssend_init, request_f, ierror);
+}
+
+#ifdef HAVE_CFI
+void CFI_MPI_Ssend_init(CFI_cdesc_t * desc, int count, int datatype_f, int dest, int tag, int comm_f,
+                        int * request_f, int * ierror)
+{
+    CFI_MPI_Sendinit(desc, count, datatype_f, dest, tag, comm_f, MPI_Ssend_init, request_f, ierror);
+}
+#endif
+
+void C_MPI_Rsend_init(void * buffer, int count, int datatype_f, int dest, int tag, int comm_f, int * request_f, int * ierror)
+{
+    C_MPI_Sendinit(buffer, count, datatype_f, dest, tag, comm_f, MPI_Rsend_init, request_f, ierror);
+}
+
+#ifdef HAVE_CFI
+void CFI_MPI_Rsend_init(CFI_cdesc_t * desc, int count, int datatype_f, int dest, int tag, int comm_f,
+                        int * request_f, int * ierror)
+{
+    CFI_MPI_Sendinit(desc, count, datatype_f, dest, tag, comm_f, MPI_Rsend_init, request_f, ierror);
 }
 #endif
 
@@ -360,12 +691,174 @@ void CFI_MPI_Irecv(CFI_cdesc_t * desc, int count, int datatype_f, int source, in
 }
 #endif
 
+void C_MPI_Recv_init(void * buffer, int count, int datatype_f, int source, int tag, int comm_f, int * request_f, int * ierror)
+{
+    C_MPI_Recvinit(buffer, count, datatype_f, source, tag, comm_f, MPI_Recv_init, request_f, ierror);
+}
+
+#ifdef HAVE_CFI
+void CFI_MPI_Recv_init(CFI_cdesc_t * desc, int count, int datatype_f, int source, int tag, int comm_f,
+                       int * request_f, int * ierror)
+{
+    CFI_MPI_Recvinit(desc, count, datatype_f, source, tag, comm_f, MPI_Recv_init, request_f, ierror);
+}
+#endif
+
+void C_MPI_Pready(int * partition, const int * request_f, int * ierror)
+{
+    MPI_Request request = C_MPI_REQUEST_FROMINT(*request_f);
+#if MPI_VERSION >= 4
+    *ierror = MPI_Pready(*partition, request);
+#else
+    (void) request;
+    *ierror = MPI_ERR_UNSUPPORTED_OPERATION;
+#endif
+    C_MPI_RC_FIX(*ierror);
+}
+
+void C_MPI_Pready_list(int * length, const int partitions[], const int * request_f, int * ierror)
+{
+    MPI_Request request = C_MPI_REQUEST_FROMINT(*request_f);
+#if MPI_VERSION >= 4
+    *ierror = MPI_Pready_list(*length, partitions, request);
+#else
+    (void) partitions;
+    (void) request;
+    *ierror = MPI_ERR_UNSUPPORTED_OPERATION;
+#endif
+    C_MPI_RC_FIX(*ierror);
+}
+
+void C_MPI_Pready_range(int * partition_low, int * partition_high, const int * request_f, int * ierror)
+{
+    MPI_Request request = C_MPI_REQUEST_FROMINT(*request_f);
+#if MPI_VERSION >= 4
+    *ierror = MPI_Pready_range(*partition_low, *partition_high, request);
+#else
+    (void) request;
+    *ierror = MPI_ERR_UNSUPPORTED_OPERATION;
+#endif
+    C_MPI_RC_FIX(*ierror);
+}
+
+void C_MPI_Parrived(const int * request_f, int * partition, int * flag, int * ierror)
+{
+    MPI_Request request = C_MPI_REQUEST_FROMINT(*request_f);
+#if MPI_VERSION >= 4
+    *ierror = MPI_Parrived(request, *partition, flag);
+#else
+    (void) request;
+    *flag = 0;
+    *ierror = MPI_ERR_UNSUPPORTED_OPERATION;
+#endif
+    C_MPI_RC_FIX(*ierror);
+}
+
+void C_MPI_Psend_init(void * buffer, int partitions, int count, int datatype_f, int dest, int tag,
+                      int comm_f, int info_f, int * request_f, int * ierror)
+{
+    MPI_Request request = MPI_REQUEST_NULL;
+    MPI_Datatype datatype = C_MPI_TYPE_FROMINT(datatype_f);
+    MPI_Comm comm = C_MPI_COMM_FROMINT(comm_f);
+    MPI_Info info = C_MPI_INFO_FROMINT(info_f);
+#if MPI_VERSION >= 4
+    *ierror = MPI_Psend_init(buffer, partitions, count, datatype, C_MPI_DEST_F2C(dest),
+                             C_MPI_TAG_F2C(tag), comm, info, &request);
+#else
+    *ierror = MPI_ERR_UNSUPPORTED_OPERATION;
+#endif
+    *request_f = C_MPI_REQUEST_TOINT(request);
+    C_MPI_RC_FIX(*ierror);
+}
+
+#ifdef HAVE_CFI
+void CFI_MPI_Psend_init(CFI_cdesc_t * desc, int partitions, int count, int datatype_f, int dest, int tag,
+                        int comm_f, int info_f, int * request_f, int * ierror)
+{
+    MPI_Request request = MPI_REQUEST_NULL;
+    MPI_Datatype datatype = C_MPI_TYPE_FROMINT(datatype_f);
+    MPI_Comm comm = C_MPI_COMM_FROMINT(comm_f);
+    MPI_Info info = C_MPI_INFO_FROMINT(info_f);
+#if MPI_VERSION >= 4
+    if (1 == CFI_is_contiguous(desc)) {
+        *ierror = MPI_Psend_init(desc->base_addr, partitions, count, datatype, C_MPI_DEST_F2C(dest),
+                                 C_MPI_TAG_F2C(tag), comm, info, &request);
+    } else {
+        int rc;
+        MPI_Datatype subarray_type = MPI_DATATYPE_NULL;
+        rc = VAPAA_CFI_CREATE_DATATYPE(desc, count, datatype, &subarray_type);
+        VAPAA_Assert(rc == MPI_SUCCESS);
+        rc = PMPI_Type_commit(&subarray_type);
+        VAPAA_Assert(rc == MPI_SUCCESS);
+        *ierror = MPI_Psend_init(desc->base_addr, partitions, 1, subarray_type, C_MPI_DEST_F2C(dest),
+                                 C_MPI_TAG_F2C(tag), comm, info, &request);
+        rc = PMPI_Type_free(&subarray_type);
+        VAPAA_Assert(rc == MPI_SUCCESS);
+    }
+#else
+    *ierror = MPI_ERR_UNSUPPORTED_OPERATION;
+#endif
+    *request_f = C_MPI_REQUEST_TOINT(request);
+    C_MPI_RC_FIX(*ierror);
+}
+#endif
+
+void C_MPI_Precv_init(void * buffer, int partitions, int count, int datatype_f, int source, int tag,
+                      int comm_f, int info_f, int * request_f, int * ierror)
+{
+    MPI_Request request = MPI_REQUEST_NULL;
+    MPI_Datatype datatype = C_MPI_TYPE_FROMINT(datatype_f);
+    MPI_Comm comm = C_MPI_COMM_FROMINT(comm_f);
+    MPI_Info info = C_MPI_INFO_FROMINT(info_f);
+#if MPI_VERSION >= 4
+    *ierror = MPI_Precv_init(buffer, partitions, count, datatype, C_MPI_SOURCE_F2C(source),
+                             C_MPI_TAG_F2C(tag), comm, info, &request);
+#else
+    *ierror = MPI_ERR_UNSUPPORTED_OPERATION;
+#endif
+    *request_f = C_MPI_REQUEST_TOINT(request);
+    C_MPI_RC_FIX(*ierror);
+}
+
+#ifdef HAVE_CFI
+void CFI_MPI_Precv_init(CFI_cdesc_t * desc, int partitions, int count, int datatype_f, int source, int tag,
+                        int comm_f, int info_f, int * request_f, int * ierror)
+{
+    MPI_Request request = MPI_REQUEST_NULL;
+    MPI_Datatype datatype = C_MPI_TYPE_FROMINT(datatype_f);
+    MPI_Comm comm = C_MPI_COMM_FROMINT(comm_f);
+    MPI_Info info = C_MPI_INFO_FROMINT(info_f);
+#if MPI_VERSION >= 4
+    if (1 == CFI_is_contiguous(desc)) {
+        *ierror = MPI_Precv_init(desc->base_addr, partitions, count, datatype, C_MPI_SOURCE_F2C(source),
+                                 C_MPI_TAG_F2C(tag), comm, info, &request);
+    } else {
+        int rc;
+        MPI_Datatype subarray_type = MPI_DATATYPE_NULL;
+        rc = VAPAA_CFI_CREATE_DATATYPE(desc, count, datatype, &subarray_type);
+        VAPAA_Assert(rc == MPI_SUCCESS);
+        rc = PMPI_Type_commit(&subarray_type);
+        VAPAA_Assert(rc == MPI_SUCCESS);
+        *ierror = MPI_Precv_init(desc->base_addr, partitions, 1, subarray_type, C_MPI_SOURCE_F2C(source),
+                                 C_MPI_TAG_F2C(tag), comm, info, &request);
+        rc = PMPI_Type_free(&subarray_type);
+        VAPAA_Assert(rc == MPI_SUCCESS);
+    }
+#else
+    *ierror = MPI_ERR_UNSUPPORTED_OPERATION;
+#endif
+    *request_f = C_MPI_REQUEST_TOINT(request);
+    C_MPI_RC_FIX(*ierror);
+}
+#endif
+
 void C_MPI_Mrecv(void * buffer, int count, int datatype_f, int * message_f, MPI_Status * status, int * ierror)
 {
     MPI_Datatype datatype = C_MPI_TYPE_FROMINT(datatype_f);
     MPI_Message  message  = C_MPI_MESSAGE_FROMINT(*message_f);
     *ierror = MPI_Mrecv(buffer, count, datatype, &message,
                         C_IS_MPI_STATUS_IGNORE(status) ? MPI_STATUS_IGNORE : status);
+    *message_f = C_MPI_MESSAGE_TOINT(message);
     C_MPI_RC_FIX(*ierror);
 }
 
@@ -389,6 +882,7 @@ void CFI_MPI_Mrecv(CFI_cdesc_t * desc, int count, int datatype_f, int * message_
         rc = PMPI_Type_free(&subarray_type);
         VAPAA_Assert(rc == MPI_SUCCESS);
     }
+    *message_f = C_MPI_MESSAGE_TOINT(message);
     C_MPI_RC_FIX(*ierror);
 }
 #endif
@@ -399,6 +893,7 @@ void C_MPI_Imrecv(void * buffer, int count, int datatype_f, int * message_f, int
     MPI_Datatype datatype = C_MPI_TYPE_FROMINT(datatype_f);
     MPI_Message  message  = C_MPI_MESSAGE_FROMINT(*message_f);
     *ierror = MPI_Imrecv(buffer, count, datatype, &message, &request);
+    *message_f = C_MPI_MESSAGE_TOINT(message);
     *request_f = C_MPI_REQUEST_TOINT(request);
     C_MPI_RC_FIX(*ierror);
 }
@@ -422,6 +917,7 @@ void CFI_MPI_Imrecv(CFI_cdesc_t * desc, int count, int datatype_f, int * message
         rc = PMPI_Type_free(&subarray_type);
         VAPAA_Assert(rc == MPI_SUCCESS);
     }
+    *message_f = C_MPI_MESSAGE_TOINT(message);
     *request_f = C_MPI_REQUEST_TOINT(request);
     C_MPI_RC_FIX(*ierror);
 }

@@ -71,6 +71,15 @@ module mpi_core_c
     end interface
 
     interface
+        subroutine C_MPI_Is_thread_main(flag, ierror) &
+                   bind(C,name="C_MPI_Is_thread_main")
+            use iso_c_binding, only: c_int
+            implicit none
+            integer(kind=c_int), intent(out) :: flag, ierror
+        end subroutine C_MPI_Is_thread_main
+    end interface
+
+    interface
         subroutine C_MPI_Abort(comm, errorcode, ierror) &
                    bind(C,name="C_MPI_Abort")
             use iso_c_binding, only: c_int
@@ -97,6 +106,16 @@ module mpi_core_c
             character(kind=c_char), dimension(*), intent(out) :: version
             integer(kind=c_int), intent(out) :: resultlen, ierror
         end subroutine C_MPI_Get_library_version
+    end interface
+
+    interface
+        subroutine C_MPI_Get_processor_name(name, resultlen, ierror) &
+                   bind(C,name="C_MPI_Get_processor_name")
+            use iso_c_binding, only: c_int, c_char
+            implicit none
+            character(kind=c_char), dimension(*), intent(out) :: name
+            integer(kind=c_int), intent(out) :: resultlen, ierror
+        end subroutine C_MPI_Get_processor_name
     end interface
 
 #ifdef HAVE_CFI
@@ -127,6 +146,16 @@ module mpi_core_c
             implicit none
             real(kind=c_double) :: time
         end function C_MPI_Wtick
+    end interface
+
+    interface
+        subroutine C_MPI_Pcontrol(level, ierror) &
+                   bind(C,name="C_MPI_Pcontrol")
+            use iso_c_binding, only: c_int
+            implicit none
+            integer(kind=c_int), intent(in) :: level
+            integer(kind=c_int), intent(out) :: ierror
+        end subroutine C_MPI_Pcontrol
     end interface
 
 end module mpi_core_c

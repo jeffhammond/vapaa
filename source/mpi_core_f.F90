@@ -30,6 +30,10 @@ module mpi_core_f
         module procedure MPI_Query_thread_f08
     end interface MPI_Query_thread
 
+    interface MPI_Is_thread_main
+        module procedure MPI_Is_thread_main_f08
+    end interface MPI_Is_thread_main
+
     interface MPI_Abort
         module procedure MPI_Abort_f08
     end interface MPI_Abort
@@ -46,6 +50,10 @@ module mpi_core_f
 #endif
     end interface MPI_Get_library_version
 
+    interface MPI_Get_processor_name
+        module procedure MPI_Get_processor_name_f08
+    end interface MPI_Get_processor_name
+
     interface MPI_Wtime
         module procedure MPI_Wtime_f08
     end interface MPI_Wtime
@@ -53,6 +61,10 @@ module mpi_core_f
     interface MPI_Wtick
         module procedure MPI_Wtick_f08
     end interface MPI_Wtick
+
+    interface MPI_Pcontrol
+        module procedure MPI_Pcontrol_f08
+    end interface MPI_Pcontrol
 
     contains
 
@@ -216,6 +228,16 @@ module mpi_core_f
             if (present(ierror)) ierror = ierror_c
         end subroutine MPI_Query_thread_f08
 
+        subroutine MPI_Is_thread_main_f08(flag, ierror)
+            use mpi_core_c, only: C_MPI_Is_thread_main
+            logical, intent(out) :: flag
+            integer, optional, intent(out) :: ierror
+            integer(kind=c_int) :: flag_c, ierror_c
+            call C_MPI_Is_thread_main(flag_c, ierror_c)
+            flag = (flag_c .ne. 0)
+            if (present(ierror)) ierror = ierror_c
+        end subroutine MPI_Is_thread_main_f08
+
         subroutine MPI_Abort_f08(comm, errorcode, ierror) 
             use mpi_handle_types, only: MPI_Comm
             use mpi_core_c, only: C_MPI_Abort
@@ -251,6 +273,18 @@ module mpi_core_f
             if (present(ierror)) ierror = ierror_c
         end subroutine MPI_Get_library_version_f08
 
+        subroutine MPI_Get_processor_name_f08(name, resultlen, ierror)
+            use mpi_core_c, only: C_MPI_Get_processor_name
+            use mpi_global_constants, only: MPI_MAX_PROCESSOR_NAME
+            character(len=MPI_MAX_PROCESSOR_NAME), intent(out) :: name
+            integer, intent(out) :: resultlen
+            integer, optional, intent(out) :: ierror
+            integer(kind=c_int) :: resultlen_c, ierror_c
+            call C_MPI_Get_processor_name(name, resultlen_c, ierror_c)
+            resultlen = resultlen_c
+            if (present(ierror)) ierror = ierror_c
+        end subroutine MPI_Get_processor_name_f08
+
 #ifdef HAVE_CFI
         subroutine MPI_Get_library_version_f08ts(version, resultlen, ierror)
             use mpi_core_c, only: CFI_MPI_Get_library_version
@@ -276,5 +310,15 @@ module mpi_core_f
             double precision :: time
             time = C_MPI_Wtick()
         end function MPI_Wtick_f08
+
+        subroutine MPI_Pcontrol_f08(level, ierror)
+            use mpi_core_c, only: C_MPI_Pcontrol
+            integer, intent(in) :: level
+            integer, optional, intent(out) :: ierror
+            integer(kind=c_int) :: level_c, ierror_c
+            level_c = level
+            call C_MPI_Pcontrol(level_c, ierror_c)
+            if (present(ierror)) ierror = ierror_c
+        end subroutine MPI_Pcontrol_f08
 
 end module mpi_core_f
