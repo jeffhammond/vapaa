@@ -15,12 +15,21 @@ ABI implementation, the legacy conversion path was restored conditionally for
 explicit predefined-handle translation plus Vapaa-owned dynamic handle tables,
 with legacy `MPI_*_f2c` fallbacks only outside the MPI-5 ABI path.
 
+The final MPI-5 ABI validation used MPICH 5.0.0 built with
+`--enable-mpi-abi` and Fortran enabled. Vapaa was compiled against the
+`mpi-abi-stubs` install and run with MPICH's `libmpi_abi.so` supplied through
+`LD_PRELOAD`. That validates the actual ABI path: stubs at link time, MPICH at
+runtime.
+
 ## Sources
 
 The constants were taken from:
 
 - `mpi-abi-stubs` at `/tmp/mpi-abi-stubs`, commit `e3a9e9b`
 - MPI-5.0 ABI definitions in the MPI Forum report
+- MPICH 5.0.0 ABI behavior from a local MPICH 5.0.0 build; MPICH's release
+  notes state that MPICH 5.0.0 includes full MPI-5 support including the MPI
+  ABI: <https://www.mpich.org/2026/02/04/mpich-5-0-0-released/>
 
 The local ABI stubs install used for builds was:
 
@@ -79,6 +88,30 @@ For `MPI_VERSION < 5`, Vapaa restores compatibility with non-ABI MPI libraries:
 This avoids collisions between MPI-5 ABI predefined positive integers and
 legacy implementation-specific Fortran handle integers.
 
+## MPI-5 Fortran ABI Initialization
+
+MPICH's MPI-5 ABI provider requires the application-side Fortran compiler model
+before Fortran predefined datatypes such as `MPI_INTEGER`, `MPI_REAL`, and
+`MPI_2INTEGER` can be translated correctly through the ABI layer.
+
+Vapaa now initializes that information in MPI ABI builds immediately after
+`MPI_Init` or `MPI_Init_thread`:
+
+- `source/mpi_core_f.F90` captures the active Fortran compiler's default
+  `LOGICAL`, `INTEGER`, `REAL`, and `DOUBLE PRECISION` storage sizes.
+- It also passes the raw byte representations of `.TRUE.` and `.FALSE.`.
+- `source/mpi_core.c` calls `MPI_Abi_set_fortran_booleans` and
+  `MPI_Abi_set_fortran_info`.
+- If another layer has already supplied the information, Vapaa treats the
+  MPI-5 `MPI_ERR_ABI` result as benign.
+
+This is not a substitute for handle conversion and does not use
+`MPI_*_f2c/c2f`; it supplies the MPI-5 ABI metadata that the provider needs to
+translate ABI Fortran predefined datatypes. A local MPICH 4.3.0 build with
+`--enable-mpi-abi` installed `libmpi_abi.so`, but did not export
+`MPI_Abi_set_fortran_info` or the MPI-5 `MPI_*_fromint/toint` symbols. MPICH
+5.0.0 did export those symbols.
+
 ## Scalar Conversion
 
 The first MPI-5-only pass removed scalar conversions because Fortran and C ABI
@@ -122,7 +155,8 @@ Two tests were updated to reflect this split:
 The MPI-5 ABI binaries were checked for handle conversion symbols:
 
 ```sh
-nm -u build-mpi5-abi-muk/tests/test_core | rg "MPI_.*_(f2c|c2f)|MPI_.*_(fromint|toint)"
+nm -u build-mpi5-abi-mpich50-fort-preload/tests/test_user_reduction | \
+  rg "MPI_.*_(f2c|c2f)|MPI_.*_(fromint|toint)"
 ```
 
 Result: only `MPI_*_fromint` and `MPI_*_toint` are referenced.
@@ -138,7 +172,50 @@ reference `fromint/toint`.
 
 ## Test Configuration
 
+MPICH 5.0.0 MPI ABI runtime provider:
+
+```sh
+../mpich-5.0.0/configure \
+  --prefix=/tmp/mpich-5.0.0-abi-fort-install \
+  --with-device=ch4:ucx \
+  --with-ucx=/usr \
+  --enable-shared \
+  --disable-static \
+  --enable-mpi-abi
+make -C /tmp/mpich-5.0.0-abi-fort-build -j 8
+make -C /tmp/mpich-5.0.0-abi-fort-build install
+```
+
+Installed MPICH summary:
+
+```text
+MPICH Version:      5.0.0
+MPICH ABI:          18:0:6
+MPICH Device:       ch4:ucx
+MPICH configure:    --prefix=/tmp/mpich-5.0.0-abi-fort-install --with-device=ch4:ucx --with-ucx=/usr --enable-shared --disable-static --enable-mpi-abi
+MPICH F77:          gfortran   -O2
+MPICH FC:           gfortran   -O2
+```
+
+The ABI wrapper confirms stubs-compatible linking:
+
+```text
+$ /tmp/mpich-5.0.0-abi-fort-install/bin/mpicc -mpi-abi -show
+gcc -DMPI_ABI -I/tmp/mpich-5.0.0-abi-fort-install/include -L/tmp/mpich-5.0.0-abi-fort-install/lib -Wl,-rpath -Wl,/tmp/mpich-5.0.0-abi-fort-install/lib -Wl,--enable-new-dtags -lmpi_abi
+```
+
 MPI-5 ABI compile-time configuration:
+
+```sh
+cmake -S . -B build-mpi5-abi-mpich50-fort-preload \
+  -DCMAKE_Fortran_COMPILER=gfortran \
+  -DMPI_C_COMPILER=/tmp/mpi-abi-stubs/install/bin/mpicc \
+  -DMPIEXEC_EXECUTABLE=/tmp/mpich-5.0.0-abi-fort-install/bin/mpirun \
+  -DMPI_VENDOR=MPI_ABI
+cmake --build build-mpi5-abi-mpich50-fort-preload -j 8
+```
+
+Earlier Mukautuva/Open MPI ABI experiment:
 
 ```sh
 cmake -S . -B build-mpi5-abi-muk \
@@ -176,6 +253,48 @@ This Open MPI 4.1.2 build was used only to validate the non-MPI-5 fallback path,
 not MPI-5 ABI conformance.
 
 ## Test Results
+
+MPI-5 ABI build against `mpi-abi-stubs` with MPICH 5.0.0 supplied by
+`LD_PRELOAD`:
+
+```sh
+env LD_LIBRARY_PATH=/tmp/mpich-5.0.0-abi-fort-install/lib:/tmp/mpi-abi-stubs/install/lib${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH} \
+    LD_PRELOAD=/tmp/mpich-5.0.0-abi-fort-install/lib/libmpi_abi.so \
+    ctest --test-dir build-mpi5-abi-mpich50-fort-preload \
+      --output-on-failure --timeout 120
+```
+
+Result: 23/25 passed.
+
+Passing ABI-sensitive tests include:
+
+- `mpich_uallreducef08`
+- `test_reduce_mxxloc`
+- `test_user_reduction`
+- `test_reduce_ops`
+- `test_reductions`
+
+Failing tests:
+
+- `test_matrix_noncontig_2`
+- `test_serialization_2`
+
+Those two failures are not handle-constant failures. They are the same
+non-contiguous CFI descriptor paths that depend on MPICH-only `MPIX_Iov`
+support. When Vapaa is compiled against `mpi-abi-stubs`, the MPICH extension
+prototypes are not available even though MPICH is the runtime provider.
+
+The ABI runtime excluding those two known MPIX-extension cases passed:
+
+```sh
+env LD_LIBRARY_PATH=/tmp/mpich-5.0.0-abi-fort-install/lib:/tmp/mpi-abi-stubs/install/lib${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH} \
+    LD_PRELOAD=/tmp/mpich-5.0.0-abi-fort-install/lib/libmpi_abi.so \
+    ctest --test-dir build-mpi5-abi-mpich50-fort-preload \
+      --output-on-failure --timeout 120 \
+      -E 'test_matrix_noncontig_2|test_serialization_2'
+```
+
+Result: 23/23 passed.
 
 MPI-5 ABI build against `mpi-abi-stubs` with Mukautuva/OpenMPI runtime:
 
@@ -376,11 +495,78 @@ ABI provider comparison:
 
 No provider in the direct comparison regressed by test name or pass count.
 
+## ABI Overhead Check
+
+The stubs-linked test binary has a `NEEDED` entry for `libmpi_abi.so.0` from the
+stubs build:
+
+```text
+$ readelf -d build-mpi5-abi-mpich50-fort-preload/tests/test_user_reduction | rg 'NEEDED|RUNPATH'
+0x0000000000000001 (NEEDED)             Shared library: [libmpi_abi.so.0]
+0x000000000000001d (RUNPATH)            Library runpath: [/tmp/mpi-abi-stubs/install/lib]
+```
+
+With MPICH supplied through `LD_PRELOAD`, runtime symbol resolution uses the
+MPICH ABI provider:
+
+```text
+$ env LD_LIBRARY_PATH=/tmp/mpich-5.0.0-abi-fort-install/lib:/tmp/mpi-abi-stubs/install/lib \
+      LD_PRELOAD=/tmp/mpich-5.0.0-abi-fort-install/lib/libmpi_abi.so \
+      ldd build-mpi5-abi-mpich50-fort-preload/tests/test_user_reduction | rg 'libmpi'
+/tmp/mpich-5.0.0-abi-fort-install/lib/libmpi_abi.so
+```
+
+The ABI binary references the MPI-5 integer handle conversion functions and
+does not reference `f2c/c2f` handle conversion symbols:
+
+```text
+$ nm -u build-mpi5-abi-mpich50-fort-preload/tests/test_user_reduction | rg 'MPI_.*_(fromint|toint|f2c|c2f)|MPI_Abi'
+U MPI_Abi_get_fortran_info
+U MPI_Abi_set_fortran_booleans
+U MPI_Abi_set_fortran_info
+U MPI_Comm_fromint
+U MPI_Comm_toint
+U MPI_File_fromint
+U MPI_File_toint
+U MPI_Group_fromint
+U MPI_Group_toint
+U MPI_Info_fromint
+U MPI_Info_toint
+U MPI_Message_fromint
+U MPI_Message_toint
+U MPI_Op_fromint
+U MPI_Op_toint
+U MPI_Request_fromint
+U MPI_Request_toint
+U MPI_Type_fromint
+U MPI_Type_toint
+U MPI_Win_fromint
+U MPI_Win_toint
+```
+
+The Vapaa-side conversion overhead is also removed from the ABI build. The ABI
+object containing legacy handle lookup/store code collapses to an empty object,
+while the legacy MPICH build still carries the fallback conversion tables:
+
+```text
+$ size build-mpi5-abi-mpich50-fort-preload/CMakeFiles/vapa.dir/source/vapaa_abi_handles.c.o \
+       build-test-mpich-opt/CMakeFiles/vapa.dir/source/vapaa_abi_handles.c.o
+   text   data    bss    dec    hex  filename
+     32      0      0     32     20  build-mpi5-abi-mpich50-fort-preload/CMakeFiles/vapa.dir/source/vapaa_abi_handles.c.o
+  11632     36    216  11884   2e6c  build-test-mpich-opt/CMakeFiles/vapa.dir/source/vapaa_abi_handles.c.o
+```
+
+That is the expected lower-overhead path: Vapaa no longer runs its predefined
+handle translation tables or dynamic handle lookup/store code in the MPI-5 ABI
+build. It relies on the standard MPI-5 `toint/fromint` ABI entry points and the
+provider's ABI translation layer.
+
 ## Notes And Risks
 
-- A real MPI-5 ABI provider should export `MPI_*_fromint/toint`. The local test
-  shim should be removed when Mukautuva or another runtime provider supplies
-  those symbols.
+- MPICH 5.0.0 built with `--enable-mpi-abi` is now a real MPI-5 ABI runtime
+  provider for Vapaa's stubs-linked tests.
+- The earlier Mukautuva/Open MPI test still required a local test shim because
+  the checked-out Mukautuva tree did not export `MPI_*_fromint/toint`.
 - MPICH legacy runtime validation was performed with `/opt/mpich` 4.3.0.
 - No Open MPI 5 runtime was available in `PATH`, `/usr`, `/opt`, `/usr/local`,
   or `/home/jehammond` at the time of testing.

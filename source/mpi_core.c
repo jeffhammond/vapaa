@@ -2,6 +2,7 @@
 
 #include <stdio.h>
 #include <stdlib.h> // NULL
+#include <stdbool.h>
 #include <string.h> // memset
 #include <mpi.h>
 #include "ISO_Fortran_binding.h"
@@ -9,6 +10,29 @@
 #include "convert_constants.h"
 
 // STANDARD STUFF
+
+#if MPI_VERSION >= 5
+static int C_MPI_Info_set_int(MPI_Info info, const char *key, int value)
+{
+    char value_string[32];
+    snprintf(value_string, sizeof(value_string), "%d", value);
+    return MPI_Info_set(info, key, value_string);
+}
+
+static int C_MPI_Info_set_bool(MPI_Info info, const char *key, bool value)
+{
+    return MPI_Info_set(info, key, value ? "true" : "false");
+}
+
+static bool C_MPI_ABI_ALREADY_SET(int rc)
+{
+    if (rc == MPI_ERR_ABI) return true;
+
+    int error_class = MPI_SUCCESS;
+    int class_rc = MPI_Error_class(rc, &error_class);
+    return class_rc == MPI_SUCCESS && error_class == MPI_ERR_ABI;
+}
+#endif
 
 void C_MPI_Init(int * ierror)
 {
@@ -24,6 +48,96 @@ void C_MPI_Init(int * ierror)
     // DEBUG
     MPI_Comm_set_errhandler(MPI_COMM_WORLD, MPI_ERRORS_RETURN);
     MPI_Comm_set_errhandler(MPI_COMM_SELF, MPI_ERRORS_RETURN);
+}
+
+void C_MPI_Abi_init_fortran(int * logical_size, const void * logical_true, const void * logical_false,
+                            int * integer_size, int * real_size, int * double_precision_size,
+                            int * ierror)
+{
+    *ierror = MPI_SUCCESS;
+#if MPI_VERSION >= 5
+    MPI_Info existing_info = MPI_INFO_NULL;
+    int rc = MPI_Abi_get_fortran_info(&existing_info);
+    if (rc == MPI_SUCCESS && existing_info != MPI_INFO_NULL) {
+        (void) MPI_Info_free(&existing_info);
+        return;
+    } else if (rc != MPI_SUCCESS && !C_MPI_ABI_ALREADY_SET(rc)) {
+        *ierror = rc;
+        return;
+    }
+
+    rc = MPI_Abi_set_fortran_booleans(*logical_size, (void *) logical_true, (void *) logical_false);
+    if (rc != MPI_SUCCESS && !C_MPI_ABI_ALREADY_SET(rc)) {
+        *ierror = rc;
+        return;
+    }
+
+    MPI_Info info = MPI_INFO_NULL;
+    rc = MPI_Info_create(&info);
+    if (rc != MPI_SUCCESS) {
+        *ierror = rc;
+        return;
+    }
+
+    rc = C_MPI_Info_set_int(info, "mpi_logical_size", *logical_size);
+    if (rc == MPI_SUCCESS) rc = C_MPI_Info_set_int(info, "mpi_integer_size", *integer_size);
+    if (rc == MPI_SUCCESS) rc = C_MPI_Info_set_int(info, "mpi_real_size", *real_size);
+    if (rc == MPI_SUCCESS) rc = C_MPI_Info_set_int(info, "mpi_double_precision_size", *double_precision_size);
+
+    if (rc == MPI_SUCCESS) rc = C_MPI_Info_set_bool(info, "mpi_logical1_supported", false);
+    if (rc == MPI_SUCCESS) rc = C_MPI_Info_set_bool(info, "mpi_logical2_supported", false);
+    if (rc == MPI_SUCCESS) rc = C_MPI_Info_set_bool(info, "mpi_logical4_supported", false);
+    if (rc == MPI_SUCCESS) rc = C_MPI_Info_set_bool(info, "mpi_logical8_supported", false);
+    if (rc == MPI_SUCCESS) rc = C_MPI_Info_set_bool(info, "mpi_logical16_supported", false);
+    if (rc == MPI_SUCCESS) rc = C_MPI_Info_set_bool(info, "mpi_integer1_supported", true);
+    if (rc == MPI_SUCCESS) rc = C_MPI_Info_set_bool(info, "mpi_integer2_supported", true);
+    if (rc == MPI_SUCCESS) rc = C_MPI_Info_set_bool(info, "mpi_integer4_supported", true);
+    if (rc == MPI_SUCCESS) rc = C_MPI_Info_set_bool(info, "mpi_integer8_supported", true);
+#ifdef HAVE_MPI_INTEGER16
+    if (rc == MPI_SUCCESS) rc = C_MPI_Info_set_bool(info, "mpi_integer16_supported", true);
+#else
+    if (rc == MPI_SUCCESS) rc = C_MPI_Info_set_bool(info, "mpi_integer16_supported", false);
+#endif
+#ifdef HAVE_MPI_REAL2
+    if (rc == MPI_SUCCESS) rc = C_MPI_Info_set_bool(info, "mpi_real2_supported", true);
+#else
+    if (rc == MPI_SUCCESS) rc = C_MPI_Info_set_bool(info, "mpi_real2_supported", false);
+#endif
+    if (rc == MPI_SUCCESS) rc = C_MPI_Info_set_bool(info, "mpi_real4_supported", true);
+    if (rc == MPI_SUCCESS) rc = C_MPI_Info_set_bool(info, "mpi_real8_supported", true);
+#ifdef HAVE_MPI_REAL16
+    if (rc == MPI_SUCCESS) rc = C_MPI_Info_set_bool(info, "mpi_real16_supported", true);
+#else
+    if (rc == MPI_SUCCESS) rc = C_MPI_Info_set_bool(info, "mpi_real16_supported", false);
+#endif
+#ifdef HAVE_MPI_COMPLEX4
+    if (rc == MPI_SUCCESS) rc = C_MPI_Info_set_bool(info, "mpi_complex4_supported", true);
+#else
+    if (rc == MPI_SUCCESS) rc = C_MPI_Info_set_bool(info, "mpi_complex4_supported", false);
+#endif
+    if (rc == MPI_SUCCESS) rc = C_MPI_Info_set_bool(info, "mpi_complex8_supported", true);
+    if (rc == MPI_SUCCESS) rc = C_MPI_Info_set_bool(info, "mpi_complex16_supported", true);
+#ifdef HAVE_MPI_COMPLEX32
+    if (rc == MPI_SUCCESS) rc = C_MPI_Info_set_bool(info, "mpi_complex32_supported", true);
+#else
+    if (rc == MPI_SUCCESS) rc = C_MPI_Info_set_bool(info, "mpi_complex32_supported", false);
+#endif
+    if (rc == MPI_SUCCESS) rc = C_MPI_Info_set_bool(info, "mpi_double_complex_supported", true);
+
+    if (rc == MPI_SUCCESS) rc = MPI_Abi_set_fortran_info(info);
+    (void) MPI_Info_free(&info);
+
+    if (rc != MPI_SUCCESS && !C_MPI_ABI_ALREADY_SET(rc)) {
+        *ierror = rc;
+    }
+#else
+    (void) logical_size;
+    (void) logical_true;
+    (void) logical_false;
+    (void) integer_size;
+    (void) real_size;
+    (void) double_precision_size;
+#endif
 }
 
 void C_MPI_Finalize(int * ierror)

@@ -115,12 +115,46 @@ module mpi_core_f
             call C_MPI_WEIGHTS_EMPTY(MPI_WEIGHTS_EMPTY)
         end subroutine F_MPI_INIT_ADDRESS_SENTINELS
 
+        subroutine F_MPI_INIT_ABI_FORTRAN(ierror_c)
+            use iso_c_binding, only: c_int, c_int8_t
+            use mpi_core_c, only: C_MPI_Abi_init_fortran
+            integer(kind=c_int), intent(inout) :: ierror_c
+#ifdef MPI_ABI
+            integer(kind=c_int) :: abi_ierror_c
+            integer(kind=c_int) :: logical_size_c, integer_size_c, real_size_c, double_precision_size_c
+            integer(kind=c_int8_t) :: logical_true_bytes(8), logical_false_bytes(8)
+
+            if (ierror_c /= 0) return
+
+            logical_size_c = storage_size(.true.) / 8
+            if (logical_size_c > size(logical_true_bytes)) then
+                ierror_c = -1
+                return
+            end if
+
+            integer_size_c = storage_size(0) / 8
+            real_size_c = storage_size(0.0) / 8
+            double_precision_size_c = storage_size(0.0d0) / 8
+            logical_true_bytes = 0_c_int8_t
+            logical_false_bytes = 0_c_int8_t
+            logical_true_bytes(1:logical_size_c) = transfer(.true., logical_true_bytes(1:logical_size_c))
+            logical_false_bytes(1:logical_size_c) = transfer(.false., logical_false_bytes(1:logical_size_c))
+
+            call C_MPI_Abi_init_fortran(logical_size_c, logical_true_bytes, logical_false_bytes, &
+                                        integer_size_c, real_size_c, double_precision_size_c, abi_ierror_c)
+            if (abi_ierror_c /= 0) ierror_c = abi_ierror_c
+#else
+            if (ierror_c /= 0) continue
+#endif
+        end subroutine F_MPI_INIT_ABI_FORTRAN
+
         subroutine MPI_Init_f08(ierror) 
             use iso_c_binding, only: c_sizeof, c_int
             use mpi_core_c, only: C_MPI_Init
             integer, optional, intent(out) :: ierror
             integer(kind=c_int) :: ierror_c
             call C_MPI_Init(ierror_c)
+            call F_MPI_INIT_ABI_FORTRAN(ierror_c)
             call F_MPI_INIT_ADDRESS_SENTINELS()
             call F_Check_design_assumptions()
             if (present(ierror)) ierror = ierror_c
@@ -135,6 +169,7 @@ module mpi_core_f
             required_c = required
             call C_MPI_Init_thread(required_c, provided_c, ierror_c)
             provided = provided_c
+            call F_MPI_INIT_ABI_FORTRAN(ierror_c)
             call F_MPI_INIT_ADDRESS_SENTINELS()
             call F_Check_design_assumptions()
             if (present(ierror)) ierror = ierror_c
