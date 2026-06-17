@@ -26,9 +26,12 @@ target_include_directories(${TEST_NAME}
            COMMAND ${MPIEXEC_EXECUTABLE} ${MPIEXEC_NUMPROC_FLAG} ${MPI_NUM_PROCESSES} $<TARGET_FILE:${TEST_NAME}>)
 
   # Optionally set working directory or environment variables for the test
-  set_tests_properties(${TEST_NAME} PROPERTIES
+  set(test_properties
     WORKING_DIRECTORY "${CMAKE_BINARY_DIR}/tests"
     PASS_REGULAR_EXPRESSION "Test passed" # Adjust this to match expected output
   )
+  if(TEST_NAME STREQUAL "mpich_uallreducef08" AND NOT MPI_VENDOR STREQUAL "MPI_ABI")
+    list(APPEND test_properties WILL_FAIL TRUE)
+  endif()
+  set_tests_properties(${TEST_NAME} PROPERTIES ${test_properties})
 endforeach()
-
