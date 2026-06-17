@@ -300,12 +300,13 @@ void ctoctest_(MPI_Fint * errs)
 
     /* MPI-2 functions */
     ctype2Attr = baseattrval;
-    MPI_Type_set_attr(MPI_INTEGER, ctype2Key, &ctype2Attr);
+    MPI_Datatype fortran_integer = VAPAA_MPI_Type_fromint(VAPAA_MPI_INTEGER);
+    MPI_Type_set_attr(fortran_integer, ctype2Key, &ctype2Attr);
     /* Test that we have the same value */
-    errcnt += cmpi2readtype(MPI_INTEGER, ctype2Key, &ctype2Attr, "C to C type (2)");
+    errcnt += cmpi2readtype(fortran_integer, ctype2Key, &ctype2Attr, "C to C type (2)");
 
     /* Dup, check that the copy routine does what is expected */
-    MPI_Type_dup(MPI_INTEGER, &cduptype);
+    MPI_Type_dup(fortran_integer, &cduptype);
     errcnt += cmpi2readtype(cduptype, ctype2Key, &ctype2Attr, "C to C typedup (2)");
     if (ctype2Attr != baseattrval + 1) {
         printf(" Did not increment int in C to C typedup: %d %d\n", ctype2Attr, baseattrval + 1);
