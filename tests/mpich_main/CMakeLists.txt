@@ -181,3 +181,5 @@ foreach(category IN LISTS mpich_main_f08_categories)
     vapaa_add_mpich_main_f08_test("${category}" "${test_name}" "${np}")
   endforeach()
 endforeach()
+
+add_subdirectory(f90)

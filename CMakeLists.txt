@@ -17,6 +17,9 @@ enable_language(Fortran)
 enable_language(C)
 enable_testing()
 include(ExternalProject)
+option(VAPAA_ENABLE_MPI_MODULE_TESTS
+       "Build imported MPICH f90 tests for the integer-handle mpi module"
+       OFF)
 set(CMAKE_C_STANDARD 11)
 set(CMAKE_C_STANDARD_REQUIRED ON)
 set(CMAKE_C_EXTENSIONS OFF) 
