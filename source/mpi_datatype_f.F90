@@ -43,6 +43,7 @@ module mpi_datatype_f
     type(MPI_Datatype), parameter :: MPI_AINT                        = MPI_Datatype(MPI_VAL = VAPAA_MPI_AINT)
     type(MPI_Datatype), parameter :: MPI_COUNT                       = MPI_Datatype(MPI_VAL = VAPAA_MPI_COUNT)
     type(MPI_Datatype), parameter :: MPI_OFFSET                      = MPI_Datatype(MPI_VAL = VAPAA_MPI_OFFSET)
+    type(MPI_Datatype), parameter :: MPI_PACKED                      = MPI_Datatype(MPI_VAL = VAPAA_MPI_PACKED)
 
     ! C and C++ types are less likely
     type(MPI_Datatype), parameter :: MPI_BYTE                        = MPI_Datatype(MPI_VAL = VAPAA_MPI_BYTE)
@@ -54,6 +55,7 @@ module mpi_datatype_f
     type(MPI_Datatype), parameter :: MPI_UNSIGNED_SHORT              = MPI_Datatype(MPI_VAL = VAPAA_MPI_UNSIGNED_SHORT)
     type(MPI_Datatype), parameter :: MPI_INT                         = MPI_Datatype(MPI_VAL = VAPAA_MPI_INT)
     type(MPI_Datatype), parameter :: MPI_LONG                        = MPI_Datatype(MPI_VAL = VAPAA_MPI_LONG)
+    type(MPI_Datatype), parameter :: MPI_LONG_LONG                   = MPI_Datatype(MPI_VAL = VAPAA_MPI_LONG_LONG)
     type(MPI_Datatype), parameter :: MPI_UNSIGNED                    = MPI_Datatype(MPI_VAL = VAPAA_MPI_UNSIGNED)
     type(MPI_Datatype), parameter :: MPI_UNSIGNED_LONG               = MPI_Datatype(MPI_VAL = VAPAA_MPI_UNSIGNED_LONG)
     type(MPI_Datatype), parameter :: MPI_LONG_LONG_INT               = MPI_Datatype(MPI_VAL = VAPAA_MPI_LONG_LONG_INT)

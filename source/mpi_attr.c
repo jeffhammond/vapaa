@@ -9,7 +9,7 @@
 #define C_MPI_HANDLE_GET_NAME(Full,SHORT,Short)                                             \
 void C_MPI_##Short##_get_name(int * handle_f, char * name, int * resultlen, int * ierror)   \
 {                                                                                           \
-    MPI_##Full handle = C_MPI_##SHORT##_F2C(*handle_f);                                     \
+    MPI_##Full handle = C_MPI_##SHORT##_FROMINT(*handle_f);                                 \
     *ierror = MPI_##Short##_get_name(handle, name, resultlen);                              \
     C_MPI_RC_FIX(*ierror);                                                                  \
 }
@@ -17,7 +17,7 @@ void C_MPI_##Short##_get_name(int * handle_f, char * name, int * resultlen, int 
 #define C_MPI_HANDLE_SET_NAME(Full,SHORT,Short)                                             \
 void C_MPI_##Short##_set_name(int * handle_f, char * name, int * ierror)                    \
 {                                                                                           \
-    MPI_##Full handle = C_MPI_##SHORT##_F2C(*handle_f);                                     \
+    MPI_##Full handle = C_MPI_##SHORT##_FROMINT(*handle_f);                                 \
     *ierror = MPI_##Short##_set_name(handle, name);                                         \
     C_MPI_RC_FIX(*ierror);                                                                  \
 }
@@ -25,7 +25,7 @@ void C_MPI_##Short##_set_name(int * handle_f, char * name, int * ierror)        
 #define CFI_MPI_HANDLE_GET_NAME(Full,SHORT,Short)                                                       \
 void CFI_MPI_##Short##_get_name(int * handle_f, CFI_cdesc_t * name_d, int * resultlen, int * ierror)    \
 {                                                                                                       \
-    MPI_##Full handle = C_MPI_##SHORT##_F2C(*handle_f);                                                 \
+    MPI_##Full handle = C_MPI_##SHORT##_FROMINT(*handle_f);                                             \
     char * name = name_d -> base_addr;                                                                  \
     *ierror = MPI_##Short##_get_name(handle, name, resultlen);                                          \
     C_MPI_RC_FIX(*ierror);                                                                              \
@@ -34,7 +34,7 @@ void CFI_MPI_##Short##_get_name(int * handle_f, CFI_cdesc_t * name_d, int * resu
 #define CFI_MPI_HANDLE_SET_NAME(Full,SHORT,Short)                                                       \
 void CFI_MPI_##Short##_set_name(int * handle_f, CFI_cdesc_t * name_d, int * ierror)                     \
 {                                                                                                       \
-    MPI_##Full handle = C_MPI_##SHORT##_F2C(*handle_f);                                                 \
+    MPI_##Full handle = C_MPI_##SHORT##_FROMINT(*handle_f);                                             \
     char * name = name_d -> base_addr;                                                                  \
     *ierror = MPI_##Short##_set_name(handle, name);                                                     \
     C_MPI_RC_FIX(*ierror);                                                                              \

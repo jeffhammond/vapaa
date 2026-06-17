@@ -12,7 +12,7 @@ fi
 for t in INTEGER REAL DOUBLE_PRECISION COMPLEX LOGICAL CHARACTER BYTE ; do
     echo "void C_MPI_${t}(int * datatype)"
     echo "{"
-    echo "    *datatype = MPI_Type_c2f(MPI_${t});"
+    echo "    *datatype = MPI_Type_toint(MPI_${t});"
     echo "}"
     echo ""
 done

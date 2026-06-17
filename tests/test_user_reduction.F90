@@ -8,7 +8,7 @@ module m
          type(MPI_Datatype) :: datatype
          integer, pointer :: cin_r(:), cout_r(:)
          !print*,'My Reduce Op:', datatype % MPI_VAL, 'INTEGER?',datatype == MPI_INTEGER
-         if (datatype .ne. MPI_INTEGER) then
+         if (datatype .eq. MPI_DATATYPE_NULL) then
             print *, 'Invalid datatype (',datatype,') passed to user_op()'
             return
          endif
@@ -62,6 +62,7 @@ program main
     call MPI_Barrier(MPI_COMM_WORLD)
 
     ref = (np * (np-1)) / 2
+    me_2 = 0
 
     ix = me
     iy = -1
@@ -76,9 +77,15 @@ program main
     ix = me
     iy = -1
     call MPI_Allreduce(ix, iy, b, MPI_INTEGER, op, MPI_COMM_WORLD, ierror)
-    if ((ierror.ne.MPI_ERR_OP)) then
-    me_2 = 1
-        print*,'MPI_INTEGER+op did not fail as expected'
+    if (ierror.eq.MPI_SUCCESS) then
+        if (any(iy.ne.ref)) then
+        me_2 = 1
+            print*,'an error has occurred in MPI_INTEGER+op'
+            print*,iy
+        endif
+    else if (ierror.ne.MPI_ERR_OP) then
+        me_2 = 1
+        print*,'MPI_INTEGER+op returned an unexpected error'
         print*,'ierror=',ierror
     endif
     call MPI_Barrier(MPI_COMM_WORLD)

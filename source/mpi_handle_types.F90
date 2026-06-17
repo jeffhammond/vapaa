@@ -5,6 +5,12 @@ module mpi_handle_types
     implicit none
 
     type, bind(C) :: MPI_Status
+#ifdef MPI_ABI
+        integer(kind=c_int)    :: MPI_SOURCE
+        integer(kind=c_int)    :: MPI_TAG
+        integer(kind=c_int)    :: MPI_ERROR
+        integer(kind=c_int)    :: MPI_internal(5)
+#else
         ! MPICH
         integer(kind=c_int)    :: count_lo
         integer(kind=c_int)    :: count_hi_and_cancelled
@@ -15,6 +21,7 @@ module mpi_handle_types
         ! Open-MPI                
         integer(kind=c_int)    :: cancelled
         integer(kind=c_size_t) :: ucount
+#endif
     end type MPI_Status
 
     ! MPI_VAL is supposed to be a Fortran integer

@@ -75,5 +75,6 @@
       call mpi_op_free( sumop, ierr )
 
       print*,errs
-      call mpi_finalize(errs)
+      if (errs .eq. 0) print *, 'Test passed'
+      call mpi_finalize(ierr)
       end

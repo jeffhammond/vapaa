@@ -61,6 +61,8 @@ module mpi_error_f
     integer, parameter :: MPI_ERR_RMA_FLAVOR                         = VAPAA_MPI_ERR_RMA_FLAVOR
     integer, parameter :: MPI_ERR_SERVICE                            = VAPAA_MPI_ERR_SERVICE
     integer, parameter :: MPI_ERR_SESSION                            = VAPAA_MPI_ERR_SESSION
+    integer, parameter :: MPI_ERR_ERRHANDLER                         = VAPAA_MPI_ERR_ERRHANDLER
+    integer, parameter :: MPI_ERR_ABI                                = VAPAA_MPI_ERR_ABI
     integer, parameter :: MPI_ERR_SIZE                               = VAPAA_MPI_ERR_SIZE
     integer, parameter :: MPI_ERR_SPAWN                              = VAPAA_MPI_ERR_SPAWN
     integer, parameter :: MPI_ERR_UNSUPPORTED_DATAREP                = VAPAA_MPI_ERR_UNSUPPORTED_DATAREP

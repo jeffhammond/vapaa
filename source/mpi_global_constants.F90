@@ -3,7 +3,7 @@
 #include "vapaa_constants.h"
 
 module mpi_global_constants
-    use iso_c_binding, only: c_int, c_size_t, c_intptr_t
+    use iso_c_binding, only: c_int, c_int64_t, c_intptr_t
     use mpi_handle_types
 
     ! thread levels
@@ -30,7 +30,9 @@ module mpi_global_constants
     type(MPI_Datatype), parameter :: MPI_DATATYPE_NULL = MPI_Datatype(MPI_VAL = VAPAA_MPI_DATATYPE_NULL)
     type(MPI_File), parameter     :: MPI_FILE_NULL     = MPI_File(MPI_VAL     = VAPAA_MPI_FILE_NULL    )
     type(MPI_Group), parameter    :: MPI_GROUP_NULL    = MPI_Group(MPI_VAL    = VAPAA_MPI_GROUP_NULL   )
+    type(MPI_Group), parameter    :: MPI_GROUP_EMPTY   = MPI_Group(MPI_VAL    = VAPAA_MPI_GROUP_EMPTY  )
     type(MPI_Info), parameter     :: MPI_INFO_NULL     = MPI_Info(MPI_VAL     = VAPAA_MPI_INFO_NULL    )
+    type(MPI_Info), parameter     :: MPI_INFO_ENV      = MPI_Info(MPI_VAL     = VAPAA_MPI_INFO_ENV     )
     type(MPI_Message), parameter  :: MPI_MESSAGE_NULL  = MPI_Message(MPI_VAL  = VAPAA_MPI_MESSAGE_NULL )
     type(MPI_Op), parameter       :: MPI_OP_NULL       = MPI_Op(MPI_VAL       = VAPAA_MPI_OP_NULL      )
     type(MPI_Request), parameter  :: MPI_REQUEST_NULL  = MPI_Request(MPI_VAL  = VAPAA_MPI_REQUEST_NULL )
@@ -43,9 +45,9 @@ module mpi_global_constants
     integer :: MPI_IN_PLACE        =  1
     integer :: MPI_ARGV_NULL       =  0
     integer :: MPI_ARGVS_NULL      =  0
-    integer :: MPI_ERRCODES_IGNORE = -1
-    integer :: MPI_UNWEIGHTED      = -1
-    integer :: MPI_WEIGHTS_EMPTY   =  0
+    integer :: MPI_ERRCODES_IGNORE =  0
+    integer :: MPI_UNWEIGHTED      = 10
+    integer :: MPI_WEIGHTS_EMPTY   = 11
     ! Note that in Fortran MPI_STATUS_IGNORE and MPI_STATUSES_IGNORE are objects like MPI_BOTTOM
     ! (not usable for initialization or assignment).
     ! MPI_STATUS_IGNORE and MPI_STATUSES_IGNORE are not required to have the same values in C and Fortran.
@@ -53,6 +55,7 @@ module mpi_global_constants
     type(MPI_Status) :: MPI_STATUSES_IGNORE(1)
 
     integer, parameter :: MPI_PROC_NULL  = VAPAA_MPI_PROC_NULL
+    integer, parameter :: MPI_ROOT       = VAPAA_MPI_ROOT
     type(MPI_Message), parameter  :: MPI_MESSAGE_NO_PROC = MPI_Message(MPI_VAL  = VAPAA_MPI_MESSAGE_NO_PROC)
 
     integer, parameter :: MPI_ANY_SOURCE = VAPAA_MPI_ANY_SOURCE
@@ -80,10 +83,8 @@ module mpi_global_constants
     integer, parameter :: MPI_COMM_TYPE_SHARED      = VAPAA_MPI_COMM_TYPE_SHARED
     integer, parameter :: MPI_COMM_TYPE_HW_UNGUIDED = VAPAA_MPI_COMM_TYPE_HW_UNGUIDED
     integer, parameter :: MPI_COMM_TYPE_HW_GUIDED   = VAPAA_MPI_COMM_TYPE_HW_GUIDED
+    integer, parameter :: MPI_COMM_TYPE_RESOURCE_GUIDED = VAPAA_MPI_COMM_TYPE_RESOURCE_GUIDED
 
-    ! use a ridiculously large value that will always be larger than
-    ! what any implementation uses, to avoid having to query the
-    ! underlying implementation
     integer, parameter :: MPI_MAX_PROCESSOR_NAME         = VAPAA_MPI_MAX_PROCESSOR_NAME         
     integer, parameter :: MPI_MAX_LIBRARY_VERSION_STRING = VAPAA_MPI_MAX_LIBRARY_VERSION_STRING 
     integer, parameter :: MPI_MAX_ERROR_STRING           = VAPAA_MPI_MAX_ERROR_STRING           
@@ -92,21 +93,20 @@ module mpi_global_constants
     integer, parameter :: MPI_MAX_INFO_VAL               = VAPAA_MPI_MAX_INFO_VAL               
     integer, parameter :: MPI_MAX_OBJECT_NAME            = VAPAA_MPI_MAX_OBJECT_NAME            
     integer, parameter :: MPI_MAX_PORT_NAME              = VAPAA_MPI_MAX_PORT_NAME              
+    integer, parameter :: MPI_MAX_STRINGTAG_LEN          = VAPAA_MPI_MAX_STRINGTAG_LEN
+    integer, parameter :: MPI_MAX_PSET_NAME_LEN          = VAPAA_MPI_MAX_PSET_NAME_LEN
+    integer, parameter :: MPI_BSEND_OVERHEAD             = VAPAA_MPI_BSEND_OVERHEAD
+    integer, parameter :: MPI_KEYVAL_INVALID             = VAPAA_MPI_KEYVAL_INVALID
 
-    ! these must be queried out of the implementation, unfortunately,
-    ! but we can at least say this much, since MPI F08 was added
-    ! in MPI 3.0
-    integer, parameter :: MPI_VERSION    = 3
-    integer, parameter :: MPI_SUBVERSION = 1
+    integer, parameter :: MPI_VERSION    = 5
+    integer, parameter :: MPI_SUBVERSION = 0
 
-    ! make this unusable, to force use of type(MPI_Status)
-    integer, parameter :: MPI_STATUS_SIZE = -1
+    integer, parameter :: MPI_STATUS_SIZE = 8
 
-    ! these are natural, but may not strictly match the MPI implementation
     integer, parameter :: MPI_ADDRESS_KIND = c_intptr_t
-    integer, parameter :: MPI_COUNT_KIND   = c_size_t
+    integer, parameter :: MPI_COUNT_KIND   = c_int64_t
     integer, parameter :: MPI_INTEGER_KIND = c_int
-    integer, parameter :: MPI_OFFSET_KIND  = c_intptr_t ! c_ptrdiff_t
+    integer, parameter :: MPI_OFFSET_KIND  = c_int64_t
 
     ! this requires work...
     logical, parameter :: MPI_SUBARRAYS_SUPPORTED        = .false.

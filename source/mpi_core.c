@@ -13,10 +13,12 @@
 void C_MPI_Init(int * ierror)
 {
     *ierror = MPI_Init(NULL, NULL);
+#if MPI_VERSION < 5
     // it is not clear if we need this - do we rely on MPI_Fint anywhere?
     if (sizeof(MPI_Fint) != sizeof(int)) {
         fprintf(stderr, "MPI_Fint is wider than C int, which violates our design assumptions.\n");
     }
+#endif
     C_MPI_RC_FIX(*ierror);
 
     // DEBUG
@@ -35,11 +37,13 @@ void C_MPI_Init_thread(int * required_f, int * provided_f, int * ierror)
     int required = -1, provided = -1;
     required = C_MPI_THREAD_LEVEL_F2C(*required_f);
     *ierror = MPI_Init_thread(NULL, NULL, required, &provided);
-    *provided_f = C_MPI_THREAD_LEVEL_F2C(provided);
+    *provided_f = C_MPI_THREAD_LEVEL_C2F(provided);
+#if MPI_VERSION < 5
     // it is not clear if we need this - do we rely on MPI_Fint anywhere?
     if (sizeof(MPI_Fint) != sizeof(int)) {
         fprintf(stderr, "MPI_Fint is wider than C int, which violates our design assumptions.\n");
     }
+#endif
     C_MPI_RC_FIX(*ierror);
 }
 
@@ -59,13 +63,13 @@ void C_MPI_Query_thread(int * provided_f, int * ierror)
 {
     int provided = -1;
     *ierror = MPI_Query_thread(&provided);
-    *provided_f = C_MPI_THREAD_LEVEL_F2C(provided);
+    *provided_f = C_MPI_THREAD_LEVEL_C2F(provided);
     C_MPI_RC_FIX(*ierror);
 }
 
 void C_MPI_Abort(int * comm_f, int * errorcode, int * ierror)
 {
-    MPI_Comm comm = C_MPI_COMM_F2C(*comm_f);
+    MPI_Comm comm = C_MPI_COMM_FROMINT(*comm_f);
     *ierror = MPI_Abort(comm, *errorcode);
     C_MPI_RC_FIX(*ierror);
 }
