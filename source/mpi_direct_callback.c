@@ -139,7 +139,8 @@ static int datarep_write_trampoline(void *userbuf, MPI_Datatype datatype, int co
     return ierror;
 }
 
-static int datarep_read_c_trampoline(void *userbuf, MPI_Datatype datatype, MPI_Count count, void *filebuf, MPI_Offset position, void *extra_state)
+MAYBE_UNUSED static int datarep_read_c_trampoline(void *userbuf, MPI_Datatype datatype, MPI_Count count,
+                                                  void *filebuf, MPI_Offset position, void *extra_state)
 {
     struct vapaa_datarep_state *s = extra_state;
     int datatype_f = C_MPI_TYPE_TOINT(datatype), ierror = MPI_SUCCESS;
@@ -149,7 +150,8 @@ static int datarep_read_c_trampoline(void *userbuf, MPI_Datatype datatype, MPI_C
     return ierror;
 }
 
-static int datarep_write_c_trampoline(void *userbuf, MPI_Datatype datatype, MPI_Count count, void *filebuf, MPI_Offset position, void *extra_state)
+MAYBE_UNUSED static int datarep_write_c_trampoline(void *userbuf, MPI_Datatype datatype, MPI_Count count,
+                                                   void *filebuf, MPI_Offset position, void *extra_state)
 {
     struct vapaa_datarep_state *s = extra_state;
     int datatype_f = C_MPI_TYPE_TOINT(datatype), ierror = MPI_SUCCESS;
@@ -196,7 +198,12 @@ void VAPAA_MPI_Win_create_errhandler(void *fn, int *errhandler_f, int *ierror)
 void VAPAA_MPI_Session_create_errhandler(void *fn, int *errhandler_f, int *ierror)
 {
     MPI_Errhandler errhandler = MPI_ERRHANDLER_NULL;
+#if MPI_VERSION >= 4
     *ierror = MPI_Session_create_errhandler((MPI_Session_errhandler_function *)fn, &errhandler);
+#else
+    (void) fn;
+    *ierror = MPI_ERR_UNSUPPORTED_OPERATION;
+#endif
     *errhandler_f = C_MPI_ERRHANDLER_TOINT(errhandler);
     C_MPI_RC_FIX(*ierror);
 }
@@ -250,7 +257,13 @@ void VAPAA_MPI_Grequest_complete(int *request_f, int *ierror)
 void VAPAA_MPI_Op_create_c(void *fn, int *commute, int *op_f, int *ierror)
 {
     MPI_Op op = MPI_OP_NULL;
+#if MPI_VERSION >= 4
     *ierror = MPI_Op_create_c((MPI_User_function_c *)fn, *commute, &op);
+#else
+    (void) fn;
+    (void) commute;
+    *ierror = MPI_ERR_UNSUPPORTED_OPERATION;
+#endif
     *op_f = C_MPI_OP_TOINT(op);
     C_MPI_RC_FIX(*ierror);
 }
@@ -270,12 +283,21 @@ void VAPAA_MPI_Register_datarep(const char datarep[], void *read_fn, void *write
 void VAPAA_MPI_Register_datarep_c(const char datarep[], void *read_fn, void *write_fn, void *extent_fn,
                                   intptr_t *extra, int *ierror)
 {
+#if MPI_VERSION >= 4
     struct vapaa_datarep_state *s = malloc(sizeof(*s));
     VAPAA_Assert(s != NULL);
     s->read_fn = read_fn; s->write_fn = write_fn; s->extent_fn = (vapaa_datarep_extent_fn)extent_fn;
     s->extra = *extra; s->use_count = 1;
     *ierror = MPI_Register_datarep_c(datarep, datarep_read_c_trampoline, datarep_write_c_trampoline,
                                      datarep_extent_trampoline, s);
+#else
+    (void) datarep;
+    (void) read_fn;
+    (void) write_fn;
+    (void) extent_fn;
+    (void) extra;
+    *ierror = MPI_ERR_UNSUPPORTED_OPERATION;
+#endif
     C_MPI_RC_FIX(*ierror);
 }
 

@@ -336,29 +336,31 @@ void VAPAA_MPI_Unpublish_name(CFI_cdesc_t *service_name_d, int *info_f, CFI_cdes
 
 void VAPAA_MPI_Session_init(int *info_f, int *errhandler_f, int *session_f, int *ierror)
 {
-    MPI_Session session = MPI_SESSION_NULL;
 #if MPI_VERSION >= 4
+    MPI_Session session = MPI_SESSION_NULL;
     MPI_Info info = C_MPI_INFO_FROMINT(*info_f);
     MPI_Errhandler errhandler = C_MPI_ERRHANDLER_FROMINT(*errhandler_f);
     *ierror = MPI_Session_init(info, errhandler, &session);
+    *session_f = C_MPI_SESSION_TOINT(session);
 #else
     (void) info_f;
     (void) errhandler_f;
+    *session_f = VAPAA_MPI_SESSION_NULL;
     *ierror = MPI_ERR_UNSUPPORTED_OPERATION;
 #endif
-    *session_f = C_MPI_SESSION_TOINT(session);
     C_MPI_RC_FIX(*ierror);
 }
 
 void VAPAA_MPI_Session_finalize(int *session_f, int *ierror)
 {
-    MPI_Session session = C_MPI_SESSION_FROMINT(*session_f);
 #if MPI_VERSION >= 4
+    MPI_Session session = C_MPI_SESSION_FROMINT(*session_f);
     *ierror = MPI_Session_finalize(&session);
+    *session_f = C_MPI_SESSION_TOINT(session);
 #else
+    *session_f = VAPAA_MPI_SESSION_NULL;
     *ierror = MPI_ERR_UNSUPPORTED_OPERATION;
 #endif
-    *session_f = C_MPI_SESSION_TOINT(session);
     C_MPI_RC_FIX(*ierror);
 }
 

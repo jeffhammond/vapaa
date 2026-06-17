@@ -7,6 +7,10 @@
 
 #define MAYBE_UNUSED __attribute__((unused))
 
+#ifndef MPI_ERR_UNSUPPORTED_OPERATION
+#define MPI_ERR_UNSUPPORTED_OPERATION MPI_ERR_OTHER
+#endif
+
 int C_MPI_ERROR_CODE_C2F(int error_c);
 int C_MPI_ERROR_CODE_F2C(int error_f);
 

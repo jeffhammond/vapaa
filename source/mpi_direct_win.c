@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: MIT
 
 #include <stdint.h>
+#include <limits.h>
 #include <mpi.h>
 #include "ISO_Fortran_binding.h"
 #include "convert_handles.h"
@@ -60,7 +61,15 @@ void VAPAA_MPI_Win_allocate_c(intptr_t *size_f, intptr_t *disp_unit_f, int *info
     MPI_Win win = MPI_WIN_NULL;
     MPI_Info info = C_MPI_INFO_FROMINT(*info_f);
     MPI_Comm comm = C_MPI_COMM_FROMINT(*comm_f);
+#if MPI_VERSION >= 4
     *ierror = MPI_Win_allocate_c((MPI_Aint) *size_f, (MPI_Aint) *disp_unit_f, info, comm, baseptr, &win);
+#else
+    if (*disp_unit_f > INT_MAX || *disp_unit_f < INT_MIN) {
+        *ierror = MPI_ERR_ARG;
+    } else {
+        *ierror = MPI_Win_allocate((MPI_Aint) *size_f, (int) *disp_unit_f, info, comm, baseptr, &win);
+    }
+#endif
     *win_f = C_MPI_WIN_TOINT(win);
     C_MPI_RC_FIX(*ierror);
 }
@@ -80,7 +89,15 @@ void VAPAA_MPI_Win_allocate_shared_c(intptr_t *size_f, intptr_t *disp_unit_f, in
     MPI_Win win = MPI_WIN_NULL;
     MPI_Info info = C_MPI_INFO_FROMINT(*info_f);
     MPI_Comm comm = C_MPI_COMM_FROMINT(*comm_f);
+#if MPI_VERSION >= 4
     *ierror = MPI_Win_allocate_shared_c((MPI_Aint) *size_f, (MPI_Aint) *disp_unit_f, info, comm, baseptr, &win);
+#else
+    if (*disp_unit_f > INT_MAX || *disp_unit_f < INT_MIN) {
+        *ierror = MPI_ERR_ARG;
+    } else {
+        *ierror = MPI_Win_allocate_shared((MPI_Aint) *size_f, (int) *disp_unit_f, info, comm, baseptr, &win);
+    }
+#endif
     *win_f = C_MPI_WIN_TOINT(win);
     C_MPI_RC_FIX(*ierror);
 }

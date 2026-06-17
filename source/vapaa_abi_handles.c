@@ -104,7 +104,9 @@ MPI_Errhandler VAPAA_MPI_Errhandler_fromint(int errhandler)
     switch (errhandler) {
         case VAPAA_MPI_ERRHANDLER_NULL:  return MPI_ERRHANDLER_NULL;
         case VAPAA_MPI_ERRORS_ARE_FATAL: return MPI_ERRORS_ARE_FATAL;
+#ifdef MPI_ERRORS_ABORT
         case VAPAA_MPI_ERRORS_ABORT:     return MPI_ERRORS_ABORT;
+#endif
         case VAPAA_MPI_ERRORS_RETURN:    return MPI_ERRORS_RETURN;
         default:
             if (errhandler_lookup_key(errhandler, &value)) {
@@ -118,7 +120,9 @@ int VAPAA_MPI_Errhandler_toint(MPI_Errhandler errhandler)
 {
     if (errhandler == MPI_ERRHANDLER_NULL)  { return VAPAA_MPI_ERRHANDLER_NULL; }
     if (errhandler == MPI_ERRORS_ARE_FATAL) { return VAPAA_MPI_ERRORS_ARE_FATAL; }
+#ifdef MPI_ERRORS_ABORT
     if (errhandler == MPI_ERRORS_ABORT)     { return VAPAA_MPI_ERRORS_ABORT; }
+#endif
     if (errhandler == MPI_ERRORS_RETURN)    { return VAPAA_MPI_ERRORS_RETURN; }
     return errhandler_store(errhandler);
 }

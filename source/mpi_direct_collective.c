@@ -109,6 +109,13 @@ static void VAPAA_COLL_FINISH_REQUEST(MPI_Request request, int *request_f, int *
     C_MPI_RC_FIX(*ierror);
 }
 
+MAYBE_UNUSED static void VAPAA_COLL_UNSUPPORTED_REQUEST(int *request_f, int *ierror)
+{
+    MPI_Request request = MPI_REQUEST_NULL;
+    *ierror = MPI_ERR_UNSUPPORTED_OPERATION;
+    VAPAA_COLL_FINISH_REQUEST(request, request_f, ierror);
+}
+
 void VAPAA_MPI_Alltoallw(CFI_cdesc_t *sendbuf, const int sendcounts[], const int sdispls[],
                          const int sendtypes_f[], CFI_cdesc_t *recvbuf, const int recvcounts[],
                          const int rdispls[], const int recvtypes_f[], int *comm_f, int *ierror)
@@ -138,11 +145,17 @@ void VAPAA_MPI_Ibarrier(int *comm_f, int *request_f, int *ierror)
 
 void VAPAA_MPI_Barrier_init(int *comm_f, int *info_f, int *request_f, int *ierror)
 {
+#if MPI_VERSION >= 4
     MPI_Request request = MPI_REQUEST_NULL;
     MPI_Comm comm = C_MPI_COMM_FROMINT(*comm_f);
     MPI_Info info = C_MPI_INFO_FROMINT(*info_f);
     *ierror = MPI_Barrier_init(comm, info, &request);
     VAPAA_COLL_FINISH_REQUEST(request, request_f, ierror);
+#else
+    (void) comm_f;
+    (void) info_f;
+    VAPAA_COLL_UNSUPPORTED_REQUEST(request_f, ierror);
+#endif
 }
 
 void VAPAA_MPI_Ibcast(CFI_cdesc_t *buffer, int *count, int *datatype_f, int *root, int *comm_f,
@@ -160,6 +173,7 @@ void VAPAA_MPI_Ibcast(CFI_cdesc_t *buffer, int *count, int *datatype_f, int *roo
 void VAPAA_MPI_Bcast_init(CFI_cdesc_t *buffer, int *count, int *datatype_f, int *root, int *comm_f, int *info_f,
                           int *request_f, int *ierror)
 {
+#if MPI_VERSION >= 4
     MPI_Request request = MPI_REQUEST_NULL;
     MPI_Datatype datatype = C_MPI_TYPE_FROMINT(*datatype_f);
     MPI_Comm comm = C_MPI_COMM_FROMINT(*comm_f);
@@ -168,6 +182,15 @@ void VAPAA_MPI_Bcast_init(CFI_cdesc_t *buffer, int *count, int *datatype_f, int 
         *ierror = MPI_Bcast_init(VAPAA_COLL_ADDR(buffer), *count, datatype, C_MPI_ROOT_F2C(*root), comm, info, &request);
     }
     VAPAA_COLL_FINISH_REQUEST(request, request_f, ierror);
+#else
+    (void) buffer;
+    (void) count;
+    (void) datatype_f;
+    (void) root;
+    (void) comm_f;
+    (void) info_f;
+    VAPAA_COLL_UNSUPPORTED_REQUEST(request_f, ierror);
+#endif
 }
 
 #define VAPAA_REDUCE_REQ_WRAPPER(name, mpi_fn) \
@@ -186,6 +209,7 @@ void name(CFI_cdesc_t *sendbuf, CFI_cdesc_t *recvbuf, int *count, int *datatype_
     VAPAA_COLL_FINISH_REQUEST(request, request_f, ierror); \
 }
 
+#if MPI_VERSION >= 4
 #define VAPAA_REDUCE_INIT_WRAPPER(name, mpi_fn) \
 void name(CFI_cdesc_t *sendbuf, CFI_cdesc_t *recvbuf, int *count, int *datatype_f, int *op_f, int *comm_f, int *info_f, \
           int *request_f, int *ierror) \
@@ -202,6 +226,15 @@ void name(CFI_cdesc_t *sendbuf, CFI_cdesc_t *recvbuf, int *count, int *datatype_
     } \
     VAPAA_COLL_FINISH_REQUEST(request, request_f, ierror); \
 }
+#else
+#define VAPAA_REDUCE_INIT_WRAPPER(name, mpi_fn) \
+void name(CFI_cdesc_t *sendbuf, CFI_cdesc_t *recvbuf, int *count, int *datatype_f, int *op_f, int *comm_f, int *info_f, \
+          int *request_f, int *ierror) \
+{ \
+    (void) sendbuf; (void) recvbuf; (void) count; (void) datatype_f; (void) op_f; (void) comm_f; (void) info_f; \
+    VAPAA_COLL_UNSUPPORTED_REQUEST(request_f, ierror); \
+}
+#endif
 
 VAPAA_REDUCE_REQ_WRAPPER(VAPAA_MPI_Iallreduce, MPI_Iallreduce)
 VAPAA_REDUCE_REQ_WRAPPER(VAPAA_MPI_Iscan, MPI_Iscan)
@@ -229,6 +262,7 @@ void VAPAA_MPI_Ireduce(CFI_cdesc_t *sendbuf, CFI_cdesc_t *recvbuf, int *count, i
 void VAPAA_MPI_Reduce_init(CFI_cdesc_t *sendbuf, CFI_cdesc_t *recvbuf, int *count, int *datatype_f, int *op_f,
                            int *root, int *comm_f, int *info_f, int *request_f, int *ierror)
 {
+#if MPI_VERSION >= 4
     MPI_Request request = MPI_REQUEST_NULL;
     MPI_Datatype datatype = C_MPI_TYPE_FROMINT(*datatype_f);
     MPI_Op op = C_MPI_OP_FROMINT(*op_f);
@@ -241,6 +275,11 @@ void VAPAA_MPI_Reduce_init(CFI_cdesc_t *sendbuf, CFI_cdesc_t *recvbuf, int *coun
                                   C_MPI_ROOT_F2C(*root), comm, info, &request);
     }
     VAPAA_COLL_FINISH_REQUEST(request, request_f, ierror);
+#else
+    (void) sendbuf; (void) recvbuf; (void) count; (void) datatype_f; (void) op_f;
+    (void) root; (void) comm_f; (void) info_f;
+    VAPAA_COLL_UNSUPPORTED_REQUEST(request_f, ierror);
+#endif
 }
 
 #define VAPAA_GATHER_REQ_WRAPPER(name, mpi_fn) \
@@ -258,6 +297,7 @@ void name(CFI_cdesc_t *sendbuf, int *sendcount, int *sendtype_f, CFI_cdesc_t *re
     VAPAA_COLL_FINISH_REQUEST(request, request_f, ierror); \
 }
 
+#if MPI_VERSION >= 4
 #define VAPAA_GATHER_INIT_WRAPPER(name, mpi_fn) \
 void name(CFI_cdesc_t *sendbuf, int *sendcount, int *sendtype_f, CFI_cdesc_t *recvbuf, int *recvcount, int *recvtype_f, \
           int *root, int *comm_f, int *info_f, int *request_f, int *ierror) \
@@ -273,6 +313,16 @@ void name(CFI_cdesc_t *sendbuf, int *sendcount, int *sendtype_f, CFI_cdesc_t *re
     } \
     VAPAA_COLL_FINISH_REQUEST(request, request_f, ierror); \
 }
+#else
+#define VAPAA_GATHER_INIT_WRAPPER(name, mpi_fn) \
+void name(CFI_cdesc_t *sendbuf, int *sendcount, int *sendtype_f, CFI_cdesc_t *recvbuf, int *recvcount, int *recvtype_f, \
+          int *root, int *comm_f, int *info_f, int *request_f, int *ierror) \
+{ \
+    (void) sendbuf; (void) sendcount; (void) sendtype_f; (void) recvbuf; (void) recvcount; (void) recvtype_f; \
+    (void) root; (void) comm_f; (void) info_f; \
+    VAPAA_COLL_UNSUPPORTED_REQUEST(request_f, ierror); \
+}
+#endif
 
 VAPAA_GATHER_REQ_WRAPPER(VAPAA_MPI_Igather, MPI_Igather)
 VAPAA_GATHER_REQ_WRAPPER(VAPAA_MPI_Iscatter, MPI_Iscatter)
@@ -294,6 +344,7 @@ void name(CFI_cdesc_t *sendbuf, int *sendcount, int *sendtype_f, CFI_cdesc_t *re
     VAPAA_COLL_FINISH_REQUEST(request, request_f, ierror); \
 }
 
+#if MPI_VERSION >= 4
 #define VAPAA_ALLGATHER_INIT_WRAPPER(name, mpi_fn) \
 void name(CFI_cdesc_t *sendbuf, int *sendcount, int *sendtype_f, CFI_cdesc_t *recvbuf, int *recvcount, int *recvtype_f, \
           int *comm_f, int *info_f, int *request_f, int *ierror) \
@@ -309,6 +360,16 @@ void name(CFI_cdesc_t *sendbuf, int *sendcount, int *sendtype_f, CFI_cdesc_t *re
     } \
     VAPAA_COLL_FINISH_REQUEST(request, request_f, ierror); \
 }
+#else
+#define VAPAA_ALLGATHER_INIT_WRAPPER(name, mpi_fn) \
+void name(CFI_cdesc_t *sendbuf, int *sendcount, int *sendtype_f, CFI_cdesc_t *recvbuf, int *recvcount, int *recvtype_f, \
+          int *comm_f, int *info_f, int *request_f, int *ierror) \
+{ \
+    (void) sendbuf; (void) sendcount; (void) sendtype_f; (void) recvbuf; (void) recvcount; (void) recvtype_f; \
+    (void) comm_f; (void) info_f; \
+    VAPAA_COLL_UNSUPPORTED_REQUEST(request_f, ierror); \
+}
+#endif
 
 VAPAA_ALLGATHER_REQ_WRAPPER(VAPAA_MPI_Iallgather, MPI_Iallgather)
 VAPAA_ALLGATHER_REQ_WRAPPER(VAPAA_MPI_Ialltoall, MPI_Ialltoall)
@@ -334,6 +395,7 @@ void VAPAA_MPI_Gatherv_init(CFI_cdesc_t *sendbuf, int *sendcount, int *sendtype_
                             const int recvcounts[], const int displs[], int *recvtype_f, int *root, int *comm_f,
                             int *info_f, int *request_f, int *ierror)
 {
+#if MPI_VERSION >= 4
     MPI_Request request = MPI_REQUEST_NULL;
     MPI_Datatype sendtype = C_MPI_TYPE_FROMINT(*sendtype_f);
     MPI_Datatype recvtype = C_MPI_TYPE_FROMINT(*recvtype_f);
@@ -344,6 +406,11 @@ void VAPAA_MPI_Gatherv_init(CFI_cdesc_t *sendbuf, int *sendcount, int *sendtype_
                                    recvcounts, displs, recvtype, C_MPI_ROOT_F2C(*root), comm, info, &request);
     }
     VAPAA_COLL_FINISH_REQUEST(request, request_f, ierror);
+#else
+    (void) sendbuf; (void) sendcount; (void) sendtype_f; (void) recvbuf; (void) recvcounts; (void) displs;
+    (void) recvtype_f; (void) root; (void) comm_f; (void) info_f;
+    VAPAA_COLL_UNSUPPORTED_REQUEST(request_f, ierror);
+#endif
 }
 
 void VAPAA_MPI_Iscatterv(CFI_cdesc_t *sendbuf, const int sendcounts[], const int displs[], int *sendtype_f,
@@ -365,6 +432,7 @@ void VAPAA_MPI_Scatterv_init(CFI_cdesc_t *sendbuf, const int sendcounts[], const
                              CFI_cdesc_t *recvbuf, int *recvcount, int *recvtype_f, int *root, int *comm_f,
                              int *info_f, int *request_f, int *ierror)
 {
+#if MPI_VERSION >= 4
     MPI_Request request = MPI_REQUEST_NULL;
     MPI_Datatype sendtype = C_MPI_TYPE_FROMINT(*sendtype_f);
     MPI_Datatype recvtype = C_MPI_TYPE_FROMINT(*recvtype_f);
@@ -375,6 +443,11 @@ void VAPAA_MPI_Scatterv_init(CFI_cdesc_t *sendbuf, const int sendcounts[], const
                                     *recvcount, recvtype, C_MPI_ROOT_F2C(*root), comm, info, &request);
     }
     VAPAA_COLL_FINISH_REQUEST(request, request_f, ierror);
+#else
+    (void) sendbuf; (void) sendcounts; (void) displs; (void) sendtype_f; (void) recvbuf; (void) recvcount;
+    (void) recvtype_f; (void) root; (void) comm_f; (void) info_f;
+    VAPAA_COLL_UNSUPPORTED_REQUEST(request_f, ierror);
+#endif
 }
 
 void VAPAA_MPI_Iallgatherv(CFI_cdesc_t *sendbuf, int *sendcount, int *sendtype_f, CFI_cdesc_t *recvbuf,
@@ -396,6 +469,7 @@ void VAPAA_MPI_Allgatherv_init(CFI_cdesc_t *sendbuf, int *sendcount, int *sendty
                                const int recvcounts[], const int displs[], int *recvtype_f, int *comm_f,
                                int *info_f, int *request_f, int *ierror)
 {
+#if MPI_VERSION >= 4
     MPI_Request request = MPI_REQUEST_NULL;
     MPI_Datatype sendtype = C_MPI_TYPE_FROMINT(*sendtype_f);
     MPI_Datatype recvtype = C_MPI_TYPE_FROMINT(*recvtype_f);
@@ -406,6 +480,11 @@ void VAPAA_MPI_Allgatherv_init(CFI_cdesc_t *sendbuf, int *sendcount, int *sendty
                                       recvcounts, displs, recvtype, comm, info, &request);
     }
     VAPAA_COLL_FINISH_REQUEST(request, request_f, ierror);
+#else
+    (void) sendbuf; (void) sendcount; (void) sendtype_f; (void) recvbuf; (void) recvcounts; (void) displs;
+    (void) recvtype_f; (void) comm_f; (void) info_f;
+    VAPAA_COLL_UNSUPPORTED_REQUEST(request_f, ierror);
+#endif
 }
 
 void VAPAA_MPI_Ialltoallv(CFI_cdesc_t *sendbuf, const int sendcounts[], const int sdispls[], int *sendtype_f,
@@ -427,6 +506,7 @@ void VAPAA_MPI_Alltoallv_init(CFI_cdesc_t *sendbuf, const int sendcounts[], cons
                               CFI_cdesc_t *recvbuf, const int recvcounts[], const int rdispls[], int *recvtype_f,
                               int *comm_f, int *info_f, int *request_f, int *ierror)
 {
+#if MPI_VERSION >= 4
     MPI_Request request = MPI_REQUEST_NULL;
     MPI_Datatype sendtype = C_MPI_TYPE_FROMINT(*sendtype_f);
     MPI_Datatype recvtype = C_MPI_TYPE_FROMINT(*recvtype_f);
@@ -437,6 +517,11 @@ void VAPAA_MPI_Alltoallv_init(CFI_cdesc_t *sendbuf, const int sendcounts[], cons
                                      recvcounts, rdispls, recvtype, comm, info, &request);
     }
     VAPAA_COLL_FINISH_REQUEST(request, request_f, ierror);
+#else
+    (void) sendbuf; (void) sendcounts; (void) sdispls; (void) sendtype_f; (void) recvbuf; (void) recvcounts;
+    (void) rdispls; (void) recvtype_f; (void) comm_f; (void) info_f;
+    VAPAA_COLL_UNSUPPORTED_REQUEST(request_f, ierror);
+#endif
 }
 
 void VAPAA_MPI_Ialltoallw(CFI_cdesc_t *sendbuf, const int sendcounts[], const int sdispls[],
@@ -463,6 +548,7 @@ void VAPAA_MPI_Alltoallw_init(CFI_cdesc_t *sendbuf, const int sendcounts[], cons
                               const int rdispls[], const int recvtypes_f[], int *comm_f, int *info_f,
                               int *request_f, int *ierror)
 {
+#if MPI_VERSION >= 4
     MPI_Request request = MPI_REQUEST_NULL;
     MPI_Comm comm = C_MPI_COMM_FROMINT(*comm_f);
     MPI_Info info = C_MPI_INFO_FROMINT(*info_f);
@@ -477,6 +563,11 @@ void VAPAA_MPI_Alltoallw_init(CFI_cdesc_t *sendbuf, const int sendcounts[], cons
         free(recvtypes);
     }
     VAPAA_COLL_FINISH_REQUEST(request, request_f, ierror);
+#else
+    (void) sendbuf; (void) sendcounts; (void) sdispls; (void) sendtypes_f; (void) recvbuf; (void) recvcounts;
+    (void) rdispls; (void) recvtypes_f; (void) comm_f; (void) info_f;
+    VAPAA_COLL_UNSUPPORTED_REQUEST(request_f, ierror);
+#endif
 }
 
 void VAPAA_MPI_Ireduce_scatter(CFI_cdesc_t *sendbuf, CFI_cdesc_t *recvbuf, const int recvcounts[],
@@ -499,6 +590,7 @@ void VAPAA_MPI_Reduce_scatter_init(CFI_cdesc_t *sendbuf, CFI_cdesc_t *recvbuf, c
                                    int *datatype_f, int *op_f, int *comm_f, int *info_f, int *request_f,
                                    int *ierror)
 {
+#if MPI_VERSION >= 4
     MPI_Request request = MPI_REQUEST_NULL;
     MPI_Datatype datatype = C_MPI_TYPE_FROMINT(*datatype_f);
     MPI_Op op = C_MPI_OP_FROMINT(*op_f);
@@ -511,6 +603,10 @@ void VAPAA_MPI_Reduce_scatter_init(CFI_cdesc_t *sendbuf, CFI_cdesc_t *recvbuf, c
                                           datatype, op, comm, info, &request);
     }
     VAPAA_COLL_FINISH_REQUEST(request, request_f, ierror);
+#else
+    (void) sendbuf; (void) recvbuf; (void) recvcounts; (void) datatype_f; (void) op_f; (void) comm_f; (void) info_f;
+    VAPAA_COLL_UNSUPPORTED_REQUEST(request_f, ierror);
+#endif
 }
 
 void VAPAA_MPI_Ireduce_scatter_block(CFI_cdesc_t *sendbuf, CFI_cdesc_t *recvbuf, int *recvcount,
@@ -533,6 +629,7 @@ void VAPAA_MPI_Reduce_scatter_block_init(CFI_cdesc_t *sendbuf, CFI_cdesc_t *recv
                                          int *datatype_f, int *op_f, int *comm_f, int *info_f, int *request_f,
                                          int *ierror)
 {
+#if MPI_VERSION >= 4
     MPI_Request request = MPI_REQUEST_NULL;
     MPI_Datatype datatype = C_MPI_TYPE_FROMINT(*datatype_f);
     MPI_Op op = C_MPI_OP_FROMINT(*op_f);
@@ -545,12 +642,17 @@ void VAPAA_MPI_Reduce_scatter_block_init(CFI_cdesc_t *sendbuf, CFI_cdesc_t *recv
                                                 datatype, op, comm, info, &request);
     }
     VAPAA_COLL_FINISH_REQUEST(request, request_f, ierror);
+#else
+    (void) sendbuf; (void) recvbuf; (void) recvcount; (void) datatype_f; (void) op_f; (void) comm_f; (void) info_f;
+    VAPAA_COLL_UNSUPPORTED_REQUEST(request_f, ierror);
+#endif
 }
 
 void VAPAA_MPI_Isendrecv(CFI_cdesc_t *sendbuf, int *sendcount, int *sendtype_f, int *dest, int *sendtag,
                          CFI_cdesc_t *recvbuf, int *recvcount, int *recvtype_f, int *source, int *recvtag,
                          int *comm_f, int *request_f, int *ierror)
 {
+#if MPI_VERSION >= 4
     MPI_Request request = MPI_REQUEST_NULL;
     MPI_Datatype sendtype = C_MPI_TYPE_FROMINT(*sendtype_f);
     MPI_Datatype recvtype = C_MPI_TYPE_FROMINT(*recvtype_f);
@@ -561,11 +663,17 @@ void VAPAA_MPI_Isendrecv(CFI_cdesc_t *sendbuf, int *sendcount, int *sendtype_f, 
                                 C_MPI_SOURCE_F2C(*source), C_MPI_TAG_F2C(*recvtag), comm, &request);
     }
     VAPAA_COLL_FINISH_REQUEST(request, request_f, ierror);
+#else
+    (void) sendbuf; (void) sendcount; (void) sendtype_f; (void) dest; (void) sendtag;
+    (void) recvbuf; (void) recvcount; (void) recvtype_f; (void) source; (void) recvtag; (void) comm_f;
+    VAPAA_COLL_UNSUPPORTED_REQUEST(request_f, ierror);
+#endif
 }
 
 void VAPAA_MPI_Isendrecv_replace(CFI_cdesc_t *buf, int *count, int *datatype_f, int *dest, int *sendtag,
                                  int *source, int *recvtag, int *comm_f, int *request_f, int *ierror)
 {
+#if MPI_VERSION >= 4
     MPI_Request request = MPI_REQUEST_NULL;
     MPI_Datatype datatype = C_MPI_TYPE_FROMINT(*datatype_f);
     MPI_Comm comm = C_MPI_COMM_FROMINT(*comm_f);
@@ -575,6 +683,10 @@ void VAPAA_MPI_Isendrecv_replace(CFI_cdesc_t *buf, int *count, int *datatype_f, 
                                         C_MPI_TAG_F2C(*recvtag), comm, &request);
     }
     VAPAA_COLL_FINISH_REQUEST(request, request_f, ierror);
+#else
+    (void) buf; (void) count; (void) datatype_f; (void) dest; (void) sendtag; (void) source; (void) recvtag; (void) comm_f;
+    VAPAA_COLL_UNSUPPORTED_REQUEST(request_f, ierror);
+#endif
 }
 
 #define VAPAA_NEIGHBOR_SIMPLE(name, mpi_fn) \
@@ -604,6 +716,7 @@ void name(CFI_cdesc_t *sendbuf, int *sendcount, int *sendtype_f, CFI_cdesc_t *re
     VAPAA_COLL_FINISH_REQUEST(request, request_f, ierror); \
 }
 
+#if MPI_VERSION >= 4
 #define VAPAA_NEIGHBOR_SIMPLE_INIT(name, mpi_fn) \
 void name(CFI_cdesc_t *sendbuf, int *sendcount, int *sendtype_f, CFI_cdesc_t *recvbuf, int *recvcount, int *recvtype_f, \
           int *comm_f, int *info_f, int *request_f, int *ierror) \
@@ -618,6 +731,16 @@ void name(CFI_cdesc_t *sendbuf, int *sendcount, int *sendtype_f, CFI_cdesc_t *re
     } \
     VAPAA_COLL_FINISH_REQUEST(request, request_f, ierror); \
 }
+#else
+#define VAPAA_NEIGHBOR_SIMPLE_INIT(name, mpi_fn) \
+void name(CFI_cdesc_t *sendbuf, int *sendcount, int *sendtype_f, CFI_cdesc_t *recvbuf, int *recvcount, int *recvtype_f, \
+          int *comm_f, int *info_f, int *request_f, int *ierror) \
+{ \
+    (void) sendbuf; (void) sendcount; (void) sendtype_f; (void) recvbuf; (void) recvcount; (void) recvtype_f; \
+    (void) comm_f; (void) info_f; \
+    VAPAA_COLL_UNSUPPORTED_REQUEST(request_f, ierror); \
+}
+#endif
 
 VAPAA_NEIGHBOR_SIMPLE(VAPAA_MPI_Neighbor_allgather, MPI_Neighbor_allgather)
 VAPAA_NEIGHBOR_SIMPLE(VAPAA_MPI_Neighbor_alltoall, MPI_Neighbor_alltoall)
@@ -659,6 +782,7 @@ void VAPAA_MPI_Neighbor_allgatherv_init(CFI_cdesc_t *sendbuf, int *sendcount, in
                                         const int recvcounts[], const int displs[], int *recvtype_f, int *comm_f,
                                         int *info_f, int *request_f, int *ierror)
 {
+#if MPI_VERSION >= 4
     MPI_Request request = MPI_REQUEST_NULL;
     MPI_Datatype sendtype = C_MPI_TYPE_FROMINT(*sendtype_f);
     MPI_Datatype recvtype = C_MPI_TYPE_FROMINT(*recvtype_f);
@@ -669,6 +793,11 @@ void VAPAA_MPI_Neighbor_allgatherv_init(CFI_cdesc_t *sendbuf, int *sendcount, in
                                                recvcounts, displs, recvtype, comm, info, &request);
     }
     VAPAA_COLL_FINISH_REQUEST(request, request_f, ierror);
+#else
+    (void) sendbuf; (void) sendcount; (void) sendtype_f; (void) recvbuf; (void) recvcounts; (void) displs;
+    (void) recvtype_f; (void) comm_f; (void) info_f;
+    VAPAA_COLL_UNSUPPORTED_REQUEST(request_f, ierror);
+#endif
 }
 
 void VAPAA_MPI_Neighbor_alltoallv(CFI_cdesc_t *sendbuf, const int sendcounts[], const int sdispls[], int *sendtype_f,
@@ -704,6 +833,7 @@ void VAPAA_MPI_Neighbor_alltoallv_init(CFI_cdesc_t *sendbuf, const int sendcount
                                        CFI_cdesc_t *recvbuf, const int recvcounts[], const int rdispls[], int *recvtype_f,
                                        int *comm_f, int *info_f, int *request_f, int *ierror)
 {
+#if MPI_VERSION >= 4
     MPI_Request request = MPI_REQUEST_NULL;
     MPI_Datatype sendtype = C_MPI_TYPE_FROMINT(*sendtype_f);
     MPI_Datatype recvtype = C_MPI_TYPE_FROMINT(*recvtype_f);
@@ -715,6 +845,11 @@ void VAPAA_MPI_Neighbor_alltoallv_init(CFI_cdesc_t *sendbuf, const int sendcount
                                               &request);
     }
     VAPAA_COLL_FINISH_REQUEST(request, request_f, ierror);
+#else
+    (void) sendbuf; (void) sendcounts; (void) sdispls; (void) sendtype_f; (void) recvbuf; (void) recvcounts;
+    (void) rdispls; (void) recvtype_f; (void) comm_f; (void) info_f;
+    VAPAA_COLL_UNSUPPORTED_REQUEST(request_f, ierror);
+#endif
 }
 
 static void VAPAA_COLL_NEIGHBOR_ALLTOALLW_TYPES(MPI_Comm comm, const int sendtypes_f[], const int recvtypes_f[],
@@ -769,6 +904,7 @@ void VAPAA_MPI_Neighbor_alltoallw_init(CFI_cdesc_t *sendbuf, const int sendcount
                                        const intptr_t rdispls_f[], const int recvtypes_f[], int *comm_f, int *info_f,
                                        int *request_f, int *ierror)
 {
+#if MPI_VERSION >= 4
     MPI_Request request = MPI_REQUEST_NULL;
     MPI_Comm comm = C_MPI_COMM_FROMINT(*comm_f);
     MPI_Info info = C_MPI_INFO_FROMINT(*info_f);
@@ -784,4 +920,9 @@ void VAPAA_MPI_Neighbor_alltoallw_init(CFI_cdesc_t *sendbuf, const int sendcount
         free(sendtypes); free(recvtypes); free(sdispls); free(rdispls);
     }
     VAPAA_COLL_FINISH_REQUEST(request, request_f, ierror);
+#else
+    (void) sendbuf; (void) sendcounts; (void) sdispls_f; (void) sendtypes_f; (void) recvbuf; (void) recvcounts;
+    (void) rdispls_f; (void) recvtypes_f; (void) comm_f; (void) info_f;
+    VAPAA_COLL_UNSUPPORTED_REQUEST(request_f, ierror);
+#endif
 }
