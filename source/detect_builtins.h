@@ -46,6 +46,12 @@ static bool C_MPI_TYPE_IS_BUILTIN(MPI_Datatype type_c)
     DT_ELIF(MPI_AINT)
     DT_ELIF(MPI_COUNT)
     DT_ELIF(MPI_OFFSET)
+#ifdef MPI_LB
+    DT_ELIF(MPI_LB)
+#endif
+#ifdef MPI_UB
+    DT_ELIF(MPI_UB)
+#endif
     DT_ELIF(MPI_PACKED)
     DT_ELIF(MPI_BYTE)
     DT_ELIF(MPI_CHAR)

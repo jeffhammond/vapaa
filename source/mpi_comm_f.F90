@@ -90,14 +90,17 @@ module mpi_comm_f
 
     interface MPI_Dist_graph_create
         module procedure MPI_Dist_graph_create_f08
+        module procedure MPI_Dist_graph_create_sentinel_f08
     end interface MPI_Dist_graph_create
 
     interface MPI_Dist_graph_create_adjacent
         module procedure MPI_Dist_graph_create_adjacent_f08
+        module procedure MPI_Dist_graph_create_adjacent_sentinel_f08
     end interface MPI_Dist_graph_create_adjacent
 
     interface MPI_Dist_graph_neighbors
         module procedure MPI_Dist_graph_neighbors_f08
+        module procedure MPI_Dist_graph_neighbors_sentinel_f08
     end interface MPI_Dist_graph_neighbors
 
     interface MPI_Dist_graph_neighbors_count
@@ -468,6 +471,30 @@ module mpi_comm_f
             if (present(ierror)) ierror = ierror_c
         end subroutine MPI_Dist_graph_create_f08
 
+        subroutine MPI_Dist_graph_create_sentinel_f08(comm_old, n, sources, degrees, destinations, weights, info, &
+                                                      reorder, comm_dist_graph, ierror)
+            use mpi_handle_types, only: MPI_Comm, MPI_Info
+            use mpi_comm_c, only: C_MPI_Dist_graph_create_sentinel
+            type(MPI_Comm), intent(in) :: comm_old
+            integer, intent(in) :: n
+            integer, intent(in) :: sources(n), degrees(n), destinations(*)
+            integer, intent(in), target :: weights
+            type(MPI_Info), intent(in) :: info
+            logical, intent(in) :: reorder
+            type(MPI_Comm), intent(out) :: comm_dist_graph
+            integer, optional, intent(out) :: ierror
+            integer(kind=c_int) :: n_c, reorder_c, ierror_c
+            n_c = n
+            if (reorder) then
+                reorder_c = 1
+            else
+                reorder_c = 0
+            end if
+            call C_MPI_Dist_graph_create_sentinel(comm_old % MPI_VAL, n_c, sources, degrees, destinations, weights, &
+                                                  info % MPI_VAL, reorder_c, comm_dist_graph % MPI_VAL, ierror_c)
+            if (present(ierror)) ierror = ierror_c
+        end subroutine MPI_Dist_graph_create_sentinel_f08
+
         subroutine MPI_Dist_graph_create_adjacent_f08(comm_old, indegree, sources, sourceweights, outdegree, &
                                                       destinations, destweights, info, reorder, &
                                                       comm_dist_graph, ierror)
@@ -498,6 +525,36 @@ module mpi_comm_f
             if (present(ierror)) ierror = ierror_c
         end subroutine MPI_Dist_graph_create_adjacent_f08
 
+        subroutine MPI_Dist_graph_create_adjacent_sentinel_f08(comm_old, indegree, sources, sourceweights, &
+                                                               outdegree, destinations, destweights, info, reorder, &
+                                                               comm_dist_graph, ierror)
+            use mpi_handle_types, only: MPI_Comm, MPI_Info
+            use mpi_comm_c, only: C_MPI_Dist_graph_create_adjacent_sentinel
+            type(MPI_Comm), intent(in) :: comm_old
+            integer, intent(in) :: indegree
+            integer, intent(in) :: sources(indegree)
+            integer, intent(in), target :: sourceweights
+            integer, intent(in) :: outdegree
+            integer, intent(in) :: destinations(outdegree)
+            integer, intent(in), target :: destweights
+            type(MPI_Info), intent(in) :: info
+            logical, intent(in) :: reorder
+            type(MPI_Comm), intent(out) :: comm_dist_graph
+            integer, optional, intent(out) :: ierror
+            integer(kind=c_int) :: indegree_c, outdegree_c, reorder_c, ierror_c
+            indegree_c = indegree
+            outdegree_c = outdegree
+            if (reorder) then
+                reorder_c = 1
+            else
+                reorder_c = 0
+            end if
+            call C_MPI_Dist_graph_create_adjacent_sentinel(comm_old % MPI_VAL, indegree_c, sources, sourceweights, &
+                                                           outdegree_c, destinations, destweights, info % MPI_VAL, &
+                                                           reorder_c, comm_dist_graph % MPI_VAL, ierror_c)
+            if (present(ierror)) ierror = ierror_c
+        end subroutine MPI_Dist_graph_create_adjacent_sentinel_f08
+
         subroutine MPI_Dist_graph_neighbors_f08(comm, maxindegree, sources, sourceweights, maxoutdegree, &
                                                 destinations, destweights, ierror)
             use mpi_handle_types, only: MPI_Comm
@@ -517,6 +574,26 @@ module mpi_comm_f
                                             maxoutdegree_c, destinations, destweights, ierror_c)
             if (present(ierror)) ierror = ierror_c
         end subroutine MPI_Dist_graph_neighbors_f08
+
+        subroutine MPI_Dist_graph_neighbors_sentinel_f08(comm, maxindegree, sources, sourceweights, maxoutdegree, &
+                                                         destinations, destweights, ierror)
+            use mpi_handle_types, only: MPI_Comm
+            use mpi_comm_c, only: C_MPI_Dist_graph_neighbors_sentinel
+            type(MPI_Comm), intent(in) :: comm
+            integer, intent(in) :: maxindegree
+            integer, intent(out) :: sources(maxindegree)
+            integer, intent(in), target :: sourceweights
+            integer, intent(in) :: maxoutdegree
+            integer, intent(out) :: destinations(maxoutdegree)
+            integer, intent(in), target :: destweights
+            integer, optional, intent(out) :: ierror
+            integer(kind=c_int) :: maxindegree_c, maxoutdegree_c, ierror_c
+            maxindegree_c = maxindegree
+            maxoutdegree_c = maxoutdegree
+            call C_MPI_Dist_graph_neighbors_sentinel(comm % MPI_VAL, maxindegree_c, sources, sourceweights, &
+                                                     maxoutdegree_c, destinations, destweights, ierror_c)
+            if (present(ierror)) ierror = ierror_c
+        end subroutine MPI_Dist_graph_neighbors_sentinel_f08
 
         subroutine MPI_Dist_graph_neighbors_count_f08(comm, indegree, outdegree, weighted, ierror)
             use mpi_handle_types, only: MPI_Comm

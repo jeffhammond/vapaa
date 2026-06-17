@@ -1,12 +1,14 @@
 // SPDX-License-Identifier: MIT
 
 #include <stdio.h>
+#include <stdint.h>
 #include <mpi.h>
 #include "ISO_Fortran_binding.h"
 #include "detect_sentinels.h"
 #include "convert_handles.h"
 #include "convert_constants.h"
 #include "vapaa_constants.h"
+#include "cfi_util.h"
 
 static int C_MPI_TRANSLATE_AMODE(int f)
 {
@@ -99,23 +101,27 @@ void C_MPI_File_get_size(int * file_f, size_t * size_f, int * ierror)
     C_MPI_RC_FIX(*ierror);
 }
 
-void C_MPI_File_set_view(int * file_f, size_t * disp_f, int * etype_f, int * filetype_f, char ** pdatarep, int * info_f, int * ierror)
+static MPI_Offset C_MPI_OFFSET_F2C(int64_t offset_f)
+{
+    return offset_f == VAPAA_MPI_DISPLACEMENT_CURRENT ? MPI_DISPLACEMENT_CURRENT : (MPI_Offset) offset_f;
+}
+
+void C_MPI_File_set_view(int * file_f, int64_t * disp_f, int * etype_f, int * filetype_f, char * datarep, int * info_f, int * ierror)
 {
     MPI_File file = C_MPI_FILE_FROMINT(*file_f);
-    MPI_Offset disp = *disp_f;
+    MPI_Offset disp = C_MPI_OFFSET_F2C(*disp_f);
     MPI_Datatype etype = C_MPI_TYPE_FROMINT(*etype_f);
     MPI_Datatype filetype = C_MPI_TYPE_FROMINT(*filetype_f);
-    char * datarep = *pdatarep;
     MPI_Info info = C_MPI_INFO_FROMINT(*info_f);
     *ierror = MPI_File_set_view(file, disp, etype, filetype, datarep, info);
     C_MPI_RC_FIX(*ierror);
 }
 
 #ifdef HAVE_CFI
-void CFI_MPI_File_set_view(int * file_f, size_t * disp_f, int * etype_f, int * filetype_f, CFI_cdesc_t * datarep_d, int * info_f, int * ierror)
+void CFI_MPI_File_set_view(int * file_f, int64_t * disp_f, int * etype_f, int * filetype_f, CFI_cdesc_t * datarep_d, int * info_f, int * ierror)
 {
     MPI_File file = C_MPI_FILE_FROMINT(*file_f);
-    MPI_Offset disp = *disp_f;
+    MPI_Offset disp = C_MPI_OFFSET_F2C(*disp_f);
     MPI_Datatype etype = C_MPI_TYPE_FROMINT(*etype_f);
     MPI_Datatype filetype = C_MPI_TYPE_FROMINT(*filetype_f);
     char * datarep = datarep_d -> base_addr;
@@ -143,7 +149,7 @@ void CFI_MPI_File_read_at(int * file_f, size_t * offset_f, CFI_cdesc_t * desc, i
     MPI_Offset offset = *offset_f;
     int count = *count_f;
     MPI_Datatype datatype = C_MPI_TYPE_FROMINT(*datatype_f);
-    if (1 == CFI_is_contiguous(desc)) {
+    if (1 == VAPAA_CFI_is_contiguous(desc)) {
         *ierror = MPI_File_read_at(file, offset, desc->base_addr, count, datatype,
                                    C_IS_MPI_STATUS_IGNORE(status) ? MPI_STATUS_IGNORE : status);
     } else {
@@ -172,7 +178,7 @@ void CFI_MPI_File_read_at_all(int * file_f, size_t * offset_f, CFI_cdesc_t * des
     MPI_Offset offset = *offset_f;
     int count = *count_f;
     MPI_Datatype datatype = C_MPI_TYPE_FROMINT(*datatype_f);
-    if (1 == CFI_is_contiguous(desc)) {
+    if (1 == VAPAA_CFI_is_contiguous(desc)) {
         *ierror = MPI_File_read_at_all(file, offset, desc->base_addr, count, datatype,
                                        C_IS_MPI_STATUS_IGNORE(status) ? MPI_STATUS_IGNORE : status);
     } else {
@@ -201,7 +207,7 @@ void CFI_MPI_File_write_at(int * file_f, size_t * offset_f, CFI_cdesc_t * desc, 
     MPI_Offset offset = *offset_f;
     int count = *count_f;
     MPI_Datatype datatype = C_MPI_TYPE_FROMINT(*datatype_f);
-    if (1 == CFI_is_contiguous(desc)) {
+    if (1 == VAPAA_CFI_is_contiguous(desc)) {
         *ierror = MPI_File_write_at(file, offset, desc->base_addr, count, datatype,
                                     C_IS_MPI_STATUS_IGNORE(status) ? MPI_STATUS_IGNORE : status);
     } else {
@@ -230,7 +236,7 @@ void CFI_MPI_File_write_at_all(int * file_f, size_t * offset_f, CFI_cdesc_t * de
     MPI_Offset offset = *offset_f;
     int count = *count_f;
     MPI_Datatype datatype = C_MPI_TYPE_FROMINT(*datatype_f);
-    if (1 == CFI_is_contiguous(desc)) {
+    if (1 == VAPAA_CFI_is_contiguous(desc)) {
         *ierror = MPI_File_write_at_all(file, offset, desc->base_addr, count, datatype,
                                         C_IS_MPI_STATUS_IGNORE(status) ? MPI_STATUS_IGNORE : status);
     } else {
@@ -257,7 +263,7 @@ void CFI_MPI_File_read(int * file_f, CFI_cdesc_t * desc, int * count_f, int * da
     MPI_File file = C_MPI_FILE_FROMINT(*file_f);
     int count = *count_f;
     MPI_Datatype datatype = C_MPI_TYPE_FROMINT(*datatype_f);
-    if (1 == CFI_is_contiguous(desc)) {
+    if (1 == VAPAA_CFI_is_contiguous(desc)) {
         *ierror = MPI_File_read(file, desc->base_addr, count, datatype,
                                 C_IS_MPI_STATUS_IGNORE(status) ? MPI_STATUS_IGNORE : status);
     } else {
@@ -284,7 +290,7 @@ void CFI_MPI_File_read_all(int * file_f, CFI_cdesc_t * desc, int * count_f, int 
     MPI_File file = C_MPI_FILE_FROMINT(*file_f);
     int count = *count_f;
     MPI_Datatype datatype = C_MPI_TYPE_FROMINT(*datatype_f);
-    if (1 == CFI_is_contiguous(desc)) {
+    if (1 == VAPAA_CFI_is_contiguous(desc)) {
         *ierror = MPI_File_read_all(file, desc->base_addr, count, datatype,
                                     C_IS_MPI_STATUS_IGNORE(status) ? MPI_STATUS_IGNORE : status);
     } else {
@@ -311,7 +317,7 @@ void CFI_MPI_File_write(int * file_f, CFI_cdesc_t * desc, int * count_f, int * d
     MPI_File file = C_MPI_FILE_FROMINT(*file_f);
     int count = *count_f;
     MPI_Datatype datatype = C_MPI_TYPE_FROMINT(*datatype_f);
-    if (1 == CFI_is_contiguous(desc)) {
+    if (1 == VAPAA_CFI_is_contiguous(desc)) {
         *ierror = MPI_File_write(file, desc->base_addr, count, datatype,
                                  C_IS_MPI_STATUS_IGNORE(status) ? MPI_STATUS_IGNORE : status);
     } else {
@@ -338,7 +344,7 @@ void CFI_MPI_File_write_all(int * file_f, CFI_cdesc_t * desc, int * count_f, int
     MPI_File file = C_MPI_FILE_FROMINT(*file_f);
     int count = *count_f;
     MPI_Datatype datatype = C_MPI_TYPE_FROMINT(*datatype_f);
-    if (1 == CFI_is_contiguous(desc)) {
+    if (1 == VAPAA_CFI_is_contiguous(desc)) {
         *ierror = MPI_File_write_all(file, desc->base_addr, count, datatype,
                                      C_IS_MPI_STATUS_IGNORE(status) ? MPI_STATUS_IGNORE : status);
     } else {

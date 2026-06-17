@@ -2,6 +2,8 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdint.h>
+#include <limits.h>
 #include <mpi.h>
 #include "ISO_Fortran_binding.h"
 #include "detect_sentinels.h"
@@ -16,6 +18,69 @@ typedef int (*C_MPI_Sendlike_fn)(const void *, int, MPI_Datatype, int, int, MPI_
 typedef int (*C_MPI_Isendlike_fn)(const void *, int, MPI_Datatype, int, int, MPI_Comm, MPI_Request *);
 typedef int (*C_MPI_Sendinit_fn)(const void *, int, MPI_Datatype, int, int, MPI_Comm, MPI_Request *);
 typedef int (*C_MPI_Recvinit_fn)(void *, int, MPI_Datatype, int, int, MPI_Comm, MPI_Request *);
+
+static int C_MPI_COUNT64_TO_INT(int64_t count, int *count_i)
+{
+    if (count < 0 || count > INT_MAX) {
+        return MPI_ERR_COUNT;
+    }
+    *count_i = (int)count;
+    return MPI_SUCCESS;
+}
+
+static MPI_Status *C_MPI_STATUS_ARG(struct F_MPI_Status *status_f, MPI_Status *status_c)
+{
+    if (C_IS_MPI_STATUS_IGNORE(status_f)) {
+        return MPI_STATUS_IGNORE;
+    }
+    C_MPI_STATUS_TO_C(status_f, status_c);
+    return status_c;
+}
+
+static void C_MPI_STATUS_STORE(const MPI_Status *status_c, struct F_MPI_Status *status_f)
+{
+    if (!C_IS_MPI_STATUS_IGNORE(status_f)) {
+        C_MPI_STATUS_FROM_C(status_c, status_f);
+    }
+}
+
+#ifdef HAVE_CFI
+static void *VAPAA_P2P_ADDR(CFI_cdesc_t *desc)
+{
+    return C_IS_MPI_BOTTOM(desc->base_addr) ? MPI_BOTTOM : desc->base_addr;
+}
+#endif
+
+static MPI_Status *C_MPI_STATUSES_ARG(int count, struct F_MPI_Status statuses_f[], int *ierror)
+{
+    MPI_Status *statuses = NULL;
+
+    if (C_IS_MPI_STATUSES_IGNORE(statuses_f)) {
+        return MPI_STATUSES_IGNORE;
+    }
+
+    statuses = malloc((count > 0 ? count : 1) * sizeof(MPI_Status));
+    if (statuses == NULL) {
+        *ierror = MPI_ERR_OTHER;
+        C_MPI_RC_FIX(*ierror);
+        return NULL;
+    }
+
+    for (int i = 0; i < count; i++) {
+        C_MPI_STATUS_TO_C(&statuses_f[i], &statuses[i]);
+    }
+    return statuses;
+}
+
+static void C_MPI_STATUSES_STORE_FREE(int count, MPI_Status statuses_c[], struct F_MPI_Status statuses_f[])
+{
+    if (!C_IS_MPI_STATUSES_IGNORE(statuses_f)) {
+        for (int i = 0; i < count; i++) {
+            C_MPI_STATUS_FROM_C(&statuses_c[i], &statuses_f[i]);
+        }
+        free(statuses_c);
+    }
+}
 
 static void C_MPI_Sendlike(void *buffer, int count, int datatype_f, int dest, int tag, int comm_f,
                            C_MPI_Sendlike_fn fn, int *ierror)
@@ -32,8 +97,8 @@ static void CFI_MPI_Sendlike(CFI_cdesc_t *desc, int count, int datatype_f, int d
 {
     MPI_Datatype datatype = C_MPI_TYPE_FROMINT(datatype_f);
     MPI_Comm comm = C_MPI_COMM_FROMINT(comm_f);
-    if (1 == CFI_is_contiguous(desc)) {
-        *ierror = fn(desc->base_addr, count, datatype, C_MPI_DEST_F2C(dest), C_MPI_TAG_F2C(tag), comm);
+    if (1 == VAPAA_CFI_is_contiguous(desc)) {
+        *ierror = fn(VAPAA_P2P_ADDR(desc), count, datatype, C_MPI_DEST_F2C(dest), C_MPI_TAG_F2C(tag), comm);
     } else {
         int rc;
         MPI_Datatype subarray_type = MPI_DATATYPE_NULL;
@@ -41,7 +106,7 @@ static void CFI_MPI_Sendlike(CFI_cdesc_t *desc, int count, int datatype_f, int d
         VAPAA_Assert(rc == MPI_SUCCESS);
         rc = PMPI_Type_commit(&subarray_type);
         VAPAA_Assert(rc == MPI_SUCCESS);
-        *ierror = fn(desc->base_addr, 1, subarray_type, C_MPI_DEST_F2C(dest), C_MPI_TAG_F2C(tag), comm);
+        *ierror = fn(VAPAA_P2P_ADDR(desc), 1, subarray_type, C_MPI_DEST_F2C(dest), C_MPI_TAG_F2C(tag), comm);
         rc = PMPI_Type_free(&subarray_type);
         VAPAA_Assert(rc == MPI_SUCCESS);
     }
@@ -67,8 +132,8 @@ static void CFI_MPI_Isendlike(CFI_cdesc_t *desc, int count, int datatype_f, int 
     MPI_Request request = MPI_REQUEST_NULL;
     MPI_Datatype datatype = C_MPI_TYPE_FROMINT(datatype_f);
     MPI_Comm comm = C_MPI_COMM_FROMINT(comm_f);
-    if (1 == CFI_is_contiguous(desc)) {
-        *ierror = fn(desc->base_addr, count, datatype, C_MPI_DEST_F2C(dest), C_MPI_TAG_F2C(tag), comm, &request);
+    if (1 == VAPAA_CFI_is_contiguous(desc)) {
+        *ierror = fn(VAPAA_P2P_ADDR(desc), count, datatype, C_MPI_DEST_F2C(dest), C_MPI_TAG_F2C(tag), comm, &request);
     } else {
         int rc;
         MPI_Datatype subarray_type = MPI_DATATYPE_NULL;
@@ -76,7 +141,7 @@ static void CFI_MPI_Isendlike(CFI_cdesc_t *desc, int count, int datatype_f, int 
         VAPAA_Assert(rc == MPI_SUCCESS);
         rc = PMPI_Type_commit(&subarray_type);
         VAPAA_Assert(rc == MPI_SUCCESS);
-        *ierror = fn(desc->base_addr, 1, subarray_type, C_MPI_DEST_F2C(dest), C_MPI_TAG_F2C(tag), comm, &request);
+        *ierror = fn(VAPAA_P2P_ADDR(desc), 1, subarray_type, C_MPI_DEST_F2C(dest), C_MPI_TAG_F2C(tag), comm, &request);
         rc = PMPI_Type_free(&subarray_type);
         VAPAA_Assert(rc == MPI_SUCCESS);
     }
@@ -103,8 +168,8 @@ static void CFI_MPI_Sendinit(CFI_cdesc_t *desc, int count, int datatype_f, int d
     MPI_Request request = MPI_REQUEST_NULL;
     MPI_Datatype datatype = C_MPI_TYPE_FROMINT(datatype_f);
     MPI_Comm comm = C_MPI_COMM_FROMINT(comm_f);
-    if (1 == CFI_is_contiguous(desc)) {
-        *ierror = fn(desc->base_addr, count, datatype, C_MPI_DEST_F2C(dest), C_MPI_TAG_F2C(tag), comm, &request);
+    if (1 == VAPAA_CFI_is_contiguous(desc)) {
+        *ierror = fn(VAPAA_P2P_ADDR(desc), count, datatype, C_MPI_DEST_F2C(dest), C_MPI_TAG_F2C(tag), comm, &request);
     } else {
         int rc;
         MPI_Datatype subarray_type = MPI_DATATYPE_NULL;
@@ -112,7 +177,7 @@ static void CFI_MPI_Sendinit(CFI_cdesc_t *desc, int count, int datatype_f, int d
         VAPAA_Assert(rc == MPI_SUCCESS);
         rc = PMPI_Type_commit(&subarray_type);
         VAPAA_Assert(rc == MPI_SUCCESS);
-        *ierror = fn(desc->base_addr, 1, subarray_type, C_MPI_DEST_F2C(dest), C_MPI_TAG_F2C(tag), comm, &request);
+        *ierror = fn(VAPAA_P2P_ADDR(desc), 1, subarray_type, C_MPI_DEST_F2C(dest), C_MPI_TAG_F2C(tag), comm, &request);
         rc = PMPI_Type_free(&subarray_type);
         VAPAA_Assert(rc == MPI_SUCCESS);
     }
@@ -139,8 +204,8 @@ static void CFI_MPI_Recvinit(CFI_cdesc_t *desc, int count, int datatype_f, int s
     MPI_Request request = MPI_REQUEST_NULL;
     MPI_Datatype datatype = C_MPI_TYPE_FROMINT(datatype_f);
     MPI_Comm comm = C_MPI_COMM_FROMINT(comm_f);
-    if (1 == CFI_is_contiguous(desc)) {
-        *ierror = fn(desc->base_addr, count, datatype, C_MPI_SOURCE_F2C(source), C_MPI_TAG_F2C(tag), comm, &request);
+    if (1 == VAPAA_CFI_is_contiguous(desc)) {
+        *ierror = fn(VAPAA_P2P_ADDR(desc), count, datatype, C_MPI_SOURCE_F2C(source), C_MPI_TAG_F2C(tag), comm, &request);
     } else {
         int rc;
         MPI_Datatype subarray_type = MPI_DATATYPE_NULL;
@@ -148,7 +213,7 @@ static void CFI_MPI_Recvinit(CFI_cdesc_t *desc, int count, int datatype_f, int s
         VAPAA_Assert(rc == MPI_SUCCESS);
         rc = PMPI_Type_commit(&subarray_type);
         VAPAA_Assert(rc == MPI_SUCCESS);
-        *ierror = fn(desc->base_addr, 1, subarray_type, C_MPI_SOURCE_F2C(source), C_MPI_TAG_F2C(tag), comm, &request);
+        *ierror = fn(VAPAA_P2P_ADDR(desc), 1, subarray_type, C_MPI_SOURCE_F2C(source), C_MPI_TAG_F2C(tag), comm, &request);
         rc = PMPI_Type_free(&subarray_type);
         VAPAA_Assert(rc == MPI_SUCCESS);
     }
@@ -160,8 +225,11 @@ static void CFI_MPI_Recvinit(CFI_cdesc_t *desc, int count, int datatype_f, int s
 void C_MPI_Probe(int source, int tag, int comm_f, struct F_MPI_Status * status_f, int * ierror)
 {
     MPI_Comm comm = C_MPI_COMM_FROMINT(comm_f);
-    const bool need_status = C_IS_MPI_STATUS_IGNORE(status_f);
+    const bool need_status = !C_IS_MPI_STATUS_IGNORE(status_f);
     MPI_Status status;
+    if (need_status) {
+        C_MPI_STATUS_TO_C(status_f, &status);
+    }
     *ierror = MPI_Probe(C_MPI_SOURCE_F2C(source), C_MPI_TAG_F2C(tag), comm,
                         need_status ? &status : MPI_STATUS_IGNORE);
     if (need_status) {
@@ -170,47 +238,62 @@ void C_MPI_Probe(int source, int tag, int comm_f, struct F_MPI_Status * status_f
     C_MPI_RC_FIX(*ierror);
 }
 
-void C_MPI_Mprobe(int source, int tag, int comm_f, int * message_f, MPI_Status * status, int * ierror)
+void C_MPI_Mprobe(int source, int tag, int comm_f, int * message_f, struct F_MPI_Status * status, int * ierror)
 {
     MPI_Message message;
     MPI_Comm comm = C_MPI_COMM_FROMINT(comm_f);
+    MPI_Status status_c;
     *ierror = MPI_Mprobe(C_MPI_SOURCE_F2C(source), C_MPI_TAG_F2C(tag), comm, &message,
-                         C_IS_MPI_STATUS_IGNORE(status) ? MPI_STATUS_IGNORE : status);
+                         C_MPI_STATUS_ARG(status, &status_c));
+    C_MPI_STATUS_STORE(&status_c, status);
     *message_f = C_MPI_MESSAGE_TOINT(message);
     C_MPI_RC_FIX(*ierror);
 }
 
-void C_MPI_Iprobe(int source, int tag, int comm_f, int * flag, MPI_Status * status, int * ierror)
+void C_MPI_Iprobe(int source, int tag, int comm_f, int * flag, struct F_MPI_Status * status, int * ierror)
 {
     MPI_Comm comm = C_MPI_COMM_FROMINT(comm_f);
+    MPI_Status status_c;
     *ierror = MPI_Iprobe(C_MPI_SOURCE_F2C(source), C_MPI_TAG_F2C(tag), comm, flag,
-                         C_IS_MPI_STATUS_IGNORE(status) ? MPI_STATUS_IGNORE : status);
+                         C_MPI_STATUS_ARG(status, &status_c));
+    if (*flag) {
+        C_MPI_STATUS_STORE(&status_c, status);
+    }
     C_MPI_RC_FIX(*ierror);
 }
 
-void C_MPI_Improbe(int source, int tag, int comm_f, int * flag, int * message_f, MPI_Status * status, int * ierror)
+void C_MPI_Improbe(int source, int tag, int comm_f, int * flag, int * message_f, struct F_MPI_Status * status, int * ierror)
 {
     MPI_Message message = MPI_MESSAGE_NULL;
     MPI_Comm comm = C_MPI_COMM_FROMINT(comm_f);
+    MPI_Status status_c;
     *ierror = MPI_Improbe(C_MPI_SOURCE_F2C(source), C_MPI_TAG_F2C(tag), comm, flag, &message,
-                          C_IS_MPI_STATUS_IGNORE(status) ? MPI_STATUS_IGNORE : status);
+                          C_MPI_STATUS_ARG(status, &status_c));
+    if (*flag) {
+        C_MPI_STATUS_STORE(&status_c, status);
+    }
     *message_f = C_MPI_MESSAGE_TOINT(message);
     C_MPI_RC_FIX(*ierror);
 }
 
-void C_MPI_Test(int * request_f, int * flag, MPI_Status * status, int * ierror)
+void C_MPI_Test(int * request_f, int * flag, struct F_MPI_Status * status, int * ierror)
 {
     // Request is inout so we have to convert before and after
     MPI_Request request = C_MPI_REQUEST_FROMINT(*request_f);
+    MPI_Status status_c;
     *ierror = MPI_Test(&request, flag,
-                       C_IS_MPI_STATUS_IGNORE(status) ? MPI_STATUS_IGNORE : status);
+                       C_MPI_STATUS_ARG(status, &status_c));
+    if (*flag) {
+        C_MPI_STATUS_STORE(&status_c, status);
+    }
     *request_f = C_MPI_REQUEST_TOINT(request);
     C_MPI_RC_FIX(*ierror);
 }
 
-void C_MPI_Testall(int count, int requests_f[], int * flag_f, MPI_Status statuses[], int * ierror)
+void C_MPI_Testall(int count, int requests_f[], int * flag_f, struct F_MPI_Status statuses[], int * ierror)
 {
     int flag;
+    MPI_Status *statuses_c;
 
     MPI_Request * requests = malloc( count * sizeof(MPI_Request) );
     if (requests == NULL) {
@@ -222,10 +305,19 @@ void C_MPI_Testall(int count, int requests_f[], int * flag_f, MPI_Status statuse
     for (int i=0; i<count; i++) {
         requests[i] = C_MPI_REQUEST_FROMINT(requests_f[i]);
     }
-    *ierror = MPI_Testall(count, requests, &flag,
-                          C_IS_MPI_STATUSES_IGNORE(statuses) ? MPI_STATUSES_IGNORE : statuses);
+    statuses_c = C_MPI_STATUSES_ARG(count, statuses, ierror);
+    if (statuses_c == NULL && !C_IS_MPI_STATUSES_IGNORE(statuses)) {
+        free(requests);
+        return;
+    }
+    *ierror = MPI_Testall(count, requests, &flag, statuses_c);
     for (int i=0; i<count; i++) {
         requests_f[i] = C_MPI_REQUEST_TOINT(requests[i]);
+    }
+    if (flag) {
+        C_MPI_STATUSES_STORE_FREE(count, statuses_c, statuses);
+    } else if (!C_IS_MPI_STATUSES_IGNORE(statuses)) {
+        free(statuses_c);
     }
 
     *flag_f  = flag;
@@ -234,9 +326,10 @@ void C_MPI_Testall(int count, int requests_f[], int * flag_f, MPI_Status statuse
     C_MPI_RC_FIX(*ierror);
 }
 
-void C_MPI_Testsome(int incount, int requests_f[], int * outcount_f, int array_of_indices[], MPI_Status statuses[], int * ierror)
+void C_MPI_Testsome(int incount, int requests_f[], int * outcount_f, int array_of_indices[], struct F_MPI_Status statuses[], int * ierror)
 {
     int outcount;
+    MPI_Status *statuses_c;
 
     MPI_Request * requests = malloc( incount * sizeof(MPI_Request) );
     if (requests == NULL) {
@@ -248,10 +341,27 @@ void C_MPI_Testsome(int incount, int requests_f[], int * outcount_f, int array_o
     for (int i=0; i<incount; i++) {
         requests[i] = C_MPI_REQUEST_FROMINT(requests_f[i]);
     }
-    *ierror = MPI_Testsome(incount, requests, &outcount, array_of_indices,
-                           C_IS_MPI_STATUSES_IGNORE(statuses) ? MPI_STATUSES_IGNORE : statuses);
+    statuses_c = C_MPI_STATUSES_ARG(incount, statuses, ierror);
+    if (statuses_c == NULL && !C_IS_MPI_STATUSES_IGNORE(statuses)) {
+        free(requests);
+        return;
+    }
+    *ierror = MPI_Testsome(incount, requests, &outcount, array_of_indices, statuses_c);
     for (int i=0; i<incount; i++) {
         requests_f[i] = C_MPI_REQUEST_TOINT(requests[i]);
+    }
+    if (outcount > 0) {
+        for (int i=0; i<outcount; i++) {
+            array_of_indices[i] += 1;
+        }
+        if (!C_IS_MPI_STATUSES_IGNORE(statuses)) {
+            for (int i=0; i<outcount; i++) {
+                C_MPI_STATUS_FROM_C(&statuses_c[i], &statuses[i]);
+            }
+        }
+    }
+    if (!C_IS_MPI_STATUSES_IGNORE(statuses)) {
+        free(statuses_c);
     }
 
     *outcount_f = outcount;
@@ -260,9 +370,10 @@ void C_MPI_Testsome(int incount, int requests_f[], int * outcount_f, int array_o
     C_MPI_RC_FIX(*ierror);
 }
 
-void C_MPI_Testany(int count, int requests_f[], int * index_f, int * flag_f, MPI_Status * status, int * ierror)
+void C_MPI_Testany(int count, int requests_f[], int * index_f, int * flag_f, struct F_MPI_Status * status, int * ierror)
 {
     int index, flag;
+    MPI_Status status_c;
 
     MPI_Request * requests = malloc( count * sizeof(MPI_Request) );
     if (requests == NULL) {
@@ -275,9 +386,12 @@ void C_MPI_Testany(int count, int requests_f[], int * index_f, int * flag_f, MPI
         requests[i] = C_MPI_REQUEST_FROMINT(requests_f[i]);
     }
     *ierror = MPI_Testany(count, requests, &index, &flag,
-                          C_IS_MPI_STATUS_IGNORE(status) ? MPI_STATUS_IGNORE : status);
+                          C_MPI_STATUS_ARG(status, &status_c));
     for (int i=0; i<count; i++) {
         requests_f[i] = C_MPI_REQUEST_TOINT(requests[i]);
+    }
+    if (flag && index != MPI_UNDEFINED) {
+        C_MPI_STATUS_STORE(&status_c, status);
     }
 
     *index_f = index;
@@ -286,12 +400,13 @@ void C_MPI_Testany(int count, int requests_f[], int * index_f, int * flag_f, MPI
     free(requests);
 }
 
-void C_MPI_Wait(int * request_f, MPI_Status * status, int * ierror)
+void C_MPI_Wait(int * request_f, struct F_MPI_Status * status, int * ierror)
 {
     // Request is inout so we have to convert before and after
     MPI_Request request = C_MPI_REQUEST_FROMINT(*request_f);
-    *ierror = MPI_Wait(&request, 
-                       C_IS_MPI_STATUS_IGNORE(status) ? MPI_STATUS_IGNORE : status);
+    MPI_Status status_c;
+    *ierror = MPI_Wait(&request, C_MPI_STATUS_ARG(status, &status_c));
+    C_MPI_STATUS_STORE(&status_c, status);
     *request_f = C_MPI_REQUEST_TOINT(request);
     C_MPI_RC_FIX(*ierror);
 }
@@ -335,9 +450,10 @@ void C_MPI_Waitall(int count, int requests_f[], struct F_MPI_Status statuses_f[]
     C_MPI_RC_FIX(*ierror);
 }
 
-void C_MPI_Waitsome(int incount, int requests_f[], int * outcount_f, int array_of_indices[], MPI_Status statuses[], int * ierror)
+void C_MPI_Waitsome(int incount, int requests_f[], int * outcount_f, int array_of_indices[], struct F_MPI_Status statuses[], int * ierror)
 {
     int outcount;
+    MPI_Status *statuses_c;
 
     MPI_Request * requests = malloc( incount * sizeof(MPI_Request) );
     if (requests == NULL) {
@@ -349,10 +465,27 @@ void C_MPI_Waitsome(int incount, int requests_f[], int * outcount_f, int array_o
     for (int i=0; i<incount; i++) {
         requests[i] = C_MPI_REQUEST_FROMINT(requests_f[i]);
     }
-    *ierror = MPI_Waitsome(incount, requests, &outcount, array_of_indices,
-                           C_IS_MPI_STATUSES_IGNORE(statuses) ? MPI_STATUSES_IGNORE : statuses);
+    statuses_c = C_MPI_STATUSES_ARG(incount, statuses, ierror);
+    if (statuses_c == NULL && !C_IS_MPI_STATUSES_IGNORE(statuses)) {
+        free(requests);
+        return;
+    }
+    *ierror = MPI_Waitsome(incount, requests, &outcount, array_of_indices, statuses_c);
     for (int i=0; i<incount; i++) {
         requests_f[i] = C_MPI_REQUEST_TOINT(requests[i]);
+    }
+    if (outcount > 0) {
+        for (int i=0; i<outcount; i++) {
+            array_of_indices[i] += 1;
+        }
+        if (!C_IS_MPI_STATUSES_IGNORE(statuses)) {
+            for (int i=0; i<outcount; i++) {
+                C_MPI_STATUS_FROM_C(&statuses_c[i], &statuses[i]);
+            }
+        }
+    }
+    if (!C_IS_MPI_STATUSES_IGNORE(statuses)) {
+        free(statuses_c);
     }
 
     *outcount_f = outcount;
@@ -361,9 +494,10 @@ void C_MPI_Waitsome(int incount, int requests_f[], int * outcount_f, int array_o
     C_MPI_RC_FIX(*ierror);
 }
 
-void C_MPI_Waitany(int count, int requests_f[], int * index_f, MPI_Status * status, int * ierror)
+void C_MPI_Waitany(int count, int requests_f[], int * index_f, struct F_MPI_Status * status, int * ierror)
 {
     int index;
+    MPI_Status status_c;
 
     MPI_Request * requests = malloc( count * sizeof(MPI_Request) );
     if (requests == NULL) {
@@ -376,9 +510,12 @@ void C_MPI_Waitany(int count, int requests_f[], int * index_f, MPI_Status * stat
         requests[i] = C_MPI_REQUEST_FROMINT(requests_f[i]);
     }
     *ierror = MPI_Waitany(count, requests, &index,
-                          C_IS_MPI_STATUS_IGNORE(status) ? MPI_STATUS_IGNORE : status);
+                          C_MPI_STATUS_ARG(status, &status_c));
     for (int i=0; i<count; i++) {
         requests_f[i] = C_MPI_REQUEST_TOINT(requests[i]);
+    }
+    if (index != MPI_UNDEFINED) {
+        C_MPI_STATUS_STORE(&status_c, status);
     }
 
     *index_f = index;
@@ -395,13 +532,34 @@ void C_MPI_Send(void * buffer, int count, int datatype_f, int dest, int tag, int
     C_MPI_RC_FIX(*ierror);
 }
 
+void C_MPI_Send_c(void * buffer, int64_t count, int datatype_f, int dest, int tag, int comm_f, int * ierror)
+{
+    MPI_Datatype datatype = C_MPI_TYPE_FROMINT(datatype_f);
+    MPI_Comm comm = C_MPI_COMM_FROMINT(comm_f);
+    if (count < 0) {
+        *ierror = MPI_ERR_COUNT;
+        C_MPI_RC_FIX(*ierror);
+        return;
+    }
+#if MPI_VERSION >= 4
+    *ierror = MPI_Send_c(buffer, (MPI_Count)count, datatype, C_MPI_DEST_F2C(dest), C_MPI_TAG_F2C(tag), comm);
+#else
+    int count_i = 0;
+    *ierror = C_MPI_COUNT64_TO_INT(count, &count_i);
+    if (*ierror == MPI_SUCCESS) {
+        *ierror = MPI_Send(buffer, count_i, datatype, C_MPI_DEST_F2C(dest), C_MPI_TAG_F2C(tag), comm);
+    }
+#endif
+    C_MPI_RC_FIX(*ierror);
+}
+
 #ifdef HAVE_CFI
 void CFI_MPI_Send(CFI_cdesc_t * desc, int count, int datatype_f, int dest, int tag, int comm_f, int * ierror)
 {
     MPI_Datatype datatype = C_MPI_TYPE_FROMINT(datatype_f);
     MPI_Comm comm = C_MPI_COMM_FROMINT(comm_f);
-    if (1 == CFI_is_contiguous(desc)) {
-        *ierror = MPI_Send(desc->base_addr, count, datatype, C_MPI_DEST_F2C(dest), C_MPI_TAG_F2C(tag), comm);
+    if (1 == VAPAA_CFI_is_contiguous(desc)) {
+        *ierror = MPI_Send(VAPAA_P2P_ADDR(desc), count, datatype, C_MPI_DEST_F2C(dest), C_MPI_TAG_F2C(tag), comm);
     } else {
         int rc;
         MPI_Datatype subarray_type = MPI_DATATYPE_NULL;
@@ -409,7 +567,48 @@ void CFI_MPI_Send(CFI_cdesc_t * desc, int count, int datatype_f, int dest, int t
         VAPAA_Assert(rc == MPI_SUCCESS);
         rc = PMPI_Type_commit(&subarray_type);
         VAPAA_Assert(rc == MPI_SUCCESS);
-        *ierror = MPI_Send(desc->base_addr, 1, subarray_type, C_MPI_DEST_F2C(dest), C_MPI_TAG_F2C(tag), comm);
+        *ierror = MPI_Send(VAPAA_P2P_ADDR(desc), 1, subarray_type, C_MPI_DEST_F2C(dest), C_MPI_TAG_F2C(tag), comm);
+        rc = PMPI_Type_free(&subarray_type);
+        VAPAA_Assert(rc == MPI_SUCCESS);
+    }
+    C_MPI_RC_FIX(*ierror);
+}
+
+void CFI_MPI_Send_c(CFI_cdesc_t * desc, int64_t count, int datatype_f, int dest, int tag, int comm_f, int * ierror)
+{
+    MPI_Datatype datatype = C_MPI_TYPE_FROMINT(datatype_f);
+    MPI_Comm comm = C_MPI_COMM_FROMINT(comm_f);
+    if (count < 0) {
+        *ierror = MPI_ERR_COUNT;
+        C_MPI_RC_FIX(*ierror);
+        return;
+    }
+    if (1 == VAPAA_CFI_is_contiguous(desc)) {
+#if MPI_VERSION >= 4
+        *ierror = MPI_Send_c(VAPAA_P2P_ADDR(desc), (MPI_Count)count, datatype,
+                             C_MPI_DEST_F2C(dest), C_MPI_TAG_F2C(tag), comm);
+#else
+        int count_i = 0;
+        *ierror = C_MPI_COUNT64_TO_INT(count, &count_i);
+        if (*ierror == MPI_SUCCESS) {
+            *ierror = MPI_Send(VAPAA_P2P_ADDR(desc), count_i, datatype,
+                               C_MPI_DEST_F2C(dest), C_MPI_TAG_F2C(tag), comm);
+        }
+#endif
+    } else {
+        int rc, count_i = 0;
+        rc = C_MPI_COUNT64_TO_INT(count, &count_i);
+        if (rc != MPI_SUCCESS) {
+            *ierror = rc;
+            C_MPI_RC_FIX(*ierror);
+            return;
+        }
+        MPI_Datatype subarray_type = MPI_DATATYPE_NULL;
+        rc = VAPAA_CFI_CREATE_DATATYPE(desc, count_i, datatype, &subarray_type);
+        VAPAA_Assert(rc == MPI_SUCCESS);
+        rc = PMPI_Type_commit(&subarray_type);
+        VAPAA_Assert(rc == MPI_SUCCESS);
+        *ierror = MPI_Send(VAPAA_P2P_ADDR(desc), 1, subarray_type, C_MPI_DEST_F2C(dest), C_MPI_TAG_F2C(tag), comm);
         rc = PMPI_Type_free(&subarray_type);
         VAPAA_Assert(rc == MPI_SUCCESS);
     }
@@ -456,8 +655,8 @@ void CFI_MPI_Rsend(CFI_cdesc_t * desc, int count, int datatype_f, int dest, int 
 #ifdef HAVE_CFI
 void CFI_MPI_Buffer_attach(CFI_cdesc_t * desc, int size, int * ierror)
 {
-    if (1 == CFI_is_contiguous(desc)) {
-        *ierror = MPI_Buffer_attach(desc->base_addr, size);
+    if (1 == VAPAA_CFI_is_contiguous(desc)) {
+        *ierror = MPI_Buffer_attach(VAPAA_P2P_ADDR(desc), size);
     } else {
         VAPAA_Warning("MPI_Buffer_attach requires a contiguous buffer.\n");
         *ierror = MPI_ERR_ARG;
@@ -510,8 +709,8 @@ void CFI_MPI_Isend(CFI_cdesc_t * desc, int count, int datatype_f, int dest, int 
     MPI_Request request = MPI_REQUEST_NULL;
     MPI_Datatype datatype = C_MPI_TYPE_FROMINT(datatype_f);
     MPI_Comm comm = C_MPI_COMM_FROMINT(comm_f);
-    if (1 == CFI_is_contiguous(desc)) {
-        *ierror = MPI_Isend(desc->base_addr, count, datatype, C_MPI_DEST_F2C(dest), C_MPI_TAG_F2C(tag), comm, &request);
+    if (1 == VAPAA_CFI_is_contiguous(desc)) {
+        *ierror = MPI_Isend(VAPAA_P2P_ADDR(desc), count, datatype, C_MPI_DEST_F2C(dest), C_MPI_TAG_F2C(tag), comm, &request);
     } else {
         int rc;
         MPI_Datatype subarray_type = MPI_DATATYPE_NULL;
@@ -519,7 +718,7 @@ void CFI_MPI_Isend(CFI_cdesc_t * desc, int count, int datatype_f, int dest, int 
         VAPAA_Assert(rc == MPI_SUCCESS);
         rc = PMPI_Type_commit(&subarray_type);
         VAPAA_Assert(rc == MPI_SUCCESS);
-        *ierror = MPI_Isend(desc->base_addr, 1, subarray_type, C_MPI_DEST_F2C(dest), C_MPI_TAG_F2C(tag), comm, &request);
+        *ierror = MPI_Isend(VAPAA_P2P_ADDR(desc), 1, subarray_type, C_MPI_DEST_F2C(dest), C_MPI_TAG_F2C(tag), comm, &request);
         rc = PMPI_Type_free(&subarray_type);
         VAPAA_Assert(rc == MPI_SUCCESS);
     }
@@ -624,23 +823,56 @@ void CFI_MPI_Rsend_init(CFI_cdesc_t * desc, int count, int datatype_f, int dest,
  * such that no conversion should be necessary.
  */
 
-void C_MPI_Recv(void * buffer, int count, int datatype_f, int source, int tag, int comm_f, MPI_Status * status, int * ierror)
+void C_MPI_Recv(void * buffer, int count, int datatype_f, int source, int tag, int comm_f,
+                struct F_MPI_Status * status, int * ierror)
 {
     MPI_Datatype datatype = C_MPI_TYPE_FROMINT(datatype_f);
     MPI_Comm comm = C_MPI_COMM_FROMINT(comm_f);
+    MPI_Status status_c;
     *ierror = MPI_Recv(buffer, count, datatype, C_MPI_SOURCE_F2C(source), C_MPI_TAG_F2C(tag), comm,
-                       C_IS_MPI_STATUS_IGNORE(status) ? MPI_STATUS_IGNORE : status);
+                       C_MPI_STATUS_ARG(status, &status_c));
+    C_MPI_STATUS_STORE(&status_c, status);
+    C_MPI_RC_FIX(*ierror);
+}
+
+void C_MPI_Recv_c(void * buffer, int64_t count, int datatype_f, int source, int tag, int comm_f,
+                  struct F_MPI_Status * status, int * ierror)
+{
+    MPI_Datatype datatype = C_MPI_TYPE_FROMINT(datatype_f);
+    MPI_Comm comm = C_MPI_COMM_FROMINT(comm_f);
+    MPI_Status status_c;
+    if (count < 0) {
+        *ierror = MPI_ERR_COUNT;
+        C_MPI_RC_FIX(*ierror);
+        return;
+    }
+#if MPI_VERSION >= 4
+    *ierror = MPI_Recv_c(buffer, (MPI_Count)count, datatype, C_MPI_SOURCE_F2C(source), C_MPI_TAG_F2C(tag),
+                         comm, C_MPI_STATUS_ARG(status, &status_c));
+#else
+    int count_i = 0;
+    *ierror = C_MPI_COUNT64_TO_INT(count, &count_i);
+    if (*ierror == MPI_SUCCESS) {
+        *ierror = MPI_Recv(buffer, count_i, datatype, C_MPI_SOURCE_F2C(source), C_MPI_TAG_F2C(tag), comm,
+                           C_MPI_STATUS_ARG(status, &status_c));
+    }
+#endif
+    if (*ierror == MPI_SUCCESS) {
+        C_MPI_STATUS_STORE(&status_c, status);
+    }
     C_MPI_RC_FIX(*ierror);
 }
 
 #ifdef HAVE_CFI
-void CFI_MPI_Recv(CFI_cdesc_t * desc, int count, int datatype_f, int source, int tag, int comm_f, MPI_Status * status, int * ierror)
+void CFI_MPI_Recv(CFI_cdesc_t * desc, int count, int datatype_f, int source, int tag, int comm_f,
+                  struct F_MPI_Status * status, int * ierror)
 {
     MPI_Datatype datatype = C_MPI_TYPE_FROMINT(datatype_f);
     MPI_Comm comm = C_MPI_COMM_FROMINT(comm_f);
-    if (1 == CFI_is_contiguous(desc)) {
-        *ierror = MPI_Recv(desc->base_addr, count, datatype, C_MPI_SOURCE_F2C(source), C_MPI_TAG_F2C(tag), comm,
-                           C_IS_MPI_STATUS_IGNORE(status) ? MPI_STATUS_IGNORE : status);
+    MPI_Status status_c;
+    if (1 == VAPAA_CFI_is_contiguous(desc)) {
+        *ierror = MPI_Recv(VAPAA_P2P_ADDR(desc), count, datatype, C_MPI_SOURCE_F2C(source), C_MPI_TAG_F2C(tag), comm,
+                           C_MPI_STATUS_ARG(status, &status_c));
     } else {
         int rc;
         MPI_Datatype subarray_type = MPI_DATATYPE_NULL;
@@ -648,10 +880,60 @@ void CFI_MPI_Recv(CFI_cdesc_t * desc, int count, int datatype_f, int source, int
         VAPAA_Assert(rc == MPI_SUCCESS);
         rc = PMPI_Type_commit(&subarray_type);
         VAPAA_Assert(rc == MPI_SUCCESS);
-        *ierror = MPI_Recv(desc->base_addr, 1, subarray_type, C_MPI_SOURCE_F2C(source), C_MPI_TAG_F2C(tag), comm,
-                           C_IS_MPI_STATUS_IGNORE(status) ? MPI_STATUS_IGNORE : status);
+        *ierror = MPI_Recv(VAPAA_P2P_ADDR(desc), 1, subarray_type, C_MPI_SOURCE_F2C(source), C_MPI_TAG_F2C(tag), comm,
+                           C_MPI_STATUS_ARG(status, &status_c));
         rc = PMPI_Type_free(&subarray_type);
         VAPAA_Assert(rc == MPI_SUCCESS);
+    }
+    C_MPI_STATUS_STORE(&status_c, status);
+    C_MPI_RC_FIX(*ierror);
+}
+
+void CFI_MPI_Recv_c(CFI_cdesc_t * desc, int64_t count, int datatype_f, int source, int tag, int comm_f,
+                    struct F_MPI_Status * status, int * ierror)
+{
+    MPI_Datatype datatype = C_MPI_TYPE_FROMINT(datatype_f);
+    MPI_Comm comm = C_MPI_COMM_FROMINT(comm_f);
+    MPI_Status status_c;
+    if (count < 0) {
+        *ierror = MPI_ERR_COUNT;
+        C_MPI_RC_FIX(*ierror);
+        return;
+    }
+    if (1 == VAPAA_CFI_is_contiguous(desc)) {
+#if MPI_VERSION >= 4
+        *ierror = MPI_Recv_c(VAPAA_P2P_ADDR(desc), (MPI_Count)count, datatype,
+                             C_MPI_SOURCE_F2C(source), C_MPI_TAG_F2C(tag), comm,
+                             C_MPI_STATUS_ARG(status, &status_c));
+#else
+        int count_i = 0;
+        *ierror = C_MPI_COUNT64_TO_INT(count, &count_i);
+        if (*ierror == MPI_SUCCESS) {
+            *ierror = MPI_Recv(VAPAA_P2P_ADDR(desc), count_i, datatype,
+                               C_MPI_SOURCE_F2C(source), C_MPI_TAG_F2C(tag), comm,
+                               C_MPI_STATUS_ARG(status, &status_c));
+        }
+#endif
+    } else {
+        int rc, count_i = 0;
+        rc = C_MPI_COUNT64_TO_INT(count, &count_i);
+        if (rc != MPI_SUCCESS) {
+            *ierror = rc;
+            C_MPI_RC_FIX(*ierror);
+            return;
+        }
+        MPI_Datatype subarray_type = MPI_DATATYPE_NULL;
+        rc = VAPAA_CFI_CREATE_DATATYPE(desc, count_i, datatype, &subarray_type);
+        VAPAA_Assert(rc == MPI_SUCCESS);
+        rc = PMPI_Type_commit(&subarray_type);
+        VAPAA_Assert(rc == MPI_SUCCESS);
+        *ierror = MPI_Recv(VAPAA_P2P_ADDR(desc), 1, subarray_type, C_MPI_SOURCE_F2C(source), C_MPI_TAG_F2C(tag),
+                           comm, C_MPI_STATUS_ARG(status, &status_c));
+        rc = PMPI_Type_free(&subarray_type);
+        VAPAA_Assert(rc == MPI_SUCCESS);
+    }
+    if (*ierror == MPI_SUCCESS) {
+        C_MPI_STATUS_STORE(&status_c, status);
     }
     C_MPI_RC_FIX(*ierror);
 }
@@ -673,8 +955,8 @@ void CFI_MPI_Irecv(CFI_cdesc_t * desc, int count, int datatype_f, int source, in
     MPI_Request request = MPI_REQUEST_NULL;
     MPI_Datatype datatype = C_MPI_TYPE_FROMINT(datatype_f);
     MPI_Comm comm = C_MPI_COMM_FROMINT(comm_f);
-    if (1 == CFI_is_contiguous(desc)) {
-        *ierror = MPI_Irecv(desc->base_addr, count, datatype, C_MPI_SOURCE_F2C(source), C_MPI_TAG_F2C(tag), comm, &request);
+    if (1 == VAPAA_CFI_is_contiguous(desc)) {
+        *ierror = MPI_Irecv(VAPAA_P2P_ADDR(desc), count, datatype, C_MPI_SOURCE_F2C(source), C_MPI_TAG_F2C(tag), comm, &request);
     } else {
         int rc;
         MPI_Datatype subarray_type = MPI_DATATYPE_NULL;
@@ -682,7 +964,7 @@ void CFI_MPI_Irecv(CFI_cdesc_t * desc, int count, int datatype_f, int source, in
         VAPAA_Assert(rc == MPI_SUCCESS);
         rc = PMPI_Type_commit(&subarray_type);
         VAPAA_Assert(rc == MPI_SUCCESS);
-        *ierror = MPI_Irecv(desc->base_addr, 1, subarray_type, C_MPI_SOURCE_F2C(source), C_MPI_TAG_F2C(tag), comm, &request);
+        *ierror = MPI_Irecv(VAPAA_P2P_ADDR(desc), 1, subarray_type, C_MPI_SOURCE_F2C(source), C_MPI_TAG_F2C(tag), comm, &request);
         rc = PMPI_Type_free(&subarray_type);
         VAPAA_Assert(rc == MPI_SUCCESS);
     }
@@ -780,8 +1062,8 @@ void CFI_MPI_Psend_init(CFI_cdesc_t * desc, int partitions, int count, int datat
     MPI_Comm comm = C_MPI_COMM_FROMINT(comm_f);
     MPI_Info info = C_MPI_INFO_FROMINT(info_f);
 #if MPI_VERSION >= 4
-    if (1 == CFI_is_contiguous(desc)) {
-        *ierror = MPI_Psend_init(desc->base_addr, partitions, count, datatype, C_MPI_DEST_F2C(dest),
+    if (1 == VAPAA_CFI_is_contiguous(desc)) {
+        *ierror = MPI_Psend_init(VAPAA_P2P_ADDR(desc), partitions, count, datatype, C_MPI_DEST_F2C(dest),
                                  C_MPI_TAG_F2C(tag), comm, info, &request);
     } else {
         int rc;
@@ -790,7 +1072,7 @@ void CFI_MPI_Psend_init(CFI_cdesc_t * desc, int partitions, int count, int datat
         VAPAA_Assert(rc == MPI_SUCCESS);
         rc = PMPI_Type_commit(&subarray_type);
         VAPAA_Assert(rc == MPI_SUCCESS);
-        *ierror = MPI_Psend_init(desc->base_addr, partitions, 1, subarray_type, C_MPI_DEST_F2C(dest),
+        *ierror = MPI_Psend_init(VAPAA_P2P_ADDR(desc), partitions, 1, subarray_type, C_MPI_DEST_F2C(dest),
                                  C_MPI_TAG_F2C(tag), comm, info, &request);
         rc = PMPI_Type_free(&subarray_type);
         VAPAA_Assert(rc == MPI_SUCCESS);
@@ -829,8 +1111,8 @@ void CFI_MPI_Precv_init(CFI_cdesc_t * desc, int partitions, int count, int datat
     MPI_Comm comm = C_MPI_COMM_FROMINT(comm_f);
     MPI_Info info = C_MPI_INFO_FROMINT(info_f);
 #if MPI_VERSION >= 4
-    if (1 == CFI_is_contiguous(desc)) {
-        *ierror = MPI_Precv_init(desc->base_addr, partitions, count, datatype, C_MPI_SOURCE_F2C(source),
+    if (1 == VAPAA_CFI_is_contiguous(desc)) {
+        *ierror = MPI_Precv_init(VAPAA_P2P_ADDR(desc), partitions, count, datatype, C_MPI_SOURCE_F2C(source),
                                  C_MPI_TAG_F2C(tag), comm, info, &request);
     } else {
         int rc;
@@ -839,7 +1121,7 @@ void CFI_MPI_Precv_init(CFI_cdesc_t * desc, int partitions, int count, int datat
         VAPAA_Assert(rc == MPI_SUCCESS);
         rc = PMPI_Type_commit(&subarray_type);
         VAPAA_Assert(rc == MPI_SUCCESS);
-        *ierror = MPI_Precv_init(desc->base_addr, partitions, 1, subarray_type, C_MPI_SOURCE_F2C(source),
+        *ierror = MPI_Precv_init(VAPAA_P2P_ADDR(desc), partitions, 1, subarray_type, C_MPI_SOURCE_F2C(source),
                                  C_MPI_TAG_F2C(tag), comm, info, &request);
         rc = PMPI_Type_free(&subarray_type);
         VAPAA_Assert(rc == MPI_SUCCESS);
@@ -852,24 +1134,29 @@ void CFI_MPI_Precv_init(CFI_cdesc_t * desc, int partitions, int count, int datat
 }
 #endif
 
-void C_MPI_Mrecv(void * buffer, int count, int datatype_f, int * message_f, MPI_Status * status, int * ierror)
+void C_MPI_Mrecv(void * buffer, int count, int datatype_f, int * message_f,
+                 struct F_MPI_Status * status, int * ierror)
 {
     MPI_Datatype datatype = C_MPI_TYPE_FROMINT(datatype_f);
     MPI_Message  message  = C_MPI_MESSAGE_FROMINT(*message_f);
+    MPI_Status status_c;
     *ierror = MPI_Mrecv(buffer, count, datatype, &message,
-                        C_IS_MPI_STATUS_IGNORE(status) ? MPI_STATUS_IGNORE : status);
+                        C_MPI_STATUS_ARG(status, &status_c));
+    C_MPI_STATUS_STORE(&status_c, status);
     *message_f = C_MPI_MESSAGE_TOINT(message);
     C_MPI_RC_FIX(*ierror);
 }
 
 #ifdef HAVE_CFI
-void CFI_MPI_Mrecv(CFI_cdesc_t * desc, int count, int datatype_f, int * message_f, MPI_Status * status, int * ierror)
+void CFI_MPI_Mrecv(CFI_cdesc_t * desc, int count, int datatype_f, int * message_f,
+                   struct F_MPI_Status * status, int * ierror)
 {
     MPI_Datatype datatype = C_MPI_TYPE_FROMINT(datatype_f);
     MPI_Message  message  = C_MPI_MESSAGE_FROMINT(*message_f);
-    if (1 == CFI_is_contiguous(desc)) {
-        *ierror = MPI_Mrecv(desc->base_addr, count, datatype, &message,
-                            C_IS_MPI_STATUS_IGNORE(status) ? MPI_STATUS_IGNORE : status);
+    MPI_Status status_c;
+    if (1 == VAPAA_CFI_is_contiguous(desc)) {
+        *ierror = MPI_Mrecv(VAPAA_P2P_ADDR(desc), count, datatype, &message,
+                            C_MPI_STATUS_ARG(status, &status_c));
     } else {
         int rc;
         MPI_Datatype subarray_type = MPI_DATATYPE_NULL;
@@ -877,11 +1164,12 @@ void CFI_MPI_Mrecv(CFI_cdesc_t * desc, int count, int datatype_f, int * message_
         VAPAA_Assert(rc == MPI_SUCCESS);
         rc = PMPI_Type_commit(&subarray_type);
         VAPAA_Assert(rc == MPI_SUCCESS);
-        *ierror = MPI_Mrecv(desc->base_addr, 1, subarray_type, &message,
-                            C_IS_MPI_STATUS_IGNORE(status) ? MPI_STATUS_IGNORE : status);
+        *ierror = MPI_Mrecv(VAPAA_P2P_ADDR(desc), 1, subarray_type, &message,
+                            C_MPI_STATUS_ARG(status, &status_c));
         rc = PMPI_Type_free(&subarray_type);
         VAPAA_Assert(rc == MPI_SUCCESS);
     }
+    C_MPI_STATUS_STORE(&status_c, status);
     *message_f = C_MPI_MESSAGE_TOINT(message);
     C_MPI_RC_FIX(*ierror);
 }
@@ -904,8 +1192,8 @@ void CFI_MPI_Imrecv(CFI_cdesc_t * desc, int count, int datatype_f, int * message
     MPI_Request  request  = MPI_REQUEST_NULL;
     MPI_Datatype datatype = C_MPI_TYPE_FROMINT(datatype_f);
     MPI_Message  message  = C_MPI_MESSAGE_FROMINT(*message_f);
-    if (1 == CFI_is_contiguous(desc)) {
-        *ierror = MPI_Imrecv(desc->base_addr, count, datatype, &message, &request);
+    if (1 == VAPAA_CFI_is_contiguous(desc)) {
+        *ierror = MPI_Imrecv(VAPAA_P2P_ADDR(desc), count, datatype, &message, &request);
     } else {
         int rc;
         MPI_Datatype subarray_type = MPI_DATATYPE_NULL;
@@ -913,7 +1201,7 @@ void CFI_MPI_Imrecv(CFI_cdesc_t * desc, int count, int datatype_f, int * message
         VAPAA_Assert(rc == MPI_SUCCESS);
         rc = PMPI_Type_commit(&subarray_type);
         VAPAA_Assert(rc == MPI_SUCCESS);
-        *ierror = MPI_Imrecv(desc->base_addr, 1, subarray_type, &message, &request);
+        *ierror = MPI_Imrecv(VAPAA_P2P_ADDR(desc), 1, subarray_type, &message, &request);
         rc = PMPI_Type_free(&subarray_type);
         VAPAA_Assert(rc == MPI_SUCCESS);
     }
@@ -925,29 +1213,32 @@ void CFI_MPI_Imrecv(CFI_cdesc_t * desc, int count, int datatype_f, int * message
 
 void C_MPI_Sendrecv(void * sbuffer, int scount, int sdatatype_f, int dest, int stag, 
                     void * rbuffer, int rcount, int rdatatype_f, int src,  int rtag,
-                    int comm_f, MPI_Status * status, int * ierror)
+                    int comm_f, struct F_MPI_Status * status, int * ierror)
 {
     MPI_Datatype sdatatype = C_MPI_TYPE_FROMINT(sdatatype_f);
     MPI_Datatype rdatatype = C_MPI_TYPE_FROMINT(rdatatype_f);
     MPI_Comm comm = C_MPI_COMM_FROMINT(comm_f);
+    MPI_Status status_c;
     *ierror = MPI_Sendrecv(sbuffer, scount, sdatatype, C_MPI_DEST_F2C(dest), C_MPI_TAG_F2C(stag),
                            rbuffer, rcount, rdatatype, C_MPI_SOURCE_F2C(src), C_MPI_TAG_F2C(rtag),
-                           comm, C_IS_MPI_STATUS_IGNORE(status) ? MPI_STATUS_IGNORE : status);
+                           comm, C_MPI_STATUS_ARG(status, &status_c));
+    C_MPI_STATUS_STORE(&status_c, status);
     C_MPI_RC_FIX(*ierror);
 }
 
 #ifdef HAVE_CFI
 void CFI_MPI_Sendrecv(CFI_cdesc_t * sdesc, int scount, int sdatatype_f, int dest, int stag, 
                       CFI_cdesc_t * rdesc, int rcount, int rdatatype_f, int src,  int rtag,
-                      int comm_f, MPI_Status * status, int * ierror)
+                      int comm_f, struct F_MPI_Status * status, int * ierror)
 {
     MPI_Datatype sdatatype = C_MPI_TYPE_FROMINT(sdatatype_f);
     MPI_Datatype rdatatype = C_MPI_TYPE_FROMINT(rdatatype_f);
     MPI_Comm comm = C_MPI_COMM_FROMINT(comm_f);
-    if ((1 == CFI_is_contiguous(sdesc)) && (1 == CFI_is_contiguous(sdesc))) {
-        *ierror = MPI_Sendrecv(sdesc->base_addr, scount, sdatatype, C_MPI_DEST_F2C(dest), C_MPI_TAG_F2C(stag),
-                               rdesc->base_addr, rcount, rdatatype, C_MPI_SOURCE_F2C(src), C_MPI_TAG_F2C(rtag),
-                               comm, C_IS_MPI_STATUS_IGNORE(status) ? MPI_STATUS_IGNORE : status);
+    MPI_Status status_c;
+    if ((1 == VAPAA_CFI_is_contiguous(sdesc)) && (1 == VAPAA_CFI_is_contiguous(rdesc))) {
+        *ierror = MPI_Sendrecv(VAPAA_P2P_ADDR(sdesc), scount, sdatatype, C_MPI_DEST_F2C(dest), C_MPI_TAG_F2C(stag),
+                               VAPAA_P2P_ADDR(rdesc), rcount, rdatatype, C_MPI_SOURCE_F2C(src), C_MPI_TAG_F2C(rtag),
+                               comm, C_MPI_STATUS_ARG(status, &status_c));
     } else {
         int rc;
         MPI_Datatype subarray_type_s = MPI_DATATYPE_NULL;
@@ -960,14 +1251,15 @@ void CFI_MPI_Sendrecv(CFI_cdesc_t * sdesc, int scount, int sdatatype_f, int dest
         VAPAA_Assert(rc == MPI_SUCCESS);
         rc = PMPI_Type_commit(&subarray_type_r);
         VAPAA_Assert(rc == MPI_SUCCESS);
-        *ierror = MPI_Sendrecv(sdesc->base_addr, 1, subarray_type_s, C_MPI_DEST_F2C(dest), C_MPI_TAG_F2C(stag),
-                               rdesc->base_addr, 1, subarray_type_r, C_MPI_SOURCE_F2C(src), C_MPI_TAG_F2C(rtag),
-                               comm, C_IS_MPI_STATUS_IGNORE(status) ? MPI_STATUS_IGNORE : status);
+        *ierror = MPI_Sendrecv(VAPAA_P2P_ADDR(sdesc), 1, subarray_type_s, C_MPI_DEST_F2C(dest), C_MPI_TAG_F2C(stag),
+                               VAPAA_P2P_ADDR(rdesc), 1, subarray_type_r, C_MPI_SOURCE_F2C(src), C_MPI_TAG_F2C(rtag),
+                               comm, C_MPI_STATUS_ARG(status, &status_c));
         rc = PMPI_Type_free(&subarray_type_s);
         VAPAA_Assert(rc == MPI_SUCCESS);
         rc = PMPI_Type_free(&subarray_type_r);
         VAPAA_Assert(rc == MPI_SUCCESS);
     }
+    C_MPI_STATUS_STORE(&status_c, status);
     C_MPI_RC_FIX(*ierror);
 }
 #endif
@@ -985,12 +1277,12 @@ void CFI_MPI_Pack(CFI_cdesc_t * indesc, int incount, int datatype_f, CFI_cdesc_t
 {
     MPI_Datatype datatype = C_MPI_TYPE_FROMINT(datatype_f);
     MPI_Comm comm = C_MPI_COMM_FROMINT(comm_f);
-    if (0 == CFI_is_contiguous(outdesc)) {
+    if (0 == VAPAA_CFI_is_contiguous(outdesc)) {
         VAPAA_Warning("MPI_Pack requires the output buffer be contiguous.\n");
         *ierror = MPI_ERR_ARG;
     } else {
-        if (1 == CFI_is_contiguous(indesc)) {
-            *ierror = MPI_Pack(indesc->base_addr, incount, datatype, outdesc->base_addr, outsize, position, comm);
+        if (1 == VAPAA_CFI_is_contiguous(indesc)) {
+            *ierror = MPI_Pack(VAPAA_P2P_ADDR(indesc), incount, datatype, VAPAA_P2P_ADDR(outdesc), outsize, position, comm);
         } else {
             int rc;
             MPI_Datatype subarray_type = MPI_DATATYPE_NULL;
@@ -998,7 +1290,7 @@ void CFI_MPI_Pack(CFI_cdesc_t * indesc, int incount, int datatype_f, CFI_cdesc_t
             VAPAA_Assert(rc == MPI_SUCCESS);
             rc = PMPI_Type_commit(&subarray_type);
             VAPAA_Assert(rc == MPI_SUCCESS);
-            *ierror = MPI_Pack(indesc->base_addr, 1, subarray_type, outdesc->base_addr, outsize, position, comm);
+            *ierror = MPI_Pack(VAPAA_P2P_ADDR(indesc), 1, subarray_type, VAPAA_P2P_ADDR(outdesc), outsize, position, comm);
             rc = PMPI_Type_free(&subarray_type);
             VAPAA_Assert(rc == MPI_SUCCESS);
         }
@@ -1020,12 +1312,12 @@ void CFI_MPI_Unpack(CFI_cdesc_t * indesc, int insize, int * position, CFI_cdesc_
 {
     MPI_Datatype datatype = C_MPI_TYPE_FROMINT(datatype_f);
     MPI_Comm comm = C_MPI_COMM_FROMINT(comm_f);
-    if (0 == CFI_is_contiguous(indesc)) {
+    if (0 == VAPAA_CFI_is_contiguous(indesc)) {
         VAPAA_Warning("MPI_Unpack requires the input buffer be contiguous.\n");
         *ierror = MPI_ERR_ARG;
     } else {
-        if (1 == CFI_is_contiguous(outdesc)) {
-            *ierror = MPI_Unpack(indesc->base_addr, insize, position, outdesc->base_addr, outcount, datatype, comm);
+        if (1 == VAPAA_CFI_is_contiguous(outdesc)) {
+            *ierror = MPI_Unpack(VAPAA_P2P_ADDR(indesc), insize, position, VAPAA_P2P_ADDR(outdesc), outcount, datatype, comm);
         } else {
             int rc;
             MPI_Datatype subarray_type = MPI_DATATYPE_NULL;
@@ -1033,7 +1325,7 @@ void CFI_MPI_Unpack(CFI_cdesc_t * indesc, int insize, int * position, CFI_cdesc_
             VAPAA_Assert(rc == MPI_SUCCESS);
             rc = PMPI_Type_commit(&subarray_type);
             VAPAA_Assert(rc == MPI_SUCCESS);
-            *ierror = MPI_Unpack(indesc->base_addr, insize, position, outdesc->base_addr, 1, subarray_type, comm);
+            *ierror = MPI_Unpack(VAPAA_P2P_ADDR(indesc), insize, position, VAPAA_P2P_ADDR(outdesc), 1, subarray_type, comm);
             rc = PMPI_Type_free(&subarray_type);
             VAPAA_Assert(rc == MPI_SUCCESS);
         }

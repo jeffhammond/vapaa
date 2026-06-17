@@ -26,6 +26,29 @@ MAYBE_UNUSED static inline int C_MPI_TAG_C2F(int tag) { return tag; }
 MAYBE_UNUSED static inline int C_MPI_ROOT_F2C(int root) { return root; }
 MAYBE_UNUSED static inline int C_MPI_PROC_NULL_DETECTOR(int rank) { return rank; }
 MAYBE_UNUSED static inline int C_MPI_COMM_ATTR_GLOBAL_F2C(int attr) { return attr; }
+MAYBE_UNUSED static inline int C_MPI_WIN_ATTR_GLOBAL_F2C(int attr) { return attr; }
+MAYBE_UNUSED static inline int C_MPI_COMM_ATTR_GLOBAL_IS_PREDEFINED(int attr)
+{
+    return attr == VAPAA_MPI_TAG_UB ||
+           attr == VAPAA_MPI_IO ||
+           attr == VAPAA_MPI_HOST ||
+           attr == VAPAA_MPI_WTIME_IS_GLOBAL ||
+           attr == VAPAA_MPI_APPNUM ||
+           attr == VAPAA_MPI_LASTUSEDCODE ||
+           attr == VAPAA_MPI_UNIVERSE_SIZE;
+}
+MAYBE_UNUSED static inline int C_MPI_COMM_ATTR_VALUE_C2F(int attr, int value)
+{
+    (void) attr;
+    return value;
+}
+MAYBE_UNUSED static inline int C_MPI_WIN_ATTR_GLOBAL_IS_PREDEFINED_VALUE(int attr)
+{
+    return attr == VAPAA_MPI_WIN_DISP_UNIT ||
+           attr == VAPAA_MPI_WIN_SIZE ||
+           attr == VAPAA_MPI_WIN_CREATE_FLAVOR ||
+           attr == VAPAA_MPI_WIN_MODEL;
+}
 MAYBE_UNUSED static inline int C_MPI_THREAD_LEVEL_F2C(int level) { return level; }
 MAYBE_UNUSED static inline int C_MPI_THREAD_LEVEL_C2F(int level) { return level; }
 MAYBE_UNUSED static inline int C_MPI_COMPARE_RESULT_F2C(int result) { return result; }
@@ -109,9 +132,74 @@ static inline int C_MPI_COMM_ATTR_GLOBAL_F2C(int f)
        return MPI_HOST;
     } else if (f == VAPAA_MPI_WTIME_IS_GLOBAL) {
        return MPI_WTIME_IS_GLOBAL;
+    } else if (f == VAPAA_MPI_APPNUM) {
+       return MPI_APPNUM;
+    } else if (f == VAPAA_MPI_LASTUSEDCODE) {
+       return MPI_LASTUSEDCODE;
+    } else if (f == VAPAA_MPI_UNIVERSE_SIZE) {
+       return MPI_UNIVERSE_SIZE;
     } else {
        return f;
     }
+}
+
+MAYBE_UNUSED
+static inline int C_MPI_WIN_ATTR_GLOBAL_F2C(int f)
+{
+    if (f == VAPAA_MPI_WIN_BASE) {
+       return MPI_WIN_BASE;
+    } else if (f == VAPAA_MPI_WIN_DISP_UNIT) {
+       return MPI_WIN_DISP_UNIT;
+    } else if (f == VAPAA_MPI_WIN_SIZE) {
+       return MPI_WIN_SIZE;
+    } else if (f == VAPAA_MPI_WIN_CREATE_FLAVOR) {
+       return MPI_WIN_CREATE_FLAVOR;
+    } else if (f == VAPAA_MPI_WIN_MODEL) {
+       return MPI_WIN_MODEL;
+    } else {
+       return f;
+    }
+}
+
+MAYBE_UNUSED
+static inline int C_MPI_COMM_ATTR_GLOBAL_IS_PREDEFINED(int f)
+{
+    return f == MPI_TAG_UB ||
+           f == MPI_IO ||
+           f == MPI_HOST ||
+           f == MPI_WTIME_IS_GLOBAL ||
+           f == MPI_APPNUM ||
+           f == MPI_LASTUSEDCODE ||
+           f == MPI_UNIVERSE_SIZE;
+}
+
+MAYBE_UNUSED
+static inline int C_MPI_COMM_ATTR_VALUE_C2F(int attr, int value)
+{
+    if (attr == MPI_HOST) {
+       return value == MPI_PROC_NULL ? VAPAA_MPI_PROC_NULL : value;
+    } else if (attr == MPI_IO) {
+       if (value == MPI_ANY_SOURCE) {
+          return VAPAA_MPI_ANY_SOURCE;
+       } else if (value == MPI_PROC_NULL) {
+          return VAPAA_MPI_PROC_NULL;
+       } else {
+          return value;
+       }
+    } else if (attr == MPI_LASTUSEDCODE) {
+       return value < VAPAA_MPI_ERR_LASTCODE ? VAPAA_MPI_ERR_LASTCODE : value;
+    } else {
+       return value;
+    }
+}
+
+MAYBE_UNUSED
+static inline int C_MPI_WIN_ATTR_GLOBAL_IS_PREDEFINED_VALUE(int f)
+{
+    return f == MPI_WIN_DISP_UNIT ||
+           f == MPI_WIN_SIZE ||
+           f == MPI_WIN_CREATE_FLAVOR ||
+           f == MPI_WIN_MODEL;
 }
 
 MAYBE_UNUSED
@@ -193,7 +281,7 @@ static int C_MPI_TOPOLOGY_C2F(int topology_c)
        return VAPAA_MPI_CART;
     } else if (topology_c == MPI_GRAPH) {
        return VAPAA_MPI_GRAPH;
-#ifdef MPI_DIST_GRAPH
+#if MPI_VERSION >= 3
     } else if (topology_c == MPI_DIST_GRAPH) {
        return VAPAA_MPI_DIST_GRAPH;
 #endif

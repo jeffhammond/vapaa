@@ -57,8 +57,9 @@ module mpi_direct_file_f
             character(len=*), intent(out) :: f
             integer :: i, n
             n = min(len(f), size(c))
-            f = c_null_char
+            f = ' '
             do i = 1, n
+                if (c(i) == c_null_char) exit
                 f(i:i) = c(i)
             end do
         end subroutine copy_c_string

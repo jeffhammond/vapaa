@@ -44,6 +44,14 @@ module mpi_status_f
         module procedure MPI_Test_cancelled_f08
     end interface MPI_Test_cancelled
 
+    interface MPI_Status_f082f
+        module procedure MPI_Status_f082f_f08
+    end interface MPI_Status_f082f
+
+    interface MPI_Status_f2f08
+        module procedure MPI_Status_f2f08_f08
+    end interface MPI_Status_f2f08
+
     contains
 
         subroutine MPI_Status_get_source_f08(status, source, ierror)
@@ -57,6 +65,35 @@ module mpi_status_f
             source = source_c
             if (present(ierror)) ierror = ierror_c
         end subroutine MPI_Status_get_source_f08
+
+        subroutine MPI_Status_f082f_f08(status_f08, status_f)
+            use mpi_global_constants, only: MPI_ERROR, MPI_SOURCE, MPI_STATUS_SIZE, MPI_TAG
+            use mpi_handle_types, only: MPI_Status
+            type(MPI_Status), intent(in) :: status_f08
+            integer, intent(out) :: status_f(MPI_STATUS_SIZE)
+            status_f = 0
+            status_f(MPI_SOURCE) = status_f08 % MPI_SOURCE
+            status_f(MPI_TAG) = status_f08 % MPI_TAG
+            status_f(MPI_ERROR) = status_f08 % MPI_ERROR
+        end subroutine MPI_Status_f082f_f08
+
+        subroutine MPI_Status_f2f08_f08(status_f, status_f08)
+            use mpi_global_constants, only: MPI_ERROR, MPI_SOURCE, MPI_STATUS_SIZE, MPI_TAG
+            use mpi_handle_types, only: MPI_Status
+            integer, intent(in) :: status_f(MPI_STATUS_SIZE)
+            type(MPI_Status), intent(out) :: status_f08
+#ifdef MPI_ABI
+            status_f08 % MPI_internal = 0
+#else
+            status_f08 % count_lo = 0
+            status_f08 % count_hi_and_cancelled = 0
+            status_f08 % cancelled = 0
+            status_f08 % ucount = 0
+#endif
+            status_f08 % MPI_SOURCE = status_f(MPI_SOURCE)
+            status_f08 % MPI_TAG = status_f(MPI_TAG)
+            status_f08 % MPI_ERROR = status_f(MPI_ERROR)
+        end subroutine MPI_Status_f2f08_f08
 
         subroutine MPI_Status_get_tag_f08(status, tag, ierror)
             use mpi_handle_types, only: MPI_Status

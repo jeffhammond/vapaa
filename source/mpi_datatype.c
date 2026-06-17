@@ -43,6 +43,9 @@ void C_MPI_Type_dup(int * oldtype_f, int * newtype_f, int * ierror)
     MPI_Datatype newtype;
     MPI_Datatype oldtype = C_MPI_TYPE_FROMINT(*oldtype_f);
     *ierror = MPI_Type_dup(oldtype,&newtype);
+    if (*ierror == MPI_SUCCESS) {
+        (void) MPI_Type_set_name(newtype, "");
+    }
     *newtype_f = C_MPI_TYPE_TOINT(newtype);
     C_MPI_RC_FIX(*ierror);
 }

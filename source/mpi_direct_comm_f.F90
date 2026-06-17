@@ -138,7 +138,7 @@ module mpi_direct_comm_f
             character(len=*), intent(in) :: f
             character(kind=c_char), allocatable, intent(out) :: c(:)
             integer :: i, n
-            n = len(f)
+            n = len_trim(f)
             allocate(c(n + 1))
             c = c_null_char
             do i = 1, n
@@ -151,8 +151,9 @@ module mpi_direct_comm_f
             character(len=*), intent(out) :: f
             integer :: i, n
             n = min(len(f), size(c))
-            f = c_null_char
+            f = ' '
             do i = 1, n
+                if (c(i) == c_null_char) exit
                 f(i:i) = c(i)
             end do
         end subroutine copy_c_string

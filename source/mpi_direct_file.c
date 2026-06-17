@@ -26,6 +26,24 @@ static int VAPAA_MPI_AMODE_C2F(int c)
 #endif
 }
 
+static int VAPAA_MPI_SEEK_F2C(int f)
+{
+#if MPI_VERSION >= 5
+    return f;
+#else
+    switch (f) {
+    case VAPAA_MPI_SEEK_CUR:
+        return MPI_SEEK_CUR;
+    case VAPAA_MPI_SEEK_END:
+        return MPI_SEEK_END;
+    case VAPAA_MPI_SEEK_SET:
+        return MPI_SEEK_SET;
+    default:
+        return f;
+    }
+#endif
+}
+
 void VAPAA_MPI_File_get_amode(int *fh_f, int *amode_f, int *ierror)
 {
     int amode = 0;
@@ -132,14 +150,14 @@ void VAPAA_MPI_File_get_view(int *fh_f, int64_t *disp_f, int *etype_f, int *file
 void VAPAA_MPI_File_seek(int *fh_f, int64_t *offset_f, int *whence, int *ierror)
 {
     MPI_File fh = C_MPI_FILE_FROMINT(*fh_f);
-    *ierror = MPI_File_seek(fh, (MPI_Offset) *offset_f, *whence);
+    *ierror = MPI_File_seek(fh, (MPI_Offset) *offset_f, VAPAA_MPI_SEEK_F2C(*whence));
     C_MPI_RC_FIX(*ierror);
 }
 
 void VAPAA_MPI_File_seek_shared(int *fh_f, int64_t *offset_f, int *whence, int *ierror)
 {
     MPI_File fh = C_MPI_FILE_FROMINT(*fh_f);
-    *ierror = MPI_File_seek_shared(fh, (MPI_Offset) *offset_f, *whence);
+    *ierror = MPI_File_seek_shared(fh, (MPI_Offset) *offset_f, VAPAA_MPI_SEEK_F2C(*whence));
     C_MPI_RC_FIX(*ierror);
 }
 

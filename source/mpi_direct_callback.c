@@ -7,11 +7,14 @@
 #include "ISO_Fortran_binding.h"
 #include "convert_handles.h"
 #include "convert_constants.h"
+#include "mpi_attr_storage.h"
 #include "detect_sentinels.h"
 #include "debug.h"
 
 typedef void (*vapaa_comm_copy_fn)(int *, int *, intptr_t *, intptr_t *, intptr_t *, int *, int *);
 typedef void (*vapaa_comm_delete_fn)(int *, int *, intptr_t *, intptr_t *, int *);
+typedef void (*vapaa_keyval_copy_fn)(int *, int *, int *, int *, int *, int *, int *);
+typedef void (*vapaa_keyval_delete_fn)(int *, int *, int *, int *, int *);
 typedef void (*vapaa_type_copy_fn)(int *, int *, intptr_t *, intptr_t *, intptr_t *, int *, int *);
 typedef void (*vapaa_type_delete_fn)(int *, int *, intptr_t *, intptr_t *, int *);
 typedef void (*vapaa_win_copy_fn)(int *, int *, intptr_t *, intptr_t *, intptr_t *, int *, int *);
@@ -26,19 +29,23 @@ typedef void (*vapaa_datarep_c_fn)(void *, int *, int64_t *, void *, int64_t *, 
 typedef void (*vapaa_datarep_extent_fn)(int *, intptr_t *, intptr_t *, int *);
 
 struct vapaa_comm_keyval_state { vapaa_comm_copy_fn copy; vapaa_comm_delete_fn del; intptr_t extra; };
+struct vapaa_keyval_state { vapaa_keyval_copy_fn copy; vapaa_keyval_delete_fn del; int extra; };
 struct vapaa_type_keyval_state { vapaa_type_copy_fn copy; vapaa_type_delete_fn del; intptr_t extra; };
 struct vapaa_win_keyval_state { vapaa_win_copy_fn copy; vapaa_win_delete_fn del; intptr_t extra; };
-struct vapaa_greq_state { vapaa_greq_query_fn query; vapaa_greq_free_fn free_fn; vapaa_greq_cancel_fn cancel; intptr_t extra; };
+struct vapaa_greq_state { vapaa_greq_query_fn query; vapaa_greq_free_fn free_fn; vapaa_greq_cancel_fn cancel; intptr_t *extra; };
 struct vapaa_datarep_state { void *read_fn; void *write_fn; vapaa_datarep_extent_fn extent_fn; intptr_t extra; int use_count; };
 
 static int comm_copy_trampoline(MPI_Comm comm, int keyval, void *extra_state, void *attr_in, void *attr_out, int *flag)
 {
     struct vapaa_comm_keyval_state *s = extra_state;
     int comm_f = C_MPI_COMM_TOINT(comm), ierror = MPI_SUCCESS, flag_f = 0;
-    intptr_t extra = s->extra, in = (intptr_t)attr_in, out = 0;
+    intptr_t extra = s->extra, in = 0, out = 0;
+    if (!VAPAA_MPI_Attr_load_aint(attr_in, &in)) {
+        in = (intptr_t) attr_in;
+    }
     s->copy(&comm_f, &keyval, &extra, &in, &out, &flag_f, &ierror);
     *flag = flag_f;
-    if (flag_f) *(void **)attr_out = (void *)out;
+    if (flag_f) *(void **)attr_out = VAPAA_MPI_Attr_store_aint(out);
     return ierror;
 }
 
@@ -46,8 +53,40 @@ static int comm_delete_trampoline(MPI_Comm comm, int keyval, void *attr, void *e
 {
     struct vapaa_comm_keyval_state *s = extra_state;
     int comm_f = C_MPI_COMM_TOINT(comm), ierror = MPI_SUCCESS;
-    intptr_t extra = s->extra, attr_f = (intptr_t)attr;
+    intptr_t extra = s->extra, attr_f = 0;
+    if (!VAPAA_MPI_Attr_load_aint(attr, &attr_f)) {
+        attr_f = (intptr_t) attr;
+    }
     s->del(&comm_f, &keyval, &attr_f, &extra, &ierror);
+    VAPAA_MPI_Attr_forget(attr);
+    return ierror;
+}
+
+static int keyval_copy_trampoline(MPI_Comm comm, int keyval, void *extra_state,
+                                  void *attr_in, void *attr_out, int *flag)
+{
+    struct vapaa_keyval_state *s = extra_state;
+    int comm_f = C_MPI_COMM_TOINT(comm), ierror = MPI_SUCCESS, flag_f = 0;
+    int extra = s->extra, in = 0, out = 0;
+    if (!VAPAA_MPI_Attr_load_fint(attr_in, &in)) {
+        in = (int)(intptr_t) attr_in;
+    }
+    s->copy(&comm_f, &keyval, &extra, &in, &out, &flag_f, &ierror);
+    *flag = flag_f;
+    if (flag_f) *(void **)attr_out = VAPAA_MPI_Attr_store_fint(out);
+    return ierror;
+}
+
+static int keyval_delete_trampoline(MPI_Comm comm, int keyval, void *attr, void *extra_state)
+{
+    struct vapaa_keyval_state *s = extra_state;
+    int comm_f = C_MPI_COMM_TOINT(comm), ierror = MPI_SUCCESS;
+    int extra = s->extra, attr_f = 0;
+    if (!VAPAA_MPI_Attr_load_fint(attr, &attr_f)) {
+        attr_f = (int)(intptr_t) attr;
+    }
+    s->del(&comm_f, &keyval, &attr_f, &extra, &ierror);
+    VAPAA_MPI_Attr_forget(attr);
     return ierror;
 }
 
@@ -55,10 +94,13 @@ static int type_copy_trampoline(MPI_Datatype datatype, int keyval, void *extra_s
 {
     struct vapaa_type_keyval_state *s = extra_state;
     int datatype_f = C_MPI_TYPE_TOINT(datatype), ierror = MPI_SUCCESS, flag_f = 0;
-    intptr_t extra = s->extra, in = (intptr_t)attr_in, out = 0;
+    intptr_t extra = s->extra, in = 0, out = 0;
+    if (!VAPAA_MPI_Attr_load_aint(attr_in, &in)) {
+        in = (intptr_t) attr_in;
+    }
     s->copy(&datatype_f, &keyval, &extra, &in, &out, &flag_f, &ierror);
     *flag = flag_f;
-    if (flag_f) *(void **)attr_out = (void *)out;
+    if (flag_f) *(void **)attr_out = VAPAA_MPI_Attr_store_aint(out);
     return ierror;
 }
 
@@ -66,8 +108,12 @@ static int type_delete_trampoline(MPI_Datatype datatype, int keyval, void *attr,
 {
     struct vapaa_type_keyval_state *s = extra_state;
     int datatype_f = C_MPI_TYPE_TOINT(datatype), ierror = MPI_SUCCESS;
-    intptr_t extra = s->extra, attr_f = (intptr_t)attr;
+    intptr_t extra = s->extra, attr_f = 0;
+    if (!VAPAA_MPI_Attr_load_aint(attr, &attr_f)) {
+        attr_f = (intptr_t) attr;
+    }
     s->del(&datatype_f, &keyval, &attr_f, &extra, &ierror);
+    VAPAA_MPI_Attr_forget(attr);
     return ierror;
 }
 
@@ -75,10 +121,13 @@ static int win_copy_trampoline(MPI_Win win, int keyval, void *extra_state, void 
 {
     struct vapaa_win_keyval_state *s = extra_state;
     int win_f = C_MPI_WIN_TOINT(win), ierror = MPI_SUCCESS, flag_f = 0;
-    intptr_t extra = s->extra, in = (intptr_t)attr_in, out = 0;
+    intptr_t extra = s->extra, in = 0, out = 0;
+    if (!VAPAA_MPI_Attr_load_aint(attr_in, &in)) {
+        in = (intptr_t) attr_in;
+    }
     s->copy(&win_f, &keyval, &extra, &in, &out, &flag_f, &ierror);
     *flag = flag_f;
-    if (flag_f) *(void **)attr_out = (void *)out;
+    if (flag_f) *(void **)attr_out = VAPAA_MPI_Attr_store_aint(out);
     return ierror;
 }
 
@@ -86,8 +135,12 @@ static int win_delete_trampoline(MPI_Win win, int keyval, void *attr, void *extr
 {
     struct vapaa_win_keyval_state *s = extra_state;
     int win_f = C_MPI_WIN_TOINT(win), ierror = MPI_SUCCESS;
-    intptr_t extra = s->extra, attr_f = (intptr_t)attr;
+    intptr_t extra = s->extra, attr_f = 0;
+    if (!VAPAA_MPI_Attr_load_aint(attr, &attr_f)) {
+        attr_f = (intptr_t) attr;
+    }
     s->del(&win_f, &keyval, &attr_f, &extra, &ierror);
+    VAPAA_MPI_Attr_forget(attr);
     return ierror;
 }
 
@@ -95,8 +148,7 @@ static int greq_query_trampoline(void *extra_state, MPI_Status *status)
 {
     struct vapaa_greq_state *s = extra_state;
     int ierror = MPI_SUCCESS;
-    intptr_t extra = s->extra;
-    s->query(&extra, status, &ierror);
+    s->query(s->extra, status, &ierror);
     return ierror;
 }
 
@@ -104,8 +156,7 @@ static int greq_free_trampoline(void *extra_state)
 {
     struct vapaa_greq_state *s = extra_state;
     int ierror = MPI_SUCCESS;
-    intptr_t extra = s->extra;
-    s->free_fn(&extra, &ierror);
+    s->free_fn(s->extra, &ierror);
     free(s);
     return ierror;
 }
@@ -114,8 +165,7 @@ static int greq_cancel_trampoline(void *extra_state, int complete)
 {
     struct vapaa_greq_state *s = extra_state;
     int ierror = MPI_SUCCESS, complete_f = complete;
-    intptr_t extra = s->extra;
-    s->cancel(&extra, &complete_f, &ierror);
+    s->cancel(s->extra, &complete_f, &ierror);
     return ierror;
 }
 
@@ -235,13 +285,24 @@ void VAPAA_MPI_Win_create_keyval(void *copy, void *del, int *keyval, intptr_t *e
     C_MPI_RC_FIX(*ierror);
 }
 
+void VAPAA_MPI_Keyval_create(void *copy, void *del, int *keyval, int *extra, int *ierror)
+{
+    struct vapaa_keyval_state *s = malloc(sizeof(*s));
+    VAPAA_Assert(s != NULL);
+    s->copy = (vapaa_keyval_copy_fn)copy;
+    s->del = (vapaa_keyval_delete_fn)del;
+    s->extra = *extra;
+    *ierror = MPI_Keyval_create(keyval_copy_trampoline, keyval_delete_trampoline, keyval, s);
+    C_MPI_RC_FIX(*ierror);
+}
+
 void VAPAA_MPI_Grequest_start(void *query, void *free_fn, void *cancel, intptr_t *extra, int *request_f, int *ierror)
 {
     MPI_Request request = MPI_REQUEST_NULL;
     struct vapaa_greq_state *s = malloc(sizeof(*s));
     VAPAA_Assert(s != NULL);
     s->query = (vapaa_greq_query_fn)query; s->free_fn = (vapaa_greq_free_fn)free_fn;
-    s->cancel = (vapaa_greq_cancel_fn)cancel; s->extra = *extra;
+    s->cancel = (vapaa_greq_cancel_fn)cancel; s->extra = extra;
     *ierror = MPI_Grequest_start(greq_query_trampoline, greq_free_trampoline, greq_cancel_trampoline, s, &request);
     *request_f = C_MPI_REQUEST_TOINT(request);
     C_MPI_RC_FIX(*ierror);

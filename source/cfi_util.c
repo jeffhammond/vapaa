@@ -31,6 +31,20 @@ static ssize_t VAPAA_CFI_GET_TOTAL_ELEMENTS(const CFI_cdesc_t * desc)
     return total_elems;
 }
 
+static int VAPAA_CFI_ASSERT_ZERO_LOWER_BOUNDS(const CFI_cdesc_t *desc)
+{
+    for (CFI_rank_t i = 0; i < desc->rank; i++) {
+        if (desc->dim[i].lower_bound != 0) {
+            VAPAA_Warning("non-zero CFI lower bound (%zd) in dimension %d is not supported.\n",
+                          desc->dim[i].lower_bound, (int)i);
+            VAPAA_Assert_msg(desc->dim[i].lower_bound == 0,
+                             "non-zero CFI lower bounds are not supported");
+            return MPI_ERR_ARG;
+        }
+    }
+    return MPI_SUCCESS;
+}
+
 static bool VAPAA_MPI_DATATYPE_IS_BUILTIN(MPI_Datatype t)
 {
     int ni, na, nd, c;
@@ -996,7 +1010,7 @@ static void VAPAA_CFI_PRINT_INFO(const CFI_cdesc_t * desc)
     printf("base_addr  = %p = %ld\n", ba, (long)ba);
     printf("elem_len   = %zu\n", el);
     printf("rank       = %d\n", rk);
-    printf("contiguous = %s\n", CFI_is_contiguous(desc) ? "true" : "false" );
+    printf("contiguous = %s\n", VAPAA_CFI_is_contiguous(desc) ? "true" : "false" );
     {
         char name[32] = {0};
         VAPAA_CFI_GET_TYPE_NAME(ty,name);
@@ -1367,6 +1381,11 @@ int VAPAA_CFI_CREATE_DATATYPE(const CFI_cdesc_t * desc, int count, MPI_Datatype 
 {
     int rc;
 
+    rc = VAPAA_CFI_ASSERT_ZERO_LOWER_BOUNDS(desc);
+    if (rc != MPI_SUCCESS) {
+        return rc;
+    }
+
     if ( VAPAA_MPI_DATATYPE_IS_BUILTIN(input_datatype) )
     {
         const int rank     = desc->rank;
@@ -1390,15 +1409,6 @@ int VAPAA_CFI_CREATE_DATATYPE(const CFI_cdesc_t * desc, int count, MPI_Datatype 
             if (total_elems > INT_MAX) {
                 VAPAA_Warning("total_elems (%zd) > INT_MAX.\n", total_elems);
                 return MPI_ERR_COUNT;
-            }
-
-            // Check for non-zero lower-bounds, because I do not know how to handle this.
-            // Fortunately, I have not found a scenario where this happens (maybe pointers?).
-            for (int i=0; i < desc->rank; i++) {
-                if (desc->dim[i].lower_bound != 0) {
-                    VAPAA_Warning("non-zero lower-bounds (%zd) are not supported.\n", desc->dim[i].lower_bound);
-                    //return MPI_ERR_BUFFER;
-                }
             }
         }
 

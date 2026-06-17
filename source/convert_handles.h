@@ -39,7 +39,7 @@ static void C_MPI_STATUS_TO_C(const struct F_MPI_Status * f, MPI_Status * c)
 #if defined(MPI_ABI)
     c->MPI_SOURCE = C_MPI_SOURCE_F2C(f->MPI_SOURCE);
     c->MPI_TAG    = C_MPI_TAG_F2C(f->MPI_TAG);
-    c->MPI_ERROR  = C_MPI_ERROR_CODE_F2C(f->MPI_ERROR);
+    c->MPI_ERROR  = f->MPI_ERROR;
     for (int i = 0; i < 5; ++i) {
         c->MPI_internal[i] = f->MPI_internal[i];
     }
@@ -52,8 +52,8 @@ static void C_MPI_STATUS_TO_C(const struct F_MPI_Status * f, MPI_Status * c)
     c->count_lo               = f->count_lo;
     c->count_hi_and_cancelled = f->count_hi_and_cancelled;
 #endif
-    c->MPI_SOURCE = f->MPI_SOURCE;
-    c->MPI_TAG    = f->MPI_TAG;
+    c->MPI_SOURCE = C_MPI_SOURCE_F2C(f->MPI_SOURCE);
+    c->MPI_TAG    = C_MPI_TAG_F2C(f->MPI_TAG);
     c->MPI_ERROR  = f->MPI_ERROR;
 #if defined(OPEN_MPI)
     c->_cancelled = f->cancelled;
@@ -68,7 +68,7 @@ static void C_MPI_STATUS_FROM_C(const MPI_Status * c, struct F_MPI_Status * f)
 #if defined(MPI_ABI)
     f->MPI_SOURCE = C_MPI_SOURCE_C2F(c->MPI_SOURCE);
     f->MPI_TAG    = C_MPI_TAG_C2F(c->MPI_TAG);
-    f->MPI_ERROR  = C_MPI_ERROR_CODE_C2F(c->MPI_ERROR);
+    f->MPI_ERROR  = c->MPI_ERROR;
     for (int i = 0; i < 5; ++i) {
         f->MPI_internal[i] = c->MPI_internal[i];
     }
@@ -81,8 +81,8 @@ static void C_MPI_STATUS_FROM_C(const MPI_Status * c, struct F_MPI_Status * f)
     f->count_lo               = c->count_lo;
     f->count_hi_and_cancelled = c->count_hi_and_cancelled;
 #endif
-    f->MPI_SOURCE = c->MPI_SOURCE;
-    f->MPI_TAG    = c->MPI_TAG;
+    f->MPI_SOURCE = C_MPI_SOURCE_C2F(c->MPI_SOURCE);
+    f->MPI_TAG    = C_MPI_TAG_C2F(c->MPI_TAG);
     f->MPI_ERROR  = c->MPI_ERROR;
 #if defined(OPEN_MPI)
     f->cancelled = c->_cancelled;

@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: MIT
 
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h> // memset
 #include <mpi.h>
 #include "ISO_Fortran_binding.h"
@@ -15,8 +16,71 @@
 // might not exist in all implementations.
 // it sucks, but it is better than implementing build system support for this.
 
+struct vapaa_error_map {
+    int f;
+    int c;
+    struct vapaa_error_map *next;
+};
+
+static struct vapaa_error_map *vapaa_error_maps = NULL;
+
+static int C_MPI_ERROR_MAP_F2C(int error_f, int *error_c)
+{
+    for (struct vapaa_error_map *m = vapaa_error_maps; m != NULL; m = m->next) {
+        if (m->f == error_f) {
+            *error_c = m->c;
+            return 1;
+        }
+    }
+    return 0;
+}
+
+static int C_MPI_ERROR_MAP_C2F(int error_c, int *error_f)
+{
+    for (struct vapaa_error_map *m = vapaa_error_maps; m != NULL; m = m->next) {
+        if (m->c == error_c) {
+            *error_f = m->f;
+            return 1;
+        }
+    }
+    return 0;
+}
+
+static void C_MPI_ERROR_MAP_REGISTER(int error_c, int error_f)
+{
+    int tmp;
+    if (C_MPI_ERROR_MAP_C2F(error_c, &tmp) || C_MPI_ERROR_MAP_F2C(error_f, &tmp)) {
+        return;
+    }
+    struct vapaa_error_map *m = malloc(sizeof(*m));
+    VAPAA_Assert(m != NULL);
+    m->c = error_c;
+    m->f = error_f;
+    m->next = vapaa_error_maps;
+    vapaa_error_maps = m;
+}
+
+static void C_MPI_ERROR_MAP_REMOVE_F(int error_f)
+{
+    struct vapaa_error_map **prev = &vapaa_error_maps;
+    while (*prev != NULL) {
+        struct vapaa_error_map *m = *prev;
+        if (m->f == error_f) {
+            *prev = m->next;
+            free(m);
+            return;
+        }
+        prev = &m->next;
+    }
+}
+
 int C_MPI_ERROR_CODE_C2F(int error_c)
 {
+    int mapped;
+    if (C_MPI_ERROR_MAP_C2F(error_c, &mapped)) {
+        return mapped;
+    }
+
     // "To make it possible for an application to interpret an error code,
     //  the routine MPI_ERROR_CLASS converts any error code into one of a
     //  small set of standard error codes, called error classes."
@@ -123,6 +187,9 @@ int C_MPI_ERROR_CODE_C2F(int error_c)
     else if (error == MPI_T_ERR_PVAR_NO_ATOMIC      ) { return VAPAA_MPI_T_ERR_PVAR_NO_ATOMIC; }
     else if (error == MPI_ERR_LASTCODE              ) { return VAPAA_MPI_ERR_LASTCODE; }
     else {
+        if (error_c > VAPAA_MPI_ERR_LASTCODE) {
+            return error_c;
+        }
         int len;
         char name[MPI_MAX_ERROR_STRING] = {0};
         MPI_Error_string(error, name, &len);
@@ -134,6 +201,11 @@ int C_MPI_ERROR_CODE_C2F(int error_c)
 
 int C_MPI_ERROR_CODE_F2C(int error_f)
 {
+    int mapped;
+    if (C_MPI_ERROR_MAP_F2C(error_f, &mapped)) {
+        return mapped;
+    }
+
          if (error_f == VAPAA_MPI_SUCCESS                    ) { return MPI_SUCCESS;                   }
     else if (error_f == VAPAA_MPI_ERR_BUFFER                 ) { return MPI_ERR_BUFFER;                }
     else if (error_f == VAPAA_MPI_ERR_COUNT                  ) { return MPI_ERR_COUNT;                 }
@@ -223,6 +295,9 @@ int C_MPI_ERROR_CODE_F2C(int error_f)
     else if (error_f == VAPAA_MPI_T_ERR_PVAR_NO_ATOMIC       ) { return MPI_T_ERR_PVAR_NO_ATOMIC;      }
     else if (error_f == VAPAA_MPI_ERR_LASTCODE               ) { return MPI_ERR_LASTCODE;              }
     else {
+        if (error_f > VAPAA_MPI_ERR_LASTCODE) {
+            return error_f;
+        }
         fprintf(stderr, "Unknown error code returned from the F library: %d\n", error_f);
         return MPI_ERR_UNKNOWN;
     }
@@ -263,44 +338,63 @@ void CFI_MPI_Error_string(int * errorcode_f, CFI_cdesc_t * string_d, int * resul
 void C_MPI_Error_class(int * errorcode_f, int * errorclass, int * ierror)
 {
     int errorcode_c = C_MPI_ERROR_CODE_F2C(*errorcode_f);
-    *ierror = MPI_Error_class(errorcode_c, errorclass);
+    int errorclass_c = MPI_ERR_UNKNOWN;
+    *ierror = MPI_Error_class(errorcode_c, &errorclass_c);
+    *errorclass = C_MPI_ERROR_CODE_C2F(errorclass_c);
     C_MPI_RC_FIX(*ierror);
 }
 
 void C_MPI_Add_error_class(int * errorclass, int * ierror)
 {
-    *ierror = MPI_Add_error_class(errorclass);
+    int errorclass_c = MPI_ERR_UNKNOWN;
+    *ierror = MPI_Add_error_class(&errorclass_c);
+    if (*ierror == MPI_SUCCESS) {
+        C_MPI_ERROR_MAP_REGISTER(errorclass_c, errorclass_c);
+        *errorclass = C_MPI_ERROR_CODE_C2F(errorclass_c);
+    }
     C_MPI_RC_FIX(*ierror);
 }
 
 void C_MPI_Add_error_code(int * errorclass, int * errorcode, int * ierror)
 {
-    *ierror = MPI_Add_error_code(*errorclass, errorcode);
+    int errorclass_c = C_MPI_ERROR_CODE_F2C(*errorclass);
+    int errorcode_c = MPI_ERR_UNKNOWN;
+    *ierror = MPI_Add_error_code(errorclass_c, &errorcode_c);
+    if (*ierror == MPI_SUCCESS) {
+        C_MPI_ERROR_MAP_REGISTER(errorcode_c, errorcode_c);
+        *errorcode = C_MPI_ERROR_CODE_C2F(errorcode_c);
+    }
     C_MPI_RC_FIX(*ierror);
 }
 
 void C_MPI_Add_error_string(int * errorcode, char * string, int * ierror)
 {
-    *ierror = MPI_Add_error_string(*errorcode, string);
+    int errorcode_c = C_MPI_ERROR_CODE_F2C(*errorcode);
+    *ierror = MPI_Add_error_string(errorcode_c, string);
     C_MPI_RC_FIX(*ierror);
 }
 
 #if MPI_VERSION >= 5
 void C_MPI_Remove_error_class(int * errorclass, int * ierror)
 {
-    *ierror = MPI_Remove_error_class(*errorclass);
+    int errorclass_c = C_MPI_ERROR_CODE_F2C(*errorclass);
+    *ierror = MPI_Remove_error_class(errorclass_c);
+    if (*ierror == MPI_SUCCESS) C_MPI_ERROR_MAP_REMOVE_F(*errorclass);
     C_MPI_RC_FIX(*ierror);
 }
 
 void C_MPI_Remove_error_code(int * errorcode, int * ierror)
 {
-    *ierror = MPI_Remove_error_code(*errorcode);
+    int errorcode_c = C_MPI_ERROR_CODE_F2C(*errorcode);
+    *ierror = MPI_Remove_error_code(errorcode_c);
+    if (*ierror == MPI_SUCCESS) C_MPI_ERROR_MAP_REMOVE_F(*errorcode);
     C_MPI_RC_FIX(*ierror);
 }
 
 void C_MPI_Remove_error_string(int * errorcode, int * ierror)
 {
-    *ierror = MPI_Remove_error_string(*errorcode);
+    int errorcode_c = C_MPI_ERROR_CODE_F2C(*errorcode);
+    *ierror = MPI_Remove_error_string(errorcode_c);
     C_MPI_RC_FIX(*ierror);
 }
 #else

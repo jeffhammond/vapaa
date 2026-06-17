@@ -31,7 +31,7 @@ static void *VAPAA_ADDR(CFI_cdesc_t *desc)
 
 static int VAPAA_REQUIRE_CONTIG2(CFI_cdesc_t *a, CFI_cdesc_t *b, MPI_Comm comm)
 {
-    if (CFI_is_contiguous(a) == 1 && CFI_is_contiguous(b) == 1) {
+    if (VAPAA_CFI_is_contiguous(a) == 1 && VAPAA_CFI_is_contiguous(b) == 1) {
         return 1;
     }
     VAPAA_Warning("this MPI wrapper requires contiguous buffers.\n");
@@ -40,15 +40,23 @@ static int VAPAA_REQUIRE_CONTIG2(CFI_cdesc_t *a, CFI_cdesc_t *b, MPI_Comm comm)
 }
 
 void VAPAA_MPI_Sendrecv_replace(CFI_cdesc_t *buf, int *count, int *datatype_f, int *dest, int *sendtag,
-                                int *source, int *recvtag, int *comm_f, MPI_Status *status, int *ierror)
+                                int *source, int *recvtag, int *comm_f, struct F_MPI_Status *status, int *ierror)
 {
     MPI_Datatype datatype = C_MPI_TYPE_FROMINT(*datatype_f);
     MPI_Comm comm = C_MPI_COMM_FROMINT(*comm_f);
-    if (CFI_is_contiguous(buf) == 1) {
+    if (VAPAA_CFI_is_contiguous(buf) == 1) {
+        MPI_Status status_c;
+        MPI_Status *status_arg = MPI_STATUS_IGNORE;
+        if (!C_IS_MPI_STATUS_IGNORE(status)) {
+            C_MPI_STATUS_TO_C(status, &status_c);
+            status_arg = &status_c;
+        }
         *ierror = MPI_Sendrecv_replace(VAPAA_ADDR(buf), *count, datatype, C_MPI_DEST_F2C(*dest),
                                        C_MPI_TAG_F2C(*sendtag), C_MPI_SOURCE_F2C(*source),
-                                       C_MPI_TAG_F2C(*recvtag), comm,
-                                       C_IS_MPI_STATUS_IGNORE(status) ? MPI_STATUS_IGNORE : status);
+                                       C_MPI_TAG_F2C(*recvtag), comm, status_arg);
+        if (!C_IS_MPI_STATUS_IGNORE(status)) {
+            C_MPI_STATUS_FROM_C(&status_c, status);
+        }
     } else {
         VAPAA_Warning("MPI_Sendrecv_replace requires a contiguous buffer.\n");
         MPI_Abort(comm, 99);
@@ -127,7 +135,7 @@ void VAPAA_MPI_Reduce_local(CFI_cdesc_t *inbuf, CFI_cdesc_t *inoutbuf, int *coun
         C_MPI_RC_FIX(*ierror);
         return;
     }
-    if (CFI_is_contiguous(inbuf) == 1 && CFI_is_contiguous(inoutbuf) == 1) {
+    if (VAPAA_CFI_is_contiguous(inbuf) == 1 && VAPAA_CFI_is_contiguous(inoutbuf) == 1) {
         *ierror = MPI_Reduce_local(VAPAA_ADDR(inbuf), VAPAA_ADDR(inoutbuf), *count, datatype, op);
     } else {
         *ierror = MPI_ERR_ARG;
@@ -139,10 +147,10 @@ void VAPAA_MPI_Pack_external(const char datarep[], CFI_cdesc_t *inbuf, int *inco
                              CFI_cdesc_t *outbuf, intptr_t *outsize, intptr_t *position, int *ierror)
 {
     MPI_Datatype datatype = C_MPI_TYPE_FROMINT(*datatype_f);
-    if (CFI_is_contiguous(outbuf) != 1) {
+    if (VAPAA_CFI_is_contiguous(outbuf) != 1) {
         VAPAA_Warning("MPI_Pack_external requires the output buffer be contiguous.\n");
         *ierror = MPI_ERR_BUFFER;
-    } else if (CFI_is_contiguous(inbuf) == 1) {
+    } else if (VAPAA_CFI_is_contiguous(inbuf) == 1) {
         MPI_Aint pos = (MPI_Aint)*position;
         *ierror = MPI_Pack_external(datarep, VAPAA_ADDR(inbuf), *incount, datatype, VAPAA_ADDR(outbuf),
                                     (MPI_Aint)*outsize, &pos);
@@ -157,10 +165,10 @@ void VAPAA_MPI_Unpack_external(const char datarep[], CFI_cdesc_t *inbuf, intptr_
                                CFI_cdesc_t *outbuf, int *outcount, int *datatype_f, int *ierror)
 {
     MPI_Datatype datatype = C_MPI_TYPE_FROMINT(*datatype_f);
-    if (CFI_is_contiguous(inbuf) != 1) {
+    if (VAPAA_CFI_is_contiguous(inbuf) != 1) {
         VAPAA_Warning("MPI_Unpack_external requires the input buffer be contiguous.\n");
         *ierror = MPI_ERR_BUFFER;
-    } else if (CFI_is_contiguous(outbuf) == 1) {
+    } else if (VAPAA_CFI_is_contiguous(outbuf) == 1) {
         MPI_Aint pos = (MPI_Aint)*position;
         *ierror = MPI_Unpack_external(datarep, VAPAA_ADDR(inbuf), (MPI_Aint)*insize, &pos,
                                       VAPAA_ADDR(outbuf), *outcount, datatype);

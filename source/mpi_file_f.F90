@@ -17,6 +17,11 @@ module mpi_file_f
     integer, parameter :: MPI_MODE_UNIQUE_OPEN      = VAPAA_MPI_MODE_UNIQUE_OPEN
     integer, parameter :: MPI_MODE_WRONLY           = VAPAA_MPI_MODE_WRONLY
 
+    ! I/O seek constants
+    integer, parameter :: MPI_SEEK_CUR              = VAPAA_MPI_SEEK_CUR
+    integer, parameter :: MPI_SEEK_END              = VAPAA_MPI_SEEK_END
+    integer, parameter :: MPI_SEEK_SET              = VAPAA_MPI_SEEK_SET
+
     interface MPI_File_open
 #ifdef HAVE_CFI
         module procedure MPI_File_open_f08ts
@@ -154,7 +159,7 @@ module mpi_file_f
             integer :: i, ls
             character(kind=c_char), dimension(:), allocatable :: filename_c
             amode_c = amode
-            ls = len(filename)
+            ls = len_trim(filename)
             allocate( filename_c(ls+1) )
             filename_c = c_null_char
             do i=1, ls
@@ -199,7 +204,7 @@ module mpi_file_f
             integer(kind=c_int) :: ierror_c
             integer :: i, ls
             character(kind=c_char), dimension(:), allocatable :: filename_c
-            ls = len(filename)
+            ls = len_trim(filename)
             allocate( filename_c(ls+1) )
             filename_c = c_null_char
             do i=1, ls
@@ -253,7 +258,7 @@ module mpi_file_f
         end subroutine MPI_File_get_size_f08
 
         subroutine MPI_File_set_view_f08(file, disp, etype, filetype, datarep, info, ierror)
-            use iso_c_binding, only: c_int, c_size_t, c_char, c_null_char
+            use iso_c_binding, only: c_int, c_int64_t, c_char, c_null_char
             use mpi_global_constants, only: MPI_OFFSET_KIND
             use mpi_handle_types, only: MPI_File, MPI_Datatype, MPI_info
             use mpi_file_c, only: C_MPI_File_set_view
@@ -263,7 +268,7 @@ module mpi_file_f
             character(len=*), intent(in) :: datarep
             type(MPI_info), intent(in) :: info
             integer, optional, intent(out) :: ierror
-            integer(c_size_t) :: disp_c
+            integer(c_int64_t) :: disp_c
             integer(c_int) :: ierror_c
             disp_c = disp
             call C_MPI_File_set_view(file % MPI_VAL, disp_c, etype % MPI_VAL, filetype % MPI_VAL, &
@@ -273,7 +278,7 @@ module mpi_file_f
 
 #ifdef HAVE_CFI
         subroutine MPI_File_set_view_f08ts(file, disp, etype, filetype, datarep, info, ierror)
-            use iso_c_binding, only: c_int, c_size_t, c_char, c_null_char
+            use iso_c_binding, only: c_int, c_int64_t, c_char, c_null_char
             use mpi_global_constants, only: MPI_OFFSET_KIND
             use mpi_handle_types, only: MPI_File, MPI_Datatype, MPI_info
             use mpi_file_c, only: CFI_MPI_File_set_view
@@ -283,11 +288,11 @@ module mpi_file_f
             character(len=*), intent(in) :: datarep
             type(MPI_info), intent(in) :: info
             integer, optional, intent(out) :: ierror
-            integer(c_size_t) :: disp_c
+            integer(c_int64_t) :: disp_c
             integer(c_int) :: ierror_c
             integer :: i, ls
             character(kind=c_char), dimension(:), allocatable :: datarep_c
-            ls = len(datarep)
+            ls = len_trim(datarep)
             allocate( datarep_c(ls+1) )
             datarep_c = c_null_char
             do i=1, ls

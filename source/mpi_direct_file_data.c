@@ -6,6 +6,7 @@
 #include "convert_handles.h"
 #include "convert_constants.h"
 #include "detect_sentinels.h"
+#include "cfi_util.h"
 #include "debug.h"
 
 static void *VAPAA_FILE_ADDR(CFI_cdesc_t *desc)
@@ -15,7 +16,7 @@ static void *VAPAA_FILE_ADDR(CFI_cdesc_t *desc)
 
 static int VAPAA_FILE_REQUIRE_CONTIG(CFI_cdesc_t *desc)
 {
-    if (CFI_is_contiguous(desc) == 1) {
+    if (VAPAA_CFI_is_contiguous(desc) == 1) {
         return 1;
     }
     VAPAA_Warning("this MPI-IO wrapper requires a contiguous buffer.\n");

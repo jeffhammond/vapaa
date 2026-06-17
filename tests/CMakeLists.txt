@@ -3,6 +3,11 @@ file(GLOB TEST_SOURCES "*.F90")
 
 # Number of MPI processes
 set(MPI_NUM_PROCESSES 4)
+set(vapaa_test_environment "")
+if(FLAG_MPI STREQUAL "OPEN_MPI")
+  list(APPEND vapaa_test_environment "OMPI_MCA_osc=pt2pt")
+endif()
+
 # Iterate over the test files and create executables
 foreach(TEST_SOURCE ${TEST_SOURCES})
   # Extract the file name without the extension
@@ -33,5 +38,10 @@ target_include_directories(${TEST_NAME}
   if(TEST_NAME STREQUAL "mpich_uallreducef08" AND NOT MPI_VENDOR STREQUAL "MPI_ABI")
     list(APPEND test_properties WILL_FAIL TRUE)
   endif()
+  if(vapaa_test_environment)
+    list(APPEND test_properties ENVIRONMENT "${vapaa_test_environment}")
+  endif()
   set_tests_properties(${TEST_NAME} PROPERTIES ${test_properties})
 endforeach()
+
+add_subdirectory(mpich_main)

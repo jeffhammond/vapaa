@@ -311,6 +311,16 @@ MPI_Datatype VAPAA_MPI_Type_fromint(int datatype)
         case VAPAA_MPI_AINT:                      return MPI_AINT;
         case VAPAA_MPI_COUNT:                     return MPI_COUNT;
         case VAPAA_MPI_OFFSET:                    return MPI_OFFSET;
+#ifdef MPI_LB
+        case VAPAA_MPI_LB:                        return MPI_LB;
+#else
+        case VAPAA_MPI_LB:                        return MPI_DATATYPE_NULL;
+#endif
+#ifdef MPI_UB
+        case VAPAA_MPI_UB:                        return MPI_UB;
+#else
+        case VAPAA_MPI_UB:                        return MPI_DATATYPE_NULL;
+#endif
         case VAPAA_MPI_PACKED:                    return MPI_PACKED;
         case VAPAA_MPI_SHORT:                     return MPI_SHORT;
         case VAPAA_MPI_INT:                       return MPI_INT;
@@ -393,6 +403,12 @@ int VAPAA_MPI_Type_toint(MPI_Datatype datatype)
     if (datatype == MPI_AINT)                   { return VAPAA_MPI_AINT; }
     if (datatype == MPI_COUNT)                  { return VAPAA_MPI_COUNT; }
     if (datatype == MPI_OFFSET)                 { return VAPAA_MPI_OFFSET; }
+#ifdef MPI_LB
+    if (datatype == MPI_LB)                     { return VAPAA_MPI_LB; }
+#endif
+#ifdef MPI_UB
+    if (datatype == MPI_UB)                     { return VAPAA_MPI_UB; }
+#endif
     if (datatype == MPI_PACKED)                 { return VAPAA_MPI_PACKED; }
     if (datatype == MPI_SHORT)                  { return VAPAA_MPI_SHORT; }
     if (datatype == MPI_INT)                    { return VAPAA_MPI_INT; }

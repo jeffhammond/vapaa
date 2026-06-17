@@ -54,11 +54,39 @@ module mpi_p2p_f
 
     interface MPI_Send
 #ifdef HAVE_CFI
-        module procedure MPI_Send_f08ts
+        subroutine MPI_Send_f08ts(buffer, count, datatype, dest, tag, comm, ierror)
+            use mpi_handle_types, only: MPI_Comm, MPI_Datatype
+            type(*), dimension(..), intent(in) :: buffer
+            integer, intent(in) :: count, dest, tag
+            type(MPI_Datatype), intent(in) :: datatype
+            type(MPI_Comm), intent(in) :: comm
+            integer, optional, intent(out) :: ierror
+        end subroutine MPI_Send_f08ts
+        subroutine MPI_Send_c_f08ts(buffer, count, datatype, dest, tag, comm, ierror)
+            use mpi_global_constants, only: MPI_COUNT_KIND
+            use mpi_handle_types, only: MPI_Comm, MPI_Datatype
+            type(*), dimension(..), intent(in) :: buffer
+            integer(kind=MPI_COUNT_KIND), intent(in) :: count
+            integer, intent(in) :: dest, tag
+            type(MPI_Datatype), intent(in) :: datatype
+            type(MPI_Comm), intent(in) :: comm
+            integer, optional, intent(out) :: ierror
+        end subroutine MPI_Send_c_f08ts
 #else
         module procedure MPI_Send_f08
+        module procedure MPI_Send_c_f08
 #endif
     end interface MPI_Send
+
+    interface PMPI_Send
+#ifdef HAVE_CFI
+        module procedure PMPI_Send_f08ts
+        module procedure PMPI_Send_c_f08ts
+#else
+        module procedure MPI_Send_f08
+        module procedure MPI_Send_c_f08
+#endif
+    end interface PMPI_Send
 
     interface MPI_Bsend
 #ifdef HAVE_CFI
@@ -136,16 +164,47 @@ module mpi_p2p_f
 
     interface MPI_Recv
 #ifdef HAVE_CFI
-        module procedure MPI_Recv_f08ts
+        subroutine MPI_Recv_f08ts(buffer, count, datatype, source, tag, comm, status, ierror)
+            use mpi_handle_types, only: MPI_Comm, MPI_Datatype, MPI_Status
+            type(*), dimension(..) :: buffer
+            integer, intent(in) :: count, source, tag
+            type(MPI_Datatype), intent(in) :: datatype
+            type(MPI_Comm), intent(in) :: comm
+            type(MPI_Status), intent(out), target :: status
+            integer, optional, intent(out) :: ierror
+        end subroutine MPI_Recv_f08ts
+        subroutine MPI_Recv_c_f08ts(buffer, count, datatype, source, tag, comm, status, ierror)
+            use mpi_global_constants, only: MPI_COUNT_KIND
+            use mpi_handle_types, only: MPI_Comm, MPI_Datatype, MPI_Status
+            type(*), dimension(..), asynchronous :: buffer
+            integer(kind=MPI_COUNT_KIND), intent(in) :: count
+            integer, intent(in) :: source, tag
+            type(MPI_Datatype), intent(in) :: datatype
+            type(MPI_Comm), intent(in) :: comm
+            type(MPI_Status), intent(out), target :: status
+            integer, optional, intent(out) :: ierror
+        end subroutine MPI_Recv_c_f08ts
 #else
         module procedure MPI_Recv_f08
+        module procedure MPI_Recv_c_f08
 #endif
     end interface MPI_Recv
+
+    interface PMPI_Recv
+#ifdef HAVE_CFI
+        module procedure PMPI_Recv_f08ts
+        module procedure PMPI_Recv_c_f08ts
+#else
+        module procedure MPI_Recv_f08
+        module procedure MPI_Recv_c_f08
+#endif
+    end interface PMPI_Recv
 
     interface MPI_Irecv
 #ifdef HAVE_CFI
         module procedure MPI_Irecv_f08ts
 #else
+        module procedure MPI_Irecv_scalar_f08
         module procedure MPI_Irecv_f08
 #endif
     end interface MPI_Irecv
@@ -531,8 +590,26 @@ module mpi_p2p_f
             if (present(ierror)) ierror = ierror_c
         end subroutine MPI_Send_f08
 
+        subroutine MPI_Send_c_f08(buffer, count, datatype, dest, tag, comm, ierror)
+            use mpi_global_constants, only: MPI_COUNT_KIND
+            use mpi_handle_types, only: MPI_Comm, MPI_Datatype
+            use mpi_p2p_c, only: C_MPI_Send_c
+!dir$ ignore_tkr buffer
+            integer, dimension(*), intent(in) :: buffer
+            integer(kind=MPI_COUNT_KIND), intent(in) :: count
+            integer, intent(in) :: dest, tag
+            type(MPI_Datatype), intent(in) :: datatype
+            type(MPI_Comm), intent(in) :: comm
+            integer, optional, intent(out) :: ierror
+            integer(kind=c_int) :: dest_c, tag_c, ierror_c
+            dest_c = dest
+            tag_c = tag
+            call C_MPI_Send_c(buffer, count, datatype % MPI_VAL, dest_c, tag_c, comm % MPI_VAL, ierror_c)
+            if (present(ierror)) ierror = ierror_c
+        end subroutine MPI_Send_c_f08
+
 #ifdef HAVE_CFI
-        subroutine MPI_Send_f08ts(buffer, count, datatype, dest, tag, comm, ierror)
+        subroutine PMPI_Send_f08ts(buffer, count, datatype, dest, tag, comm, ierror)
             use mpi_handle_types, only: MPI_Comm, MPI_Datatype
             use mpi_p2p_c, only: CFI_MPI_Send
             type(*), dimension(..), intent(in) :: buffer
@@ -547,7 +624,24 @@ module mpi_p2p_f
             tag_c = tag
             call CFI_MPI_Send(buffer, count_c, datatype % MPI_VAL, dest_c, tag_c, comm % MPI_VAL, ierror_c)
             if (present(ierror)) ierror = ierror_c
-        end subroutine MPI_Send_f08ts
+        end subroutine PMPI_Send_f08ts
+
+        subroutine PMPI_Send_c_f08ts(buffer, count, datatype, dest, tag, comm, ierror)
+            use mpi_global_constants, only: MPI_COUNT_KIND
+            use mpi_handle_types, only: MPI_Comm, MPI_Datatype
+            use mpi_p2p_c, only: CFI_MPI_Send_c
+            type(*), dimension(..), intent(in) :: buffer
+            integer(kind=MPI_COUNT_KIND), intent(in) :: count
+            integer, intent(in) :: dest, tag
+            type(MPI_Datatype), intent(in) :: datatype
+            type(MPI_Comm), intent(in) :: comm
+            integer, optional, intent(out) :: ierror
+            integer(kind=c_int) :: dest_c, tag_c, ierror_c
+            dest_c = dest
+            tag_c = tag
+            call CFI_MPI_Send_c(buffer, count, datatype % MPI_VAL, dest_c, tag_c, comm % MPI_VAL, ierror_c)
+            if (present(ierror)) ierror = ierror_c
+        end subroutine PMPI_Send_c_f08ts
 #endif
 
         subroutine MPI_Bsend_f08(buffer, count, datatype, dest, tag, comm, ierror)
@@ -1026,8 +1120,27 @@ module mpi_p2p_f
             if (present(ierror)) ierror = ierror_c
         end subroutine MPI_Recv_f08
 
+        subroutine MPI_Recv_c_f08(buffer, count, datatype, source, tag, comm, stat, ierror)
+            use mpi_global_constants, only: MPI_COUNT_KIND
+            use mpi_handle_types, only: MPI_Comm, MPI_Datatype, MPI_Status
+            use mpi_p2p_c, only: C_MPI_Recv_c
+!dir$ ignore_tkr buffer
+            integer, dimension(*), intent(out) :: buffer
+            integer(kind=MPI_COUNT_KIND), intent(in) :: count
+            integer, intent(in) :: source, tag
+            type(MPI_Datatype), intent(in) :: datatype
+            type(MPI_Comm), intent(in) :: comm
+            type(MPI_Status), intent(inout) :: stat
+            integer, optional, intent(out) :: ierror
+            integer(kind=c_int) :: source_c, tag_c, ierror_c
+            source_c = source
+            tag_c = tag
+            call C_MPI_Recv_c(buffer, count, datatype % MPI_VAL, source_c, tag_c, comm % MPI_VAL, stat, ierror_c)
+            if (present(ierror)) ierror = ierror_c
+        end subroutine MPI_Recv_c_f08
+
 #ifdef HAVE_CFI
-        subroutine MPI_Recv_f08ts(buffer, count, datatype, source, tag, comm, stat, ierror)
+        subroutine PMPI_Recv_f08ts(buffer, count, datatype, source, tag, comm, stat, ierror)
             use mpi_handle_types, only: MPI_Comm, MPI_Datatype, MPI_Status
             use mpi_p2p_c, only: CFI_MPI_Recv
             type(*), dimension(..), intent(inout) :: buffer
@@ -1042,7 +1155,25 @@ module mpi_p2p_f
             tag_c = tag
             call CFI_MPI_Recv(buffer, count_c, datatype % MPI_VAL, source_c, tag_c, comm % MPI_VAL, stat, ierror_c)
             if (present(ierror)) ierror = ierror_c
-        end subroutine MPI_Recv_f08ts
+        end subroutine PMPI_Recv_f08ts
+
+        subroutine PMPI_Recv_c_f08ts(buffer, count, datatype, source, tag, comm, stat, ierror)
+            use mpi_global_constants, only: MPI_COUNT_KIND
+            use mpi_handle_types, only: MPI_Comm, MPI_Datatype, MPI_Status
+            use mpi_p2p_c, only: CFI_MPI_Recv_c
+            type(*), dimension(..), intent(inout), asynchronous :: buffer
+            integer(kind=MPI_COUNT_KIND), intent(in) :: count
+            integer, intent(in) :: source, tag
+            type(MPI_Datatype), intent(in) :: datatype
+            type(MPI_Comm), intent(in) :: comm
+            type(MPI_Status), intent(inout) :: stat
+            integer, optional, intent(out) :: ierror
+            integer(kind=c_int) :: source_c, tag_c, ierror_c
+            source_c = source
+            tag_c = tag
+            call CFI_MPI_Recv_c(buffer, count, datatype % MPI_VAL, source_c, tag_c, comm % MPI_VAL, stat, ierror_c)
+            if (present(ierror)) ierror = ierror_c
+        end subroutine PMPI_Recv_c_f08ts
 #endif
 
         subroutine MPI_Irecv_f08(buffer, count, datatype, source, tag, comm, request, ierror) 
@@ -1063,11 +1194,38 @@ module mpi_p2p_f
             if (present(ierror)) ierror = ierror_c
         end subroutine MPI_Irecv_f08
 
+        subroutine MPI_Irecv_scalar_f08(buffer, count, datatype, source, tag, comm, request, ierror)
+            use mpi_error_f, only: MPI_ERR_COUNT
+            use mpi_global_constants, only: MPI_REQUEST_NULL
+            use mpi_handle_types, only: MPI_Comm, MPI_Datatype, MPI_Request
+            use mpi_p2p_c, only: C_MPI_Irecv
+            integer, intent(in), asynchronous :: buffer
+            integer, intent(in) :: count, source, tag
+            type(MPI_Datatype), intent(in) :: datatype
+            type(MPI_Comm), intent(in) :: comm
+            type(MPI_Request), intent(out) :: request
+            integer, optional, intent(out) :: ierror
+            integer(kind=c_int) :: buffer_c(1)
+            integer(kind=c_int) :: count_c, source_c, tag_c, ierror_c
+            if (count .ne. 0) then
+                request = MPI_REQUEST_NULL
+                if (present(ierror)) ierror = MPI_ERR_COUNT
+                return
+            end if
+            buffer_c(1) = buffer
+            count_c = count
+            source_c = source
+            tag_c = tag
+            call C_MPI_Irecv(buffer_c, count_c, datatype % MPI_VAL, source_c, tag_c, comm % MPI_VAL, &
+                             request % MPI_VAL, ierror_c)
+            if (present(ierror)) ierror = ierror_c
+        end subroutine MPI_Irecv_scalar_f08
+
 #ifdef HAVE_CFI
         subroutine MPI_Irecv_f08ts(buffer, count, datatype, source, tag, comm, request, ierror)
             use mpi_handle_types, only: MPI_Comm, MPI_Datatype, MPI_Request
             use mpi_p2p_c, only: CFI_MPI_Irecv
-            type(*), dimension(..), intent(inout), asynchronous :: buffer
+            type(*), dimension(..), intent(in), asynchronous :: buffer
             integer, intent(in) :: count, source, tag
             type(MPI_Datatype), intent(in) :: datatype
             type(MPI_Comm), intent(in) :: comm

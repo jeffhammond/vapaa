@@ -5,6 +5,7 @@
 #include "ISO_Fortran_binding.h"
 #include "convert_handles.h"
 #include "convert_constants.h"
+#include "mpi_attr_storage.h"
 #include "vapaa_constants.h"
 
 void VAPAA_MPI_Comm_group(int *comm_f, int *group_f, int *ierror)
@@ -102,8 +103,15 @@ void VAPAA_MPI_Comm_join(int *fd, int *intercomm_f, int *ierror)
 
 void VAPAA_MPI_Comm_delete_attr(int *comm_f, int *keyval, int *ierror)
 {
+    void *attrval = NULL;
+    int flag = 0;
     MPI_Comm comm = C_MPI_COMM_FROMINT(*comm_f);
-    *ierror = MPI_Comm_delete_attr(comm, *keyval);
+    int keyval_c = C_MPI_COMM_ATTR_GLOBAL_F2C(*keyval);
+    (void) MPI_Comm_get_attr(comm, keyval_c, &attrval, &flag);
+    *ierror = MPI_Comm_delete_attr(comm, keyval_c);
+    if (*ierror == MPI_SUCCESS && flag) {
+        VAPAA_MPI_Attr_forget(attrval);
+    }
     C_MPI_RC_FIX(*ierror);
 }
 
@@ -117,15 +125,23 @@ void VAPAA_MPI_Comm_get_attr(int *comm_f, int *keyval, intptr_t *attrval_f, int 
 {
     void *attrval = NULL;
     MPI_Comm comm = C_MPI_COMM_FROMINT(*comm_f);
-    *ierror = MPI_Comm_get_attr(comm, C_MPI_COMM_ATTR_GLOBAL_F2C(*keyval), &attrval, flag);
-    *attrval_f = (intptr_t) attrval;
+    const int keyval_c = C_MPI_COMM_ATTR_GLOBAL_F2C(*keyval);
+    *ierror = MPI_Comm_get_attr(comm, keyval_c, &attrval, flag);
+    if (*ierror == MPI_SUCCESS && *flag && C_MPI_COMM_ATTR_GLOBAL_IS_PREDEFINED(keyval_c)) {
+        *attrval_f = attrval == NULL ? 0 : (intptr_t)C_MPI_COMM_ATTR_VALUE_C2F(keyval_c, *(int *)attrval);
+    } else if (*ierror == MPI_SUCCESS && *flag && VAPAA_MPI_Attr_load_aint(attrval, attrval_f)) {
+        /* Fortran-set attributes are stored as C-visible integer storage. */
+    } else {
+        *attrval_f = (intptr_t) attrval;
+    }
     C_MPI_RC_FIX(*ierror);
 }
 
 void VAPAA_MPI_Comm_set_attr(int *comm_f, int *keyval, intptr_t *attrval_f, int *ierror)
 {
     MPI_Comm comm = C_MPI_COMM_FROMINT(*comm_f);
-    *ierror = MPI_Comm_set_attr(comm, *keyval, (void *) *attrval_f);
+    *ierror = MPI_Comm_set_attr(comm, C_MPI_COMM_ATTR_GLOBAL_F2C(*keyval),
+                                VAPAA_MPI_Attr_store_aint(*attrval_f));
     C_MPI_RC_FIX(*ierror);
 }
 

@@ -6,8 +6,14 @@
 #include "ISO_Fortran_binding.h"
 #include "convert_handles.h"
 #include "convert_constants.h"
+#include "mpi_attr_storage.h"
 #include "detect_sentinels.h"
 #include "vapaa_constants.h"
+
+static void VAPAA_MPI_CLEAR_WIN_NAME(MPI_Win win)
+{
+    (void) MPI_Win_set_name(win, "");
+}
 
 static int VAPAA_MPI_ASSERT_F2C(int f)
 {
@@ -52,6 +58,7 @@ void VAPAA_MPI_Win_allocate(intptr_t *size_f, int *disp_unit, int *info_f, int *
     MPI_Info info = C_MPI_INFO_FROMINT(*info_f);
     MPI_Comm comm = C_MPI_COMM_FROMINT(*comm_f);
     *ierror = MPI_Win_allocate((MPI_Aint) *size_f, *disp_unit, info, comm, baseptr, &win);
+    if (*ierror == MPI_SUCCESS) VAPAA_MPI_CLEAR_WIN_NAME(win);
     *win_f = C_MPI_WIN_TOINT(win);
     C_MPI_RC_FIX(*ierror);
 }
@@ -70,6 +77,7 @@ void VAPAA_MPI_Win_allocate_c(intptr_t *size_f, intptr_t *disp_unit_f, int *info
         *ierror = MPI_Win_allocate((MPI_Aint) *size_f, (int) *disp_unit_f, info, comm, baseptr, &win);
     }
 #endif
+    if (*ierror == MPI_SUCCESS) VAPAA_MPI_CLEAR_WIN_NAME(win);
     *win_f = C_MPI_WIN_TOINT(win);
     C_MPI_RC_FIX(*ierror);
 }
@@ -80,6 +88,7 @@ void VAPAA_MPI_Win_allocate_shared(intptr_t *size_f, int *disp_unit, int *info_f
     MPI_Info info = C_MPI_INFO_FROMINT(*info_f);
     MPI_Comm comm = C_MPI_COMM_FROMINT(*comm_f);
     *ierror = MPI_Win_allocate_shared((MPI_Aint) *size_f, *disp_unit, info, comm, baseptr, &win);
+    if (*ierror == MPI_SUCCESS) VAPAA_MPI_CLEAR_WIN_NAME(win);
     *win_f = C_MPI_WIN_TOINT(win);
     C_MPI_RC_FIX(*ierror);
 }
@@ -98,6 +107,7 @@ void VAPAA_MPI_Win_allocate_shared_c(intptr_t *size_f, intptr_t *disp_unit_f, in
         *ierror = MPI_Win_allocate_shared((MPI_Aint) *size_f, (int) *disp_unit_f, info, comm, baseptr, &win);
     }
 #endif
+    if (*ierror == MPI_SUCCESS) VAPAA_MPI_CLEAR_WIN_NAME(win);
     *win_f = C_MPI_WIN_TOINT(win);
     C_MPI_RC_FIX(*ierror);
 }
@@ -251,6 +261,7 @@ void VAPAA_MPI_Win_create(CFI_cdesc_t *base, intptr_t *size_f, int *disp_unit, i
     MPI_Info info = C_MPI_INFO_FROMINT(*info_f);
     MPI_Comm comm = C_MPI_COMM_FROMINT(*comm_f);
     *ierror = MPI_Win_create(base->base_addr, (MPI_Aint) *size_f, *disp_unit, info, comm, &win);
+    if (*ierror == MPI_SUCCESS) VAPAA_MPI_CLEAR_WIN_NAME(win);
     *win_f = C_MPI_WIN_TOINT(win);
     C_MPI_RC_FIX(*ierror);
 }
@@ -276,6 +287,7 @@ void VAPAA_MPI_Win_create_dynamic(int *info_f, int *comm_f, int *win_f, int *ier
     MPI_Info info = C_MPI_INFO_FROMINT(*info_f);
     MPI_Comm comm = C_MPI_COMM_FROMINT(*comm_f);
     *ierror = MPI_Win_create_dynamic(info, comm, &win);
+    if (*ierror == MPI_SUCCESS) VAPAA_MPI_CLEAR_WIN_NAME(win);
     *win_f = C_MPI_WIN_TOINT(win);
     C_MPI_RC_FIX(*ierror);
 }
@@ -352,8 +364,15 @@ void VAPAA_MPI_Win_set_name(int *win_f, CFI_cdesc_t *name_d, int *ierror)
 
 void VAPAA_MPI_Win_delete_attr(int *win_f, int *keyval, int *ierror)
 {
+    void *attrval = NULL;
+    int flag = 0;
     MPI_Win win = C_MPI_WIN_FROMINT(*win_f);
-    *ierror = MPI_Win_delete_attr(win, *keyval);
+    int keyval_c = C_MPI_WIN_ATTR_GLOBAL_F2C(*keyval);
+    (void) MPI_Win_get_attr(win, keyval_c, &attrval, &flag);
+    *ierror = MPI_Win_delete_attr(win, keyval_c);
+    if (*ierror == MPI_SUCCESS && flag) {
+        VAPAA_MPI_Attr_forget(attrval);
+    }
     C_MPI_RC_FIX(*ierror);
 }
 
@@ -367,15 +386,25 @@ void VAPAA_MPI_Win_get_attr(int *win_f, int *keyval, intptr_t *attrval_f, int *f
 {
     void *attrval = NULL;
     MPI_Win win = C_MPI_WIN_FROMINT(*win_f);
-    *ierror = MPI_Win_get_attr(win, *keyval, &attrval, flag);
-    *attrval_f = (intptr_t) attrval;
+    const int keyval_c = C_MPI_WIN_ATTR_GLOBAL_F2C(*keyval);
+    *ierror = MPI_Win_get_attr(win, keyval_c, &attrval, flag);
+    if (*ierror == MPI_SUCCESS && *flag && keyval_c == MPI_WIN_SIZE) {
+        *attrval_f = attrval == NULL ? 0 : (intptr_t)*(MPI_Aint *)attrval;
+    } else if (*ierror == MPI_SUCCESS && *flag && C_MPI_WIN_ATTR_GLOBAL_IS_PREDEFINED_VALUE(keyval_c)) {
+        *attrval_f = attrval == NULL ? 0 : (intptr_t)*(int *)attrval;
+    } else if (*ierror == MPI_SUCCESS && *flag && VAPAA_MPI_Attr_load_aint(attrval, attrval_f)) {
+        /* Fortran-set attributes are stored as C-visible integer storage. */
+    } else {
+        *attrval_f = (intptr_t) attrval;
+    }
     C_MPI_RC_FIX(*ierror);
 }
 
 void VAPAA_MPI_Win_set_attr(int *win_f, int *keyval, intptr_t *attrval_f, int *ierror)
 {
     MPI_Win win = C_MPI_WIN_FROMINT(*win_f);
-    *ierror = MPI_Win_set_attr(win, *keyval, (void *) *attrval_f);
+    *ierror = MPI_Win_set_attr(win, C_MPI_WIN_ATTR_GLOBAL_F2C(*keyval),
+                               VAPAA_MPI_Attr_store_aint(*attrval_f));
     C_MPI_RC_FIX(*ierror);
 }
 

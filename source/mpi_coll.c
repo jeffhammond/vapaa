@@ -25,6 +25,33 @@ static bool C_MPI_REJECT_USER_OP_WITH_BUILTIN_TYPE(MPI_Op op, MPI_Datatype datat
 #endif
 }
 
+static int C_MPI_Alltoallv_in_place(void *buffer, const int rcounts[], const int rdisps[],
+                                    MPI_Datatype rtype, MPI_Comm comm)
+{
+    MPI_Comm p2p_comm = MPI_COMM_NULL;
+    MPI_Aint lb = 0, extent = 0;
+    int rank = 0, size = 0, rc = MPI_SUCCESS;
+
+    rc = MPI_Comm_dup(comm, &p2p_comm);
+    if (rc != MPI_SUCCESS) return rc;
+    rc = MPI_Comm_rank(p2p_comm, &rank);
+    if (rc == MPI_SUCCESS) rc = MPI_Comm_size(p2p_comm, &size);
+    if (rc == MPI_SUCCESS) rc = MPI_Type_get_extent(rtype, &lb, &extent);
+    (void)lb;
+
+    for (int peer = 0; rc == MPI_SUCCESS && peer < size; ++peer) {
+        if (peer == rank || rcounts[peer] == 0) {
+            continue;
+        }
+        char *addr = (char *)buffer + (MPI_Aint)rdisps[peer] * extent;
+        rc = MPI_Sendrecv_replace(addr, rcounts[peer], rtype, peer, 0, peer, 0,
+                                  p2p_comm, MPI_STATUS_IGNORE);
+    }
+
+    int free_rc = MPI_Comm_free(&p2p_comm);
+    return rc == MPI_SUCCESS ? free_rc : rc;
+}
+
 void C_MPI_Barrier(int * comm_f, int * ierror)
 {
     MPI_Comm comm = C_MPI_COMM_FROMINT(*comm_f);
@@ -47,7 +74,7 @@ void CFI_MPI_Bcast(CFI_cdesc_t * desc, int count, int datatype_f, int root, int 
     MPI_Datatype datatype = C_MPI_TYPE_FROMINT(datatype_f);
     MPI_Comm comm = C_MPI_COMM_FROMINT(comm_f);
 
-    if (1 == CFI_is_contiguous(desc)) {
+    if (1 == VAPAA_CFI_is_contiguous(desc)) {
         *ierror = MPI_Bcast(desc->base_addr, count, datatype, C_MPI_ROOT_F2C(root), comm);
     }
     else {
@@ -99,7 +126,7 @@ void CFI_MPI_Reduce(CFI_cdesc_t * input, CFI_cdesc_t * output, int * count, int 
     }
 
     MPI_Comm comm = C_MPI_COMM_FROMINT(*comm_f);
-    if ( (1 == CFI_is_contiguous(input)) && (1 == CFI_is_contiguous(output)) ) {
+    if ( (1 == VAPAA_CFI_is_contiguous(input)) && (1 == VAPAA_CFI_is_contiguous(output)) ) {
         *ierror = MPI_Reduce(in_addr, out_addr, *count, datatype, op, C_MPI_ROOT_F2C(*root), comm);
     } else {
         fprintf(stderr, "FIXME: not contiguous case\n");
@@ -161,7 +188,7 @@ void CFI_MPI_Allreduce(CFI_cdesc_t * input, CFI_cdesc_t * output, int * count, i
     }
 
     MPI_Comm comm = C_MPI_COMM_FROMINT(*comm_f);
-    if ( (1 == CFI_is_contiguous(input)) && (1 == CFI_is_contiguous(output)) ) {
+    if ( (1 == VAPAA_CFI_is_contiguous(input)) && (1 == VAPAA_CFI_is_contiguous(output)) ) {
         *ierror = MPI_Allreduce(in_addr, out_addr, *count, datatype, op, comm);
     } else {
         fprintf(stderr, "FIXME: not contiguous case\n");
@@ -206,8 +233,8 @@ void CFI_MPI_Gather(CFI_cdesc_t * input, int * scount, int * stype_f, CFI_cdesc_
     MPI_Datatype stype = C_MPI_TYPE_FROMINT(*stype_f);
     MPI_Datatype rtype = C_MPI_TYPE_FROMINT(*rtype_f);
 
-    bool in_contiguous  = (1 == CFI_is_contiguous(input));
-    bool out_contiguous = (1 == CFI_is_contiguous(output));
+    bool in_contiguous  = (1 == VAPAA_CFI_is_contiguous(input));
+    bool out_contiguous = (1 == VAPAA_CFI_is_contiguous(output));
 
     int in_count  = *scount;
     int out_count = *rcount;
@@ -271,8 +298,8 @@ void CFI_MPI_Allgather(CFI_cdesc_t * input, int * scount, int * stype_f, CFI_cde
     MPI_Datatype stype = C_MPI_TYPE_FROMINT(*stype_f);
     MPI_Datatype rtype = C_MPI_TYPE_FROMINT(*rtype_f);
 
-    bool in_contiguous  = (1 == CFI_is_contiguous(input));
-    bool out_contiguous = (1 == CFI_is_contiguous(output));
+    bool in_contiguous  = (1 == VAPAA_CFI_is_contiguous(input));
+    bool out_contiguous = (1 == VAPAA_CFI_is_contiguous(output));
 
     int in_count  = *scount;
     int out_count = *rcount;
@@ -336,8 +363,8 @@ void CFI_MPI_Scatter(CFI_cdesc_t * input, int * scount, int * stype_f, CFI_cdesc
     MPI_Datatype stype = C_MPI_TYPE_FROMINT(*stype_f);
     MPI_Datatype rtype = C_MPI_TYPE_FROMINT(*rtype_f);
 
-    bool in_contiguous  = (1 == CFI_is_contiguous(input));
-    bool out_contiguous = (1 == CFI_is_contiguous(output));
+    bool in_contiguous  = (1 == VAPAA_CFI_is_contiguous(input));
+    bool out_contiguous = (1 == VAPAA_CFI_is_contiguous(output));
 
     int in_count  = *scount;
     int out_count = *rcount;
@@ -401,8 +428,8 @@ void CFI_MPI_Alltoall(CFI_cdesc_t * input, int * scount, int * stype_f, CFI_cdes
     MPI_Datatype stype = C_MPI_TYPE_FROMINT(*stype_f);
     MPI_Datatype rtype = C_MPI_TYPE_FROMINT(*rtype_f);
 
-    bool in_contiguous  = (1 == CFI_is_contiguous(input));
-    bool out_contiguous = (1 == CFI_is_contiguous(output));
+    bool in_contiguous  = (1 == VAPAA_CFI_is_contiguous(input));
+    bool out_contiguous = (1 == VAPAA_CFI_is_contiguous(output));
 
     int in_count  = *scount;
     int out_count = *rcount;
@@ -471,7 +498,7 @@ void CFI_MPI_Gatherv(CFI_cdesc_t * input, int * scount, int * stype_f,
     MPI_Datatype rtype = C_MPI_TYPE_FROMINT(*rtype_f);
     MPI_Comm comm = C_MPI_COMM_FROMINT(*comm_f);
 
-    if ( (1 == CFI_is_contiguous(input)) && (1 == CFI_is_contiguous(output)) ) {
+    if ( (1 == VAPAA_CFI_is_contiguous(input)) && (1 == VAPAA_CFI_is_contiguous(output)) ) {
         *ierror = MPI_Gatherv(in_addr, *scount, stype, out_addr, rcounts, rdisps, rtype, C_MPI_ROOT_F2C(*root), comm);
     } else {
         fprintf(stderr, "FIXME: not contiguous case\n");
@@ -508,7 +535,7 @@ void CFI_MPI_Allgatherv(CFI_cdesc_t * input, int * scount, int * stype_f,
     MPI_Datatype rtype = C_MPI_TYPE_FROMINT(*rtype_f);
     MPI_Comm comm = C_MPI_COMM_FROMINT(*comm_f);
 
-    if ( (1 == CFI_is_contiguous(input)) && (1 == CFI_is_contiguous(output)) ) {
+    if ( (1 == VAPAA_CFI_is_contiguous(input)) && (1 == VAPAA_CFI_is_contiguous(output)) ) {
         *ierror = MPI_Allgatherv(in_addr, *scount, stype, out_addr, rcounts, rdisps, rtype, comm);
     } else {
         fprintf(stderr, "FIXME: not contiguous case\n");
@@ -545,7 +572,7 @@ void CFI_MPI_Scatterv(CFI_cdesc_t * input, const int scounts[], const int sdisps
     MPI_Datatype rtype = C_MPI_TYPE_FROMINT(*rtype_f);
     MPI_Comm comm = C_MPI_COMM_FROMINT(*comm_f);
 
-    if ( (1 == CFI_is_contiguous(input)) && (1 == CFI_is_contiguous(output)) ) {
+    if ( (1 == VAPAA_CFI_is_contiguous(input)) && (1 == VAPAA_CFI_is_contiguous(output)) ) {
         *ierror = MPI_Scatterv(in_addr, scounts, sdisps, stype, out_addr, *rcount, rtype, C_MPI_ROOT_F2C(*root), comm);
     } else {
         fprintf(stderr, "FIXME: not contiguous case\n");
@@ -564,7 +591,11 @@ void C_MPI_Alltoallv(const void * input, const int scounts[], const int sdisps[]
     MPI_Comm comm = C_MPI_COMM_FROMINT(*comm_f);
     if (C_IS_MPI_IN_PLACE(input))  input  = MPI_IN_PLACE;
     if (C_IS_MPI_IN_PLACE(output)) output = MPI_IN_PLACE;
-    *ierror = MPI_Alltoallv(input, scounts, sdisps, stype, output, rcounts, rdisps, rtype, comm);
+    if (input == MPI_IN_PLACE) {
+        *ierror = C_MPI_Alltoallv_in_place(output, rcounts, rdisps, rtype, comm);
+    } else {
+        *ierror = MPI_Alltoallv(input, scounts, sdisps, stype, output, rcounts, rdisps, rtype, comm);
+    }
     C_MPI_RC_FIX(*ierror);
 }
 
@@ -582,8 +613,12 @@ void CFI_MPI_Alltoallv(CFI_cdesc_t * input, const int scounts[], const int sdisp
     MPI_Datatype rtype = C_MPI_TYPE_FROMINT(*rtype_f);
     MPI_Comm comm = C_MPI_COMM_FROMINT(*comm_f);
 
-    if ( (1 == CFI_is_contiguous(input)) && (1 == CFI_is_contiguous(output)) ) {
-        *ierror = MPI_Alltoallv(in_addr, scounts, sdisps, stype, out_addr, rcounts, rdisps, rtype, comm);
+    if ( (1 == VAPAA_CFI_is_contiguous(input)) && (1 == VAPAA_CFI_is_contiguous(output)) ) {
+        if (in_addr == MPI_IN_PLACE) {
+            *ierror = C_MPI_Alltoallv_in_place(out_addr, rcounts, rdisps, rtype, comm);
+        } else {
+            *ierror = MPI_Alltoallv(in_addr, scounts, sdisps, stype, out_addr, rcounts, rdisps, rtype, comm);
+        }
     } else {
         fprintf(stderr, "FIXME: not contiguous case\n");
         MPI_Abort(comm, 99);

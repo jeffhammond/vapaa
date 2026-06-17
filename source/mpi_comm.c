@@ -251,6 +251,14 @@ void C_MPI_Dist_graph_create(int * comm_old_f, int * n, int * sources, int * deg
     C_MPI_RC_FIX(*ierror);
 }
 
+void C_MPI_Dist_graph_create_sentinel(int * comm_old_f, int * n, int * sources, int * degrees, int * destinations,
+                                      int * weights_f, int * info_f, int * reorder, int * comm_dist_graph_f,
+                                      int * ierror)
+{
+    C_MPI_Dist_graph_create(comm_old_f, n, sources, degrees, destinations, weights_f, info_f, reorder,
+                            comm_dist_graph_f, ierror);
+}
+
 void C_MPI_Dist_graph_create_adjacent(int * comm_old_f, int * indegree, int * sources, int * sourceweights_f,
                                       int * outdegree, int * destinations, int * destweights_f, int * info_f,
                                       int * reorder, int * comm_dist_graph_f, int * ierror)
@@ -267,6 +275,14 @@ void C_MPI_Dist_graph_create_adjacent(int * comm_old_f, int * indegree, int * so
     C_MPI_RC_FIX(*ierror);
 }
 
+void C_MPI_Dist_graph_create_adjacent_sentinel(int * comm_old_f, int * indegree, int * sources, int * sourceweights_f,
+                                               int * outdegree, int * destinations, int * destweights_f, int * info_f,
+                                               int * reorder, int * comm_dist_graph_f, int * ierror)
+{
+    C_MPI_Dist_graph_create_adjacent(comm_old_f, indegree, sources, sourceweights_f, outdegree, destinations,
+                                     destweights_f, info_f, reorder, comm_dist_graph_f, ierror);
+}
+
 void C_MPI_Dist_graph_neighbors(int * comm_f, int * maxindegree, int * sources, int * sourceweights_f,
                                 int * maxoutdegree, int * destinations, int * destweights_f, int * ierror)
 {
@@ -276,6 +292,13 @@ void C_MPI_Dist_graph_neighbors(int * comm_f, int * maxindegree, int * sources, 
     *ierror = MPI_Dist_graph_neighbors(comm, *maxindegree, sources, sourceweights,
                                        *maxoutdegree, destinations, destweights);
     C_MPI_RC_FIX(*ierror);
+}
+
+void C_MPI_Dist_graph_neighbors_sentinel(int * comm_f, int * maxindegree, int * sources, int * sourceweights_f,
+                                         int * maxoutdegree, int * destinations, int * destweights_f, int * ierror)
+{
+    C_MPI_Dist_graph_neighbors(comm_f, maxindegree, sources, sourceweights_f, maxoutdegree, destinations,
+                               destweights_f, ierror);
 }
 
 void C_MPI_Dist_graph_neighbors_count(int * comm_f, int * indegree, int * outdegree, int * weighted, int * ierror)

@@ -26,6 +26,9 @@ module mpi_direct_callback_f
     interface MPI_Win_create_keyval
         module procedure MPI_Win_create_keyval_f08
     end interface
+    interface MPI_Keyval_create
+        module procedure MPI_Keyval_create_f08
+    end interface
     interface MPI_Grequest_start
         module procedure MPI_Grequest_start_f08
     end interface
@@ -98,6 +101,14 @@ module mpi_direct_callback_f
             type(c_funptr), value :: copy_fn, delete_fn
             integer(c_int), intent(out) :: keyval, ierror
             integer(c_intptr_t), intent(in) :: extra_state
+        end subroutine
+        subroutine VAPAA_MPI_Keyval_create(copy_fn, delete_fn, keyval, extra_state, ierror) &
+                   bind(C,name="VAPAA_MPI_Keyval_create")
+            use iso_c_binding, only: c_funptr, c_int
+            implicit none
+            type(c_funptr), value :: copy_fn, delete_fn
+            integer(c_int), intent(out) :: keyval, ierror
+            integer(c_int), intent(in) :: extra_state
         end subroutine
 
         subroutine VAPAA_MPI_Grequest_start(query_fn, free_fn, cancel_fn, extra_state, request, ierror) &
@@ -215,6 +226,18 @@ module mpi_direct_callback_f
         KEYVAL_WRAPPER(MPI_Type_create_keyval_f08,MPI_Type_copy_attr_function,MPI_Type_delete_attr_function,VAPAA_MPI_Type_create_keyval)
         KEYVAL_WRAPPER(MPI_Win_create_keyval_f08,MPI_Win_copy_attr_function,MPI_Win_delete_attr_function,VAPAA_MPI_Win_create_keyval)
 
+        subroutine MPI_Keyval_create_f08(copy_fn, delete_fn, keyval, extra_state, ierror)
+            procedure() :: copy_fn, delete_fn
+            integer, intent(out) :: keyval
+            integer, intent(in) :: extra_state
+            integer, optional, intent(out) :: ierror
+            integer(c_int) :: keyval_c, ierror_c
+            call VAPAA_MPI_Keyval_create(c_funloc(copy_fn), c_funloc(delete_fn), keyval_c, &
+                                         int(extra_state,c_int), ierror_c)
+            keyval = keyval_c
+            call finish_ierror(ierror, ierror_c)
+        end subroutine MPI_Keyval_create_f08
+
         subroutine MPI_Grequest_start_f08(query_fn, free_fn, cancel_fn, extra_state, request, ierror)
             use mpi_global_constants, only: MPI_ADDRESS_KIND
             use mpi_handle_types, only: MPI_Request
@@ -226,7 +249,7 @@ module mpi_direct_callback_f
             integer, optional, intent(out) :: ierror
             integer(c_int) :: ierror_c
             call VAPAA_MPI_Grequest_start(c_funloc(query_fn), c_funloc(free_fn), c_funloc(cancel_fn), &
-                                          int(extra_state,c_intptr_t), request % MPI_VAL, ierror_c)
+                                          extra_state, request % MPI_VAL, ierror_c)
             call finish_ierror(ierror, ierror_c)
         end subroutine
 

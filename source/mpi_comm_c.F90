@@ -232,6 +232,18 @@ module mpi_comm_c
     end interface
 
     interface
+        subroutine C_MPI_Dist_graph_create_sentinel(comm_old, n, sources, degrees, destinations, weights, &
+                                                    info, reorder, comm_dist_graph, ierror) &
+                   bind(C,name="C_MPI_Dist_graph_create_sentinel")
+            use iso_c_binding, only: c_int
+            implicit none
+            integer(kind=c_int), intent(in) :: comm_old, n, info, reorder, weights
+            integer(kind=c_int), intent(in) :: sources(*), degrees(*), destinations(*)
+            integer(kind=c_int), intent(out) :: comm_dist_graph, ierror
+        end subroutine C_MPI_Dist_graph_create_sentinel
+    end interface
+
+    interface
         subroutine C_MPI_Dist_graph_create_adjacent(comm_old, indegree, sources, sourceweights, &
                                                     outdegree, destinations, destweights, info, &
                                                     reorder, comm_dist_graph, ierror) &
@@ -245,6 +257,20 @@ module mpi_comm_c
     end interface
 
     interface
+        subroutine C_MPI_Dist_graph_create_adjacent_sentinel(comm_old, indegree, sources, sourceweights, &
+                                                             outdegree, destinations, destweights, info, &
+                                                             reorder, comm_dist_graph, ierror) &
+                   bind(C,name="C_MPI_Dist_graph_create_adjacent_sentinel")
+            use iso_c_binding, only: c_int
+            implicit none
+            integer(kind=c_int), intent(in) :: comm_old, indegree, outdegree, info, reorder
+            integer(kind=c_int), intent(in) :: sourceweights, destweights
+            integer(kind=c_int), intent(in) :: sources(*), destinations(*)
+            integer(kind=c_int), intent(out) :: comm_dist_graph, ierror
+        end subroutine C_MPI_Dist_graph_create_adjacent_sentinel
+    end interface
+
+    interface
         subroutine C_MPI_Dist_graph_neighbors(comm, maxindegree, sources, sourceweights, &
                                               maxoutdegree, destinations, destweights, ierror) &
                    bind(C,name="C_MPI_Dist_graph_neighbors")
@@ -254,6 +280,18 @@ module mpi_comm_c
             integer(kind=c_int), intent(out) :: sources(*), destinations(*), ierror
             integer(kind=c_int) :: sourceweights(*), destweights(*)
         end subroutine C_MPI_Dist_graph_neighbors
+    end interface
+
+    interface
+        subroutine C_MPI_Dist_graph_neighbors_sentinel(comm, maxindegree, sources, sourceweights, &
+                                                       maxoutdegree, destinations, destweights, ierror) &
+                   bind(C,name="C_MPI_Dist_graph_neighbors_sentinel")
+            use iso_c_binding, only: c_int
+            implicit none
+            integer(kind=c_int), intent(in) :: comm, maxindegree, maxoutdegree
+            integer(kind=c_int), intent(out) :: sources(*), destinations(*), ierror
+            integer(kind=c_int), intent(in) :: sourceweights, destweights
+        end subroutine C_MPI_Dist_graph_neighbors_sentinel
     end interface
 
     interface

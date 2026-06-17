@@ -89,6 +89,7 @@
 
 #define VAPAA_MPI_BSEND_OVERHEAD              512
 #define VAPAA_MPI_KEYVAL_INVALID                0
+#define VAPAA_MPI_DISPLACEMENT_CURRENT         -1
 
 #define VAPAA_MPI_SUM             33
 #define VAPAA_MPI_MIN             34
@@ -108,6 +109,8 @@
 #define VAPAA_MPI_AINT                       513
 #define VAPAA_MPI_COUNT                      514
 #define VAPAA_MPI_OFFSET                     515
+#define VAPAA_MPI_LB                         516
+#define VAPAA_MPI_UB                         517
 #define VAPAA_MPI_PACKED                     519
 #define VAPAA_MPI_SHORT                      520
 #define VAPAA_MPI_INT                        521
@@ -262,6 +265,10 @@
 #define VAPAA_MPI_MODE_UNIQUE_OPEN      128
 #define VAPAA_MPI_MODE_WRONLY           256
 
+#define VAPAA_MPI_SEEK_CUR              401
+#define VAPAA_MPI_SEEK_END              402
+#define VAPAA_MPI_SEEK_SET              403
+
 #define VAPAA_MPI_MODE_NOCHECK         1024
 #define VAPAA_MPI_MODE_NOPRECEDE       2048
 #define VAPAA_MPI_MODE_NOPUT           4096
@@ -285,5 +292,14 @@
 #define VAPAA_MPI_IO                    502
 #define VAPAA_MPI_HOST                  503
 #define VAPAA_MPI_WTIME_IS_GLOBAL       504
+#define VAPAA_MPI_APPNUM                505
+#define VAPAA_MPI_LASTUSEDCODE          506
+#define VAPAA_MPI_UNIVERSE_SIZE         507
+
+#define VAPAA_MPI_WIN_BASE              601
+#define VAPAA_MPI_WIN_DISP_UNIT         602
+#define VAPAA_MPI_WIN_SIZE              603
+#define VAPAA_MPI_WIN_CREATE_FLAVOR     604
+#define VAPAA_MPI_WIN_MODEL             605
 
 #endif

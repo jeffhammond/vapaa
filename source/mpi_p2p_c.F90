@@ -168,6 +168,19 @@ module mpi_p2p_c
         end subroutine C_MPI_Send
     end interface
 
+    interface
+        subroutine C_MPI_Send_c(buffer, count, datatype, dest, tag, comm, &
+                                ierror) &
+                   bind(C,name="C_MPI_Send_c")
+            use iso_c_binding, only: c_int, c_int64_t
+            implicit none
+            integer(kind=c_int), dimension(*), intent(in) :: buffer
+            integer(kind=c_int64_t), intent(in), value :: count
+            integer(kind=c_int), intent(in), value :: datatype, dest, tag, comm
+            integer(kind=c_int), intent(out) :: ierror
+        end subroutine C_MPI_Send_c
+    end interface
+
 #ifdef HAVE_CFI
     interface
         subroutine CFI_MPI_Send(buffer, count, datatype, dest, tag, comm, &
@@ -179,6 +192,19 @@ module mpi_p2p_c
             integer(kind=c_int), intent(in), value :: count, datatype, dest, tag, comm
             integer(kind=c_int), intent(out) :: ierror
         end subroutine CFI_MPI_Send
+    end interface
+
+    interface
+        subroutine CFI_MPI_Send_c(buffer, count, datatype, dest, tag, comm, &
+                                  ierror) &
+                   bind(C,name="CFI_MPI_Send_c")
+            use iso_c_binding, only: c_int, c_int64_t
+            implicit none
+            type(*), dimension(..), intent(in) :: buffer
+            integer(kind=c_int64_t), intent(in), value :: count
+            integer(kind=c_int), intent(in), value :: datatype, dest, tag, comm
+            integer(kind=c_int), intent(out) :: ierror
+        end subroutine CFI_MPI_Send_c
     end interface
 #endif
 
@@ -419,6 +445,21 @@ module mpi_p2p_c
         end subroutine C_MPI_Recv
     end interface
 
+    interface
+        subroutine C_MPI_Recv_c(buffer, count, datatype, source, tag, comm, status, &
+                                ierror) &
+                   bind(C,name="C_MPI_Recv_c")
+            use iso_c_binding, only: c_int, c_int64_t
+            use mpi_handle_types, only: MPI_Status
+            implicit none
+            integer(kind=c_int), dimension(*), intent(out) :: buffer
+            integer(kind=c_int64_t), intent(in), value :: count
+            integer(kind=c_int), intent(in), value :: datatype, source, tag, comm
+            type(MPI_Status), intent(inout) :: status
+            integer(kind=c_int), intent(out) :: ierror
+        end subroutine C_MPI_Recv_c
+    end interface
+
 #ifdef HAVE_CFI
     interface
         subroutine CFI_MPI_Recv(buffer, count, datatype, source, tag, comm, status, &
@@ -432,6 +473,21 @@ module mpi_p2p_c
             type(MPI_Status), intent(out) :: status
             integer(kind=c_int), intent(out) :: ierror
         end subroutine CFI_MPI_Recv
+    end interface
+
+    interface
+        subroutine CFI_MPI_Recv_c(buffer, count, datatype, source, tag, comm, status, &
+                                  ierror) &
+                   bind(C,name="CFI_MPI_Recv_c")
+            use iso_c_binding, only: c_int, c_int64_t
+            use mpi_handle_types, only: MPI_Status
+            implicit none
+            type(*), dimension(..), intent(inout), asynchronous :: buffer
+            integer(kind=c_int64_t), intent(in), value :: count
+            integer(kind=c_int), intent(in), value :: datatype, source, tag, comm
+            type(MPI_Status), intent(inout) :: status
+            integer(kind=c_int), intent(out) :: ierror
+        end subroutine CFI_MPI_Recv_c
     end interface
 #endif
 
@@ -454,7 +510,7 @@ module mpi_p2p_c
                    bind(C,name="CFI_MPI_Irecv")
             use iso_c_binding, only: c_int
             implicit none
-            type(*), dimension(..), intent(inout), asynchronous :: buffer
+            type(*), dimension(..), intent(in), asynchronous :: buffer
             integer(kind=c_int), intent(in), value :: count, datatype, source, tag, comm
             integer(kind=c_int), intent(out) :: request, ierror
         end subroutine CFI_MPI_Irecv

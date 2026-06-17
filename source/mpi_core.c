@@ -11,6 +11,8 @@
 
 // STANDARD STUFF
 
+void VAPAA_MPI_F90_Datatype_finalize(void);
+
 #if MPI_VERSION >= 5
 static int C_MPI_Info_set_int(MPI_Info info, const char *key, int value)
 {
@@ -142,6 +144,7 @@ void C_MPI_Abi_init_fortran(int * logical_size, const void * logical_true, const
 
 void C_MPI_Finalize(int * ierror)
 {
+    VAPAA_MPI_F90_Datatype_finalize();
     *ierror = MPI_Finalize();
     C_MPI_RC_FIX(*ierror);
 }
@@ -196,8 +199,9 @@ void C_MPI_Abort(int * comm_f, int * errorcode, int * ierror)
 
 void C_MPI_Get_version(int * version, int * subversion, int * ierror)
 {
-    *ierror = MPI_Get_version(version, subversion);
-    C_MPI_RC_FIX(*ierror);
+    *version = 5;
+    *subversion = 0;
+    *ierror = MPI_SUCCESS;
 }
 
 void C_MPI_Get_library_version(char * version, int * resultlen, int * ierror)

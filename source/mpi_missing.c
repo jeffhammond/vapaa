@@ -7,6 +7,7 @@
 #include "ISO_Fortran_binding.h"
 #include "convert_handles.h"
 #include "convert_constants.h"
+#include "mpi_attr_storage.h"
 #include "vapaa_constants.h"
 
 static int VAPAA_MPI_ORDER_F2C(int f)
@@ -138,6 +139,101 @@ static void VAPAA_MPI_TYPES_TOINT_ARRAY(int count, const MPI_Datatype *types, in
 {
     for (int i = 0; i < count; ++i) {
         types_f[i] = C_MPI_TYPE_TOINT(types[i]);
+    }
+}
+
+struct VAPAA_MPI_F90_Datatype {
+    int handle;
+    int combiner;
+    int p;
+    int r;
+    MPI_Datatype datatype;
+    struct VAPAA_MPI_F90_Datatype *next;
+};
+
+static struct VAPAA_MPI_F90_Datatype *vapaa_f90_datatypes = NULL;
+
+static struct VAPAA_MPI_F90_Datatype *VAPAA_MPI_F90_DATATYPE_FIND_PARAMS(int combiner, int p, int r)
+{
+    for (struct VAPAA_MPI_F90_Datatype *e = vapaa_f90_datatypes; e != NULL; e = e->next) {
+        if (e->combiner == combiner && e->p == p && e->r == r) {
+            return e;
+        }
+    }
+    return NULL;
+}
+
+static struct VAPAA_MPI_F90_Datatype *VAPAA_MPI_F90_DATATYPE_FIND_HANDLE(int handle)
+{
+    for (struct VAPAA_MPI_F90_Datatype *e = vapaa_f90_datatypes; e != NULL; e = e->next) {
+        if (e->handle == handle) {
+            return e;
+        }
+    }
+    return NULL;
+}
+
+static MPI_Datatype VAPAA_MPI_F90_INTEGER_FALLBACK(int r)
+{
+    if (r <= 2) return MPI_INT8_T;
+    if (r <= 4) return MPI_INT16_T;
+    if (r <= 9) return MPI_INT32_T;
+    return MPI_INT64_T;
+}
+
+static MPI_Datatype VAPAA_MPI_F90_REAL_FALLBACK(int p)
+{
+    if (p <= 6) return MPI_FLOAT;
+    if (p <= 15) return MPI_DOUBLE;
+    return MPI_LONG_DOUBLE;
+}
+
+static MPI_Datatype VAPAA_MPI_F90_COMPLEX_FALLBACK(int p)
+{
+    if (p <= 6) return MPI_C_FLOAT_COMPLEX;
+    if (p <= 15) return MPI_C_DOUBLE_COMPLEX;
+    return MPI_C_LONG_DOUBLE_COMPLEX;
+}
+
+static int VAPAA_MPI_F90_DATATYPE_CREATE(int combiner, int p, int r, MPI_Datatype fallback, int *newtype_f)
+{
+    struct VAPAA_MPI_F90_Datatype *existing = VAPAA_MPI_F90_DATATYPE_FIND_PARAMS(combiner, p, r);
+    if (existing != NULL) {
+        *newtype_f = existing->handle;
+        return MPI_SUCCESS;
+    }
+
+    MPI_Datatype datatype = MPI_DATATYPE_NULL;
+    int rc = MPI_Type_dup(fallback, &datatype);
+    if (rc != MPI_SUCCESS) {
+        return rc;
+    }
+
+    struct VAPAA_MPI_F90_Datatype *entry = malloc(sizeof(*entry));
+    if (entry == NULL) {
+        MPI_Type_free(&datatype);
+        return MPI_ERR_NO_MEM;
+    }
+    entry->handle = C_MPI_TYPE_TOINT(datatype);
+    entry->combiner = combiner;
+    entry->p = p;
+    entry->r = r;
+    entry->datatype = datatype;
+    entry->next = vapaa_f90_datatypes;
+    vapaa_f90_datatypes = entry;
+    *newtype_f = entry->handle;
+    return MPI_SUCCESS;
+}
+
+void VAPAA_MPI_F90_Datatype_finalize(void)
+{
+    while (vapaa_f90_datatypes != NULL) {
+        struct VAPAA_MPI_F90_Datatype *entry = vapaa_f90_datatypes;
+        vapaa_f90_datatypes = entry->next;
+        if (entry->datatype != MPI_DATATYPE_NULL) {
+            (void) MPI_Type_free(&entry->datatype);
+        }
+        free(entry);
     }
 }
 
@@ -630,30 +726,37 @@ void VAPAA_MPI_Type_create_darray_c(int *size, int *rank, int *ndims, int64_t *g
 
 void VAPAA_MPI_Type_create_f90_integer(int *r, int *newtype_f, int *ierror)
 {
-    MPI_Datatype newtype = MPI_DATATYPE_NULL;
-    *ierror = MPI_Type_create_f90_integer(*r, &newtype);
-    *newtype_f = C_MPI_TYPE_TOINT(newtype);
+    *ierror = VAPAA_MPI_F90_DATATYPE_CREATE(VAPAA_MPI_COMBINER_F90_INTEGER, 0, *r,
+                                            VAPAA_MPI_F90_INTEGER_FALLBACK(*r), newtype_f);
     C_MPI_RC_FIX(*ierror);
 }
 
 void VAPAA_MPI_Type_create_f90_real(int *p, int *r, int *newtype_f, int *ierror)
 {
-    MPI_Datatype newtype = MPI_DATATYPE_NULL;
-    *ierror = MPI_Type_create_f90_real(*p, *r, &newtype);
-    *newtype_f = C_MPI_TYPE_TOINT(newtype);
+    *ierror = VAPAA_MPI_F90_DATATYPE_CREATE(VAPAA_MPI_COMBINER_F90_REAL, *p, *r,
+                                            VAPAA_MPI_F90_REAL_FALLBACK(*p), newtype_f);
     C_MPI_RC_FIX(*ierror);
 }
 
 void VAPAA_MPI_Type_create_f90_complex(int *p, int *r, int *newtype_f, int *ierror)
 {
-    MPI_Datatype newtype = MPI_DATATYPE_NULL;
-    *ierror = MPI_Type_create_f90_complex(*p, *r, &newtype);
-    *newtype_f = C_MPI_TYPE_TOINT(newtype);
+    *ierror = VAPAA_MPI_F90_DATATYPE_CREATE(VAPAA_MPI_COMBINER_F90_COMPLEX, *p, *r,
+                                            VAPAA_MPI_F90_COMPLEX_FALLBACK(*p), newtype_f);
     C_MPI_RC_FIX(*ierror);
 }
 
 void VAPAA_MPI_Type_get_envelope(int *datatype_f, int *ni, int *na, int *nd, int *combiner_f, int *ierror)
 {
+    struct VAPAA_MPI_F90_Datatype *f90 = VAPAA_MPI_F90_DATATYPE_FIND_HANDLE(*datatype_f);
+    if (f90 != NULL) {
+        *ni = (f90->combiner == VAPAA_MPI_COMBINER_F90_INTEGER) ? 1 : 2;
+        *na = 0;
+        *nd = 0;
+        *combiner_f = f90->combiner;
+        *ierror = MPI_SUCCESS;
+        return;
+    }
+
     int combiner = 0;
     MPI_Datatype datatype = C_MPI_TYPE_FROMINT(*datatype_f);
     *ierror = MPI_Type_get_envelope(datatype, ni, na, nd, &combiner);
@@ -663,6 +766,17 @@ void VAPAA_MPI_Type_get_envelope(int *datatype_f, int *ni, int *na, int *nd, int
 
 void VAPAA_MPI_Type_get_envelope_c(int *datatype_f, int64_t *ni_f, int64_t *na_f, int64_t *nl_f, int64_t *nd_f, int *combiner_f, int *ierror)
 {
+    struct VAPAA_MPI_F90_Datatype *f90 = VAPAA_MPI_F90_DATATYPE_FIND_HANDLE(*datatype_f);
+    if (f90 != NULL) {
+        *ni_f = (f90->combiner == VAPAA_MPI_COMBINER_F90_INTEGER) ? 1 : 2;
+        *na_f = 0;
+        *nl_f = 0;
+        *nd_f = 0;
+        *combiner_f = f90->combiner;
+        *ierror = MPI_SUCCESS;
+        return;
+    }
+
     MPI_Count ni = 0, na = 0, nl = 0, nd = 0;
     int combiner = 0;
     MPI_Datatype datatype = C_MPI_TYPE_FROMINT(*datatype_f);
@@ -685,11 +799,27 @@ void VAPAA_MPI_Type_get_envelope_c(int *datatype_f, int64_t *ni_f, int64_t *na_f
 
 void VAPAA_MPI_Type_get_contents(int *datatype_f, int *mi, int *ma, int *md, int *ints, intptr_t *addrs_f, int *types_f, int *ierror)
 {
+    struct VAPAA_MPI_F90_Datatype *f90 = VAPAA_MPI_F90_DATATYPE_FIND_HANDLE(*datatype_f);
+    if (f90 != NULL) {
+        int needed = (f90->combiner == VAPAA_MPI_COMBINER_F90_INTEGER) ? 1 : 2;
+        if (*mi < needed || *ma != 0 || *md != 0) {
+            *ierror = C_MPI_ERROR_CODE_C2F(MPI_ERR_ARG);
+            return;
+        }
+        ints[0] = (f90->combiner == VAPAA_MPI_COMBINER_F90_INTEGER) ? f90->r : f90->p;
+        if (needed == 2) ints[1] = f90->r;
+        *ierror = MPI_SUCCESS;
+        return;
+    }
+
     MPI_Datatype datatype = C_MPI_TYPE_FROMINT(*datatype_f);
     MPI_Datatype *types = malloc((size_t) *md * sizeof(*types));
     if (*md > 0 && types == NULL) {
         *ierror = C_MPI_ERROR_CODE_C2F(MPI_ERR_NO_MEM);
         return;
+    }
+    for (int i = 0; i < *md; ++i) {
+        types[i] = MPI_DATATYPE_NULL;
     }
     *ierror = MPI_Type_get_contents(datatype, *mi, *ma, *md, ints, (MPI_Aint *) addrs_f, types);
     VAPAA_MPI_TYPES_TOINT_ARRAY(*md, types, types_f);
@@ -700,6 +830,19 @@ void VAPAA_MPI_Type_get_contents(int *datatype_f, int *mi, int *ma, int *md, int
 void VAPAA_MPI_Type_get_contents_c(int *datatype_f, int64_t *mi_f, int64_t *ma_f, int64_t *ml_f, int64_t *md_f,
                                    int *ints, intptr_t *addrs_f, int64_t *counts_f, int *types_f, int *ierror)
 {
+    struct VAPAA_MPI_F90_Datatype *f90 = VAPAA_MPI_F90_DATATYPE_FIND_HANDLE(*datatype_f);
+    if (f90 != NULL) {
+        int64_t needed = (f90->combiner == VAPAA_MPI_COMBINER_F90_INTEGER) ? 1 : 2;
+        if (*mi_f < needed || *ma_f != 0 || *ml_f != 0 || *md_f != 0) {
+            *ierror = C_MPI_ERROR_CODE_C2F(MPI_ERR_ARG);
+            return;
+        }
+        ints[0] = (f90->combiner == VAPAA_MPI_COMBINER_F90_INTEGER) ? f90->r : f90->p;
+        if (needed == 2) ints[1] = f90->r;
+        *ierror = MPI_SUCCESS;
+        return;
+    }
+
     int md = 0;
     MPI_Datatype datatype = C_MPI_TYPE_FROMINT(*datatype_f);
     *ierror = VAPAA_MPI_COUNT_TO_INT(*md_f, &md);
@@ -711,6 +854,9 @@ void VAPAA_MPI_Type_get_contents_c(int *datatype_f, int64_t *mi_f, int64_t *ma_f
     if (md > 0 && types == NULL) {
         *ierror = C_MPI_ERROR_CODE_C2F(MPI_ERR_NO_MEM);
         return;
+    }
+    for (int i = 0; i < md; ++i) {
+        types[i] = MPI_DATATYPE_NULL;
     }
 #if MPI_VERSION >= 4
     *ierror = MPI_Type_get_contents_c(datatype, (MPI_Count) *mi_f, (MPI_Count) *ma_f, (MPI_Count) *ml_f, (MPI_Count) *md_f,
@@ -760,8 +906,14 @@ void VAPAA_MPI_Type_get_value_index(int *value_type_f, int *index_type_f, int *p
 
 void VAPAA_MPI_Type_delete_attr(int *datatype_f, int *keyval, int *ierror)
 {
+    void *attrval = NULL;
+    int flag = 0;
     MPI_Datatype datatype = C_MPI_TYPE_FROMINT(*datatype_f);
+    (void) MPI_Type_get_attr(datatype, *keyval, &attrval, &flag);
     *ierror = MPI_Type_delete_attr(datatype, *keyval);
+    if (*ierror == MPI_SUCCESS && flag) {
+        VAPAA_MPI_Attr_forget(attrval);
+    }
     C_MPI_RC_FIX(*ierror);
 }
 
@@ -776,13 +928,17 @@ void VAPAA_MPI_Type_get_attr(int *datatype_f, int *keyval, intptr_t *attrval_f, 
     void *attrval = NULL;
     MPI_Datatype datatype = C_MPI_TYPE_FROMINT(*datatype_f);
     *ierror = MPI_Type_get_attr(datatype, *keyval, &attrval, flag);
-    *attrval_f = (intptr_t) attrval;
+    if (*ierror == MPI_SUCCESS && *flag && VAPAA_MPI_Attr_load_aint(attrval, attrval_f)) {
+        /* Fortran-set attributes are stored as C-visible integer storage. */
+    } else {
+        *attrval_f = (intptr_t) attrval;
+    }
     C_MPI_RC_FIX(*ierror);
 }
 
 void VAPAA_MPI_Type_set_attr(int *datatype_f, int *keyval, intptr_t *attrval_f, int *ierror)
 {
     MPI_Datatype datatype = C_MPI_TYPE_FROMINT(*datatype_f);
-    *ierror = MPI_Type_set_attr(datatype, *keyval, (void *) *attrval_f);
+    *ierror = MPI_Type_set_attr(datatype, *keyval, VAPAA_MPI_Attr_store_aint(*attrval_f));
     C_MPI_RC_FIX(*ierror);
 }

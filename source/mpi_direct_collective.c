@@ -9,6 +9,7 @@
 #include "convert_constants.h"
 #include "detect_builtins.h"
 #include "detect_sentinels.h"
+#include "cfi_util.h"
 #include "debug.h"
 
 static bool VAPAA_COLL_REJECT_USER_OP_WITH_BUILTIN_TYPE(MPI_Op op, MPI_Datatype datatype)
@@ -34,7 +35,7 @@ static void *VAPAA_COLL_IN_ADDR(CFI_cdesc_t *desc)
 
 static int VAPAA_COLL_REQUIRE_CONTIG1(CFI_cdesc_t *a, MPI_Comm comm)
 {
-    if (CFI_is_contiguous(a) == 1) {
+    if (VAPAA_CFI_is_contiguous(a) == 1) {
         return 1;
     }
     VAPAA_Warning("this MPI wrapper requires contiguous buffers.\n");
@@ -44,7 +45,7 @@ static int VAPAA_COLL_REQUIRE_CONTIG1(CFI_cdesc_t *a, MPI_Comm comm)
 
 static int VAPAA_COLL_REQUIRE_CONTIG2(CFI_cdesc_t *a, CFI_cdesc_t *b, MPI_Comm comm)
 {
-    if (CFI_is_contiguous(a) == 1 && CFI_is_contiguous(b) == 1) {
+    if (VAPAA_CFI_is_contiguous(a) == 1 && VAPAA_CFI_is_contiguous(b) == 1) {
         return 1;
     }
     VAPAA_Warning("this MPI wrapper requires contiguous buffers.\n");
@@ -76,6 +77,31 @@ static MPI_Aint *VAPAA_COLL_AINTS_FROM_INTPTR(const intptr_t aints_f[], int n)
         aints[i] = (MPI_Aint)aints_f[i];
     }
     return aints;
+}
+
+static int VAPAA_COLL_Alltoallw_in_place(void *buffer, const int recvcounts[],
+                                         const int rdispls[], const MPI_Datatype recvtypes[],
+                                         MPI_Comm comm)
+{
+    MPI_Comm p2p_comm = MPI_COMM_NULL;
+    int rank = 0, size = 0, rc = MPI_SUCCESS;
+
+    rc = MPI_Comm_dup(comm, &p2p_comm);
+    if (rc != MPI_SUCCESS) return rc;
+    rc = MPI_Comm_rank(p2p_comm, &rank);
+    if (rc == MPI_SUCCESS) rc = MPI_Comm_size(p2p_comm, &size);
+
+    for (int peer = 0; rc == MPI_SUCCESS && peer < size; ++peer) {
+        if (peer == rank || recvcounts[peer] == 0) {
+            continue;
+        }
+        char *addr = (char *)buffer + rdispls[peer];
+        rc = MPI_Sendrecv_replace(addr, recvcounts[peer], recvtypes[peer], peer, 0, peer, 0,
+                                  p2p_comm, MPI_STATUS_IGNORE);
+    }
+
+    int free_rc = MPI_Comm_free(&p2p_comm);
+    return rc == MPI_SUCCESS ? free_rc : rc;
 }
 
 static void VAPAA_COLL_NEIGHBOR_DEGREES(MPI_Comm comm, int *indegree, int *outdegree)
@@ -126,11 +152,16 @@ void VAPAA_MPI_Alltoallw(CFI_cdesc_t *sendbuf, const int sendcounts[], const int
     }
     int size = 0;
     (void)MPI_Comm_size(comm, &size);
-    MPI_Datatype *sendtypes = VAPAA_COLL_TYPES_FROMINT(sendtypes_f, size);
     MPI_Datatype *recvtypes = VAPAA_COLL_TYPES_FROMINT(recvtypes_f, size);
-    *ierror = MPI_Alltoallw(VAPAA_COLL_IN_ADDR(sendbuf), sendcounts, sdispls, sendtypes,
-                            VAPAA_COLL_ADDR(recvbuf), recvcounts, rdispls, recvtypes, comm);
-    free(sendtypes);
+    void *send_addr = VAPAA_COLL_IN_ADDR(sendbuf);
+    if (send_addr == MPI_IN_PLACE) {
+        *ierror = VAPAA_COLL_Alltoallw_in_place(VAPAA_COLL_ADDR(recvbuf), recvcounts, rdispls, recvtypes, comm);
+    } else {
+        MPI_Datatype *sendtypes = VAPAA_COLL_TYPES_FROMINT(sendtypes_f, size);
+        *ierror = MPI_Alltoallw(send_addr, sendcounts, sdispls, sendtypes,
+                                VAPAA_COLL_ADDR(recvbuf), recvcounts, rdispls, recvtypes, comm);
+        free(sendtypes);
+    }
     free(recvtypes);
     C_MPI_RC_FIX(*ierror);
 }

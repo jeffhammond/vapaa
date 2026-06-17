@@ -80,6 +80,15 @@ module mpi_global_constants
     integer, parameter :: MPI_IO              = VAPAA_MPI_IO
     integer, parameter :: MPI_HOST            = VAPAA_MPI_HOST
     integer, parameter :: MPI_WTIME_IS_GLOBAL = VAPAA_MPI_WTIME_IS_GLOBAL
+    integer, parameter :: MPI_APPNUM          = VAPAA_MPI_APPNUM
+    integer, parameter :: MPI_LASTUSEDCODE    = VAPAA_MPI_LASTUSEDCODE
+    integer, parameter :: MPI_UNIVERSE_SIZE   = VAPAA_MPI_UNIVERSE_SIZE
+
+    integer, parameter :: MPI_WIN_BASE          = VAPAA_MPI_WIN_BASE
+    integer, parameter :: MPI_WIN_DISP_UNIT     = VAPAA_MPI_WIN_DISP_UNIT
+    integer, parameter :: MPI_WIN_SIZE          = VAPAA_MPI_WIN_SIZE
+    integer, parameter :: MPI_WIN_CREATE_FLAVOR = VAPAA_MPI_WIN_CREATE_FLAVOR
+    integer, parameter :: MPI_WIN_MODEL         = VAPAA_MPI_WIN_MODEL
 
     ! 2.5.4 Named Constants
     ! The constants that are required to be compile-time constants
@@ -141,11 +150,16 @@ module mpi_global_constants
     integer, parameter :: MPI_SUBVERSION = 0
 
     integer, parameter :: MPI_STATUS_SIZE = 8
+    integer, parameter :: MPI_SOURCE      = 1
+    integer, parameter :: MPI_TAG         = 2
+    integer, parameter :: MPI_ERROR       = 3
 
     integer, parameter :: MPI_ADDRESS_KIND = c_intptr_t
     integer, parameter :: MPI_COUNT_KIND   = c_int64_t
     integer, parameter :: MPI_INTEGER_KIND = c_int
     integer, parameter :: MPI_OFFSET_KIND  = c_int64_t
+
+    integer(kind=MPI_OFFSET_KIND), parameter :: MPI_DISPLACEMENT_CURRENT = VAPAA_MPI_DISPLACEMENT_CURRENT
 
     ! this requires work...
     logical, parameter :: MPI_SUBARRAYS_SUPPORTED        = .false.

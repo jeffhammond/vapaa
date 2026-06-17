@@ -13,6 +13,10 @@ module mpi_handle_operators
     end interface
 
     interface operator (==)
+        module procedure F_MPI_Handle_Errhandler_eq
+    end interface
+
+    interface operator (==)
         module procedure F_MPI_Handle_File_eq
     end interface
 
@@ -37,6 +41,10 @@ module mpi_handle_operators
     end interface
 
     interface operator (==)
+        module procedure F_MPI_Handle_Session_eq
+    end interface
+
+    interface operator (==)
         module procedure F_MPI_Handle_Win_eq
     end interface
 
@@ -46,6 +54,10 @@ module mpi_handle_operators
 
     interface operator (/=)
         module procedure F_MPI_Handle_Datatype_ne
+    end interface
+
+    interface operator (/=)
+        module procedure F_MPI_Handle_Errhandler_ne
     end interface
 
     interface operator (/=)
@@ -73,6 +85,10 @@ module mpi_handle_operators
     end interface
 
     interface operator (/=)
+        module procedure F_MPI_Handle_Session_ne
+    end interface
+
+    interface operator (/=)
         module procedure F_MPI_Handle_Win_ne
     end interface
 
@@ -91,6 +107,13 @@ module mpi_handle_operators
             logical :: r
             r = (a % MPI_VAL) .eq. (b % MPI_VAL)
         end function F_MPI_Handle_Datatype_eq
+
+        pure function F_MPI_Handle_Errhandler_eq(a,b) result (r)
+            use mpi_handle_types, only: MPI_Errhandler
+            type(MPI_Errhandler), intent(in) :: a,b
+            logical :: r
+            r = (a % MPI_VAL) .eq. (b % MPI_VAL)
+        end function F_MPI_Handle_Errhandler_eq
 
         pure function F_MPI_Handle_File_eq(a,b) result (r)
             use mpi_handle_types, only: MPI_File
@@ -134,6 +157,13 @@ module mpi_handle_operators
             r = (a % MPI_VAL) .eq. (b % MPI_VAL)
         end function F_MPI_Handle_Request_eq
 
+        pure function F_MPI_Handle_Session_eq(a,b) result (r)
+            use mpi_handle_types, only: MPI_Session
+            type(MPI_Session), intent(in) :: a,b
+            logical :: r
+            r = (a % MPI_VAL) .eq. (b % MPI_VAL)
+        end function F_MPI_Handle_Session_eq
+
         pure function F_MPI_Handle_Win_eq(a,b) result (r)
             use mpi_handle_types, only: MPI_Win
             type(MPI_Win), intent(in) :: a,b
@@ -154,6 +184,13 @@ module mpi_handle_operators
             logical :: r
             r = (a % MPI_VAL) .ne. (b % MPI_VAL)
         end function F_MPI_Handle_Datatype_ne
+
+        pure function F_MPI_Handle_Errhandler_ne(a,b) result (r)
+            use mpi_handle_types, only: MPI_Errhandler
+            type(MPI_Errhandler), intent(in) :: a,b
+            logical :: r
+            r = (a % MPI_VAL) .ne. (b % MPI_VAL)
+        end function F_MPI_Handle_Errhandler_ne
 
         pure function F_MPI_Handle_File_ne(a,b) result (r)
             use mpi_handle_types, only: MPI_File
@@ -197,6 +234,13 @@ module mpi_handle_operators
             r = (a % MPI_VAL) .ne. (b % MPI_VAL)
         end function F_MPI_Handle_Request_ne
 
+        pure function F_MPI_Handle_Session_ne(a,b) result (r)
+            use mpi_handle_types, only: MPI_Session
+            type(MPI_Session), intent(in) :: a,b
+            logical :: r
+            r = (a % MPI_VAL) .ne. (b % MPI_VAL)
+        end function F_MPI_Handle_Session_ne
+
         pure function F_MPI_Handle_Win_ne(a,b) result (r)
             use mpi_handle_types, only: MPI_Win
             type(MPI_Win), intent(in) :: a,b
@@ -233,4 +277,3 @@ end module mpi_handle_operators
 ! 
 ! done
 ! 
-

@@ -58,9 +58,17 @@ module mpi_core_f
         module procedure MPI_Wtime_f08
     end interface MPI_Wtime
 
+    interface PMPI_Wtime
+        module procedure PMPI_Wtime_f08
+    end interface PMPI_Wtime
+
     interface MPI_Wtick
         module procedure MPI_Wtick_f08
     end interface MPI_Wtick
+
+    interface PMPI_Wtick
+        module procedure PMPI_Wtick_f08
+    end interface PMPI_Wtick
 
     interface MPI_Pcontrol
         module procedure MPI_Pcontrol_f08
@@ -310,6 +318,16 @@ module mpi_core_f
             double precision :: time
             time = C_MPI_Wtick()
         end function MPI_Wtick_f08
+
+        function PMPI_Wtime_f08() result(time)
+            double precision :: time
+            time = MPI_Wtime_f08()
+        end function PMPI_Wtime_f08
+
+        function PMPI_Wtick_f08() result(time)
+            double precision :: time
+            time = MPI_Wtick_f08()
+        end function PMPI_Wtick_f08
 
         subroutine MPI_Pcontrol_f08(level, ierror)
             use mpi_core_c, only: C_MPI_Pcontrol

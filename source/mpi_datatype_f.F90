@@ -19,30 +19,42 @@ module mpi_datatype_f
     type(MPI_Datatype), parameter :: MPI_INTEGER2               = MPI_Datatype(MPI_VAL = VAPAA_MPI_INTEGER2)
     type(MPI_Datatype), parameter :: MPI_INTEGER4               = MPI_Datatype(MPI_VAL = VAPAA_MPI_INTEGER4)
     type(MPI_Datatype), parameter :: MPI_INTEGER8               = MPI_Datatype(MPI_VAL = VAPAA_MPI_INTEGER8)
-#if HAVE_MPI_INTEGER16
+#ifdef HAVE_MPI_INTEGER16
     type(MPI_Datatype), parameter :: MPI_INTEGER16              = MPI_Datatype(MPI_VAL = VAPAA_MPI_INTEGER16)
+#else
+    type(MPI_Datatype), parameter :: MPI_INTEGER16              = MPI_Datatype(MPI_VAL = VAPAA_MPI_DATATYPE_NULL)
 #endif
 #ifdef HAVE_MPI_REAL2
     type(MPI_Datatype), parameter :: MPI_REAL2                  = MPI_Datatype(MPI_VAL = VAPAA_MPI_REAL2)
+#else
+    type(MPI_Datatype), parameter :: MPI_REAL2                  = MPI_Datatype(MPI_VAL = VAPAA_MPI_DATATYPE_NULL)
 #endif
     type(MPI_Datatype), parameter :: MPI_REAL4                  = MPI_Datatype(MPI_VAL = VAPAA_MPI_REAL4)
     type(MPI_Datatype), parameter :: MPI_REAL8                  = MPI_Datatype(MPI_VAL = VAPAA_MPI_REAL8)
 #ifdef HAVE_MPI_REAL16
     type(MPI_Datatype), parameter :: MPI_REAL16                 = MPI_Datatype(MPI_VAL = VAPAA_MPI_REAL16)
+#else
+    type(MPI_Datatype), parameter :: MPI_REAL16                 = MPI_Datatype(MPI_VAL = VAPAA_MPI_DATATYPE_NULL)
 #endif
 #ifdef HAVE_MPI_COMPLEX4
     type(MPI_Datatype), parameter :: MPI_COMPLEX4               = MPI_Datatype(MPI_VAL = VAPAA_MPI_COMPLEX4)
+#else
+    type(MPI_Datatype), parameter :: MPI_COMPLEX4               = MPI_Datatype(MPI_VAL = VAPAA_MPI_DATATYPE_NULL)
 #endif
     type(MPI_Datatype), parameter :: MPI_COMPLEX8               = MPI_Datatype(MPI_VAL = VAPAA_MPI_COMPLEX8)
     type(MPI_Datatype), parameter :: MPI_COMPLEX16              = MPI_Datatype(MPI_VAL = VAPAA_MPI_COMPLEX16)
 #ifdef HAVE_MPI_COMPLEX32
     type(MPI_Datatype), parameter :: MPI_COMPLEX32              = MPI_Datatype(MPI_VAL = VAPAA_MPI_COMPLEX32)
+#else
+    type(MPI_Datatype), parameter :: MPI_COMPLEX32              = MPI_Datatype(MPI_VAL = VAPAA_MPI_DATATYPE_NULL)
 #endif
 
     ! these are language-agnostic
     type(MPI_Datatype), parameter :: MPI_AINT                        = MPI_Datatype(MPI_VAL = VAPAA_MPI_AINT)
     type(MPI_Datatype), parameter :: MPI_COUNT                       = MPI_Datatype(MPI_VAL = VAPAA_MPI_COUNT)
     type(MPI_Datatype), parameter :: MPI_OFFSET                      = MPI_Datatype(MPI_VAL = VAPAA_MPI_OFFSET)
+    type(MPI_Datatype), parameter :: MPI_LB                          = MPI_Datatype(MPI_VAL = VAPAA_MPI_LB)
+    type(MPI_Datatype), parameter :: MPI_UB                          = MPI_Datatype(MPI_VAL = VAPAA_MPI_UB)
     type(MPI_Datatype), parameter :: MPI_PACKED                      = MPI_Datatype(MPI_VAL = VAPAA_MPI_PACKED)
 
     ! C and C++ types are less likely
