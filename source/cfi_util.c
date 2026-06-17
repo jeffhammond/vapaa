@@ -5,6 +5,7 @@
 #include <stdbool.h>
 #include <string.h>
 #include <limits.h>
+#include <stdint.h>
 
 #include <mpi.h>
 
@@ -12,6 +13,12 @@
 #include "debug.h"
 
 #define MAYBE_UNUSED __attribute__((unused))
+
+#if defined(MPICH) && defined(MPICH_NUMVERSION) && (MPICH_NUMVERSION > 40200000)
+#define VAPAA_HAVE_MPIX_IOV 1
+#else
+#define VAPAA_HAVE_MPIX_IOV 0
+#endif
 
 static ssize_t VAPAA_CFI_GET_TOTAL_ELEMENTS(const CFI_cdesc_t * desc)
 {
@@ -45,55 +52,129 @@ static bool VAPAA_MPI_DATATYPE_IS_CONTIGUOUS(MPI_Datatype t)
 }
 #endif
 
-// return void* so we do not have to define MPIX_Iov when this function does not work anyways
-static void * VAPAA_CREATE_MPIX_IOV(MPI_Datatype dt, size_t * total_len, size_t * total_bytes)
+typedef struct {
+    MPI_Aint iov_base;
+    MPI_Aint iov_len;
+} VAPAA_Iov;
+
+typedef struct {
+    VAPAA_Iov *iov;
+    size_t len;
+    size_t cap;
+} VAPAA_Iov_list;
+
+typedef struct {
+    MPI_Count ni;
+    MPI_Count na;
+    MPI_Count nl;
+    MPI_Count nd;
+    int combiner;
+    int *ints;
+    MPI_Aint *addrs;
+    MPI_Count *counts;
+    MPI_Datatype *types;
+} VAPAA_Datatype_contents;
+
+static int VAPAA_COUNT_TO_SIZE(MPI_Count count, size_t *size)
 {
-#if defined(MPICH) && defined(MPICH_NUMVERSION) && (MPICH_NUMVERSION > 40200000)
-    int rc;
-    MPI_Count max_iov_bytes=INT_MAX;    // upper bound on the size of the returned iov array (arbitrary for VAPAA)
-    MPI_Count iov_len;                  // how many MPIX_Iov fit into the above
-    MPI_Count actual_iov_bytes;         // real size of the iov array to be returned
-    rc = MPIX_Type_iov_len(dt, max_iov_bytes, &iov_len, &actual_iov_bytes);
-    VAPAA_Assert(rc == MPI_SUCCESS);
-
-    MPIX_Iov * iov = malloc(iov_len * sizeof(MPIX_Iov));
-    VAPAA_Assert(iov != NULL);
-
-    MPI_Count actual_iov_len;
-    rc = MPIX_Type_iov(dt, 0, iov, iov_len, &actual_iov_len);
-    VAPAA_Assert(rc == MPI_SUCCESS);
-
-    *total_len   = (size_t)actual_iov_len;
-    *total_bytes = (size_t)actual_iov_bytes;
-
-#if 0
-    printf("IOV: actual_iov_len=%zd actual_iov_bytes=%zd\n",
-            (size_t)actual_iov_len, (size_t)actual_iov_bytes);
-#endif
-
-#if 0
-    if (iov[0].iov_base != 0) {
-        VAPAA_Warning("MPIX_Iov iov_base (%p) is not zero, which is not supported.\n", iov[0].iov_base);
-        free(iov);
-        return NULL;
+    if (count < 0 || (uint64_t) count > (uint64_t) SIZE_MAX) {
+        return MPI_ERR_COUNT;
     }
-#endif
-
-    return iov;
-#else
-    (void)dt;
-    (void)total_len;
-    (void)total_bytes;
-    #ifdef MPICH_NUMVERSION
-        #warning MPICH too old
-        VAPAA_Warning("MPICH %s does not have MPIX_Iov support",MPICH_NUMVERSION);
-    #else
-        #warning Not MPICH
-        VAPAA_Warning("Not MPICH so no MPIX_Iov support");
-    #endif
-    return NULL;
-#endif
+    *size = (size_t) count;
+    return MPI_SUCCESS;
 }
+
+static int VAPAA_CALLOC_COUNT(MPI_Count count, size_t elem_size, void **ptr)
+{
+    size_t n = 0;
+    int rc = VAPAA_COUNT_TO_SIZE(count, &n);
+    if (rc != MPI_SUCCESS) {
+        return rc;
+    }
+    if (n == 0) {
+        *ptr = NULL;
+        return MPI_SUCCESS;
+    }
+    if (n > SIZE_MAX / elem_size) {
+        return MPI_ERR_NO_MEM;
+    }
+    *ptr = calloc(n, elem_size);
+    return (*ptr == NULL) ? MPI_ERR_NO_MEM : MPI_SUCCESS;
+}
+
+static int VAPAA_IOV_RESERVE(VAPAA_Iov_list *list, size_t needed)
+{
+    if (needed <= list->cap) {
+        return MPI_SUCCESS;
+    }
+
+    size_t cap = (list->cap == 0) ? 16 : list->cap;
+    while (cap < needed) {
+        if (cap > SIZE_MAX / 2) {
+            return MPI_ERR_NO_MEM;
+        }
+        cap *= 2;
+    }
+
+    VAPAA_Iov *iov = realloc(list->iov, cap * sizeof(*iov));
+    if (iov == NULL) {
+        return MPI_ERR_NO_MEM;
+    }
+    list->iov = iov;
+    list->cap = cap;
+    return MPI_SUCCESS;
+}
+
+static int VAPAA_IOV_APPEND(VAPAA_Iov_list *list, MPI_Aint base, MPI_Aint len)
+{
+    if (len == 0) {
+        return MPI_SUCCESS;
+    }
+    if (len < 0) {
+        return MPI_ERR_ARG;
+    }
+
+    if (list->len > 0) {
+        VAPAA_Iov *last = &list->iov[list->len - 1];
+        if (last->iov_base + last->iov_len == base) {
+            last->iov_len += len;
+            return MPI_SUCCESS;
+        }
+    }
+
+    int rc = VAPAA_IOV_RESERVE(list, list->len + 1);
+    if (rc != MPI_SUCCESS) {
+        return rc;
+    }
+    list->iov[list->len].iov_base = base;
+    list->iov[list->len].iov_len = len;
+    list->len++;
+    return MPI_SUCCESS;
+}
+
+static int VAPAA_IOV_APPEND_SHIFTED(VAPAA_Iov_list *out, const VAPAA_Iov_list *in, MPI_Aint shift)
+{
+    for (size_t i = 0; i < in->len; i++) {
+        int rc = VAPAA_IOV_APPEND(out, in->iov[i].iov_base + shift, in->iov[i].iov_len);
+        if (rc != MPI_SUCCESS) {
+            return rc;
+        }
+    }
+    return MPI_SUCCESS;
+}
+
+static void VAPAA_IOV_FREE(VAPAA_Iov_list *list)
+{
+    free(list->iov);
+    list->iov = NULL;
+    list->len = 0;
+    list->cap = 0;
+}
+
+static int VAPAA_CREATE_STANDARD_IOV(MPI_Datatype dt, VAPAA_Iov **iov,
+                                     size_t *actual_iov_len, size_t *actual_iov_bytes);
+static int VAPAA_CREATE_DATATYPE_IOV(MPI_Datatype dt, VAPAA_Iov **iov,
+                                     size_t *actual_iov_len, size_t *actual_iov_bytes);
 
 static void VAPAA_CFI_GET_TYPE_NAME(CFI_type_t type, char * name)
 {
@@ -142,29 +223,21 @@ static void VAPAA_CFI_GET_TYPE_NAME(CFI_type_t type, char * name)
 MAYBE_UNUSED
 static int VAPAA_MPIDT_PRINT_INFO(MPI_Datatype dt)
 {
-#if defined(MPICH) && defined(MPICH_NUMVERSION) && (MPICH_NUMVERSION > 40200000)
-    size_t actual_iov_len, total_bytes;
-    MPIX_Iov * iov = VAPAA_CREATE_MPIX_IOV(dt, &actual_iov_len, &total_bytes);
-    VAPAA_Assert(iov != NULL);
+    size_t actual_iov_len = 0;
+    size_t total_bytes = 0;
+    VAPAA_Iov *iov = NULL;
+    int rc = VAPAA_CREATE_DATATYPE_IOV(dt, &iov, &actual_iov_len, &total_bytes);
+    if (rc != MPI_SUCCESS) {
+        return rc;
+    }
 
     for (size_t i=0; i < actual_iov_len; i++) {
-        printf("iov[%zu] = { .iov_base = %p = %zd .iov_len = %zu }\n",
-                i, iov[i].iov_base, (intptr_t)iov[i].iov_base, iov[i].iov_len );
+        printf("iov[%zu] = { .iov_base = %zd .iov_len = %zd }\n",
+               i, (ptrdiff_t) iov[i].iov_base, (ptrdiff_t) iov[i].iov_len);
     }
     free(iov);
 
     return MPI_SUCCESS;
-#else
-    (void)dt;
-    #ifdef MPICH_NUMVERSION
-        #warning MPICH too old
-        VAPAA_Warning("MPICH %s does not have MPIX_Iov support",MPICH_NUMVERSION);
-    #else
-        #warning Not MPICH
-        VAPAA_Warning("Not MPICH so no MPIX_Iov support");
-    #endif
-    return MPI_ERR_INTERN;
-#endif
 }
 
 static MPI_Datatype VAPAA_CFI_TO_MPI_TYPE(CFI_type_t type)
@@ -194,6 +267,723 @@ static void VAPAA_CFI_GET_TYPE_ATTRIBUTE(CFI_attribute_t attribute, char * name)
     else if (attribute==CFI_attribute_other)       snprintf(name,32,"%s", "nonallocatable nonpointer");
     else                                           snprintf(name,32,"%s", "unknown CFI type attribute");
 
+}
+
+static int VAPAA_MPI_COUNT_TO_AINT(MPI_Count in, MPI_Aint *out)
+{
+    MPI_Aint tmp = (MPI_Aint) in;
+    if ((MPI_Count) tmp != in) {
+        return MPI_ERR_COUNT;
+    }
+    *out = tmp;
+    return MPI_SUCCESS;
+}
+
+static int VAPAA_DTYPE_GET_EXTENT(MPI_Datatype datatype, MPI_Aint *extent)
+{
+    MPI_Aint lb = 0;
+    int rc = PMPI_Type_get_extent(datatype, &lb, extent);
+    (void) lb;
+    return rc;
+}
+
+static int VAPAA_DTYPE_GET_SIZE(MPI_Datatype datatype, MPI_Aint *size)
+{
+#if MPI_VERSION >= 3
+    MPI_Count count_size = 0;
+    int rc = PMPI_Type_size_x(datatype, &count_size);
+    if (rc != MPI_SUCCESS) {
+        return rc;
+    }
+    return VAPAA_MPI_COUNT_TO_AINT(count_size, size);
+#else
+    int int_size = 0;
+    int rc = PMPI_Type_size(datatype, &int_size);
+    if (rc != MPI_SUCCESS) {
+        return rc;
+    }
+    *size = int_size;
+    return MPI_SUCCESS;
+#endif
+}
+
+static int VAPAA_DTYPE_GET_CONTENTS(MPI_Datatype datatype, VAPAA_Datatype_contents *contents)
+{
+    memset(contents, 0, sizeof(*contents));
+
+#if MPI_VERSION >= 4
+    int rc = PMPI_Type_get_envelope_c(datatype, &contents->ni, &contents->na,
+                                      &contents->nl, &contents->nd, &contents->combiner);
+#else
+    int ni = 0;
+    int na = 0;
+    int nd = 0;
+    int rc = PMPI_Type_get_envelope(datatype, &ni, &na, &nd, &contents->combiner);
+    contents->ni = ni;
+    contents->na = na;
+    contents->nd = nd;
+#endif
+    if (rc != MPI_SUCCESS || contents->combiner == MPI_COMBINER_NAMED) {
+        return rc;
+    }
+
+    rc = VAPAA_CALLOC_COUNT(contents->ni, sizeof(*contents->ints), (void **) &contents->ints);
+    if (rc != MPI_SUCCESS) {
+        return rc;
+    }
+    rc = VAPAA_CALLOC_COUNT(contents->na, sizeof(*contents->addrs), (void **) &contents->addrs);
+    if (rc != MPI_SUCCESS) {
+        return rc;
+    }
+    rc = VAPAA_CALLOC_COUNT(contents->nl, sizeof(*contents->counts), (void **) &contents->counts);
+    if (rc != MPI_SUCCESS) {
+        return rc;
+    }
+    rc = VAPAA_CALLOC_COUNT(contents->nd, sizeof(*contents->types), (void **) &contents->types);
+    if (rc != MPI_SUCCESS) {
+        return rc;
+    }
+
+#if MPI_VERSION >= 4
+    rc = PMPI_Type_get_contents_c(datatype, contents->ni, contents->na, contents->nl, contents->nd,
+                                  contents->ints, contents->addrs, contents->counts, contents->types);
+#else
+    rc = PMPI_Type_get_contents(datatype, (int) contents->ni, (int) contents->na, (int) contents->nd,
+                                contents->ints, contents->addrs, contents->types);
+#endif
+    return rc;
+}
+
+static void VAPAA_DTYPE_CONTENTS_RELEASE(VAPAA_Datatype_contents *contents)
+{
+    if (contents->types != NULL) {
+        for (MPI_Count i = 0; i < contents->nd; i++) {
+            if (contents->types[i] != MPI_DATATYPE_NULL &&
+                !VAPAA_MPI_DATATYPE_IS_BUILTIN(contents->types[i])) {
+                MPI_Datatype type = contents->types[i];
+                int rc = PMPI_Type_free(&type);
+                VAPAA_Assert(rc == MPI_SUCCESS);
+            }
+        }
+    }
+    free(contents->ints);
+    free(contents->addrs);
+    free(contents->counts);
+    free(contents->types);
+    memset(contents, 0, sizeof(*contents));
+}
+
+static MPI_Count VAPAA_CONTENT_ARG(const VAPAA_Datatype_contents *contents, MPI_Count i)
+{
+    return (contents->nl > 0) ? contents->counts[i] : (MPI_Count) contents->ints[i];
+}
+
+static int VAPAA_DTYPE_APPEND_REPEATED(VAPAA_Iov_list *out, const VAPAA_Iov_list *child,
+                                       MPI_Count count, MPI_Count blocklength,
+                                       MPI_Aint stride, MPI_Aint old_extent, MPI_Aint base)
+{
+    if (count < 0 || blocklength < 0) {
+        return MPI_ERR_COUNT;
+    }
+
+    for (MPI_Count i = 0; i < count; i++) {
+        for (MPI_Count j = 0; j < blocklength; j++) {
+            MPI_Aint shift = base + (MPI_Aint) i * stride + (MPI_Aint) j * old_extent;
+            int rc = VAPAA_IOV_APPEND_SHIFTED(out, child, shift);
+            if (rc != MPI_SUCCESS) {
+                return rc;
+            }
+        }
+    }
+    return MPI_SUCCESS;
+}
+
+static int VAPAA_DTYPE_FLATTEN_RECURSE(MPI_Datatype datatype, VAPAA_Iov_list *out, int depth);
+
+static int VAPAA_DTYPE_FLATTEN_CHILD(MPI_Datatype datatype, VAPAA_Iov_list *child, int depth)
+{
+    memset(child, 0, sizeof(*child));
+    return VAPAA_DTYPE_FLATTEN_RECURSE(datatype, child, depth + 1);
+}
+
+static int VAPAA_DTYPE_FLATTEN_SUBARRAY(const VAPAA_Datatype_contents *contents,
+                                        VAPAA_Iov_list *out, int depth)
+{
+    int ndims = contents->ints[0];
+    if (ndims < 0) {
+        return MPI_ERR_DIMS;
+    }
+
+    int order = (contents->nl > 0) ? contents->ints[1] : contents->ints[1 + 3 * ndims];
+    if (order != MPI_ORDER_FORTRAN && order != MPI_ORDER_C) {
+        return MPI_ERR_ARG;
+    }
+
+    MPI_Count *sizes = NULL;
+    MPI_Count *subsizes = NULL;
+    MPI_Count *starts = NULL;
+    MPI_Count *strides = NULL;
+    MPI_Count *coords = NULL;
+    int rc = VAPAA_CALLOC_COUNT(ndims, sizeof(*sizes), (void **) &sizes);
+    if (rc != MPI_SUCCESS) {
+        goto fn_exit;
+    }
+    rc = VAPAA_CALLOC_COUNT(ndims, sizeof(*subsizes), (void **) &subsizes);
+    if (rc != MPI_SUCCESS) {
+        goto fn_exit;
+    }
+    rc = VAPAA_CALLOC_COUNT(ndims, sizeof(*starts), (void **) &starts);
+    if (rc != MPI_SUCCESS) {
+        goto fn_exit;
+    }
+    rc = VAPAA_CALLOC_COUNT(ndims, sizeof(*strides), (void **) &strides);
+    if (rc != MPI_SUCCESS) {
+        goto fn_exit;
+    }
+    rc = VAPAA_CALLOC_COUNT(ndims, sizeof(*coords), (void **) &coords);
+    if (rc != MPI_SUCCESS) {
+        goto fn_exit;
+    }
+
+    for (int i = 0; i < ndims; i++) {
+        if (contents->nl > 0) {
+            sizes[i] = contents->counts[i];
+            subsizes[i] = contents->counts[ndims + i];
+            starts[i] = contents->counts[2 * ndims + i];
+        } else {
+            sizes[i] = contents->ints[1 + i];
+            subsizes[i] = contents->ints[1 + ndims + i];
+            starts[i] = contents->ints[1 + 2 * ndims + i];
+        }
+        if (sizes[i] < 0 || subsizes[i] < 0 || starts[i] < 0) {
+            rc = MPI_ERR_ARG;
+            goto fn_exit;
+        }
+    }
+
+    if (ndims > 0) {
+        if (order == MPI_ORDER_FORTRAN) {
+            strides[0] = 1;
+            for (int i = 1; i < ndims; i++) {
+                strides[i] = strides[i - 1] * sizes[i - 1];
+            }
+        } else {
+            strides[ndims - 1] = 1;
+            for (int i = ndims - 2; i >= 0; i--) {
+                strides[i] = strides[i + 1] * sizes[i + 1];
+            }
+        }
+    }
+
+    VAPAA_Iov_list child = {0};
+    rc = VAPAA_DTYPE_FLATTEN_CHILD(contents->types[0], &child, depth);
+    if (rc != MPI_SUCCESS) {
+        VAPAA_IOV_FREE(&child);
+        goto fn_exit;
+    }
+
+    MPI_Aint old_extent = 0;
+    rc = VAPAA_DTYPE_GET_EXTENT(contents->types[0], &old_extent);
+    if (rc != MPI_SUCCESS) {
+        VAPAA_IOV_FREE(&child);
+        goto fn_exit;
+    }
+
+    MPI_Count total = 1;
+    for (int i = 0; i < ndims; i++) {
+        total *= subsizes[i];
+    }
+
+    for (MPI_Count n = 0; n < total; n++) {
+        MPI_Count rem = n;
+        if (order == MPI_ORDER_FORTRAN) {
+            for (int i = 0; i < ndims; i++) {
+                coords[i] = (subsizes[i] == 0) ? 0 : rem % subsizes[i];
+                rem = (subsizes[i] == 0) ? 0 : rem / subsizes[i];
+            }
+        } else {
+            for (int i = ndims - 1; i >= 0; i--) {
+                coords[i] = (subsizes[i] == 0) ? 0 : rem % subsizes[i];
+                rem = (subsizes[i] == 0) ? 0 : rem / subsizes[i];
+            }
+        }
+
+        MPI_Count linear = 0;
+        for (int i = 0; i < ndims; i++) {
+            linear += (starts[i] + coords[i]) * strides[i];
+        }
+
+        MPI_Aint linear_aint = 0;
+        rc = VAPAA_MPI_COUNT_TO_AINT(linear, &linear_aint);
+        if (rc != MPI_SUCCESS) {
+            VAPAA_IOV_FREE(&child);
+            goto fn_exit;
+        }
+        rc = VAPAA_IOV_APPEND_SHIFTED(out, &child, linear_aint * old_extent);
+        if (rc != MPI_SUCCESS) {
+            VAPAA_IOV_FREE(&child);
+            goto fn_exit;
+        }
+    }
+
+    VAPAA_IOV_FREE(&child);
+
+  fn_exit:
+    free(sizes);
+    free(subsizes);
+    free(starts);
+    free(strides);
+    free(coords);
+    return rc;
+}
+
+static int VAPAA_DTYPE_FLATTEN_RECURSE(MPI_Datatype datatype, VAPAA_Iov_list *out, int depth)
+{
+    if (depth > 64) {
+        return MPI_ERR_INTERN;
+    }
+
+    VAPAA_Datatype_contents contents;
+    int rc = VAPAA_DTYPE_GET_CONTENTS(datatype, &contents);
+    if (rc != MPI_SUCCESS) {
+        VAPAA_DTYPE_CONTENTS_RELEASE(&contents);
+        return rc;
+    }
+
+    if (contents.combiner == MPI_COMBINER_NAMED) {
+        MPI_Aint size = 0;
+        rc = VAPAA_DTYPE_GET_SIZE(datatype, &size);
+        if (rc == MPI_SUCCESS) {
+            rc = VAPAA_IOV_APPEND(out, 0, size);
+        }
+    } else if (contents.combiner == MPI_COMBINER_DUP ||
+               contents.combiner == MPI_COMBINER_RESIZED) {
+        rc = VAPAA_DTYPE_FLATTEN_RECURSE(contents.types[0], out, depth + 1);
+    } else if (contents.combiner == MPI_COMBINER_CONTIGUOUS) {
+        MPI_Count count = VAPAA_CONTENT_ARG(&contents, 0);
+        MPI_Aint old_extent = 0;
+        VAPAA_Iov_list child = {0};
+        rc = VAPAA_DTYPE_GET_EXTENT(contents.types[0], &old_extent);
+        if (rc == MPI_SUCCESS) {
+            rc = VAPAA_DTYPE_FLATTEN_CHILD(contents.types[0], &child, depth);
+        }
+        if (rc == MPI_SUCCESS) {
+            rc = VAPAA_DTYPE_APPEND_REPEATED(out, &child, count, 1, old_extent, old_extent, 0);
+        }
+        VAPAA_IOV_FREE(&child);
+    } else if (contents.combiner == MPI_COMBINER_VECTOR) {
+        MPI_Count count = VAPAA_CONTENT_ARG(&contents, 0);
+        MPI_Count blocklength = VAPAA_CONTENT_ARG(&contents, 1);
+        MPI_Count stride_count = VAPAA_CONTENT_ARG(&contents, 2);
+        MPI_Aint old_extent = 0;
+        MPI_Aint stride = 0;
+        VAPAA_Iov_list child = {0};
+        rc = VAPAA_DTYPE_GET_EXTENT(contents.types[0], &old_extent);
+        if (rc == MPI_SUCCESS) {
+            rc = VAPAA_MPI_COUNT_TO_AINT(stride_count, &stride);
+        }
+        if (rc == MPI_SUCCESS) {
+            rc = VAPAA_DTYPE_FLATTEN_CHILD(contents.types[0], &child, depth);
+        }
+        if (rc == MPI_SUCCESS) {
+            rc = VAPAA_DTYPE_APPEND_REPEATED(out, &child, count, blocklength,
+                                             stride * old_extent, old_extent, 0);
+        }
+        VAPAA_IOV_FREE(&child);
+    } else if (contents.combiner == MPI_COMBINER_HVECTOR) {
+        MPI_Count count = VAPAA_CONTENT_ARG(&contents, 0);
+        MPI_Count blocklength = VAPAA_CONTENT_ARG(&contents, 1);
+        MPI_Count stride_count = (contents.nl > 0) ? contents.counts[2] : 0;
+        MPI_Aint old_extent = 0;
+        MPI_Aint stride = 0;
+        VAPAA_Iov_list child = {0};
+        rc = VAPAA_DTYPE_GET_EXTENT(contents.types[0], &old_extent);
+        if (rc == MPI_SUCCESS) {
+            rc = (contents.nl > 0) ? VAPAA_MPI_COUNT_TO_AINT(stride_count, &stride) :
+                 ((stride = contents.addrs[0]), MPI_SUCCESS);
+        }
+        if (rc == MPI_SUCCESS) {
+            rc = VAPAA_DTYPE_FLATTEN_CHILD(contents.types[0], &child, depth);
+        }
+        if (rc == MPI_SUCCESS) {
+            rc = VAPAA_DTYPE_APPEND_REPEATED(out, &child, count, blocklength, stride, old_extent, 0);
+        }
+        VAPAA_IOV_FREE(&child);
+    } else if (contents.combiner == MPI_COMBINER_INDEXED) {
+        MPI_Count count = VAPAA_CONTENT_ARG(&contents, 0);
+        MPI_Aint old_extent = 0;
+        VAPAA_Iov_list child = {0};
+        rc = VAPAA_DTYPE_GET_EXTENT(contents.types[0], &old_extent);
+        if (rc == MPI_SUCCESS) {
+            rc = VAPAA_DTYPE_FLATTEN_CHILD(contents.types[0], &child, depth);
+        }
+        for (MPI_Count i = 0; rc == MPI_SUCCESS && i < count; i++) {
+            MPI_Count blocklength = VAPAA_CONTENT_ARG(&contents, 1 + i);
+            MPI_Count disp_count = VAPAA_CONTENT_ARG(&contents, 1 + count + i);
+            MPI_Aint disp = 0;
+            rc = VAPAA_MPI_COUNT_TO_AINT(disp_count, &disp);
+            if (rc == MPI_SUCCESS) {
+                rc = VAPAA_DTYPE_APPEND_REPEATED(out, &child, 1, blocklength,
+                                                 old_extent, old_extent, disp * old_extent);
+            }
+        }
+        VAPAA_IOV_FREE(&child);
+    } else if (contents.combiner == MPI_COMBINER_HINDEXED) {
+        MPI_Count count = VAPAA_CONTENT_ARG(&contents, 0);
+        MPI_Aint old_extent = 0;
+        VAPAA_Iov_list child = {0};
+        rc = VAPAA_DTYPE_GET_EXTENT(contents.types[0], &old_extent);
+        if (rc == MPI_SUCCESS) {
+            rc = VAPAA_DTYPE_FLATTEN_CHILD(contents.types[0], &child, depth);
+        }
+        for (MPI_Count i = 0; rc == MPI_SUCCESS && i < count; i++) {
+            MPI_Count blocklength = VAPAA_CONTENT_ARG(&contents, 1 + i);
+            MPI_Aint disp = 0;
+            if (contents.nl > 0) {
+                rc = VAPAA_MPI_COUNT_TO_AINT(contents.counts[1 + count + i], &disp);
+            } else {
+                disp = contents.addrs[i];
+            }
+            if (rc == MPI_SUCCESS) {
+                rc = VAPAA_DTYPE_APPEND_REPEATED(out, &child, 1, blocklength, old_extent, old_extent, disp);
+            }
+        }
+        VAPAA_IOV_FREE(&child);
+    } else if (contents.combiner == MPI_COMBINER_INDEXED_BLOCK) {
+        MPI_Count count = VAPAA_CONTENT_ARG(&contents, 0);
+        MPI_Count blocklength = VAPAA_CONTENT_ARG(&contents, 1);
+        MPI_Aint old_extent = 0;
+        VAPAA_Iov_list child = {0};
+        rc = VAPAA_DTYPE_GET_EXTENT(contents.types[0], &old_extent);
+        if (rc == MPI_SUCCESS) {
+            rc = VAPAA_DTYPE_FLATTEN_CHILD(contents.types[0], &child, depth);
+        }
+        for (MPI_Count i = 0; rc == MPI_SUCCESS && i < count; i++) {
+            MPI_Count disp_count = VAPAA_CONTENT_ARG(&contents, 2 + i);
+            MPI_Aint disp = 0;
+            rc = VAPAA_MPI_COUNT_TO_AINT(disp_count, &disp);
+            if (rc == MPI_SUCCESS) {
+                rc = VAPAA_DTYPE_APPEND_REPEATED(out, &child, 1, blocklength,
+                                                 old_extent, old_extent, disp * old_extent);
+            }
+        }
+        VAPAA_IOV_FREE(&child);
+#ifdef MPI_COMBINER_HINDEXED_BLOCK
+    } else if (contents.combiner == MPI_COMBINER_HINDEXED_BLOCK) {
+        MPI_Count count = VAPAA_CONTENT_ARG(&contents, 0);
+        MPI_Count blocklength = VAPAA_CONTENT_ARG(&contents, 1);
+        MPI_Aint old_extent = 0;
+        VAPAA_Iov_list child = {0};
+        rc = VAPAA_DTYPE_GET_EXTENT(contents.types[0], &old_extent);
+        if (rc == MPI_SUCCESS) {
+            rc = VAPAA_DTYPE_FLATTEN_CHILD(contents.types[0], &child, depth);
+        }
+        for (MPI_Count i = 0; rc == MPI_SUCCESS && i < count; i++) {
+            MPI_Aint disp = 0;
+            if (contents.nl > 0) {
+                rc = VAPAA_MPI_COUNT_TO_AINT(contents.counts[2 + i], &disp);
+            } else {
+                disp = contents.addrs[i];
+            }
+            if (rc == MPI_SUCCESS) {
+                rc = VAPAA_DTYPE_APPEND_REPEATED(out, &child, 1, blocklength, old_extent, old_extent, disp);
+            }
+        }
+        VAPAA_IOV_FREE(&child);
+#endif
+    } else if (contents.combiner == MPI_COMBINER_STRUCT) {
+        MPI_Count count = VAPAA_CONTENT_ARG(&contents, 0);
+        for (MPI_Count i = 0; rc == MPI_SUCCESS && i < count; i++) {
+            MPI_Count blocklength = VAPAA_CONTENT_ARG(&contents, 1 + i);
+            MPI_Aint disp = 0;
+            if (contents.nl > 0) {
+                rc = VAPAA_MPI_COUNT_TO_AINT(contents.counts[1 + count + i], &disp);
+            } else {
+                disp = contents.addrs[i];
+            }
+            MPI_Aint old_extent = 0;
+            VAPAA_Iov_list child = {0};
+            if (rc == MPI_SUCCESS) {
+                rc = VAPAA_DTYPE_GET_EXTENT(contents.types[i], &old_extent);
+            }
+            if (rc == MPI_SUCCESS) {
+                rc = VAPAA_DTYPE_FLATTEN_CHILD(contents.types[i], &child, depth);
+            }
+            if (rc == MPI_SUCCESS) {
+                rc = VAPAA_DTYPE_APPEND_REPEATED(out, &child, 1, blocklength, old_extent, old_extent, disp);
+            }
+            VAPAA_IOV_FREE(&child);
+        }
+    } else if (contents.combiner == MPI_COMBINER_SUBARRAY) {
+        rc = VAPAA_DTYPE_FLATTEN_SUBARRAY(&contents, out, depth);
+#if defined(MPICH) && defined(MPI_COMBINER_HVECTOR_INTEGER)
+    } else if (contents.combiner == MPI_COMBINER_HVECTOR_INTEGER) {
+        MPI_Count count = contents.ints[0];
+        MPI_Count blocklength = contents.ints[1];
+        MPI_Aint stride = contents.ints[2];
+        MPI_Aint old_extent = 0;
+        VAPAA_Iov_list child = {0};
+        rc = VAPAA_DTYPE_GET_EXTENT(contents.types[0], &old_extent);
+        if (rc == MPI_SUCCESS) {
+            rc = VAPAA_DTYPE_FLATTEN_CHILD(contents.types[0], &child, depth);
+        }
+        if (rc == MPI_SUCCESS) {
+            rc = VAPAA_DTYPE_APPEND_REPEATED(out, &child, count, blocklength, stride, old_extent, 0);
+        }
+        VAPAA_IOV_FREE(&child);
+#endif
+#if defined(MPICH) && defined(MPI_COMBINER_HINDEXED_INTEGER)
+    } else if (contents.combiner == MPI_COMBINER_HINDEXED_INTEGER) {
+        MPI_Count count = contents.ints[0];
+        MPI_Aint old_extent = 0;
+        VAPAA_Iov_list child = {0};
+        rc = VAPAA_DTYPE_GET_EXTENT(contents.types[0], &old_extent);
+        if (rc == MPI_SUCCESS) {
+            rc = VAPAA_DTYPE_FLATTEN_CHILD(contents.types[0], &child, depth);
+        }
+        for (MPI_Count i = 0; rc == MPI_SUCCESS && i < count; i++) {
+            MPI_Count blocklength = contents.ints[1 + i];
+            MPI_Aint disp = contents.ints[1 + count + i];
+            rc = VAPAA_DTYPE_APPEND_REPEATED(out, &child, 1, blocklength, old_extent, old_extent, disp);
+        }
+        VAPAA_IOV_FREE(&child);
+#endif
+#if defined(MPICH) && defined(MPI_COMBINER_STRUCT_INTEGER)
+    } else if (contents.combiner == MPI_COMBINER_STRUCT_INTEGER) {
+        MPI_Count count = contents.ints[0];
+        for (MPI_Count i = 0; rc == MPI_SUCCESS && i < count; i++) {
+            MPI_Count blocklength = contents.ints[1 + i];
+            MPI_Aint disp = contents.ints[1 + count + i];
+            MPI_Aint old_extent = 0;
+            VAPAA_Iov_list child = {0};
+            rc = VAPAA_DTYPE_GET_EXTENT(contents.types[i], &old_extent);
+            if (rc == MPI_SUCCESS) {
+                rc = VAPAA_DTYPE_FLATTEN_CHILD(contents.types[i], &child, depth);
+            }
+            if (rc == MPI_SUCCESS) {
+                rc = VAPAA_DTYPE_APPEND_REPEATED(out, &child, 1, blocklength, old_extent, old_extent, disp);
+            }
+            VAPAA_IOV_FREE(&child);
+        }
+#endif
+    } else if (contents.combiner == MPI_COMBINER_F90_REAL ||
+               contents.combiner == MPI_COMBINER_F90_COMPLEX ||
+               contents.combiner == MPI_COMBINER_F90_INTEGER
+#ifdef MPI_COMBINER_VALUE_INDEX
+               || contents.combiner == MPI_COMBINER_VALUE_INDEX
+#endif
+              ) {
+        MPI_Aint size = 0;
+        rc = VAPAA_DTYPE_GET_SIZE(datatype, &size);
+        if (rc == MPI_SUCCESS) {
+            rc = VAPAA_IOV_APPEND(out, 0, size);
+        }
+    } else {
+        VAPAA_Warning("Unsupported datatype combiner in standard IOV decoder: %d\n",
+                      contents.combiner);
+        rc = MPI_ERR_TYPE;
+    }
+
+    VAPAA_DTYPE_CONTENTS_RELEASE(&contents);
+    return rc;
+}
+
+static int VAPAA_CREATE_STANDARD_IOV(MPI_Datatype dt, VAPAA_Iov **iov,
+                                     size_t *actual_iov_len, size_t *actual_iov_bytes)
+{
+    VAPAA_Iov_list list = {0};
+    int rc = VAPAA_DTYPE_FLATTEN_RECURSE(dt, &list, 0);
+    if (rc != MPI_SUCCESS) {
+        VAPAA_IOV_FREE(&list);
+        return rc;
+    }
+
+    size_t total_bytes = 0;
+    for (size_t i = 0; i < list.len; i++) {
+        if ((uint64_t) list.iov[i].iov_len > (uint64_t) (SIZE_MAX - total_bytes)) {
+            VAPAA_IOV_FREE(&list);
+            return MPI_ERR_COUNT;
+        }
+        total_bytes += (size_t) list.iov[i].iov_len;
+    }
+
+    *iov = list.iov;
+    *actual_iov_len = list.len;
+    *actual_iov_bytes = total_bytes;
+    return MPI_SUCCESS;
+}
+
+MAYBE_UNUSED
+static bool VAPAA_ENV_IS_ENABLED(const char *name)
+{
+    const char *value = getenv(name);
+    return value != NULL && value[0] != '\0' && strcmp(value, "0") != 0;
+}
+
+MAYBE_UNUSED
+static int VAPAA_COMPARE_IOV(const char *left_name, const VAPAA_Iov *left_iov,
+                             size_t left_iov_len, size_t left_iov_bytes,
+                             const char *right_name, const VAPAA_Iov *right_iov,
+                             size_t right_iov_len, size_t right_iov_bytes)
+{
+    if (left_iov_len != right_iov_len || left_iov_bytes != right_iov_bytes) {
+        VAPAA_Warning("%s/%s IOV length/bytes mismatch: %s=(%zu,%zu) %s=(%zu,%zu)\n",
+                      left_name, right_name, left_name, left_iov_len, left_iov_bytes,
+                      right_name, right_iov_len, right_iov_bytes);
+        return MPI_ERR_INTERN;
+    }
+
+    for (size_t i = 0; i < left_iov_len; i++) {
+        if (left_iov[i].iov_base != right_iov[i].iov_base ||
+            left_iov[i].iov_len != right_iov[i].iov_len) {
+            VAPAA_Warning("%s/%s IOV mismatch at %zu: %s=(%zd,%zd) %s=(%zd,%zd)\n",
+                          left_name, right_name, i,
+                          left_name, (ptrdiff_t) left_iov[i].iov_base,
+                          (ptrdiff_t) left_iov[i].iov_len,
+                          right_name, (ptrdiff_t) right_iov[i].iov_base,
+                          (ptrdiff_t) right_iov[i].iov_len);
+            return MPI_ERR_INTERN;
+        }
+    }
+
+    return MPI_SUCCESS;
+}
+
+#if VAPAA_HAVE_MPIX_IOV
+static int VAPAA_CREATE_MPIX_IOV(MPI_Datatype dt, VAPAA_Iov **iov,
+                                 size_t *actual_iov_len, size_t *actual_iov_bytes)
+{
+    MPI_Count type_size = 0;
+    int rc = PMPI_Type_size_x(dt, &type_size);
+    if (rc != MPI_SUCCESS) {
+        return rc;
+    }
+
+    MPI_Count mpich_iov_len = 0;
+    MPI_Count mpich_iov_bytes = 0;
+    rc = MPIX_Type_iov_len(dt, type_size, &mpich_iov_len, &mpich_iov_bytes);
+    if (rc != MPI_SUCCESS) {
+        return rc;
+    }
+    if (mpich_iov_bytes != type_size) {
+        return MPI_ERR_COUNT;
+    }
+
+    size_t mpich_len = 0;
+    rc = VAPAA_COUNT_TO_SIZE(mpich_iov_len, &mpich_len);
+    if (rc != MPI_SUCCESS) {
+        return rc;
+    }
+
+    MPIX_Iov *mpich_iov = NULL;
+    if (mpich_len > 0) {
+        mpich_iov = calloc(mpich_len, sizeof(*mpich_iov));
+        if (mpich_iov == NULL) {
+            return MPI_ERR_NO_MEM;
+        }
+    }
+
+    MPI_Count returned_iov_len = 0;
+    if (mpich_len > 0) {
+        rc = MPIX_Type_iov(dt, 0, mpich_iov, mpich_iov_len, &returned_iov_len);
+        if (rc != MPI_SUCCESS) {
+            free(mpich_iov);
+            return rc;
+        }
+    }
+    if (returned_iov_len != mpich_iov_len) {
+        free(mpich_iov);
+        return MPI_ERR_INTERN;
+    }
+
+    VAPAA_Iov *out_iov = NULL;
+    if (mpich_len > 0) {
+        out_iov = calloc(mpich_len, sizeof(*out_iov));
+        if (out_iov == NULL) {
+            free(mpich_iov);
+            return MPI_ERR_NO_MEM;
+        }
+    }
+
+    for (size_t i = 0; i < mpich_len; i++) {
+        out_iov[i].iov_base = (MPI_Aint) (intptr_t) mpich_iov[i].iov_base;
+        out_iov[i].iov_len = mpich_iov[i].iov_len;
+    }
+
+    free(mpich_iov);
+
+    size_t total_bytes = 0;
+    rc = VAPAA_COUNT_TO_SIZE(mpich_iov_bytes, &total_bytes);
+    if (rc != MPI_SUCCESS) {
+        free(out_iov);
+        return rc;
+    }
+
+    *iov = out_iov;
+    *actual_iov_len = mpich_len;
+    *actual_iov_bytes = total_bytes;
+    return MPI_SUCCESS;
+}
+#endif
+
+static int VAPAA_CREATE_DATATYPE_IOV(MPI_Datatype dt, VAPAA_Iov **iov,
+                                     size_t *actual_iov_len, size_t *actual_iov_bytes)
+{
+#if VAPAA_HAVE_MPIX_IOV
+    /* Native MPICH keeps the MPIX fast path unless debugging asks otherwise. */
+    const bool force_standard = VAPAA_ENV_IS_ENABLED("VAPAA_FORCE_STANDARD_IOV");
+    const bool compare_iov = VAPAA_ENV_IS_ENABLED("VAPAA_COMPARE_MPIX_IOV");
+
+    if (!compare_iov) {
+        if (force_standard) {
+            return VAPAA_CREATE_STANDARD_IOV(dt, iov, actual_iov_len, actual_iov_bytes);
+        } else {
+            return VAPAA_CREATE_MPIX_IOV(dt, iov, actual_iov_len, actual_iov_bytes);
+        }
+    }
+
+    VAPAA_Iov *mpix_iov = NULL;
+    VAPAA_Iov *standard_iov = NULL;
+    size_t mpix_iov_len = 0;
+    size_t mpix_iov_bytes = 0;
+    size_t standard_iov_len = 0;
+    size_t standard_iov_bytes = 0;
+
+    int rc = VAPAA_CREATE_MPIX_IOV(dt, &mpix_iov, &mpix_iov_len, &mpix_iov_bytes);
+    if (rc != MPI_SUCCESS) {
+        goto fn_exit;
+    }
+
+    rc = VAPAA_CREATE_STANDARD_IOV(dt, &standard_iov, &standard_iov_len, &standard_iov_bytes);
+    if (rc != MPI_SUCCESS) {
+        goto fn_exit;
+    }
+
+    rc = VAPAA_COMPARE_IOV("MPIX", mpix_iov, mpix_iov_len, mpix_iov_bytes,
+                           "standard", standard_iov, standard_iov_len, standard_iov_bytes);
+    if (rc != MPI_SUCCESS) {
+        goto fn_exit;
+    }
+
+    if (force_standard) {
+        *iov = standard_iov;
+        *actual_iov_len = standard_iov_len;
+        *actual_iov_bytes = standard_iov_bytes;
+        standard_iov = NULL;
+    } else {
+        *iov = mpix_iov;
+        *actual_iov_len = mpix_iov_len;
+        *actual_iov_bytes = mpix_iov_bytes;
+        mpix_iov = NULL;
+    }
+
+  fn_exit:
+    free(mpix_iov);
+    free(standard_iov);
+    return rc;
+#else
+    return VAPAA_CREATE_STANDARD_IOV(dt, iov, actual_iov_len, actual_iov_bytes);
+#endif
 }
 
 MAYBE_UNUSED
@@ -461,18 +1251,33 @@ static const void ** VAPAA_CFI_CREATE_ELEMENT_ADDRESSES(const CFI_cdesc_t * desc
 static int VAPAA_CFI_CREATE_INDEXED(const CFI_cdesc_t * desc, int count, MPI_Datatype input_datatype, 
                                     MPI_Datatype * array_datatype)
 {
-#if defined(MPICH) && defined(MPICH_NUMVERSION) && (MPICH_NUMVERSION > 40200000)
-    int rc;
-
     const int elem_len = desc->elem_len;
+    if (elem_len <= 0 || count < 0) {
+        return MPI_ERR_ARG;
+    }
 
-    size_t actual_iov_len, total_bytes;
-    MPIX_Iov * iov = VAPAA_CREATE_MPIX_IOV(input_datatype, &actual_iov_len, &total_bytes);
-    VAPAA_Assert(iov != NULL);
+    int rc;
+    VAPAA_Iov *iov = NULL;
+    size_t actual_iov_len = 0;
+    size_t total_bytes = 0;
+    int *array_of_blocklengths = NULL;
+    MPI_Aint *array_of_displacements = NULL;
+    const void **input = NULL;
 
-    MPI_Aint lb, extent;
-    rc = MPI_Type_get_extent(input_datatype, &lb, &extent);
-    VAPAA_Assert(rc == MPI_SUCCESS);
+    rc = VAPAA_CREATE_DATATYPE_IOV(input_datatype, &iov, &actual_iov_len, &total_bytes);
+    if (rc != MPI_SUCCESS) {
+        goto fn_exit;
+    }
+
+    MPI_Aint extent = 0;
+    rc = VAPAA_DTYPE_GET_EXTENT(input_datatype, &extent);
+    if (rc != MPI_SUCCESS) {
+        goto fn_exit;
+    }
+    if (total_bytes % (size_t) elem_len != 0 || extent % elem_len != 0) {
+        rc = MPI_ERR_TYPE;
+        goto fn_exit;
+    }
 
 #if 0
     rc = VAPAA_MPIDT_PRINT_INFO(input_datatype);
@@ -482,39 +1287,56 @@ static int VAPAA_CFI_CREATE_INDEXED(const CFI_cdesc_t * desc, int count, MPI_Dat
 #endif
 
     size_t iov_elements = total_bytes / elem_len;
-    //printf("iov_elements = %zd\n", iov_elements);
+    if ((size_t) count > 0 && iov_elements > SIZE_MAX / (size_t) count) {
+        rc = MPI_ERR_NO_MEM;
+        goto fn_exit;
+    }
+    const size_t nalloc = (size_t) count * iov_elements;
+    if (nalloc > (size_t) INT_MAX) {
+        rc = MPI_ERR_COUNT;
+        goto fn_exit;
+    }
 
-    int * array_of_blocklengths = malloc(count * iov_elements * sizeof(int));
-    VAPAA_Assert(array_of_blocklengths != NULL);
+    if (nalloc > 0) {
+        array_of_blocklengths = malloc(nalloc * sizeof(*array_of_blocklengths));
+        if (array_of_blocklengths == NULL) {
+            rc = MPI_ERR_NO_MEM;
+            goto fn_exit;
+        }
 
-    MPI_Aint * array_of_displacements = malloc(count * iov_elements * sizeof(MPI_Aint));
-    VAPAA_Assert(array_of_displacements != NULL);
+        array_of_displacements = malloc(nalloc * sizeof(*array_of_displacements));
+        if (array_of_displacements == NULL) {
+            rc = MPI_ERR_NO_MEM;
+            goto fn_exit;
+        }
+    }
 
-    const void ** input = VAPAA_CFI_CREATE_ELEMENT_ADDRESSES(desc);
-
-    //printf("input[0] = %p = %zd\n", input[0], (intptr_t)input[0]);
+    input = VAPAA_CFI_CREATE_ELEMENT_ADDRESSES(desc);
+    const ssize_t total_cfi_elements = VAPAA_CFI_GET_TOTAL_ELEMENTS(desc);
+    const MPI_Aint type_extent_elements = extent / elem_len;
     size_t index = 0;
     for (int j=0; j < count; j++) {
-        const ptrdiff_t type_displacement = j * extent;
-        //printf("type_displacement = %zd\n", type_displacement);
+        const MPI_Aint type_displacement = (MPI_Aint) j * type_extent_elements;
         for (size_t i=0; i < actual_iov_len; i++) {
-            const ptrdiff_t iov_displacement = (intptr_t)iov[i].iov_base / elem_len;
-            //printf("iov_displacement = %zd\n", iov_displacement);
-            for (size_t k=0; k < (size_t)iov[i].iov_len / elem_len; k++) {
+            if (iov[i].iov_base % elem_len != 0 || iov[i].iov_len % elem_len != 0) {
+                rc = MPI_ERR_TYPE;
+                goto fn_exit;
+            }
+            const MPI_Aint iov_displacement = iov[i].iov_base / elem_len;
+            const MPI_Aint iov_length = iov[i].iov_len / elem_len;
+            for (MPI_Aint k=0; k < iov_length; k++) {
                 array_of_blocklengths[index] = 1;
-                //printf("k = %zd ", k);
-                const size_t offset = k + iov_displacement + type_displacement;
-                //printf("offset = %zd ", offset);
-                array_of_displacements[index] = (intptr_t)input[offset] - (intptr_t)input[0];
-                //printf("input[offset] = %p = %zd ", input[offset], (intptr_t)input[offset]);
-                //printf("buf = %d ", *(int*)(input[offset]));
+                const MPI_Aint offset = k + iov_displacement + type_displacement;
+                if (offset < 0 || offset >= (MPI_Aint) total_cfi_elements) {
+                    rc = MPI_ERR_ARG;
+                    goto fn_exit;
+                }
+                array_of_displacements[index] =
+                    (MPI_Aint) ((intptr_t) input[offset] - (intptr_t) input[0]);
                 index++;
-                //printf("\n");
             }
         }
     }
-    free(iov);
-    free(input);
 
     const size_t n = index;
     VAPAA_Assert(n < INT_MAX);
@@ -530,24 +1352,13 @@ static int VAPAA_CFI_CREATE_INDEXED(const CFI_cdesc_t * desc, int count, MPI_Dat
                                    elem_dt, array_datatype);
     VAPAA_Assert(rc == MPI_SUCCESS);
 
+  fn_exit:
+    free(iov);
+    free(input);
     free(array_of_blocklengths);
     free(array_of_displacements);
 
-    return MPI_SUCCESS;
-#else
-    (void)desc;
-    (void)count;
-    (void)input_datatype;
-    (void)array_datatype;
-    #ifdef MPICH_NUMVERSION
-        #warning MPICH too old
-        VAPAA_Warning("MPICH %s does not have MPIX_Iov support",MPICH_NUMVERSION);
-    #else
-        #warning Not MPICH
-        VAPAA_Warning("Not MPICH so no MPIX_Iov support");
-    #endif
-    return MPI_ERR_INTERN;
-#endif
+    return rc;
 }
 
 // This function does not commit datatypes.  That needs to happen elsewhere.

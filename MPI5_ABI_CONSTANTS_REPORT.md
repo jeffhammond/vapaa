@@ -218,8 +218,11 @@ Important scope notes:
   wrappers, including some pre-existing Vapaa wrappers, still expose Vapaa's
   integer-count style rather than duplicating every MPICH `_c` large-count
   overload in the generated module.
-- New CFI wrappers generally require contiguous actual arguments. Noncontiguous
-  descriptor support remains limited by the existing MPIX-Iov-dependent path.
+- Noncontiguous CFI descriptors combined with user-defined MPI datatypes no
+  longer require MPICH-only `MPIX_Iov`. Native MPICH builds use
+  `MPIX_Type_iov` by default for speed. Builds where that extension is absent
+  decode derived datatypes with standard `MPI_Type_get_envelope(_c)` and
+  `MPI_Type_get_contents(_c)` for the common constructors used by the test suite.
 - `MPI_Comm_spawn` and `MPI_Comm_spawn_multiple` currently convert command,
   info, communicator, and errcode arguments, but pass `MPI_ARGV_NULL` and
   `MPI_ARGVS_NULL` for argv arrays.
@@ -342,7 +345,8 @@ env LD_LIBRARY_PATH=/tmp/mpich-5.0.0-abi-fort-install/lib:/tmp/mpi-abi-stubs/ins
       --output-on-failure --timeout 120
 ```
 
-Result: 23/25 passed.
+Result after adding the standard datatype decoder for builds where MPICH-only
+`MPIX_Iov` is unavailable: 25/25 passed.
 
 Passing ABI-sensitive tests include:
 
@@ -352,27 +356,17 @@ Passing ABI-sensitive tests include:
 - `test_reduce_ops`
 - `test_reductions`
 
-Failing tests:
-
-- `test_matrix_noncontig_2`
-- `test_serialization_2`
-
-Those two failures are not handle-constant failures. They are the same
-non-contiguous CFI descriptor paths that depend on MPICH-only `MPIX_Iov`
-support. When Vapaa is compiled against `mpi-abi-stubs`, the MPICH extension
-prototypes are not available even though MPICH is the runtime provider.
-
-The ABI runtime excluding those two known MPIX-extension cases passed:
+The previously failing noncontiguous/user-datatype cases now pass:
 
 ```sh
 env LD_LIBRARY_PATH=/tmp/mpich-5.0.0-abi-fort-install/lib:/tmp/mpi-abi-stubs/install/lib${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH} \
     LD_PRELOAD=/tmp/mpich-5.0.0-abi-fort-install/lib/libmpi_abi.so \
     ctest --test-dir build-mpi5-abi-mpich50-fort-preload \
-      --output-on-failure --timeout 120 \
-      -E 'test_matrix_noncontig_2|test_serialization_2'
+      -R 'test_matrix_noncontig_2|test_serialization_2' \
+      --output-on-failure --timeout 60
 ```
 
-Result: 23/23 passed.
+Result: 2/2 passed.
 
 MPI-5 ABI build against `mpi-abi-stubs` with Mukautuva/OpenMPI runtime:
 
@@ -430,25 +424,19 @@ env OMPI_ALLOW_RUN_AS_ROOT=1 OMPI_ALLOW_RUN_AS_ROOT_CONFIRM=1 \
     ctest --test-dir build-legacy-openmpi --output-on-failure --timeout 60
 ```
 
-Result after the MPI-5 wrapper-completion pass and non-ABI expected-failure
-marker: 23/25 passed.
+Result after the standard datatype-decoder pass: 25/25 passed.
 
-Failing tests:
-
-- `test_matrix_noncontig_2`
-- `test_serialization_2`
-
-The legacy path no longer hangs on dynamic datatype handles and no longer reports
-zero datatype sizes after restoring scalar conversion. The remaining failures
-match the existing non-MPICH `MPIX_Iov` limitation for some non-contiguous
-descriptor cases. `mpich_uallreducef08` is counted as an expected failure in
-non-ABI CTest runs.
+The legacy path no longer hangs on dynamic datatype handles, no longer reports
+zero datatype sizes after restoring scalar conversion, and no longer requires
+MPICH-only `MPIX_Iov` for noncontiguous descriptor/user-datatype composition.
+Native MPICH still uses `MPIX_Type_iov` by default. `mpich_uallreducef08` is
+counted as an expected failure in non-ABI CTest runs.
 
 ## Additional Provider Matrix
 
 The following full CTest runs were performed on 2026-06-17 after restoring the
-legacy handle conversion path. The `mpich_uallreducef08` expected-failure marker
-was added later for non-ABI builds.
+legacy handle conversion path and adding the standard datatype decoder. The
+`mpich_uallreducef08` expected-failure marker is enabled for non-ABI builds.
 
 MPICH 4.3.0 from `/opt/mpich`:
 
@@ -511,13 +499,7 @@ I_MPI_FABRICS=shm ctest --test-dir build-test-intelmpi \
   --output-on-failure --timeout 60
 ```
 
-Result after the MPI-5 wrapper-completion pass and non-ABI expected-failure
-marker: 23/25 passed.
-
-Failing tests:
-
-- `test_matrix_noncontig_2`
-- `test_serialization_2`
+Result after the standard datatype-decoder pass: 25/25 passed.
 
 Open MPI 4.1.2 from `/usr/bin/mpicc.openmpi`:
 
@@ -532,13 +514,7 @@ OMPI_ALLOW_RUN_AS_ROOT=1 OMPI_ALLOW_RUN_AS_ROOT_CONFIRM=1 \
   ctest --test-dir build-test-openmpi4 --output-on-failure --timeout 60
 ```
 
-Result after the MPI-5 wrapper-completion pass and non-ABI expected-failure
-marker: 23/25 passed.
-
-Failing tests:
-
-- `test_matrix_noncontig_2`
-- `test_serialization_2`
+Result after the standard datatype-decoder pass: 25/25 passed.
 
 Open MPI 5 was not run because no Open MPI 5 wrapper was available on this
 machine. Searches found only:
@@ -563,17 +539,69 @@ Legacy provider comparison:
 
 | Provider | `main` | This branch | Removed failures | New failures |
 | --- | ---: | ---: | --- | --- |
-| Open MPI 4.1.2 | 21/25 | 23/25 | `mpich_uallreducef08`, `test_user_reduction` | none |
+| Open MPI 4.1.2 | 21/25 | 25/25 | `mpich_uallreducef08`, `test_matrix_noncontig_2`, `test_serialization_2`, `test_user_reduction` | none |
 | MPICH 4.3.0 C-only | 16/25 | 25/25 | `mpich_uallreducef08`, `test_matrix_noncontig`, `test_matrix_noncontig_2`, `test_reduce_mxxloc`, `test_serialization`, `test_serialization_2`, `test_tensor_noncontig`, `test_user_reduction`, `test_vector_noncontig` | none |
-| Intel MPI 2021.18 | 21/25 | 23/25 | `mpich_uallreducef08`, `test_user_reduction` | none |
+| Intel MPI 2021.18 | 21/25 | 25/25 | `mpich_uallreducef08`, `test_matrix_noncontig_2`, `test_serialization_2`, `test_user_reduction` | none |
 
 ABI provider comparison:
 
 | Provider | `main` | This branch | Result |
 | --- | --- | ---: | --- |
+| `mpi-abi-stubs` build plus MPICH ABI preload | build failure | 25/25 | branch builds against the MPI-5 ABI stubs and runs cleanly with MPICH supplied through `LD_PRELOAD` |
 | `mpi-abi-stubs` build plus Mukautuva/Open MPI runtime | build failure | 17/25 | branch adds MPI-5 ABI build support and passes both user-op tests |
 
 No provider in the direct comparison regressed by test name or pass count.
+
+## Standard Datatype IOV Check
+
+The former `test_matrix_noncontig_2` and `test_serialization_2` failures came
+from composing a noncontiguous CFI descriptor with a user-defined MPI datatype.
+Vapaa used to require MPICH's private `MPIX_Type_iov` extension to flatten that
+datatype. That is still the default fast path when compiling with MPICH headers
+that expose the extension, because it avoids the recursive standard decoder.
+When `MPIX_Type_iov` is unavailable, Vapaa walks the standard datatype envelope
+and contents recursively and produces the same contiguous byte-region list
+internally.
+
+Runtime controls:
+
+- `VAPAA_FORCE_STANDARD_IOV=1`: use the standard decoder even in MPICH builds.
+- `VAPAA_COMPARE_MPIX_IOV=1`: in MPICH builds, compute both `MPIX_Type_iov` and
+  the standard decoder output and fail if segment count, total byte count, base
+  displacement, or segment length differs. Unless `VAPAA_FORCE_STANDARD_IOV=1`
+  is also set, the MPICH `MPIX_Type_iov` result remains the value used by Vapaa.
+
+Native MPICH was used as the oracle:
+
+```sh
+ctest --test-dir build-test-mpich-opt \
+  -R 'test_matrix_noncontig_2|test_serialization_2' \
+  --output-on-failure -V --timeout 60
+```
+
+Result: 2/2 passed using the default `MPIX_Type_iov` fast path.
+
+The same binaries also pass when forced through the standard decoder:
+
+```sh
+VAPAA_FORCE_STANDARD_IOV=1 \
+  ctest --test-dir build-test-mpich-opt \
+    -R 'test_matrix_noncontig_2|test_serialization_2' \
+    --output-on-failure -V --timeout 60
+```
+
+Result: 2/2 passed.
+
+The side-by-side comparison mode also passed with no IOV mismatches:
+
+```sh
+VAPAA_COMPARE_MPIX_IOV=1 \
+  ctest --test-dir build-test-mpich-opt \
+    -R 'test_matrix_noncontig_2|test_serialization_2' \
+    --output-on-failure -V --timeout 60
+```
+
+Result: 2/2 passed with no IOV mismatches.
 
 ## ABI Overhead Check
 
