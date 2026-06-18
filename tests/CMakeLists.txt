@@ -4,7 +4,7 @@ file(GLOB TEST_SOURCES "*.F90")
 # Number of MPI processes
 set(MPI_NUM_PROCESSES 4)
 set(vapaa_test_environment "")
-if(FLAG_MPI STREQUAL "OPEN_MPI")
+if(FLAG_MPI MATCHES "OPEN_MPI")
   list(APPEND vapaa_test_environment "OMPI_MCA_osc=pt2pt")
 endif()
 
@@ -35,7 +35,7 @@ target_include_directories(${TEST_NAME}
     WORKING_DIRECTORY "${CMAKE_BINARY_DIR}/tests"
     PASS_REGULAR_EXPRESSION "Test passed" # Adjust this to match expected output
   )
-  if(TEST_NAME STREQUAL "mpich_uallreducef08" AND NOT MPI_VENDOR STREQUAL "MPI_ABI")
+  if(TEST_NAME STREQUAL "mpich_uallreducef08" AND NOT FLAG_MPI MATCHES "MPI_ABI")
     list(APPEND test_properties WILL_FAIL TRUE)
   endif()
   if(vapaa_test_environment)

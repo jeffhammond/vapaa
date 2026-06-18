@@ -58,9 +58,21 @@ MAYBE_UNUSED static inline int C_MPI_TOPOLOGY_C2F(int topology) { return topolog
 
 #else
 
+MAYBE_UNUSED
+static inline int C_MPI_CAN_TRANSLATE_ERROR_CODES(void)
+{
+    int initialized = 0;
+    int finalized = 0;
+    MPI_Initialized(&initialized);
+    MPI_Finalized(&finalized);
+    return initialized && !finalized;
+}
+
 #define C_MPI_RC_FIX(rc) \
     do { \
-        if ((rc) != MPI_SUCCESS) { (rc) = C_MPI_ERROR_CODE_C2F((rc)); } \
+        if ((rc) != MPI_SUCCESS && C_MPI_CAN_TRANSLATE_ERROR_CODES()) { \
+            (rc) = C_MPI_ERROR_CODE_C2F((rc)); \
+        } \
     } while (0)
 
 MAYBE_UNUSED

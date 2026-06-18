@@ -10,7 +10,7 @@ endif()
 find_package(Threads REQUIRED)
 
 set(vapaa_mpich_main_f77_test_environment "")
-if(FLAG_MPI STREQUAL "OPEN_MPI")
+if(FLAG_MPI MATCHES "OPEN_MPI")
   list(APPEND vapaa_mpich_main_f77_test_environment "OMPI_MCA_osc=pt2pt")
 endif()
 set(vapaa_mpich_main_f77_mpi_library_dirs "")
@@ -138,7 +138,12 @@ function(vapaa_add_mpich_main_f77_test category test_name np)
   endif()
   if(category STREQUAL "coll" AND
      test_name STREQUAL "uallreducef" AND
-     NOT FLAG_MPI STREQUAL "MPI_ABI")
+     NOT FLAG_MPI MATCHES "MPI_ABI")
+    set_tests_properties(${target_name} PROPERTIES
+      WILL_FAIL TRUE)
+  endif()
+  if(category STREQUAL "info" AND test_name STREQUAL "infocrenvf" AND
+     FLAG_MPI MATCHES "OPEN_MPI")
     set_tests_properties(${target_name} PROPERTIES
       WILL_FAIL TRUE)
   endif()

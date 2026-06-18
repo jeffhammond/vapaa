@@ -10,7 +10,7 @@ endif()
 find_package(Threads REQUIRED)
 
 set(vapaa_mpich_main_f90_test_environment "")
-if(FLAG_MPI STREQUAL "OPEN_MPI")
+if(FLAG_MPI MATCHES "OPEN_MPI")
   list(APPEND vapaa_mpich_main_f90_test_environment "OMPI_MCA_osc=pt2pt")
 endif()
 

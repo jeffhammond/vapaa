@@ -33,7 +33,7 @@ end module m
 
 program main
     use mpi_f08
-    use m
+    use m, only: f
     implicit none
 #if 0
     external :: f

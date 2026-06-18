@@ -5,7 +5,7 @@ set(MPICH_MAIN_INCLUDE_ROOT "${CMAKE_CURRENT_SOURCE_DIR}/include")
 find_package(Threads REQUIRED)
 
 set(vapaa_mpich_main_test_environment "")
-if(FLAG_MPI STREQUAL "OPEN_MPI")
+if(FLAG_MPI MATCHES "OPEN_MPI")
   list(APPEND vapaa_mpich_main_test_environment "OMPI_MCA_osc=pt2pt")
 endif()
 
@@ -122,11 +122,12 @@ function(vapaa_add_mpich_main_f08_test category test_name np)
   endif()
   if(category STREQUAL "coll" AND
      (test_name STREQUAL "uallreducef08" OR test_name STREQUAL "reducelocalf08") AND
-     NOT FLAG_MPI STREQUAL "MPI_ABI")
+     NOT FLAG_MPI MATCHES "MPI_ABI")
     set_tests_properties(${target_name} PROPERTIES
       WILL_FAIL TRUE)
   endif()
-  if(category STREQUAL "io" AND test_name STREQUAL "atomicityf90" AND FLAG_MPI STREQUAL "OPEN_MPI")
+  if(category STREQUAL "io" AND test_name STREQUAL "atomicityf90" AND
+     FLAG_MPI MATCHES "OPEN_MPI")
     set_tests_properties(${target_name} PROPERTIES
       WILL_FAIL TRUE)
   endif()

@@ -29,6 +29,7 @@ The work intentionally excludes `comm_spawn` tests from CTest registration, per 
 - Added a generated MPI-5 ABI-compliant `mpi.fh` / `mpif.h` include header from `source/vapaa_constants.h`.
 - Added the `mpif.h` compatibility layer needed by legacy Fortran tests: F77 entry-point shims, status-array translation, sentinel common-block registration, callback trampolines, external datarep strings, info string handling, legacy `MPI_TYPE_HINDEXED` displacement conversion, and F77 user-op datatype translation.
 - Imported and registered the MPICH `test/mpi/f77` suite behind `VAPAA_ENABLE_MPIFH_TESTS`.
+- Guarded non-ABI error-code conversion so pre-init/post-finalize failures are not translated with `MPI_Error_class` outside the MPI lifetime.
 
 ## Imported MPICH f08 Tests
 
@@ -46,14 +47,16 @@ The CTest registration skips the `spawn` category. It also skips `misc/statuscon
 
 | Backend | Build / Run | Result |
 | --- | --- | --- |
-| MPICH native | `/opt/mpich/bin/mpicc`, `MPI_VENDOR=MPICH` | `152/152` passed |
-| IntelMPI | IntelMPI `mpicc` with GNU Fortran, `MPI_VENDOR=MPICH` | `152/152` passed |
-| OpenMPI 4 | `/usr/bin/mpicc.openmpi`, Open MPI 4.1.2, `MPI_VENDOR=OPEN_MPI` | `151/151` passed |
+| MPICH native | `/opt/mpich/bin/mpicc`, `MPI_VENDOR=MPICH`, f08 + mpi + mpif.h enabled | `226/226` passed |
+| IntelMPI | IntelMPI `mpicc` with GNU Fortran, `MPI_VENDOR=MPICH`, f08 + mpi + mpif.h enabled | `226/226` passed |
+| OpenMPI 4 | `/usr/bin/mpicc.openmpi`, Open MPI 4.1.2, `MPI_VENDOR=OPEN_MPI`, f08 + mpi + mpif.h enabled | `226/226` passed |
 | MPI ABI stubs + MPICH ABI | Built against `/tmp/mpi-abi-stubs/install`, preloaded `/tmp/mpich-5.0.0-abi-fort-install/lib/libmpi_abi.so.0.0.0` | `151/151` passed |
 | MPI ABI stubs + MPICH ABI without Fortran support | Built against ABI stubs, preloaded `/tmp/mpich-5.0.0-abi-install/lib/libmpi_abi.so.0.0.0` | `143/151` passed; see root cause below |
 | OpenMPI 5 / Howard ABI branch | Not available under `/opt`, `/usr/local`, `/home/jehammond`, or `/tmp` on this machine | Not run |
 
-OpenMPI4 has one expected difference from MPICH: `misc/statusconv` is skipped because it depends on MPICH internals. OpenMPI4 also XFAILs `io/atomicityf90`; native OpenMPI's own f08 module fails the same MPICH test, so this is not a Vapaa regression.
+The native non-ABI CTest pass counts include intentional XFAILs for user-defined-operation tests that combine user ops with built-in datatypes. Those tests pass normally in the MPI-5 ABI build, where Vapaa does not need unsafe built-in datatype conversion.
+
+OpenMPI4 has additional expected differences from MPICH: `misc/statusconv` is skipped because it depends on MPICH internals; `io/atomicityf90` is XFAIL because native OpenMPI's own f08 module fails the same MPICH test; and f77 `info/infocrenvf` is XFAIL because OpenMPI aborts on the test's pre-init `MPI_Info_get` sequence. These are not Vapaa regressions.
 
 ## Imported MPICH f77 Tests
 
@@ -102,20 +105,30 @@ Result:
 100% tests passed, 0 tests failed out of 62
 ```
 
-One f77 test, `mpich_main_f77_coll_uallreducef`, is an expected failure under non-ABI MPICH for the same user-defined-op-with-built-in-datatype collective limitation tracked for the f08 tests. `mpich_main_f77_coll_reducelocalf` now passes normally because the f77 op trampoline can translate the callback datatype handle before calling the Fortran user function.
+One f77 test, `mpich_main_f77_coll_uallreducef`, is an expected failure under non-ABI builds for the same user-defined-op-with-built-in-datatype collective limitation tracked for the f08 tests. `mpich_main_f77_coll_reducelocalf` now passes normally because the f77 op trampoline can translate the callback datatype handle before calling the Fortran user function.
 
-A full MPICH build-tree CTest run was also done with the MPICH runtime library path supplied externally:
+The f77 slice was then checked across the native backends:
+
+| Backend | Result |
+| --- | --- |
+| MPICH native | `62/62` CTest passed, with `coll/uallreducef` XFAIL |
+| IntelMPI with GNU Fortran | `62/62` CTest passed, with `coll/uallreducef` XFAIL |
+| OpenMPI 4.1.2 | `62/62` CTest passed, with `coll/uallreducef` and `info/infocrenvf` XFAIL |
+
+Full f08 + mpi + mpif.h build-tree CTest runs were also done:
 
 ```sh
 LD_LIBRARY_PATH=/opt/mpich/lib:${LD_LIBRARY_PATH:-} \
   ctest --test-dir build-test-mpich-f77 --output-on-failure
 ```
 
-Result:
+Results:
 
-```text
-100% tests passed, 0 tests failed out of 226
-```
+| Backend | Result |
+| --- | --- |
+| MPICH native | `226/226` CTest passed, with non-ABI user-op XFAILs |
+| IntelMPI with GNU Fortran | `226/226` CTest passed, with non-ABI user-op XFAILs |
+| OpenMPI 4.1.2 | `226/226` CTest passed, with non-ABI user-op and backend-specific XFAILs |
 
 ## ABI Preload Details
 
@@ -172,9 +185,11 @@ An IntelMPI build using Intel C/Fortran compilers was also tested diagnostically
 
 The accepted IntelMPI regression run uses IntelMPI's C compiler with GNU Fortran, which keeps CFI descriptor layout consistent and passes the full suite.
 
-### OpenMPI4 Atomicity
+### OpenMPI4 Atomicity And Pre-Init Info
 
 `mpich_main_f08_io_atomicityf90` fails with OpenMPI4's native f08 implementation as well, so Vapaa marks it XFAIL under `MPI_VENDOR=OPEN_MPI`. This is tracked as an OpenMPI4 behavior difference, not a Vapaa regression.
+
+`mpich_main_f77_info_infocrenvf` is also XFAIL under OpenMPI4. The first issue exposed by that test was Vapaa's legacy error-code conversion calling `MPI_Error_class` before `MPI_Init`; that is fixed by leaving pre-init/post-finalize error codes untranslated. After that fix, OpenMPI still aborts internally when the MPICH test calls `MPI_Info_get` before `MPI_Init` on the `MPI_Info_create_env` result. That remaining behavior is in the backend MPI and is not a Vapaa conversion issue.
 
 ## Notes on `MPI_Abi_set_fortran_info`
 
