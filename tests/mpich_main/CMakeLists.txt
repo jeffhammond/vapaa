@@ -183,3 +183,4 @@ foreach(category IN LISTS mpich_main_f08_categories)
 endforeach()
 
 add_subdirectory(f90)
+add_subdirectory(f77)

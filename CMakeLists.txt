@@ -20,6 +20,9 @@ include(ExternalProject)
 option(VAPAA_ENABLE_MPI_MODULE_TESTS
        "Build imported MPICH f90 tests for the integer-handle mpi module"
        OFF)
+option(VAPAA_ENABLE_MPIFH_TESTS
+       "Build imported MPICH f77 tests for the mpif.h include binding"
+       OFF)
 set(CMAKE_C_STANDARD 11)
 set(CMAKE_C_STANDARD_REQUIRED ON)
 set(CMAKE_C_EXTENSIONS OFF) 

@@ -3,6 +3,8 @@
 #ifndef VAPAA_TEST_HANDLE_COMPAT_H
 #define VAPAA_TEST_HANDLE_COMPAT_H
 
+#define VAPAA_TEST_HANDLE_COMPAT 1
+
 #include <mpi.h>
 #include "vapaa_abi_handles.h"
 #include "vapaa_constants.h"
@@ -35,8 +37,40 @@ typedef int MPI_Fint;
 #ifdef MPI_Type_c2f
 #undef MPI_Type_c2f
 #endif
+static inline MPI_Fint VAPAA_TEST_MPI_Type_c2f(MPI_Datatype datatype)
+{
+    if (datatype == MPI_LOGICAL)          { return (MPI_Fint) VAPAA_MPI_LOGICAL; }
+    if (datatype == MPI_INTEGER)          { return (MPI_Fint) VAPAA_MPI_INTEGER; }
+    if (datatype == MPI_REAL)             { return (MPI_Fint) VAPAA_MPI_REAL; }
+    if (datatype == MPI_COMPLEX)          { return (MPI_Fint) VAPAA_MPI_COMPLEX; }
+    if (datatype == MPI_DOUBLE_PRECISION) { return (MPI_Fint) VAPAA_MPI_DOUBLE_PRECISION; }
+    if (datatype == MPI_DOUBLE_COMPLEX)   { return (MPI_Fint) VAPAA_MPI_DOUBLE_COMPLEX; }
+    if (datatype == MPI_CHARACTER)        { return (MPI_Fint) VAPAA_MPI_CHARACTER; }
+#ifdef MPI_2REAL
+    if (datatype == MPI_2REAL)            { return (MPI_Fint) VAPAA_MPI_2REAL; }
+#endif
+#ifdef MPI_2DOUBLE_PRECISION
+    if (datatype == MPI_2DOUBLE_PRECISION){ return (MPI_Fint) VAPAA_MPI_2DOUBLE_PRECISION; }
+#endif
+#ifdef MPI_2INTEGER
+    if (datatype == MPI_2INTEGER)         { return (MPI_Fint) VAPAA_MPI_2INTEGER; }
+#endif
+#ifdef MPI_INTEGER1
+    if (datatype == MPI_INTEGER1)         { return (MPI_Fint) VAPAA_MPI_INTEGER1; }
+#endif
+#ifdef MPI_INTEGER2
+    if (datatype == MPI_INTEGER2)         { return (MPI_Fint) VAPAA_MPI_INTEGER2; }
+#endif
+#ifdef MPI_INTEGER4
+    if (datatype == MPI_INTEGER4)         { return (MPI_Fint) VAPAA_MPI_INTEGER4; }
+#endif
+#ifdef MPI_INTEGER8
+    if (datatype == MPI_INTEGER8)         { return (MPI_Fint) VAPAA_MPI_INTEGER8; }
+#endif
+    return (MPI_Fint) VAPAA_MPI_Type_toint(datatype);
+}
 #define MPI_Type_f2c(datatype) VAPAA_MPI_Type_fromint((int)(datatype))
-#define MPI_Type_c2f(datatype) ((MPI_Fint) VAPAA_MPI_Type_toint((datatype)))
+#define MPI_Type_c2f(datatype) VAPAA_TEST_MPI_Type_c2f((datatype))
 
 #ifdef MPI_Errhandler_f2c
 #undef MPI_Errhandler_f2c
