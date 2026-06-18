@@ -39,3 +39,4 @@ make.inc
 
 build/*
 /build-*/
+perf/results/
