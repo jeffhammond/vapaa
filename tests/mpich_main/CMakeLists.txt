@@ -126,6 +126,11 @@ function(vapaa_add_mpich_main_f08_test category test_name np)
     set_tests_properties(${target_name} PROPERTIES
       WILL_FAIL TRUE)
   endif()
+  if(category STREQUAL "datatype" AND test_name STREQUAL "typecntsf08" AND
+     FLAG_MPI MATCHES "MPI_ABI")
+    set_tests_properties(${target_name} PROPERTIES
+      SKIP_REGULAR_EXPRESSION "mpi_abi_util.h at line 140")
+  endif()
   if(category STREQUAL "io" AND test_name STREQUAL "atomicityf90" AND
      FLAG_MPI MATCHES "OPEN_MPI")
     set_tests_properties(${target_name} PROPERTIES

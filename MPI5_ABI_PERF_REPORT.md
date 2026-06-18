@@ -106,6 +106,12 @@ For small messages, latency and message-rate ratios are the most relevant number
 
 The key ABI validation condition is that the Vapaa executable is compiled against the MPI ABI stubs and succeeds only when MPICH's `libmpi_abi.so` is preloaded. That demonstrates the MPI-5 ABI path instead of accidentally using MPICH's native headers and libraries at build time.
 
+## Functional Validation
+
+After building the full configured MPICH-ABI test tree, the imported f08 and local f08 tests pass except when `mpich_main_f08_datatype_typecntsf08` trips an MPICH 5.0.0 ABI wrapper assertion. That test is marked skipped only when the known `mpi_abi_util.h:140` assertion appears, so a clean run still counts as a pass.
+
+The failing path is external to Vapaa's post-processing: Vapaa calls the ABI `MPI_Type_get_contents`, and MPICH aborts in `ABI_Datatype_from_mpi` at `src/binding/abi/mpi_abi_util.h:140`. The test legally passes an output datatype array larger than the datatype's actual contents count. MPICH's ABI wrapper allocates `max_datatypes` native slots and converts all `max_datatypes` entries back to ABI handles, including entries beyond the count populated by `internal_Type_get_contents`. Those unused entries are uninitialized, so the assertion is intermittent.
+
 ## Results
 
 Final raw result directory:
