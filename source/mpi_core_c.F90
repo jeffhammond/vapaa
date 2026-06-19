@@ -31,6 +31,18 @@ module mpi_core_c
     end interface
 
     interface
+        subroutine C_MPI_Set_fortran_type_sizes(logical_size, integer_size, real_size, &
+                                                double_precision_size, ierror) &
+                   bind(C,name="C_MPI_Set_fortran_type_sizes")
+            use iso_c_binding, only: c_int
+            implicit none
+            integer(kind=c_int), intent(in) :: logical_size, integer_size, real_size
+            integer(kind=c_int), intent(in) :: double_precision_size
+            integer(kind=c_int), intent(out) :: ierror
+        end subroutine C_MPI_Set_fortran_type_sizes
+    end interface
+
+    interface
         subroutine C_MPI_Abi_init_fortran(logical_size, logical_true, logical_false, &
                                           integer_size, real_size, double_precision_size, ierror) &
                    bind(C,name="C_MPI_Abi_init_fortran")

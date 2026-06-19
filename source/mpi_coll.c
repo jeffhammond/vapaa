@@ -74,6 +74,8 @@ void CFI_MPI_Bcast(CFI_cdesc_t * desc, int count, int datatype_f, int root, int 
     MPI_Datatype datatype = C_MPI_TYPE_FROMINT(datatype_f);
     MPI_Comm comm = C_MPI_COMM_FROMINT(comm_f);
 
+    VAPAA_CFI_WARN_DATATYPE_MISMATCH(desc, datatype, "MPI_Bcast");
+
     if (1 == VAPAA_CFI_is_contiguous(desc)) {
         *ierror = MPI_Bcast(desc->base_addr, count, datatype, C_MPI_ROOT_F2C(root), comm);
     }
@@ -117,6 +119,8 @@ void CFI_MPI_Reduce(CFI_cdesc_t * input, CFI_cdesc_t * output, int * count, int 
     if (C_IS_MPI_IN_PLACE(out_addr)) out_addr = MPI_IN_PLACE;
 
     MPI_Datatype datatype = C_MPI_TYPE_FROMINT(*datatype_f);
+    VAPAA_CFI_WARN_DATATYPE_MISMATCH(input, datatype, "MPI_Reduce");
+    VAPAA_CFI_WARN_DATATYPE_MISMATCH(output, datatype, "MPI_Reduce");
     MPI_Op op = C_MPI_OP_FROMINT(*op_f);
     if (C_MPI_REJECT_USER_OP_WITH_BUILTIN_TYPE(op, datatype)) {
         VAPAA_Warning("user-def reduce op with built-in type is not supported. See docs.\n");
@@ -179,6 +183,8 @@ void CFI_MPI_Allreduce(CFI_cdesc_t * input, CFI_cdesc_t * output, int * count, i
     if (C_IS_MPI_IN_PLACE(out_addr)) out_addr = MPI_IN_PLACE;
 
     MPI_Datatype datatype = C_MPI_TYPE_FROMINT(*datatype_f);
+    VAPAA_CFI_WARN_DATATYPE_MISMATCH(input, datatype, "MPI_Allreduce");
+    VAPAA_CFI_WARN_DATATYPE_MISMATCH(output, datatype, "MPI_Allreduce");
     MPI_Op op = C_MPI_OP_FROMINT(*op_f);
     if (C_MPI_REJECT_USER_OP_WITH_BUILTIN_TYPE(op, datatype)) {
         VAPAA_Warning("user-def reduce op with built-in type is not supported. See docs.\n");
@@ -232,6 +238,8 @@ void CFI_MPI_Gather(CFI_cdesc_t * input, int * scount, int * stype_f, CFI_cdesc_
 
     MPI_Datatype stype = C_MPI_TYPE_FROMINT(*stype_f);
     MPI_Datatype rtype = C_MPI_TYPE_FROMINT(*rtype_f);
+    VAPAA_CFI_WARN_DATATYPE_MISMATCH(input, stype, "MPI_Gather");
+    VAPAA_CFI_WARN_DATATYPE_MISMATCH(output, rtype, "MPI_Gather");
 
     bool in_contiguous  = (1 == VAPAA_CFI_is_contiguous(input));
     bool out_contiguous = (1 == VAPAA_CFI_is_contiguous(output));
@@ -297,6 +305,8 @@ void CFI_MPI_Allgather(CFI_cdesc_t * input, int * scount, int * stype_f, CFI_cde
 
     MPI_Datatype stype = C_MPI_TYPE_FROMINT(*stype_f);
     MPI_Datatype rtype = C_MPI_TYPE_FROMINT(*rtype_f);
+    VAPAA_CFI_WARN_DATATYPE_MISMATCH(input, stype, "MPI_Allgather");
+    VAPAA_CFI_WARN_DATATYPE_MISMATCH(output, rtype, "MPI_Allgather");
 
     bool in_contiguous  = (1 == VAPAA_CFI_is_contiguous(input));
     bool out_contiguous = (1 == VAPAA_CFI_is_contiguous(output));
@@ -362,6 +372,8 @@ void CFI_MPI_Scatter(CFI_cdesc_t * input, int * scount, int * stype_f, CFI_cdesc
 
     MPI_Datatype stype = C_MPI_TYPE_FROMINT(*stype_f);
     MPI_Datatype rtype = C_MPI_TYPE_FROMINT(*rtype_f);
+    VAPAA_CFI_WARN_DATATYPE_MISMATCH(input, stype, "MPI_Scatter");
+    VAPAA_CFI_WARN_DATATYPE_MISMATCH(output, rtype, "MPI_Scatter");
 
     bool in_contiguous  = (1 == VAPAA_CFI_is_contiguous(input));
     bool out_contiguous = (1 == VAPAA_CFI_is_contiguous(output));
@@ -427,6 +439,8 @@ void CFI_MPI_Alltoall(CFI_cdesc_t * input, int * scount, int * stype_f, CFI_cdes
 
     MPI_Datatype stype = C_MPI_TYPE_FROMINT(*stype_f);
     MPI_Datatype rtype = C_MPI_TYPE_FROMINT(*rtype_f);
+    VAPAA_CFI_WARN_DATATYPE_MISMATCH(input, stype, "MPI_Alltoall");
+    VAPAA_CFI_WARN_DATATYPE_MISMATCH(output, rtype, "MPI_Alltoall");
 
     bool in_contiguous  = (1 == VAPAA_CFI_is_contiguous(input));
     bool out_contiguous = (1 == VAPAA_CFI_is_contiguous(output));
@@ -496,6 +510,8 @@ void CFI_MPI_Gatherv(CFI_cdesc_t * input, int * scount, int * stype_f,
 
     MPI_Datatype stype = C_MPI_TYPE_FROMINT(*stype_f);
     MPI_Datatype rtype = C_MPI_TYPE_FROMINT(*rtype_f);
+    VAPAA_CFI_WARN_DATATYPE_MISMATCH(input, stype, "MPI_Gatherv");
+    VAPAA_CFI_WARN_DATATYPE_MISMATCH(output, rtype, "MPI_Gatherv");
     MPI_Comm comm = C_MPI_COMM_FROMINT(*comm_f);
 
     if ( (1 == VAPAA_CFI_is_contiguous(input)) && (1 == VAPAA_CFI_is_contiguous(output)) ) {
@@ -533,6 +549,8 @@ void CFI_MPI_Allgatherv(CFI_cdesc_t * input, int * scount, int * stype_f,
 
     MPI_Datatype stype = C_MPI_TYPE_FROMINT(*stype_f);
     MPI_Datatype rtype = C_MPI_TYPE_FROMINT(*rtype_f);
+    VAPAA_CFI_WARN_DATATYPE_MISMATCH(input, stype, "MPI_Allgatherv");
+    VAPAA_CFI_WARN_DATATYPE_MISMATCH(output, rtype, "MPI_Allgatherv");
     MPI_Comm comm = C_MPI_COMM_FROMINT(*comm_f);
 
     if ( (1 == VAPAA_CFI_is_contiguous(input)) && (1 == VAPAA_CFI_is_contiguous(output)) ) {
@@ -570,6 +588,8 @@ void CFI_MPI_Scatterv(CFI_cdesc_t * input, const int scounts[], const int sdisps
 
     MPI_Datatype stype = C_MPI_TYPE_FROMINT(*stype_f);
     MPI_Datatype rtype = C_MPI_TYPE_FROMINT(*rtype_f);
+    VAPAA_CFI_WARN_DATATYPE_MISMATCH(input, stype, "MPI_Scatterv");
+    VAPAA_CFI_WARN_DATATYPE_MISMATCH(output, rtype, "MPI_Scatterv");
     MPI_Comm comm = C_MPI_COMM_FROMINT(*comm_f);
 
     if ( (1 == VAPAA_CFI_is_contiguous(input)) && (1 == VAPAA_CFI_is_contiguous(output)) ) {
@@ -611,6 +631,8 @@ void CFI_MPI_Alltoallv(CFI_cdesc_t * input, const int scounts[], const int sdisp
 
     MPI_Datatype stype = C_MPI_TYPE_FROMINT(*stype_f);
     MPI_Datatype rtype = C_MPI_TYPE_FROMINT(*rtype_f);
+    VAPAA_CFI_WARN_DATATYPE_MISMATCH(input, stype, "MPI_Alltoallv");
+    VAPAA_CFI_WARN_DATATYPE_MISMATCH(output, rtype, "MPI_Alltoallv");
     MPI_Comm comm = C_MPI_COMM_FROMINT(*comm_f);
 
     if ( (1 == VAPAA_CFI_is_contiguous(input)) && (1 == VAPAA_CFI_is_contiguous(output)) ) {

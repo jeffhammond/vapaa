@@ -44,6 +44,7 @@ void VAPAA_MPI_Sendrecv_replace(CFI_cdesc_t *buf, int *count, int *datatype_f, i
 {
     MPI_Datatype datatype = C_MPI_TYPE_FROMINT(*datatype_f);
     MPI_Comm comm = C_MPI_COMM_FROMINT(*comm_f);
+    VAPAA_CFI_WARN_DATATYPE_MISMATCH(buf, datatype, "MPI_Sendrecv_replace");
     if (VAPAA_CFI_is_contiguous(buf) == 1) {
         MPI_Status status_c;
         MPI_Status *status_arg = MPI_STATUS_IGNORE;
@@ -70,6 +71,8 @@ void name(CFI_cdesc_t *sendbuf, CFI_cdesc_t *recvbuf, int *count, int *datatype_
     MPI_Datatype datatype = C_MPI_TYPE_FROMINT(*datatype_f); \
     MPI_Op op = C_MPI_OP_FROMINT(*op_f); \
     MPI_Comm comm = C_MPI_COMM_FROMINT(*comm_f); \
+    VAPAA_CFI_WARN_DATATYPE_MISMATCH_FUNC(sendbuf, datatype); \
+    VAPAA_CFI_WARN_DATATYPE_MISMATCH_FUNC(recvbuf, datatype); \
     if (VAPAA_REJECT_USER_OP_WITH_BUILTIN_TYPE(op, datatype)) { \
         VAPAA_Warning("user-defined reduce op with built-in type is not supported without the MPI-5 ABI.\n"); \
         *ierror = MPI_ERR_OP; \
@@ -92,6 +95,8 @@ void VAPAA_MPI_Reduce_scatter(CFI_cdesc_t *sendbuf, CFI_cdesc_t *recvbuf, const 
     MPI_Datatype datatype = C_MPI_TYPE_FROMINT(*datatype_f);
     MPI_Op op = C_MPI_OP_FROMINT(*op_f);
     MPI_Comm comm = C_MPI_COMM_FROMINT(*comm_f);
+    VAPAA_CFI_WARN_DATATYPE_MISMATCH(sendbuf, datatype, "MPI_Reduce_scatter");
+    VAPAA_CFI_WARN_DATATYPE_MISMATCH(recvbuf, datatype, "MPI_Reduce_scatter");
     if (VAPAA_REJECT_USER_OP_WITH_BUILTIN_TYPE(op, datatype)) {
         VAPAA_Warning("user-defined reduce op with built-in type is not supported without the MPI-5 ABI.\n");
         *ierror = MPI_ERR_OP;
@@ -111,6 +116,8 @@ void VAPAA_MPI_Reduce_scatter_block(CFI_cdesc_t *sendbuf, CFI_cdesc_t *recvbuf, 
     MPI_Datatype datatype = C_MPI_TYPE_FROMINT(*datatype_f);
     MPI_Op op = C_MPI_OP_FROMINT(*op_f);
     MPI_Comm comm = C_MPI_COMM_FROMINT(*comm_f);
+    VAPAA_CFI_WARN_DATATYPE_MISMATCH(sendbuf, datatype, "MPI_Reduce_scatter_block");
+    VAPAA_CFI_WARN_DATATYPE_MISMATCH(recvbuf, datatype, "MPI_Reduce_scatter_block");
     if (VAPAA_REJECT_USER_OP_WITH_BUILTIN_TYPE(op, datatype)) {
         VAPAA_Warning("user-defined reduce op with built-in type is not supported without the MPI-5 ABI.\n");
         *ierror = MPI_ERR_OP;
@@ -129,6 +136,8 @@ void VAPAA_MPI_Reduce_local(CFI_cdesc_t *inbuf, CFI_cdesc_t *inoutbuf, int *coun
 {
     MPI_Datatype datatype = C_MPI_TYPE_FROMINT(*datatype_f);
     MPI_Op op = C_MPI_OP_FROMINT(*op_f);
+    VAPAA_CFI_WARN_DATATYPE_MISMATCH(inbuf, datatype, "MPI_Reduce_local");
+    VAPAA_CFI_WARN_DATATYPE_MISMATCH(inoutbuf, datatype, "MPI_Reduce_local");
     if (VAPAA_REJECT_USER_OP_WITH_BUILTIN_TYPE(op, datatype)) {
         VAPAA_Warning("user-defined reduce op with built-in type is not supported without the MPI-5 ABI.\n");
         *ierror = MPI_ERR_OP;
@@ -147,6 +156,7 @@ void VAPAA_MPI_Pack_external(const char datarep[], CFI_cdesc_t *inbuf, int *inco
                              CFI_cdesc_t *outbuf, intptr_t *outsize, intptr_t *position, int *ierror)
 {
     MPI_Datatype datatype = C_MPI_TYPE_FROMINT(*datatype_f);
+    VAPAA_CFI_WARN_DATATYPE_MISMATCH(inbuf, datatype, "MPI_Pack_external");
     if (VAPAA_CFI_is_contiguous(outbuf) != 1) {
         VAPAA_Warning("MPI_Pack_external requires the output buffer be contiguous.\n");
         *ierror = MPI_ERR_BUFFER;
@@ -165,6 +175,7 @@ void VAPAA_MPI_Unpack_external(const char datarep[], CFI_cdesc_t *inbuf, intptr_
                                CFI_cdesc_t *outbuf, int *outcount, int *datatype_f, int *ierror)
 {
     MPI_Datatype datatype = C_MPI_TYPE_FROMINT(*datatype_f);
+    VAPAA_CFI_WARN_DATATYPE_MISMATCH(outbuf, datatype, "MPI_Unpack_external");
     if (VAPAA_CFI_is_contiguous(inbuf) != 1) {
         VAPAA_Warning("MPI_Unpack_external requires the input buffer be contiguous.\n");
         *ierror = MPI_ERR_BUFFER;

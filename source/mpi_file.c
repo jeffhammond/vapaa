@@ -149,6 +149,7 @@ void CFI_MPI_File_read_at(int * file_f, size_t * offset_f, CFI_cdesc_t * desc, i
     MPI_Offset offset = *offset_f;
     int count = *count_f;
     MPI_Datatype datatype = C_MPI_TYPE_FROMINT(*datatype_f);
+    VAPAA_CFI_WARN_DATATYPE_MISMATCH(desc, datatype, "MPI_File_read_at");
     if (1 == VAPAA_CFI_is_contiguous(desc)) {
         *ierror = MPI_File_read_at(file, offset, desc->base_addr, count, datatype,
                                    C_IS_MPI_STATUS_IGNORE(status) ? MPI_STATUS_IGNORE : status);
@@ -178,6 +179,7 @@ void CFI_MPI_File_read_at_all(int * file_f, size_t * offset_f, CFI_cdesc_t * des
     MPI_Offset offset = *offset_f;
     int count = *count_f;
     MPI_Datatype datatype = C_MPI_TYPE_FROMINT(*datatype_f);
+    VAPAA_CFI_WARN_DATATYPE_MISMATCH(desc, datatype, "MPI_File_read_at_all");
     if (1 == VAPAA_CFI_is_contiguous(desc)) {
         *ierror = MPI_File_read_at_all(file, offset, desc->base_addr, count, datatype,
                                        C_IS_MPI_STATUS_IGNORE(status) ? MPI_STATUS_IGNORE : status);
@@ -207,6 +209,7 @@ void CFI_MPI_File_write_at(int * file_f, size_t * offset_f, CFI_cdesc_t * desc, 
     MPI_Offset offset = *offset_f;
     int count = *count_f;
     MPI_Datatype datatype = C_MPI_TYPE_FROMINT(*datatype_f);
+    VAPAA_CFI_WARN_DATATYPE_MISMATCH(desc, datatype, "MPI_File_write_at");
     if (1 == VAPAA_CFI_is_contiguous(desc)) {
         *ierror = MPI_File_write_at(file, offset, desc->base_addr, count, datatype,
                                     C_IS_MPI_STATUS_IGNORE(status) ? MPI_STATUS_IGNORE : status);
@@ -236,6 +239,7 @@ void CFI_MPI_File_write_at_all(int * file_f, size_t * offset_f, CFI_cdesc_t * de
     MPI_Offset offset = *offset_f;
     int count = *count_f;
     MPI_Datatype datatype = C_MPI_TYPE_FROMINT(*datatype_f);
+    VAPAA_CFI_WARN_DATATYPE_MISMATCH(desc, datatype, "MPI_File_write_at_all");
     if (1 == VAPAA_CFI_is_contiguous(desc)) {
         *ierror = MPI_File_write_at_all(file, offset, desc->base_addr, count, datatype,
                                         C_IS_MPI_STATUS_IGNORE(status) ? MPI_STATUS_IGNORE : status);
@@ -263,6 +267,7 @@ void CFI_MPI_File_read(int * file_f, CFI_cdesc_t * desc, int * count_f, int * da
     MPI_File file = C_MPI_FILE_FROMINT(*file_f);
     int count = *count_f;
     MPI_Datatype datatype = C_MPI_TYPE_FROMINT(*datatype_f);
+    VAPAA_CFI_WARN_DATATYPE_MISMATCH(desc, datatype, "MPI_File_read");
     if (1 == VAPAA_CFI_is_contiguous(desc)) {
         *ierror = MPI_File_read(file, desc->base_addr, count, datatype,
                                 C_IS_MPI_STATUS_IGNORE(status) ? MPI_STATUS_IGNORE : status);
@@ -290,6 +295,7 @@ void CFI_MPI_File_read_all(int * file_f, CFI_cdesc_t * desc, int * count_f, int 
     MPI_File file = C_MPI_FILE_FROMINT(*file_f);
     int count = *count_f;
     MPI_Datatype datatype = C_MPI_TYPE_FROMINT(*datatype_f);
+    VAPAA_CFI_WARN_DATATYPE_MISMATCH(desc, datatype, "MPI_File_read_all");
     if (1 == VAPAA_CFI_is_contiguous(desc)) {
         *ierror = MPI_File_read_all(file, desc->base_addr, count, datatype,
                                     C_IS_MPI_STATUS_IGNORE(status) ? MPI_STATUS_IGNORE : status);
@@ -317,6 +323,7 @@ void CFI_MPI_File_write(int * file_f, CFI_cdesc_t * desc, int * count_f, int * d
     MPI_File file = C_MPI_FILE_FROMINT(*file_f);
     int count = *count_f;
     MPI_Datatype datatype = C_MPI_TYPE_FROMINT(*datatype_f);
+    VAPAA_CFI_WARN_DATATYPE_MISMATCH(desc, datatype, "MPI_File_write");
     if (1 == VAPAA_CFI_is_contiguous(desc)) {
         *ierror = MPI_File_write(file, desc->base_addr, count, datatype,
                                  C_IS_MPI_STATUS_IGNORE(status) ? MPI_STATUS_IGNORE : status);
@@ -344,6 +351,7 @@ void CFI_MPI_File_write_all(int * file_f, CFI_cdesc_t * desc, int * count_f, int
     MPI_File file = C_MPI_FILE_FROMINT(*file_f);
     int count = *count_f;
     MPI_Datatype datatype = C_MPI_TYPE_FROMINT(*datatype_f);
+    VAPAA_CFI_WARN_DATATYPE_MISMATCH(desc, datatype, "MPI_File_write_all");
     if (1 == VAPAA_CFI_is_contiguous(desc)) {
         *ierror = MPI_File_write_all(file, desc->base_addr, count, datatype,
                                      C_IS_MPI_STATUS_IGNORE(status) ? MPI_STATUS_IGNORE : status);

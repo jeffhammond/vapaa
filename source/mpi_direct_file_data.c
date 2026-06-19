@@ -36,6 +36,7 @@ void name(int *file_f, CFI_cdesc_t *buf, int *count, int *datatype_f, int *reque
     MPI_Request request = MPI_REQUEST_NULL; \
     MPI_File file = C_MPI_FILE_FROMINT(*file_f); \
     MPI_Datatype datatype = C_MPI_TYPE_FROMINT(*datatype_f); \
+    VAPAA_CFI_WARN_DATATYPE_MISMATCH_FUNC(buf, datatype); \
     if (VAPAA_FILE_REQUIRE_CONTIG(buf)) { \
         *ierror = mpi_fn(file, VAPAA_FILE_ADDR(buf), *count, datatype, &request); \
     } \
@@ -48,6 +49,7 @@ void name(int *file_f, int64_t *offset_f, CFI_cdesc_t *buf, int *count, int *dat
     MPI_Request request = MPI_REQUEST_NULL; \
     MPI_File file = C_MPI_FILE_FROMINT(*file_f); \
     MPI_Datatype datatype = C_MPI_TYPE_FROMINT(*datatype_f); \
+    VAPAA_CFI_WARN_DATATYPE_MISMATCH_FUNC(buf, datatype); \
     if (VAPAA_FILE_REQUIRE_CONTIG(buf)) { \
         *ierror = mpi_fn(file, (MPI_Offset)*offset_f, VAPAA_FILE_ADDR(buf), *count, datatype, &request); \
     } \
@@ -70,6 +72,7 @@ void name(int *file_f, CFI_cdesc_t *buf, int *count, int *datatype_f, MPI_Status
 { \
     MPI_File file = C_MPI_FILE_FROMINT(*file_f); \
     MPI_Datatype datatype = C_MPI_TYPE_FROMINT(*datatype_f); \
+    VAPAA_CFI_WARN_DATATYPE_MISMATCH_FUNC(buf, datatype); \
     if (VAPAA_FILE_REQUIRE_CONTIG(buf)) { \
         *ierror = mpi_fn(file, VAPAA_FILE_ADDR(buf), *count, datatype, \
                          C_IS_MPI_STATUS_IGNORE(status) ? MPI_STATUS_IGNORE : status); \
@@ -87,6 +90,7 @@ void name(int *file_f, CFI_cdesc_t *buf, int *count, int *datatype_f, int *ierro
 { \
     MPI_File file = C_MPI_FILE_FROMINT(*file_f); \
     MPI_Datatype datatype = C_MPI_TYPE_FROMINT(*datatype_f); \
+    VAPAA_CFI_WARN_DATATYPE_MISMATCH_FUNC(buf, datatype); \
     if (VAPAA_FILE_REQUIRE_CONTIG(buf)) { \
         *ierror = mpi_fn(file, VAPAA_FILE_ADDR(buf), *count, datatype); \
     } \
@@ -98,6 +102,7 @@ void name(int *file_f, int64_t *offset_f, CFI_cdesc_t *buf, int *count, int *dat
 { \
     MPI_File file = C_MPI_FILE_FROMINT(*file_f); \
     MPI_Datatype datatype = C_MPI_TYPE_FROMINT(*datatype_f); \
+    VAPAA_CFI_WARN_DATATYPE_MISMATCH_FUNC(buf, datatype); \
     if (VAPAA_FILE_REQUIRE_CONTIG(buf)) { \
         *ierror = mpi_fn(file, (MPI_Offset)*offset_f, VAPAA_FILE_ADDR(buf), *count, datatype); \
     } \

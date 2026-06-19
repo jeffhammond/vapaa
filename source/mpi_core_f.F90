@@ -137,10 +137,9 @@ module mpi_core_f
 
         subroutine F_MPI_INIT_ABI_FORTRAN(ierror_c)
             use iso_c_binding, only: c_int, c_int8_t
-            use mpi_core_c, only: C_MPI_Abi_init_fortran
+            use mpi_core_c, only: C_MPI_Abi_init_fortran, C_MPI_Set_fortran_type_sizes
             integer(kind=c_int), intent(inout) :: ierror_c
-#ifdef MPI_ABI
-            integer(kind=c_int) :: abi_ierror_c
+            integer(kind=c_int) :: init_ierror_c
             integer(kind=c_int) :: logical_size_c, integer_size_c, real_size_c, double_precision_size_c
             integer(kind=c_int8_t) :: logical_true_bytes(8), logical_false_bytes(8)
 
@@ -160,11 +159,17 @@ module mpi_core_f
             logical_true_bytes(1:logical_size_c) = transfer(.true., logical_true_bytes(1:logical_size_c))
             logical_false_bytes(1:logical_size_c) = transfer(.false., logical_false_bytes(1:logical_size_c))
 
+            call C_MPI_Set_fortran_type_sizes(logical_size_c, integer_size_c, &
+                                              real_size_c, double_precision_size_c, init_ierror_c)
+            if (init_ierror_c /= 0) then
+                ierror_c = init_ierror_c
+                return
+            end if
+
+#ifdef MPI_ABI
             call C_MPI_Abi_init_fortran(logical_size_c, logical_true_bytes, logical_false_bytes, &
-                                        integer_size_c, real_size_c, double_precision_size_c, abi_ierror_c)
-            if (abi_ierror_c /= 0) ierror_c = abi_ierror_c
-#else
-            if (ierror_c /= 0) continue
+                                        integer_size_c, real_size_c, double_precision_size_c, init_ierror_c)
+            if (init_ierror_c /= 0) ierror_c = init_ierror_c
 #endif
         end subroutine F_MPI_INIT_ABI_FORTRAN
 

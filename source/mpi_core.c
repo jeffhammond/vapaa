@@ -8,6 +8,7 @@
 #include "ISO_Fortran_binding.h"
 #include "convert_handles.h"
 #include "convert_constants.h"
+#include "cfi_util.h"
 
 // STANDARD STUFF
 
@@ -39,6 +40,9 @@ static bool C_MPI_ABI_ALREADY_SET(int rc)
 void C_MPI_Init(int * ierror)
 {
     *ierror = MPI_Init(NULL, NULL);
+    if (*ierror == MPI_SUCCESS) {
+        VAPAA_CFI_DATATYPE_DIAGNOSTICS_INIT();
+    }
 #if MPI_VERSION < 5
     // it is not clear if we need this - do we rely on MPI_Fint anywhere?
     if (sizeof(MPI_Fint) != sizeof(int)) {
@@ -52,11 +56,22 @@ void C_MPI_Init(int * ierror)
     MPI_Comm_set_errhandler(MPI_COMM_SELF, MPI_ERRORS_RETURN);
 }
 
+void C_MPI_Set_fortran_type_sizes(int * logical_size, int * integer_size,
+                                  int * real_size, int * double_precision_size,
+                                  int * ierror)
+{
+    VAPAA_CFI_SET_FORTRAN_TYPE_SIZES(*logical_size, *integer_size,
+                                     *real_size, *double_precision_size);
+    *ierror = MPI_SUCCESS;
+}
+
 void C_MPI_Abi_init_fortran(int * logical_size, const void * logical_true, const void * logical_false,
                             int * integer_size, int * real_size, int * double_precision_size,
                             int * ierror)
 {
     *ierror = MPI_SUCCESS;
+    VAPAA_CFI_SET_FORTRAN_TYPE_SIZES(*logical_size, *integer_size,
+                                     *real_size, *double_precision_size);
 #if MPI_VERSION >= 5
     MPI_Info existing_info = MPI_INFO_NULL;
     int rc = MPI_Abi_get_fortran_info(&existing_info);
@@ -154,6 +169,9 @@ void C_MPI_Init_thread(int * required_f, int * provided_f, int * ierror)
     int required = -1, provided = -1;
     required = C_MPI_THREAD_LEVEL_F2C(*required_f);
     *ierror = MPI_Init_thread(NULL, NULL, required, &provided);
+    if (*ierror == MPI_SUCCESS) {
+        VAPAA_CFI_DATATYPE_DIAGNOSTICS_INIT();
+    }
     *provided_f = C_MPI_THREAD_LEVEL_C2F(provided);
 #if MPI_VERSION < 5
     // it is not clear if we need this - do we rely on MPI_Fint anywhere?

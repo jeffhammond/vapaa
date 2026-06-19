@@ -66,6 +66,23 @@ static MPI_Datatype *VAPAA_COLL_TYPES_FROMINT(const int types_f[], int n)
     return types;
 }
 
+static void VAPAA_COLL_WARN_DATATYPE_ARRAY(CFI_cdesc_t *desc, const MPI_Datatype types[], int n,
+                                           const char *mpi_function)
+{
+    for (int i = 0; i < n; ++i) {
+        bool seen = false;
+        for (int j = 0; j < i; ++j) {
+            if (types[j] == types[i]) {
+                seen = true;
+                break;
+            }
+        }
+        if (!seen) {
+            VAPAA_CFI_WARN_DATATYPE_MISMATCH(desc, types[i], mpi_function);
+        }
+    }
+}
+
 static MPI_Aint *VAPAA_COLL_AINTS_FROM_INTPTR(const intptr_t aints_f[], int n)
 {
     if (n <= 0) {
@@ -153,11 +170,13 @@ void VAPAA_MPI_Alltoallw(CFI_cdesc_t *sendbuf, const int sendcounts[], const int
     int size = 0;
     (void)MPI_Comm_size(comm, &size);
     MPI_Datatype *recvtypes = VAPAA_COLL_TYPES_FROMINT(recvtypes_f, size);
+    VAPAA_COLL_WARN_DATATYPE_ARRAY(recvbuf, recvtypes, size, "MPI_Alltoallw");
     void *send_addr = VAPAA_COLL_IN_ADDR(sendbuf);
     if (send_addr == MPI_IN_PLACE) {
         *ierror = VAPAA_COLL_Alltoallw_in_place(VAPAA_COLL_ADDR(recvbuf), recvcounts, rdispls, recvtypes, comm);
     } else {
         MPI_Datatype *sendtypes = VAPAA_COLL_TYPES_FROMINT(sendtypes_f, size);
+        VAPAA_COLL_WARN_DATATYPE_ARRAY(sendbuf, sendtypes, size, "MPI_Alltoallw");
         *ierror = MPI_Alltoallw(send_addr, sendcounts, sdispls, sendtypes,
                                 VAPAA_COLL_ADDR(recvbuf), recvcounts, rdispls, recvtypes, comm);
         free(sendtypes);
@@ -195,6 +214,7 @@ void VAPAA_MPI_Ibcast(CFI_cdesc_t *buffer, int *count, int *datatype_f, int *roo
     MPI_Request request = MPI_REQUEST_NULL;
     MPI_Datatype datatype = C_MPI_TYPE_FROMINT(*datatype_f);
     MPI_Comm comm = C_MPI_COMM_FROMINT(*comm_f);
+    VAPAA_CFI_WARN_DATATYPE_MISMATCH(buffer, datatype, "MPI_Ibcast");
     if (VAPAA_COLL_REQUIRE_CONTIG1(buffer, comm)) {
         *ierror = MPI_Ibcast(VAPAA_COLL_ADDR(buffer), *count, datatype, C_MPI_ROOT_F2C(*root), comm, &request);
     }
@@ -209,6 +229,7 @@ void VAPAA_MPI_Bcast_init(CFI_cdesc_t *buffer, int *count, int *datatype_f, int 
     MPI_Datatype datatype = C_MPI_TYPE_FROMINT(*datatype_f);
     MPI_Comm comm = C_MPI_COMM_FROMINT(*comm_f);
     MPI_Info info = C_MPI_INFO_FROMINT(*info_f);
+    VAPAA_CFI_WARN_DATATYPE_MISMATCH(buffer, datatype, "MPI_Bcast_init");
     if (VAPAA_COLL_REQUIRE_CONTIG1(buffer, comm)) {
         *ierror = MPI_Bcast_init(VAPAA_COLL_ADDR(buffer), *count, datatype, C_MPI_ROOT_F2C(*root), comm, info, &request);
     }
@@ -232,6 +253,8 @@ void name(CFI_cdesc_t *sendbuf, CFI_cdesc_t *recvbuf, int *count, int *datatype_
     MPI_Datatype datatype = C_MPI_TYPE_FROMINT(*datatype_f); \
     MPI_Op op = C_MPI_OP_FROMINT(*op_f); \
     MPI_Comm comm = C_MPI_COMM_FROMINT(*comm_f); \
+    VAPAA_CFI_WARN_DATATYPE_MISMATCH_FUNC(sendbuf, datatype); \
+    VAPAA_CFI_WARN_DATATYPE_MISMATCH_FUNC(recvbuf, datatype); \
     if (VAPAA_COLL_REJECT_USER_OP_WITH_BUILTIN_TYPE(op, datatype)) { \
         *ierror = MPI_ERR_OP; \
     } else if (VAPAA_COLL_REQUIRE_CONTIG2(sendbuf, recvbuf, comm)) { \
@@ -250,6 +273,8 @@ void name(CFI_cdesc_t *sendbuf, CFI_cdesc_t *recvbuf, int *count, int *datatype_
     MPI_Op op = C_MPI_OP_FROMINT(*op_f); \
     MPI_Comm comm = C_MPI_COMM_FROMINT(*comm_f); \
     MPI_Info info = C_MPI_INFO_FROMINT(*info_f); \
+    VAPAA_CFI_WARN_DATATYPE_MISMATCH_FUNC(sendbuf, datatype); \
+    VAPAA_CFI_WARN_DATATYPE_MISMATCH_FUNC(recvbuf, datatype); \
     if (VAPAA_COLL_REJECT_USER_OP_WITH_BUILTIN_TYPE(op, datatype)) { \
         *ierror = MPI_ERR_OP; \
     } else if (VAPAA_COLL_REQUIRE_CONTIG2(sendbuf, recvbuf, comm)) { \
@@ -281,6 +306,8 @@ void VAPAA_MPI_Ireduce(CFI_cdesc_t *sendbuf, CFI_cdesc_t *recvbuf, int *count, i
     MPI_Datatype datatype = C_MPI_TYPE_FROMINT(*datatype_f);
     MPI_Op op = C_MPI_OP_FROMINT(*op_f);
     MPI_Comm comm = C_MPI_COMM_FROMINT(*comm_f);
+    VAPAA_CFI_WARN_DATATYPE_MISMATCH(sendbuf, datatype, "MPI_Ireduce");
+    VAPAA_CFI_WARN_DATATYPE_MISMATCH(recvbuf, datatype, "MPI_Ireduce");
     if (VAPAA_COLL_REJECT_USER_OP_WITH_BUILTIN_TYPE(op, datatype)) {
         *ierror = MPI_ERR_OP;
     } else if (VAPAA_COLL_REQUIRE_CONTIG2(sendbuf, recvbuf, comm)) {
@@ -299,6 +326,8 @@ void VAPAA_MPI_Reduce_init(CFI_cdesc_t *sendbuf, CFI_cdesc_t *recvbuf, int *coun
     MPI_Op op = C_MPI_OP_FROMINT(*op_f);
     MPI_Comm comm = C_MPI_COMM_FROMINT(*comm_f);
     MPI_Info info = C_MPI_INFO_FROMINT(*info_f);
+    VAPAA_CFI_WARN_DATATYPE_MISMATCH(sendbuf, datatype, "MPI_Reduce_init");
+    VAPAA_CFI_WARN_DATATYPE_MISMATCH(recvbuf, datatype, "MPI_Reduce_init");
     if (VAPAA_COLL_REJECT_USER_OP_WITH_BUILTIN_TYPE(op, datatype)) {
         *ierror = MPI_ERR_OP;
     } else if (VAPAA_COLL_REQUIRE_CONTIG2(sendbuf, recvbuf, comm)) {
@@ -321,6 +350,8 @@ void name(CFI_cdesc_t *sendbuf, int *sendcount, int *sendtype_f, CFI_cdesc_t *re
     MPI_Datatype sendtype = C_MPI_TYPE_FROMINT(*sendtype_f); \
     MPI_Datatype recvtype = C_MPI_TYPE_FROMINT(*recvtype_f); \
     MPI_Comm comm = C_MPI_COMM_FROMINT(*comm_f); \
+    VAPAA_CFI_WARN_DATATYPE_MISMATCH_FUNC(sendbuf, sendtype); \
+    VAPAA_CFI_WARN_DATATYPE_MISMATCH_FUNC(recvbuf, recvtype); \
     if (VAPAA_COLL_REQUIRE_CONTIG2(sendbuf, recvbuf, comm)) { \
         *ierror = mpi_fn(VAPAA_COLL_IN_ADDR(sendbuf), *sendcount, sendtype, VAPAA_COLL_ADDR(recvbuf), *recvcount, recvtype, \
                          C_MPI_ROOT_F2C(*root), comm, &request); \
@@ -338,6 +369,8 @@ void name(CFI_cdesc_t *sendbuf, int *sendcount, int *sendtype_f, CFI_cdesc_t *re
     MPI_Datatype recvtype = C_MPI_TYPE_FROMINT(*recvtype_f); \
     MPI_Comm comm = C_MPI_COMM_FROMINT(*comm_f); \
     MPI_Info info = C_MPI_INFO_FROMINT(*info_f); \
+    VAPAA_CFI_WARN_DATATYPE_MISMATCH_FUNC(sendbuf, sendtype); \
+    VAPAA_CFI_WARN_DATATYPE_MISMATCH_FUNC(recvbuf, recvtype); \
     if (VAPAA_COLL_REQUIRE_CONTIG2(sendbuf, recvbuf, comm)) { \
         *ierror = mpi_fn(VAPAA_COLL_IN_ADDR(sendbuf), *sendcount, sendtype, VAPAA_COLL_ADDR(recvbuf), *recvcount, recvtype, \
                          C_MPI_ROOT_F2C(*root), comm, info, &request); \
@@ -368,6 +401,8 @@ void name(CFI_cdesc_t *sendbuf, int *sendcount, int *sendtype_f, CFI_cdesc_t *re
     MPI_Datatype sendtype = C_MPI_TYPE_FROMINT(*sendtype_f); \
     MPI_Datatype recvtype = C_MPI_TYPE_FROMINT(*recvtype_f); \
     MPI_Comm comm = C_MPI_COMM_FROMINT(*comm_f); \
+    VAPAA_CFI_WARN_DATATYPE_MISMATCH_FUNC(sendbuf, sendtype); \
+    VAPAA_CFI_WARN_DATATYPE_MISMATCH_FUNC(recvbuf, recvtype); \
     if (VAPAA_COLL_REQUIRE_CONTIG2(sendbuf, recvbuf, comm)) { \
         *ierror = mpi_fn(VAPAA_COLL_IN_ADDR(sendbuf), *sendcount, sendtype, VAPAA_COLL_ADDR(recvbuf), *recvcount, recvtype, \
                          comm, &request); \
@@ -385,6 +420,8 @@ void name(CFI_cdesc_t *sendbuf, int *sendcount, int *sendtype_f, CFI_cdesc_t *re
     MPI_Datatype recvtype = C_MPI_TYPE_FROMINT(*recvtype_f); \
     MPI_Comm comm = C_MPI_COMM_FROMINT(*comm_f); \
     MPI_Info info = C_MPI_INFO_FROMINT(*info_f); \
+    VAPAA_CFI_WARN_DATATYPE_MISMATCH_FUNC(sendbuf, sendtype); \
+    VAPAA_CFI_WARN_DATATYPE_MISMATCH_FUNC(recvbuf, recvtype); \
     if (VAPAA_COLL_REQUIRE_CONTIG2(sendbuf, recvbuf, comm)) { \
         *ierror = mpi_fn(VAPAA_COLL_IN_ADDR(sendbuf), *sendcount, sendtype, VAPAA_COLL_ADDR(recvbuf), *recvcount, recvtype, \
                          comm, info, &request); \
@@ -415,6 +452,8 @@ void VAPAA_MPI_Igatherv(CFI_cdesc_t *sendbuf, int *sendcount, int *sendtype_f, C
     MPI_Datatype sendtype = C_MPI_TYPE_FROMINT(*sendtype_f);
     MPI_Datatype recvtype = C_MPI_TYPE_FROMINT(*recvtype_f);
     MPI_Comm comm = C_MPI_COMM_FROMINT(*comm_f);
+    VAPAA_CFI_WARN_DATATYPE_MISMATCH(sendbuf, sendtype, "MPI_Igatherv");
+    VAPAA_CFI_WARN_DATATYPE_MISMATCH(recvbuf, recvtype, "MPI_Igatherv");
     if (VAPAA_COLL_REQUIRE_CONTIG2(sendbuf, recvbuf, comm)) {
         *ierror = MPI_Igatherv(VAPAA_COLL_IN_ADDR(sendbuf), *sendcount, sendtype, VAPAA_COLL_ADDR(recvbuf),
                                recvcounts, displs, recvtype, C_MPI_ROOT_F2C(*root), comm, &request);
@@ -432,6 +471,8 @@ void VAPAA_MPI_Gatherv_init(CFI_cdesc_t *sendbuf, int *sendcount, int *sendtype_
     MPI_Datatype recvtype = C_MPI_TYPE_FROMINT(*recvtype_f);
     MPI_Comm comm = C_MPI_COMM_FROMINT(*comm_f);
     MPI_Info info = C_MPI_INFO_FROMINT(*info_f);
+    VAPAA_CFI_WARN_DATATYPE_MISMATCH(sendbuf, sendtype, "MPI_Gatherv_init");
+    VAPAA_CFI_WARN_DATATYPE_MISMATCH(recvbuf, recvtype, "MPI_Gatherv_init");
     if (VAPAA_COLL_REQUIRE_CONTIG2(sendbuf, recvbuf, comm)) {
         *ierror = MPI_Gatherv_init(VAPAA_COLL_IN_ADDR(sendbuf), *sendcount, sendtype, VAPAA_COLL_ADDR(recvbuf),
                                    recvcounts, displs, recvtype, C_MPI_ROOT_F2C(*root), comm, info, &request);
@@ -452,6 +493,8 @@ void VAPAA_MPI_Iscatterv(CFI_cdesc_t *sendbuf, const int sendcounts[], const int
     MPI_Datatype sendtype = C_MPI_TYPE_FROMINT(*sendtype_f);
     MPI_Datatype recvtype = C_MPI_TYPE_FROMINT(*recvtype_f);
     MPI_Comm comm = C_MPI_COMM_FROMINT(*comm_f);
+    VAPAA_CFI_WARN_DATATYPE_MISMATCH(sendbuf, sendtype, "MPI_Iscatterv");
+    VAPAA_CFI_WARN_DATATYPE_MISMATCH(recvbuf, recvtype, "MPI_Iscatterv");
     if (VAPAA_COLL_REQUIRE_CONTIG2(sendbuf, recvbuf, comm)) {
         *ierror = MPI_Iscatterv(VAPAA_COLL_IN_ADDR(sendbuf), sendcounts, displs, sendtype, VAPAA_COLL_ADDR(recvbuf),
                                 *recvcount, recvtype, C_MPI_ROOT_F2C(*root), comm, &request);
@@ -469,6 +512,8 @@ void VAPAA_MPI_Scatterv_init(CFI_cdesc_t *sendbuf, const int sendcounts[], const
     MPI_Datatype recvtype = C_MPI_TYPE_FROMINT(*recvtype_f);
     MPI_Comm comm = C_MPI_COMM_FROMINT(*comm_f);
     MPI_Info info = C_MPI_INFO_FROMINT(*info_f);
+    VAPAA_CFI_WARN_DATATYPE_MISMATCH(sendbuf, sendtype, "MPI_Scatterv_init");
+    VAPAA_CFI_WARN_DATATYPE_MISMATCH(recvbuf, recvtype, "MPI_Scatterv_init");
     if (VAPAA_COLL_REQUIRE_CONTIG2(sendbuf, recvbuf, comm)) {
         *ierror = MPI_Scatterv_init(VAPAA_COLL_IN_ADDR(sendbuf), sendcounts, displs, sendtype, VAPAA_COLL_ADDR(recvbuf),
                                     *recvcount, recvtype, C_MPI_ROOT_F2C(*root), comm, info, &request);
@@ -489,6 +534,8 @@ void VAPAA_MPI_Iallgatherv(CFI_cdesc_t *sendbuf, int *sendcount, int *sendtype_f
     MPI_Datatype sendtype = C_MPI_TYPE_FROMINT(*sendtype_f);
     MPI_Datatype recvtype = C_MPI_TYPE_FROMINT(*recvtype_f);
     MPI_Comm comm = C_MPI_COMM_FROMINT(*comm_f);
+    VAPAA_CFI_WARN_DATATYPE_MISMATCH(sendbuf, sendtype, "MPI_Iallgatherv");
+    VAPAA_CFI_WARN_DATATYPE_MISMATCH(recvbuf, recvtype, "MPI_Iallgatherv");
     if (VAPAA_COLL_REQUIRE_CONTIG2(sendbuf, recvbuf, comm)) {
         *ierror = MPI_Iallgatherv(VAPAA_COLL_IN_ADDR(sendbuf), *sendcount, sendtype, VAPAA_COLL_ADDR(recvbuf),
                                   recvcounts, displs, recvtype, comm, &request);
@@ -506,6 +553,8 @@ void VAPAA_MPI_Allgatherv_init(CFI_cdesc_t *sendbuf, int *sendcount, int *sendty
     MPI_Datatype recvtype = C_MPI_TYPE_FROMINT(*recvtype_f);
     MPI_Comm comm = C_MPI_COMM_FROMINT(*comm_f);
     MPI_Info info = C_MPI_INFO_FROMINT(*info_f);
+    VAPAA_CFI_WARN_DATATYPE_MISMATCH(sendbuf, sendtype, "MPI_Allgatherv_init");
+    VAPAA_CFI_WARN_DATATYPE_MISMATCH(recvbuf, recvtype, "MPI_Allgatherv_init");
     if (VAPAA_COLL_REQUIRE_CONTIG2(sendbuf, recvbuf, comm)) {
         *ierror = MPI_Allgatherv_init(VAPAA_COLL_IN_ADDR(sendbuf), *sendcount, sendtype, VAPAA_COLL_ADDR(recvbuf),
                                       recvcounts, displs, recvtype, comm, info, &request);
@@ -526,6 +575,8 @@ void VAPAA_MPI_Ialltoallv(CFI_cdesc_t *sendbuf, const int sendcounts[], const in
     MPI_Datatype sendtype = C_MPI_TYPE_FROMINT(*sendtype_f);
     MPI_Datatype recvtype = C_MPI_TYPE_FROMINT(*recvtype_f);
     MPI_Comm comm = C_MPI_COMM_FROMINT(*comm_f);
+    VAPAA_CFI_WARN_DATATYPE_MISMATCH(sendbuf, sendtype, "MPI_Ialltoallv");
+    VAPAA_CFI_WARN_DATATYPE_MISMATCH(recvbuf, recvtype, "MPI_Ialltoallv");
     if (VAPAA_COLL_REQUIRE_CONTIG2(sendbuf, recvbuf, comm)) {
         *ierror = MPI_Ialltoallv(VAPAA_COLL_IN_ADDR(sendbuf), sendcounts, sdispls, sendtype, VAPAA_COLL_ADDR(recvbuf),
                                  recvcounts, rdispls, recvtype, comm, &request);
@@ -543,6 +594,8 @@ void VAPAA_MPI_Alltoallv_init(CFI_cdesc_t *sendbuf, const int sendcounts[], cons
     MPI_Datatype recvtype = C_MPI_TYPE_FROMINT(*recvtype_f);
     MPI_Comm comm = C_MPI_COMM_FROMINT(*comm_f);
     MPI_Info info = C_MPI_INFO_FROMINT(*info_f);
+    VAPAA_CFI_WARN_DATATYPE_MISMATCH(sendbuf, sendtype, "MPI_Alltoallv_init");
+    VAPAA_CFI_WARN_DATATYPE_MISMATCH(recvbuf, recvtype, "MPI_Alltoallv_init");
     if (VAPAA_COLL_REQUIRE_CONTIG2(sendbuf, recvbuf, comm)) {
         *ierror = MPI_Alltoallv_init(VAPAA_COLL_IN_ADDR(sendbuf), sendcounts, sdispls, sendtype, VAPAA_COLL_ADDR(recvbuf),
                                      recvcounts, rdispls, recvtype, comm, info, &request);
@@ -566,6 +619,8 @@ void VAPAA_MPI_Ialltoallw(CFI_cdesc_t *sendbuf, const int sendcounts[], const in
         (void)MPI_Comm_size(comm, &size);
         MPI_Datatype *sendtypes = VAPAA_COLL_TYPES_FROMINT(sendtypes_f, size);
         MPI_Datatype *recvtypes = VAPAA_COLL_TYPES_FROMINT(recvtypes_f, size);
+        VAPAA_COLL_WARN_DATATYPE_ARRAY(sendbuf, sendtypes, size, "MPI_Ialltoallw");
+        VAPAA_COLL_WARN_DATATYPE_ARRAY(recvbuf, recvtypes, size, "MPI_Ialltoallw");
         *ierror = MPI_Ialltoallw(VAPAA_COLL_IN_ADDR(sendbuf), sendcounts, sdispls, sendtypes,
                                  VAPAA_COLL_ADDR(recvbuf), recvcounts, rdispls, recvtypes, comm, &request);
         free(sendtypes);
@@ -588,6 +643,8 @@ void VAPAA_MPI_Alltoallw_init(CFI_cdesc_t *sendbuf, const int sendcounts[], cons
         (void)MPI_Comm_size(comm, &size);
         MPI_Datatype *sendtypes = VAPAA_COLL_TYPES_FROMINT(sendtypes_f, size);
         MPI_Datatype *recvtypes = VAPAA_COLL_TYPES_FROMINT(recvtypes_f, size);
+        VAPAA_COLL_WARN_DATATYPE_ARRAY(sendbuf, sendtypes, size, "MPI_Alltoallw_init");
+        VAPAA_COLL_WARN_DATATYPE_ARRAY(recvbuf, recvtypes, size, "MPI_Alltoallw_init");
         *ierror = MPI_Alltoallw_init(VAPAA_COLL_IN_ADDR(sendbuf), sendcounts, sdispls, sendtypes,
                                      VAPAA_COLL_ADDR(recvbuf), recvcounts, rdispls, recvtypes, comm, info, &request);
         free(sendtypes);
@@ -608,6 +665,8 @@ void VAPAA_MPI_Ireduce_scatter(CFI_cdesc_t *sendbuf, CFI_cdesc_t *recvbuf, const
     MPI_Datatype datatype = C_MPI_TYPE_FROMINT(*datatype_f);
     MPI_Op op = C_MPI_OP_FROMINT(*op_f);
     MPI_Comm comm = C_MPI_COMM_FROMINT(*comm_f);
+    VAPAA_CFI_WARN_DATATYPE_MISMATCH(sendbuf, datatype, "MPI_Ireduce_scatter");
+    VAPAA_CFI_WARN_DATATYPE_MISMATCH(recvbuf, datatype, "MPI_Ireduce_scatter");
     if (VAPAA_COLL_REJECT_USER_OP_WITH_BUILTIN_TYPE(op, datatype)) {
         *ierror = MPI_ERR_OP;
     } else if (VAPAA_COLL_REQUIRE_CONTIG2(sendbuf, recvbuf, comm)) {
@@ -627,6 +686,8 @@ void VAPAA_MPI_Reduce_scatter_init(CFI_cdesc_t *sendbuf, CFI_cdesc_t *recvbuf, c
     MPI_Op op = C_MPI_OP_FROMINT(*op_f);
     MPI_Comm comm = C_MPI_COMM_FROMINT(*comm_f);
     MPI_Info info = C_MPI_INFO_FROMINT(*info_f);
+    VAPAA_CFI_WARN_DATATYPE_MISMATCH(sendbuf, datatype, "MPI_Reduce_scatter_init");
+    VAPAA_CFI_WARN_DATATYPE_MISMATCH(recvbuf, datatype, "MPI_Reduce_scatter_init");
     if (VAPAA_COLL_REJECT_USER_OP_WITH_BUILTIN_TYPE(op, datatype)) {
         *ierror = MPI_ERR_OP;
     } else if (VAPAA_COLL_REQUIRE_CONTIG2(sendbuf, recvbuf, comm)) {
@@ -647,6 +708,8 @@ void VAPAA_MPI_Ireduce_scatter_block(CFI_cdesc_t *sendbuf, CFI_cdesc_t *recvbuf,
     MPI_Datatype datatype = C_MPI_TYPE_FROMINT(*datatype_f);
     MPI_Op op = C_MPI_OP_FROMINT(*op_f);
     MPI_Comm comm = C_MPI_COMM_FROMINT(*comm_f);
+    VAPAA_CFI_WARN_DATATYPE_MISMATCH(sendbuf, datatype, "MPI_Ireduce_scatter_block");
+    VAPAA_CFI_WARN_DATATYPE_MISMATCH(recvbuf, datatype, "MPI_Ireduce_scatter_block");
     if (VAPAA_COLL_REJECT_USER_OP_WITH_BUILTIN_TYPE(op, datatype)) {
         *ierror = MPI_ERR_OP;
     } else if (VAPAA_COLL_REQUIRE_CONTIG2(sendbuf, recvbuf, comm)) {
@@ -666,6 +729,8 @@ void VAPAA_MPI_Reduce_scatter_block_init(CFI_cdesc_t *sendbuf, CFI_cdesc_t *recv
     MPI_Op op = C_MPI_OP_FROMINT(*op_f);
     MPI_Comm comm = C_MPI_COMM_FROMINT(*comm_f);
     MPI_Info info = C_MPI_INFO_FROMINT(*info_f);
+    VAPAA_CFI_WARN_DATATYPE_MISMATCH(sendbuf, datatype, "MPI_Reduce_scatter_block_init");
+    VAPAA_CFI_WARN_DATATYPE_MISMATCH(recvbuf, datatype, "MPI_Reduce_scatter_block_init");
     if (VAPAA_COLL_REJECT_USER_OP_WITH_BUILTIN_TYPE(op, datatype)) {
         *ierror = MPI_ERR_OP;
     } else if (VAPAA_COLL_REQUIRE_CONTIG2(sendbuf, recvbuf, comm)) {
@@ -688,6 +753,8 @@ void VAPAA_MPI_Isendrecv(CFI_cdesc_t *sendbuf, int *sendcount, int *sendtype_f, 
     MPI_Datatype sendtype = C_MPI_TYPE_FROMINT(*sendtype_f);
     MPI_Datatype recvtype = C_MPI_TYPE_FROMINT(*recvtype_f);
     MPI_Comm comm = C_MPI_COMM_FROMINT(*comm_f);
+    VAPAA_CFI_WARN_DATATYPE_MISMATCH(sendbuf, sendtype, "MPI_Isendrecv");
+    VAPAA_CFI_WARN_DATATYPE_MISMATCH(recvbuf, recvtype, "MPI_Isendrecv");
     if (VAPAA_COLL_REQUIRE_CONTIG2(sendbuf, recvbuf, comm)) {
         *ierror = MPI_Isendrecv(VAPAA_COLL_ADDR(sendbuf), *sendcount, sendtype, C_MPI_DEST_F2C(*dest),
                                 C_MPI_TAG_F2C(*sendtag), VAPAA_COLL_ADDR(recvbuf), *recvcount, recvtype,
@@ -708,6 +775,7 @@ void VAPAA_MPI_Isendrecv_replace(CFI_cdesc_t *buf, int *count, int *datatype_f, 
     MPI_Request request = MPI_REQUEST_NULL;
     MPI_Datatype datatype = C_MPI_TYPE_FROMINT(*datatype_f);
     MPI_Comm comm = C_MPI_COMM_FROMINT(*comm_f);
+    VAPAA_CFI_WARN_DATATYPE_MISMATCH(buf, datatype, "MPI_Isendrecv_replace");
     if (VAPAA_COLL_REQUIRE_CONTIG1(buf, comm)) {
         *ierror = MPI_Isendrecv_replace(VAPAA_COLL_ADDR(buf), *count, datatype, C_MPI_DEST_F2C(*dest),
                                         C_MPI_TAG_F2C(*sendtag), C_MPI_SOURCE_F2C(*source),
@@ -727,6 +795,8 @@ void name(CFI_cdesc_t *sendbuf, int *sendcount, int *sendtype_f, CFI_cdesc_t *re
     MPI_Datatype sendtype = C_MPI_TYPE_FROMINT(*sendtype_f); \
     MPI_Datatype recvtype = C_MPI_TYPE_FROMINT(*recvtype_f); \
     MPI_Comm comm = C_MPI_COMM_FROMINT(*comm_f); \
+    VAPAA_CFI_WARN_DATATYPE_MISMATCH_FUNC(sendbuf, sendtype); \
+    VAPAA_CFI_WARN_DATATYPE_MISMATCH_FUNC(recvbuf, recvtype); \
     if (VAPAA_COLL_REQUIRE_CONTIG2(sendbuf, recvbuf, comm)) { \
         *ierror = mpi_fn(VAPAA_COLL_ADDR(sendbuf), *sendcount, sendtype, VAPAA_COLL_ADDR(recvbuf), *recvcount, recvtype, comm); \
     } \
@@ -741,6 +811,8 @@ void name(CFI_cdesc_t *sendbuf, int *sendcount, int *sendtype_f, CFI_cdesc_t *re
     MPI_Datatype sendtype = C_MPI_TYPE_FROMINT(*sendtype_f); \
     MPI_Datatype recvtype = C_MPI_TYPE_FROMINT(*recvtype_f); \
     MPI_Comm comm = C_MPI_COMM_FROMINT(*comm_f); \
+    VAPAA_CFI_WARN_DATATYPE_MISMATCH_FUNC(sendbuf, sendtype); \
+    VAPAA_CFI_WARN_DATATYPE_MISMATCH_FUNC(recvbuf, recvtype); \
     if (VAPAA_COLL_REQUIRE_CONTIG2(sendbuf, recvbuf, comm)) { \
         *ierror = mpi_fn(VAPAA_COLL_ADDR(sendbuf), *sendcount, sendtype, VAPAA_COLL_ADDR(recvbuf), *recvcount, recvtype, comm, &request); \
     } \
@@ -757,6 +829,8 @@ void name(CFI_cdesc_t *sendbuf, int *sendcount, int *sendtype_f, CFI_cdesc_t *re
     MPI_Datatype recvtype = C_MPI_TYPE_FROMINT(*recvtype_f); \
     MPI_Comm comm = C_MPI_COMM_FROMINT(*comm_f); \
     MPI_Info info = C_MPI_INFO_FROMINT(*info_f); \
+    VAPAA_CFI_WARN_DATATYPE_MISMATCH_FUNC(sendbuf, sendtype); \
+    VAPAA_CFI_WARN_DATATYPE_MISMATCH_FUNC(recvbuf, recvtype); \
     if (VAPAA_COLL_REQUIRE_CONTIG2(sendbuf, recvbuf, comm)) { \
         *ierror = mpi_fn(VAPAA_COLL_ADDR(sendbuf), *sendcount, sendtype, VAPAA_COLL_ADDR(recvbuf), *recvcount, recvtype, comm, info, &request); \
     } \
@@ -787,6 +861,8 @@ void VAPAA_MPI_Neighbor_allgatherv(CFI_cdesc_t *sendbuf, int *sendcount, int *se
     MPI_Datatype sendtype = C_MPI_TYPE_FROMINT(*sendtype_f);
     MPI_Datatype recvtype = C_MPI_TYPE_FROMINT(*recvtype_f);
     MPI_Comm comm = C_MPI_COMM_FROMINT(*comm_f);
+    VAPAA_CFI_WARN_DATATYPE_MISMATCH(sendbuf, sendtype, "MPI_Neighbor_allgatherv");
+    VAPAA_CFI_WARN_DATATYPE_MISMATCH(recvbuf, recvtype, "MPI_Neighbor_allgatherv");
     if (VAPAA_COLL_REQUIRE_CONTIG2(sendbuf, recvbuf, comm)) {
         *ierror = MPI_Neighbor_allgatherv(VAPAA_COLL_ADDR(sendbuf), *sendcount, sendtype, VAPAA_COLL_ADDR(recvbuf),
                                           recvcounts, displs, recvtype, comm);
@@ -802,6 +878,8 @@ void VAPAA_MPI_Ineighbor_allgatherv(CFI_cdesc_t *sendbuf, int *sendcount, int *s
     MPI_Datatype sendtype = C_MPI_TYPE_FROMINT(*sendtype_f);
     MPI_Datatype recvtype = C_MPI_TYPE_FROMINT(*recvtype_f);
     MPI_Comm comm = C_MPI_COMM_FROMINT(*comm_f);
+    VAPAA_CFI_WARN_DATATYPE_MISMATCH(sendbuf, sendtype, "MPI_Ineighbor_allgatherv");
+    VAPAA_CFI_WARN_DATATYPE_MISMATCH(recvbuf, recvtype, "MPI_Ineighbor_allgatherv");
     if (VAPAA_COLL_REQUIRE_CONTIG2(sendbuf, recvbuf, comm)) {
         *ierror = MPI_Ineighbor_allgatherv(VAPAA_COLL_ADDR(sendbuf), *sendcount, sendtype, VAPAA_COLL_ADDR(recvbuf),
                                            recvcounts, displs, recvtype, comm, &request);
@@ -819,6 +897,8 @@ void VAPAA_MPI_Neighbor_allgatherv_init(CFI_cdesc_t *sendbuf, int *sendcount, in
     MPI_Datatype recvtype = C_MPI_TYPE_FROMINT(*recvtype_f);
     MPI_Comm comm = C_MPI_COMM_FROMINT(*comm_f);
     MPI_Info info = C_MPI_INFO_FROMINT(*info_f);
+    VAPAA_CFI_WARN_DATATYPE_MISMATCH(sendbuf, sendtype, "MPI_Neighbor_allgatherv_init");
+    VAPAA_CFI_WARN_DATATYPE_MISMATCH(recvbuf, recvtype, "MPI_Neighbor_allgatherv_init");
     if (VAPAA_COLL_REQUIRE_CONTIG2(sendbuf, recvbuf, comm)) {
         *ierror = MPI_Neighbor_allgatherv_init(VAPAA_COLL_ADDR(sendbuf), *sendcount, sendtype, VAPAA_COLL_ADDR(recvbuf),
                                                recvcounts, displs, recvtype, comm, info, &request);
@@ -838,6 +918,8 @@ void VAPAA_MPI_Neighbor_alltoallv(CFI_cdesc_t *sendbuf, const int sendcounts[], 
     MPI_Datatype sendtype = C_MPI_TYPE_FROMINT(*sendtype_f);
     MPI_Datatype recvtype = C_MPI_TYPE_FROMINT(*recvtype_f);
     MPI_Comm comm = C_MPI_COMM_FROMINT(*comm_f);
+    VAPAA_CFI_WARN_DATATYPE_MISMATCH(sendbuf, sendtype, "MPI_Neighbor_alltoallv");
+    VAPAA_CFI_WARN_DATATYPE_MISMATCH(recvbuf, recvtype, "MPI_Neighbor_alltoallv");
     if (VAPAA_COLL_REQUIRE_CONTIG2(sendbuf, recvbuf, comm)) {
         *ierror = MPI_Neighbor_alltoallv(VAPAA_COLL_ADDR(sendbuf), sendcounts, sdispls, sendtype,
                                          VAPAA_COLL_ADDR(recvbuf), recvcounts, rdispls, recvtype, comm);
@@ -853,6 +935,8 @@ void VAPAA_MPI_Ineighbor_alltoallv(CFI_cdesc_t *sendbuf, const int sendcounts[],
     MPI_Datatype sendtype = C_MPI_TYPE_FROMINT(*sendtype_f);
     MPI_Datatype recvtype = C_MPI_TYPE_FROMINT(*recvtype_f);
     MPI_Comm comm = C_MPI_COMM_FROMINT(*comm_f);
+    VAPAA_CFI_WARN_DATATYPE_MISMATCH(sendbuf, sendtype, "MPI_Ineighbor_alltoallv");
+    VAPAA_CFI_WARN_DATATYPE_MISMATCH(recvbuf, recvtype, "MPI_Ineighbor_alltoallv");
     if (VAPAA_COLL_REQUIRE_CONTIG2(sendbuf, recvbuf, comm)) {
         *ierror = MPI_Ineighbor_alltoallv(VAPAA_COLL_ADDR(sendbuf), sendcounts, sdispls, sendtype,
                                           VAPAA_COLL_ADDR(recvbuf), recvcounts, rdispls, recvtype, comm, &request);
@@ -870,6 +954,8 @@ void VAPAA_MPI_Neighbor_alltoallv_init(CFI_cdesc_t *sendbuf, const int sendcount
     MPI_Datatype recvtype = C_MPI_TYPE_FROMINT(*recvtype_f);
     MPI_Comm comm = C_MPI_COMM_FROMINT(*comm_f);
     MPI_Info info = C_MPI_INFO_FROMINT(*info_f);
+    VAPAA_CFI_WARN_DATATYPE_MISMATCH(sendbuf, sendtype, "MPI_Neighbor_alltoallv_init");
+    VAPAA_CFI_WARN_DATATYPE_MISMATCH(recvbuf, recvtype, "MPI_Neighbor_alltoallv_init");
     if (VAPAA_COLL_REQUIRE_CONTIG2(sendbuf, recvbuf, comm)) {
         *ierror = MPI_Neighbor_alltoallv_init(VAPAA_COLL_ADDR(sendbuf), sendcounts, sdispls, sendtype,
                                               VAPAA_COLL_ADDR(recvbuf), recvcounts, rdispls, recvtype, comm, info,
@@ -901,6 +987,8 @@ void VAPAA_MPI_Neighbor_alltoallw(CFI_cdesc_t *sendbuf, const int sendcounts[], 
         int outdegree = 0, indegree = 0;
         MPI_Datatype *sendtypes = NULL, *recvtypes = NULL;
         VAPAA_COLL_NEIGHBOR_ALLTOALLW_TYPES(comm, sendtypes_f, recvtypes_f, &sendtypes, &recvtypes, &outdegree, &indegree);
+        VAPAA_COLL_WARN_DATATYPE_ARRAY(sendbuf, sendtypes, outdegree, "MPI_Neighbor_alltoallw");
+        VAPAA_COLL_WARN_DATATYPE_ARRAY(recvbuf, recvtypes, indegree, "MPI_Neighbor_alltoallw");
         MPI_Aint *sdispls = VAPAA_COLL_AINTS_FROM_INTPTR(sdispls_f, outdegree);
         MPI_Aint *rdispls = VAPAA_COLL_AINTS_FROM_INTPTR(rdispls_f, indegree);
         *ierror = MPI_Neighbor_alltoallw(VAPAA_COLL_ADDR(sendbuf), sendcounts, sdispls, sendtypes,
@@ -921,6 +1009,8 @@ void VAPAA_MPI_Ineighbor_alltoallw(CFI_cdesc_t *sendbuf, const int sendcounts[],
         int outdegree = 0, indegree = 0;
         MPI_Datatype *sendtypes = NULL, *recvtypes = NULL;
         VAPAA_COLL_NEIGHBOR_ALLTOALLW_TYPES(comm, sendtypes_f, recvtypes_f, &sendtypes, &recvtypes, &outdegree, &indegree);
+        VAPAA_COLL_WARN_DATATYPE_ARRAY(sendbuf, sendtypes, outdegree, "MPI_Ineighbor_alltoallw");
+        VAPAA_COLL_WARN_DATATYPE_ARRAY(recvbuf, recvtypes, indegree, "MPI_Ineighbor_alltoallw");
         MPI_Aint *sdispls = VAPAA_COLL_AINTS_FROM_INTPTR(sdispls_f, outdegree);
         MPI_Aint *rdispls = VAPAA_COLL_AINTS_FROM_INTPTR(rdispls_f, indegree);
         *ierror = MPI_Ineighbor_alltoallw(VAPAA_COLL_ADDR(sendbuf), sendcounts, sdispls, sendtypes,
@@ -943,6 +1033,8 @@ void VAPAA_MPI_Neighbor_alltoallw_init(CFI_cdesc_t *sendbuf, const int sendcount
         int outdegree = 0, indegree = 0;
         MPI_Datatype *sendtypes = NULL, *recvtypes = NULL;
         VAPAA_COLL_NEIGHBOR_ALLTOALLW_TYPES(comm, sendtypes_f, recvtypes_f, &sendtypes, &recvtypes, &outdegree, &indegree);
+        VAPAA_COLL_WARN_DATATYPE_ARRAY(sendbuf, sendtypes, outdegree, "MPI_Neighbor_alltoallw_init");
+        VAPAA_COLL_WARN_DATATYPE_ARRAY(recvbuf, recvtypes, indegree, "MPI_Neighbor_alltoallw_init");
         MPI_Aint *sdispls = VAPAA_COLL_AINTS_FROM_INTPTR(sdispls_f, outdegree);
         MPI_Aint *rdispls = VAPAA_COLL_AINTS_FROM_INTPTR(rdispls_f, indegree);
         *ierror = MPI_Neighbor_alltoallw_init(VAPAA_COLL_ADDR(sendbuf), sendcounts, sdispls, sendtypes,

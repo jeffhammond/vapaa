@@ -32,4 +32,12 @@ static inline int VAPAA_CFI_is_contiguous(const CFI_cdesc_t *desc)
 int VAPAA_CFI_CREATE_DATATYPE(const CFI_cdesc_t * desc, int count, MPI_Datatype input_datatype, 
                               MPI_Datatype * array_datatype);
 
+void VAPAA_CFI_DATATYPE_DIAGNOSTICS_INIT(void);
+void VAPAA_CFI_SET_FORTRAN_TYPE_SIZES(int logical_size, int integer_size,
+                                      int real_size, int double_precision_size);
+void VAPAA_CFI_WARN_DATATYPE_MISMATCH(const CFI_cdesc_t *desc, MPI_Datatype datatype,
+                                      const char *mpi_function);
+#define VAPAA_CFI_WARN_DATATYPE_MISMATCH_FUNC(desc, datatype) \
+    VAPAA_CFI_WARN_DATATYPE_MISMATCH((desc), (datatype), __func__)
+
 #endif // CFI_UTIL_H

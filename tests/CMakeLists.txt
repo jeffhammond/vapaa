@@ -1,11 +1,49 @@
+set(TYPECHECK_WARNING_TEST_SOURCE "${CMAKE_CURRENT_SOURCE_DIR}/test_typecheck_warnings.F90")
+
 # Find all Fortran files in the current directory
 file(GLOB TEST_SOURCES "*.F90")
+list(REMOVE_ITEM TEST_SOURCES "${TYPECHECK_WARNING_TEST_SOURCE}")
 
 # Number of MPI processes
 set(MPI_NUM_PROCESSES 4)
 set(vapaa_test_environment "")
 if(FLAG_MPI MATCHES "OPEN_MPI")
   list(APPEND vapaa_test_environment "OMPI_MCA_osc=pt2pt")
+endif()
+set(vapaa_test_mpi_library_dirs "")
+foreach(mpi_library IN LISTS MPI_C_LIBRARIES)
+  if(IS_ABSOLUTE "${mpi_library}")
+    get_filename_component(mpi_library_dir "${mpi_library}" DIRECTORY)
+    list(APPEND vapaa_test_mpi_library_dirs "${mpi_library_dir}")
+  endif()
+endforeach()
+if(NOT vapaa_test_mpi_library_dirs AND MPI_C_COMPILER)
+  execute_process(
+    COMMAND "${MPI_C_COMPILER}" -show
+    OUTPUT_VARIABLE vapaa_test_mpicc_show
+    ERROR_VARIABLE vapaa_test_mpicc_show_error
+    RESULT_VARIABLE vapaa_test_mpicc_show_result
+    OUTPUT_STRIP_TRAILING_WHITESPACE)
+  if(vapaa_test_mpicc_show_result EQUAL 0)
+    string(REGEX MATCHALL "(^| )-L[^ ]+" vapaa_test_link_dirs
+      "${vapaa_test_mpicc_show}")
+    foreach(link_dir IN LISTS vapaa_test_link_dirs)
+      string(STRIP "${link_dir}" link_dir)
+      string(REGEX REPLACE "^-L" "" link_dir "${link_dir}")
+      if(IS_ABSOLUTE "${link_dir}")
+        list(APPEND vapaa_test_mpi_library_dirs "${link_dir}")
+      endif()
+    endforeach()
+  endif()
+endif()
+if(vapaa_test_mpi_library_dirs)
+  list(REMOVE_DUPLICATES vapaa_test_mpi_library_dirs)
+  string(JOIN ":" vapaa_test_mpi_library_path ${vapaa_test_mpi_library_dirs})
+  if(DEFINED ENV{LD_LIBRARY_PATH} AND NOT "$ENV{LD_LIBRARY_PATH}" STREQUAL "")
+    set(vapaa_test_mpi_library_path
+      "${vapaa_test_mpi_library_path}:$ENV{LD_LIBRARY_PATH}")
+  endif()
+  list(APPEND vapaa_test_environment "LD_LIBRARY_PATH=${vapaa_test_mpi_library_path}")
 endif()
 
 # Iterate over the test files and create executables
@@ -38,10 +76,73 @@ target_include_directories(${TEST_NAME}
   if(TEST_NAME STREQUAL "mpich_uallreducef08" AND NOT FLAG_MPI MATCHES "MPI_ABI")
     list(APPEND test_properties WILL_FAIL TRUE)
   endif()
-  if(vapaa_test_environment)
-    list(APPEND test_properties ENVIRONMENT "${vapaa_test_environment}")
-  endif()
   set_tests_properties(${TEST_NAME} PROPERTIES ${test_properties})
+  if(vapaa_test_environment)
+    set_property(TEST ${TEST_NAME} PROPERTY ENVIRONMENT "${vapaa_test_environment}")
+  endif()
 endforeach()
+
+add_executable(test_typecheck_warnings ${TYPECHECK_WARNING_TEST_SOURCE})
+target_compile_options(test_typecheck_warnings PRIVATE -Wall -Wextra -g -std=f2018 -DHAVE_CFI -fPIE)
+target_include_directories(test_typecheck_warnings
+                           PRIVATE "${CMAKE_BINARY_DIR}/modules")
+target_link_libraries(test_typecheck_warnings PRIVATE ${vapa_lib})
+set_target_properties(test_typecheck_warnings PROPERTIES
+  RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/tests"
+)
+
+function(vapaa_add_typecheck_warning_test TEST_NAME TEST_MODE WARNING_POLICY)
+  add_test(NAME ${TEST_NAME}
+           COMMAND ${MPIEXEC_EXECUTABLE} ${MPIEXEC_NUMPROC_FLAG} 2
+                   $<TARGET_FILE:test_typecheck_warnings> ${TEST_MODE})
+
+  set(typecheck_test_properties
+    WORKING_DIRECTORY "${CMAKE_BINARY_DIR}/tests"
+  )
+
+  set(typecheck_test_environment "${vapaa_test_environment}")
+  foreach(extra_env IN LISTS ARGN)
+    list(APPEND typecheck_test_environment "${extra_env}")
+  endforeach()
+
+  if(WARNING_POLICY STREQUAL "EXPECT_WARNING")
+    list(APPEND typecheck_test_properties
+      PASS_REGULAR_EXPRESSION "CFI element type.*does not match MPI datatype")
+  elseif(WARNING_POLICY STREQUAL "NO_WARNING")
+    list(APPEND typecheck_test_properties
+      PASS_REGULAR_EXPRESSION "Test passed"
+      FAIL_REGULAR_EXPRESSION "CFI element type|does not match MPI datatype")
+  else()
+    message(FATAL_ERROR "Unknown typecheck warning policy: ${WARNING_POLICY}")
+  endif()
+
+  set_tests_properties(${TEST_NAME} PROPERTIES ${typecheck_test_properties})
+  if(typecheck_test_environment)
+    set_property(TEST ${TEST_NAME} PROPERTY ENVIRONMENT "${typecheck_test_environment}")
+  endif()
+endfunction()
+
+vapaa_add_typecheck_warning_test(test_typecheck_match_integer
+  match_integer NO_WARNING)
+vapaa_add_typecheck_warning_test(test_typecheck_warn_byte
+  warn_byte EXPECT_WARNING)
+vapaa_add_typecheck_warning_test(test_typecheck_disable_byte_warning
+  warn_byte NO_WARNING VAPAA_WARN_CFI_DATATYPE_MISMATCH=0)
+vapaa_add_typecheck_warning_test(test_typecheck_match_int32
+  match_int32 NO_WARNING)
+vapaa_add_typecheck_warning_test(test_typecheck_warn_int32_as_int64
+  warn_int32_as_int64 EXPECT_WARNING)
+vapaa_add_typecheck_warning_test(test_typecheck_match_character
+  match_character NO_WARNING)
+vapaa_add_typecheck_warning_test(test_typecheck_match_packed
+  match_packed NO_WARNING)
+vapaa_add_typecheck_warning_test(test_typecheck_match_2integer
+  match_2integer NO_WARNING)
+vapaa_add_typecheck_warning_test(test_typecheck_user_dtype_default_off
+  user_dtype_mismatch NO_WARNING)
+vapaa_add_typecheck_warning_test(test_typecheck_user_dtype_warn_enabled
+  user_dtype_mismatch EXPECT_WARNING VAPAA_CHECK_CFI_USER_DATATYPE_MISMATCH=1)
+vapaa_add_typecheck_warning_test(test_typecheck_user_dtype_match_enabled
+  user_dtype_match NO_WARNING VAPAA_CHECK_CFI_USER_DATATYPE_MISMATCH=1)
 
 add_subdirectory(mpich_main)

@@ -6,11 +6,13 @@
 #include <string.h>
 #include <limits.h>
 #include <stdint.h>
+#include <wchar.h>
 
 #include <mpi.h>
 
 #include "cfi_util.h"
 #include "debug.h"
+#include "detect_sentinels.h"
 
 #define MAYBE_UNUSED __attribute__((unused))
 
@@ -51,6 +53,62 @@ static bool VAPAA_MPI_DATATYPE_IS_BUILTIN(MPI_Datatype t)
     int rc = PMPI_Type_get_envelope(t, &ni, &na, &nd, &c);
     VAPAA_Assert(rc == MPI_SUCCESS);
     return (c == MPI_COMBINER_NAMED);
+}
+
+static bool VAPAA_CFI_WARN_BUILTIN_DATATYPE_MISMATCH = true;
+static bool VAPAA_CFI_CHECK_USER_DATATYPE_MISMATCH = false;
+static int VAPAA_CFI_FORTRAN_LOGICAL_SIZE = sizeof(bool);
+static int VAPAA_CFI_FORTRAN_INTEGER_SIZE = sizeof(int);
+static int VAPAA_CFI_FORTRAN_REAL_SIZE = sizeof(float);
+static int VAPAA_CFI_FORTRAN_DOUBLE_PRECISION_SIZE = sizeof(double);
+
+static bool VAPAA_ENV_BOOL(const char *name, bool default_value)
+{
+    const char *value = getenv(name);
+    if (value == NULL || value[0] == '\0') {
+        return default_value;
+    }
+
+    if (strcmp(value, "0") == 0 ||
+        strcmp(value, "false") == 0 || strcmp(value, "FALSE") == 0 ||
+        strcmp(value, "no") == 0 || strcmp(value, "NO") == 0 ||
+        strcmp(value, "off") == 0 || strcmp(value, "OFF") == 0) {
+        return false;
+    }
+
+    if (strcmp(value, "1") == 0 ||
+        strcmp(value, "true") == 0 || strcmp(value, "TRUE") == 0 ||
+        strcmp(value, "yes") == 0 || strcmp(value, "YES") == 0 ||
+        strcmp(value, "on") == 0 || strcmp(value, "ON") == 0) {
+        return true;
+    }
+
+    return default_value;
+}
+
+void VAPAA_CFI_DATATYPE_DIAGNOSTICS_INIT(void)
+{
+    VAPAA_CFI_WARN_BUILTIN_DATATYPE_MISMATCH =
+        VAPAA_ENV_BOOL("VAPAA_WARN_CFI_DATATYPE_MISMATCH", true);
+    VAPAA_CFI_CHECK_USER_DATATYPE_MISMATCH =
+        VAPAA_ENV_BOOL("VAPAA_CHECK_CFI_USER_DATATYPE_MISMATCH", false);
+}
+
+void VAPAA_CFI_SET_FORTRAN_TYPE_SIZES(int logical_size, int integer_size,
+                                      int real_size, int double_precision_size)
+{
+    if (logical_size > 0) {
+        VAPAA_CFI_FORTRAN_LOGICAL_SIZE = logical_size;
+    }
+    if (integer_size > 0) {
+        VAPAA_CFI_FORTRAN_INTEGER_SIZE = integer_size;
+    }
+    if (real_size > 0) {
+        VAPAA_CFI_FORTRAN_REAL_SIZE = real_size;
+    }
+    if (double_precision_size > 0) {
+        VAPAA_CFI_FORTRAN_DOUBLE_PRECISION_SIZE = double_precision_size;
+    }
 }
 
 #if 0
@@ -231,6 +289,16 @@ static void VAPAA_CFI_GET_TYPE_NAME(CFI_type_t type, char * name)
 #endif
     else if (type==CFI_type_struct)               snprintf(name,32,"%s", "struct");
     else if (type==CFI_type_other)                snprintf(name,32,"%s", "other");
+    else if ((type & CFI_type_mask)==CFI_type_Integer)
+                                                       snprintf(name,32,"integer(kind=%d)", (int)(type >> CFI_type_kind_shift));
+    else if ((type & CFI_type_mask)==CFI_type_Logical)
+                                                       snprintf(name,32,"logical(kind=%d)", (int)(type >> CFI_type_kind_shift));
+    else if ((type & CFI_type_mask)==CFI_type_Real)
+                                                       snprintf(name,32,"real(kind=%d)", (int)(type >> CFI_type_kind_shift));
+    else if ((type & CFI_type_mask)==CFI_type_Complex)
+                                                       snprintf(name,32,"complex(kind=%d)", (int)(type >> CFI_type_kind_shift));
+    else if ((type & CFI_type_mask)==CFI_type_Character)
+                                                       snprintf(name,32,"character(kind=%d)", (int)(type >> CFI_type_kind_shift));
     else                                          snprintf(name,32,"unknown (%8d)", (int)type);
 }
 
@@ -385,6 +453,408 @@ static void VAPAA_DTYPE_CONTENTS_RELEASE(VAPAA_Datatype_contents *contents)
     free(contents->counts);
     free(contents->types);
     memset(contents, 0, sizeof(*contents));
+}
+
+static bool VAPAA_CFI_MPI_TYPE_SIZE_MATCHES(MPI_Datatype datatype, size_t bytes)
+{
+    MPI_Aint datatype_size = 0;
+    int rc = VAPAA_DTYPE_GET_SIZE(datatype, &datatype_size);
+    return (rc == MPI_SUCCESS && datatype_size >= 0 && (size_t) datatype_size == bytes);
+}
+
+static bool VAPAA_CFI_DT_IS(MPI_Datatype datatype, MPI_Datatype candidate)
+{
+    return datatype == candidate;
+}
+
+static const char *VAPAA_CFI_MPI_DATATYPE_NAME(MPI_Datatype datatype)
+{
+#define VAPAA_CFI_DT_NAME(dt_) \
+    if (datatype == (dt_)) { return #dt_; }
+
+    VAPAA_CFI_DT_NAME(MPI_CHARACTER)
+    VAPAA_CFI_DT_NAME(MPI_LOGICAL)
+    VAPAA_CFI_DT_NAME(MPI_INTEGER)
+    VAPAA_CFI_DT_NAME(MPI_REAL)
+    VAPAA_CFI_DT_NAME(MPI_DOUBLE_PRECISION)
+    VAPAA_CFI_DT_NAME(MPI_COMPLEX)
+    VAPAA_CFI_DT_NAME(MPI_DOUBLE_COMPLEX)
+    VAPAA_CFI_DT_NAME(MPI_INTEGER1)
+    VAPAA_CFI_DT_NAME(MPI_INTEGER2)
+    VAPAA_CFI_DT_NAME(MPI_INTEGER4)
+    VAPAA_CFI_DT_NAME(MPI_INTEGER8)
+#ifdef HAVE_MPI_INTEGER16
+    VAPAA_CFI_DT_NAME(MPI_INTEGER16)
+#endif
+#ifdef HAVE_MPI_REAL2
+    VAPAA_CFI_DT_NAME(MPI_REAL2)
+#endif
+    VAPAA_CFI_DT_NAME(MPI_REAL4)
+    VAPAA_CFI_DT_NAME(MPI_REAL8)
+#ifdef HAVE_MPI_REAL16
+    VAPAA_CFI_DT_NAME(MPI_REAL16)
+#endif
+#ifdef HAVE_MPI_COMPLEX4
+    VAPAA_CFI_DT_NAME(MPI_COMPLEX4)
+#endif
+    VAPAA_CFI_DT_NAME(MPI_COMPLEX8)
+    VAPAA_CFI_DT_NAME(MPI_COMPLEX16)
+#ifdef HAVE_MPI_COMPLEX32
+    VAPAA_CFI_DT_NAME(MPI_COMPLEX32)
+#endif
+    VAPAA_CFI_DT_NAME(MPI_AINT)
+    VAPAA_CFI_DT_NAME(MPI_COUNT)
+    VAPAA_CFI_DT_NAME(MPI_OFFSET)
+    VAPAA_CFI_DT_NAME(MPI_PACKED)
+    VAPAA_CFI_DT_NAME(MPI_BYTE)
+    VAPAA_CFI_DT_NAME(MPI_CHAR)
+    VAPAA_CFI_DT_NAME(MPI_SIGNED_CHAR)
+    VAPAA_CFI_DT_NAME(MPI_WCHAR)
+    VAPAA_CFI_DT_NAME(MPI_SHORT)
+    VAPAA_CFI_DT_NAME(MPI_INT)
+    VAPAA_CFI_DT_NAME(MPI_LONG)
+#ifdef MPI_LONG_LONG
+    VAPAA_CFI_DT_NAME(MPI_LONG_LONG)
+#endif
+    VAPAA_CFI_DT_NAME(MPI_LONG_LONG_INT)
+    VAPAA_CFI_DT_NAME(MPI_FLOAT)
+    VAPAA_CFI_DT_NAME(MPI_DOUBLE)
+    VAPAA_CFI_DT_NAME(MPI_LONG_DOUBLE)
+    VAPAA_CFI_DT_NAME(MPI_C_BOOL)
+    VAPAA_CFI_DT_NAME(MPI_INT8_T)
+    VAPAA_CFI_DT_NAME(MPI_INT16_T)
+    VAPAA_CFI_DT_NAME(MPI_INT32_T)
+    VAPAA_CFI_DT_NAME(MPI_INT64_T)
+    VAPAA_CFI_DT_NAME(MPI_C_COMPLEX)
+    VAPAA_CFI_DT_NAME(MPI_C_FLOAT_COMPLEX)
+    VAPAA_CFI_DT_NAME(MPI_C_DOUBLE_COMPLEX)
+    VAPAA_CFI_DT_NAME(MPI_C_LONG_DOUBLE_COMPLEX)
+    VAPAA_CFI_DT_NAME(MPI_FLOAT_INT)
+    VAPAA_CFI_DT_NAME(MPI_DOUBLE_INT)
+    VAPAA_CFI_DT_NAME(MPI_LONG_INT)
+    VAPAA_CFI_DT_NAME(MPI_2INT)
+    VAPAA_CFI_DT_NAME(MPI_SHORT_INT)
+    VAPAA_CFI_DT_NAME(MPI_LONG_DOUBLE_INT)
+    VAPAA_CFI_DT_NAME(MPI_2REAL)
+    VAPAA_CFI_DT_NAME(MPI_2DOUBLE_PRECISION)
+    VAPAA_CFI_DT_NAME(MPI_2INTEGER)
+
+#undef VAPAA_CFI_DT_NAME
+
+    return "named MPI datatype";
+}
+
+static bool VAPAA_CFI_MATCH_INTEGER_DATATYPE(MPI_Datatype datatype, size_t bytes)
+{
+    if (bytes == (size_t) VAPAA_CFI_FORTRAN_INTEGER_SIZE &&
+        VAPAA_CFI_DT_IS(datatype, MPI_INTEGER)) {
+        return true;
+    }
+    if (bytes == 1 && VAPAA_CFI_DT_IS(datatype, MPI_INTEGER1)) {
+        return true;
+    }
+    if (bytes == 2 && VAPAA_CFI_DT_IS(datatype, MPI_INTEGER2)) {
+        return true;
+    }
+    if (bytes == 4 && VAPAA_CFI_DT_IS(datatype, MPI_INTEGER4)) {
+        return true;
+    }
+    if (bytes == 8 && VAPAA_CFI_DT_IS(datatype, MPI_INTEGER8)) {
+        return true;
+    }
+#ifdef HAVE_MPI_INTEGER16
+    if (bytes == 16 && VAPAA_CFI_DT_IS(datatype, MPI_INTEGER16)) {
+        return true;
+    }
+#endif
+    if (bytes == sizeof(signed char) && VAPAA_CFI_DT_IS(datatype, MPI_SIGNED_CHAR)) {
+        return true;
+    }
+    if (bytes == sizeof(short) && VAPAA_CFI_DT_IS(datatype, MPI_SHORT)) {
+        return true;
+    }
+    if (bytes == sizeof(int) && VAPAA_CFI_DT_IS(datatype, MPI_INT)) {
+        return true;
+    }
+    if (bytes == sizeof(long) && VAPAA_CFI_DT_IS(datatype, MPI_LONG)) {
+        return true;
+    }
+    if (bytes == sizeof(long long) && VAPAA_CFI_DT_IS(datatype, MPI_LONG_LONG_INT)) {
+        return true;
+    }
+#ifdef MPI_LONG_LONG
+    if (bytes == sizeof(long long) && VAPAA_CFI_DT_IS(datatype, MPI_LONG_LONG)) {
+        return true;
+    }
+#endif
+    if (bytes == sizeof(int8_t) && VAPAA_CFI_DT_IS(datatype, MPI_INT8_T)) {
+        return true;
+    }
+    if (bytes == sizeof(int16_t) && VAPAA_CFI_DT_IS(datatype, MPI_INT16_T)) {
+        return true;
+    }
+    if (bytes == sizeof(int32_t) && VAPAA_CFI_DT_IS(datatype, MPI_INT32_T)) {
+        return true;
+    }
+    if (bytes == sizeof(int64_t) && VAPAA_CFI_DT_IS(datatype, MPI_INT64_T)) {
+        return true;
+    }
+    if (bytes == sizeof(MPI_Aint) && VAPAA_CFI_DT_IS(datatype, MPI_AINT)) {
+        return true;
+    }
+    if (bytes == sizeof(MPI_Count) && VAPAA_CFI_DT_IS(datatype, MPI_COUNT)) {
+        return true;
+    }
+    if (bytes == sizeof(MPI_Offset) && VAPAA_CFI_DT_IS(datatype, MPI_OFFSET)) {
+        return true;
+    }
+    return false;
+}
+
+static bool VAPAA_CFI_MATCH_LOGICAL_DATATYPE(const CFI_cdesc_t *desc, MPI_Datatype datatype, size_t bytes)
+{
+    if (bytes == (size_t) VAPAA_CFI_FORTRAN_LOGICAL_SIZE &&
+        VAPAA_CFI_DT_IS(datatype, MPI_LOGICAL)) {
+        return true;
+    }
+    if (desc->type == CFI_type_Bool && bytes == sizeof(bool) &&
+        VAPAA_CFI_DT_IS(datatype, MPI_C_BOOL)) {
+        return true;
+    }
+    return false;
+}
+
+static bool VAPAA_CFI_MATCH_REAL_DATATYPE(MPI_Datatype datatype, size_t bytes)
+{
+    if (bytes == (size_t) VAPAA_CFI_FORTRAN_REAL_SIZE &&
+        VAPAA_CFI_DT_IS(datatype, MPI_REAL)) {
+        return true;
+    }
+    if (bytes == (size_t) VAPAA_CFI_FORTRAN_DOUBLE_PRECISION_SIZE &&
+        VAPAA_CFI_DT_IS(datatype, MPI_DOUBLE_PRECISION)) {
+        return true;
+    }
+#ifdef HAVE_MPI_REAL2
+    if (bytes == 2 && VAPAA_CFI_DT_IS(datatype, MPI_REAL2)) {
+        return true;
+    }
+#endif
+    if (bytes == 4 && VAPAA_CFI_DT_IS(datatype, MPI_REAL4)) {
+        return true;
+    }
+    if (bytes == 8 && VAPAA_CFI_DT_IS(datatype, MPI_REAL8)) {
+        return true;
+    }
+#ifdef HAVE_MPI_REAL16
+    if (bytes == 16 && VAPAA_CFI_DT_IS(datatype, MPI_REAL16)) {
+        return true;
+    }
+#endif
+    if (bytes == sizeof(float) && VAPAA_CFI_DT_IS(datatype, MPI_FLOAT)) {
+        return true;
+    }
+    if (bytes == sizeof(double) && VAPAA_CFI_DT_IS(datatype, MPI_DOUBLE)) {
+        return true;
+    }
+    if (bytes == sizeof(long double) && VAPAA_CFI_DT_IS(datatype, MPI_LONG_DOUBLE)) {
+        return true;
+    }
+    return false;
+}
+
+static bool VAPAA_CFI_MATCH_COMPLEX_DATATYPE(MPI_Datatype datatype, size_t bytes)
+{
+    if (bytes == (size_t) (2 * VAPAA_CFI_FORTRAN_REAL_SIZE) &&
+        VAPAA_CFI_DT_IS(datatype, MPI_COMPLEX)) {
+        return true;
+    }
+    if (bytes == (size_t) (2 * VAPAA_CFI_FORTRAN_DOUBLE_PRECISION_SIZE) &&
+        VAPAA_CFI_DT_IS(datatype, MPI_DOUBLE_COMPLEX)) {
+        return true;
+    }
+#ifdef HAVE_MPI_COMPLEX4
+    if (bytes == 4 && VAPAA_CFI_DT_IS(datatype, MPI_COMPLEX4)) {
+        return true;
+    }
+#endif
+    if (bytes == 8 && VAPAA_CFI_DT_IS(datatype, MPI_COMPLEX8)) {
+        return true;
+    }
+    if (bytes == 16 && VAPAA_CFI_DT_IS(datatype, MPI_COMPLEX16)) {
+        return true;
+    }
+#ifdef HAVE_MPI_COMPLEX32
+    if (bytes == 32 && VAPAA_CFI_DT_IS(datatype, MPI_COMPLEX32)) {
+        return true;
+    }
+#endif
+    if (bytes == sizeof(float _Complex) && VAPAA_CFI_DT_IS(datatype, MPI_C_COMPLEX)) {
+        return true;
+    }
+    if (bytes == sizeof(float _Complex) && VAPAA_CFI_DT_IS(datatype, MPI_C_FLOAT_COMPLEX)) {
+        return true;
+    }
+    if (bytes == sizeof(double _Complex) && VAPAA_CFI_DT_IS(datatype, MPI_C_DOUBLE_COMPLEX)) {
+        return true;
+    }
+    if (bytes == sizeof(long double _Complex) &&
+        VAPAA_CFI_DT_IS(datatype, MPI_C_LONG_DOUBLE_COMPLEX)) {
+        return true;
+    }
+    return false;
+}
+
+static bool VAPAA_CFI_MATCH_CHARACTER_DATATYPE(const CFI_cdesc_t *desc, MPI_Datatype datatype, size_t bytes)
+{
+    if (desc->type == CFI_type_char) {
+        if (bytes >= 1 && VAPAA_CFI_DT_IS(datatype, MPI_CHARACTER)) {
+            return true;
+        }
+        if (bytes >= sizeof(char) && VAPAA_CFI_DT_IS(datatype, MPI_CHAR)) {
+            return true;
+        }
+    }
+#ifdef CFI_type_ucs4_char
+    if (desc->type == CFI_type_ucs4_char && bytes >= sizeof(wchar_t) &&
+        bytes % sizeof(wchar_t) == 0 && VAPAA_CFI_DT_IS(datatype, MPI_WCHAR)) {
+        return true;
+    }
+#endif
+    return false;
+}
+
+static bool VAPAA_CFI_MATCH_PAIR_DATATYPE(const CFI_cdesc_t *desc, MPI_Datatype datatype, size_t bytes)
+{
+    int category = (desc->type & CFI_type_mask);
+    if (category == CFI_type_Integer) {
+        if (bytes == (size_t) VAPAA_CFI_FORTRAN_INTEGER_SIZE &&
+            VAPAA_CFI_DT_IS(datatype, MPI_2INTEGER)) {
+            return true;
+        }
+        if (bytes == sizeof(int) && VAPAA_CFI_DT_IS(datatype, MPI_2INT)) {
+            return true;
+        }
+    } else if (category == CFI_type_Real) {
+        if (bytes == (size_t) VAPAA_CFI_FORTRAN_REAL_SIZE &&
+            VAPAA_CFI_DT_IS(datatype, MPI_2REAL)) {
+            return true;
+        }
+        if (bytes == (size_t) VAPAA_CFI_FORTRAN_DOUBLE_PRECISION_SIZE &&
+            VAPAA_CFI_DT_IS(datatype, MPI_2DOUBLE_PRECISION)) {
+            return true;
+        }
+    }
+    return false;
+}
+
+static bool VAPAA_CFI_BUILTIN_DATATYPE_COMPATIBLE(const CFI_cdesc_t *desc, MPI_Datatype datatype)
+{
+    size_t bytes = desc->elem_len;
+    int category = (desc->type & CFI_type_mask);
+    if (VAPAA_CFI_DT_IS(datatype, MPI_PACKED)) {
+        return true;
+    }
+    if (VAPAA_CFI_MATCH_PAIR_DATATYPE(desc, datatype, bytes)) {
+        return true;
+    }
+    if (category == CFI_type_Character) {
+        return VAPAA_CFI_MATCH_CHARACTER_DATATYPE(desc, datatype, bytes);
+    }
+    if (!VAPAA_CFI_MPI_TYPE_SIZE_MATCHES(datatype, bytes)) {
+        return false;
+    }
+
+    if (category == CFI_type_Integer) {
+        return VAPAA_CFI_MATCH_INTEGER_DATATYPE(datatype, bytes);
+    } else if (category == CFI_type_Logical) {
+        return VAPAA_CFI_MATCH_LOGICAL_DATATYPE(desc, datatype, bytes);
+    } else if (category == CFI_type_Real) {
+        return VAPAA_CFI_MATCH_REAL_DATATYPE(datatype, bytes);
+    } else if (category == CFI_type_Complex) {
+        return VAPAA_CFI_MATCH_COMPLEX_DATATYPE(datatype, bytes);
+    }
+
+    return false;
+}
+
+static bool VAPAA_CFI_USER_DATATYPE_COMPATIBLE(const CFI_cdesc_t *desc, MPI_Datatype datatype, int depth)
+{
+    if (depth > 64) {
+        return false;
+    }
+
+    if (datatype == MPI_DATATYPE_NULL) {
+        return false;
+    }
+
+    if (VAPAA_MPI_DATATYPE_IS_BUILTIN(datatype)) {
+        return VAPAA_CFI_BUILTIN_DATATYPE_COMPATIBLE(desc, datatype);
+    }
+
+    VAPAA_Datatype_contents contents;
+    int rc = VAPAA_DTYPE_GET_CONTENTS(datatype, &contents);
+    if (rc != MPI_SUCCESS) {
+        return false;
+    }
+
+    if (contents.nd == 0) {
+        bool compatible = VAPAA_CFI_MPI_TYPE_SIZE_MATCHES(datatype, desc->elem_len);
+        VAPAA_DTYPE_CONTENTS_RELEASE(&contents);
+        return compatible;
+    }
+
+    bool compatible = true;
+    for (MPI_Count i = 0; i < contents.nd; i++) {
+        if (!VAPAA_CFI_USER_DATATYPE_COMPATIBLE(desc, contents.types[i], depth + 1)) {
+            compatible = false;
+            break;
+        }
+    }
+    VAPAA_DTYPE_CONTENTS_RELEASE(&contents);
+    return compatible;
+}
+
+void VAPAA_CFI_WARN_DATATYPE_MISMATCH(const CFI_cdesc_t *desc, MPI_Datatype datatype,
+                                      const char *mpi_function)
+{
+    if (desc == NULL || datatype == MPI_DATATYPE_NULL) {
+        return;
+    }
+    if (C_IS_MPI_IN_PLACE(desc->base_addr) || C_IS_MPI_BOTTOM(desc->base_addr)) {
+        return;
+    }
+
+    bool datatype_is_builtin = VAPAA_MPI_DATATYPE_IS_BUILTIN(datatype);
+    if (datatype_is_builtin && !VAPAA_CFI_WARN_BUILTIN_DATATYPE_MISMATCH) {
+        return;
+    }
+    if (!datatype_is_builtin && !VAPAA_CFI_CHECK_USER_DATATYPE_MISMATCH) {
+        return;
+    }
+
+    bool compatible = datatype_is_builtin ?
+        VAPAA_CFI_BUILTIN_DATATYPE_COMPATIBLE(desc, datatype) :
+        VAPAA_CFI_USER_DATATYPE_COMPATIBLE(desc, datatype, 0);
+    if (compatible) {
+        return;
+    }
+
+    char cfi_name[33] = {0};
+    VAPAA_CFI_GET_TYPE_NAME(desc->type, cfi_name);
+
+    char mpi_name[MPI_MAX_OBJECT_NAME] = {0};
+    int mpi_name_len = 0;
+    if (datatype_is_builtin) {
+        snprintf(mpi_name, sizeof(mpi_name), "%s", VAPAA_CFI_MPI_DATATYPE_NAME(datatype));
+    } else {
+        int rc = PMPI_Type_get_name(datatype, mpi_name, &mpi_name_len);
+        if (rc != MPI_SUCCESS || mpi_name_len == 0) {
+            snprintf(mpi_name, sizeof(mpi_name), "%s", "user-defined MPI datatype");
+        }
+    }
+
+    VAPAA_Warning("%s: CFI element type %s (%zu bytes) does not match MPI datatype %s.\n",
+                  mpi_function, cfi_name, desc->elem_len, mpi_name);
 }
 
 static MPI_Count VAPAA_CONTENT_ARG(const VAPAA_Datatype_contents *contents, MPI_Count i)

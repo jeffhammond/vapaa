@@ -97,6 +97,7 @@ static void CFI_MPI_Sendlike(CFI_cdesc_t *desc, int count, int datatype_f, int d
 {
     MPI_Datatype datatype = C_MPI_TYPE_FROMINT(datatype_f);
     MPI_Comm comm = C_MPI_COMM_FROMINT(comm_f);
+    VAPAA_CFI_WARN_DATATYPE_MISMATCH_FUNC(desc, datatype);
     if (1 == VAPAA_CFI_is_contiguous(desc)) {
         *ierror = fn(VAPAA_P2P_ADDR(desc), count, datatype, C_MPI_DEST_F2C(dest), C_MPI_TAG_F2C(tag), comm);
     } else {
@@ -132,6 +133,7 @@ static void CFI_MPI_Isendlike(CFI_cdesc_t *desc, int count, int datatype_f, int 
     MPI_Request request = MPI_REQUEST_NULL;
     MPI_Datatype datatype = C_MPI_TYPE_FROMINT(datatype_f);
     MPI_Comm comm = C_MPI_COMM_FROMINT(comm_f);
+    VAPAA_CFI_WARN_DATATYPE_MISMATCH_FUNC(desc, datatype);
     if (1 == VAPAA_CFI_is_contiguous(desc)) {
         *ierror = fn(VAPAA_P2P_ADDR(desc), count, datatype, C_MPI_DEST_F2C(dest), C_MPI_TAG_F2C(tag), comm, &request);
     } else {
@@ -168,6 +170,7 @@ static void CFI_MPI_Sendinit(CFI_cdesc_t *desc, int count, int datatype_f, int d
     MPI_Request request = MPI_REQUEST_NULL;
     MPI_Datatype datatype = C_MPI_TYPE_FROMINT(datatype_f);
     MPI_Comm comm = C_MPI_COMM_FROMINT(comm_f);
+    VAPAA_CFI_WARN_DATATYPE_MISMATCH_FUNC(desc, datatype);
     if (1 == VAPAA_CFI_is_contiguous(desc)) {
         *ierror = fn(VAPAA_P2P_ADDR(desc), count, datatype, C_MPI_DEST_F2C(dest), C_MPI_TAG_F2C(tag), comm, &request);
     } else {
@@ -204,6 +207,7 @@ static void CFI_MPI_Recvinit(CFI_cdesc_t *desc, int count, int datatype_f, int s
     MPI_Request request = MPI_REQUEST_NULL;
     MPI_Datatype datatype = C_MPI_TYPE_FROMINT(datatype_f);
     MPI_Comm comm = C_MPI_COMM_FROMINT(comm_f);
+    VAPAA_CFI_WARN_DATATYPE_MISMATCH_FUNC(desc, datatype);
     if (1 == VAPAA_CFI_is_contiguous(desc)) {
         *ierror = fn(VAPAA_P2P_ADDR(desc), count, datatype, C_MPI_SOURCE_F2C(source), C_MPI_TAG_F2C(tag), comm, &request);
     } else {
@@ -558,6 +562,7 @@ void CFI_MPI_Send(CFI_cdesc_t * desc, int count, int datatype_f, int dest, int t
 {
     MPI_Datatype datatype = C_MPI_TYPE_FROMINT(datatype_f);
     MPI_Comm comm = C_MPI_COMM_FROMINT(comm_f);
+    VAPAA_CFI_WARN_DATATYPE_MISMATCH(desc, datatype, "MPI_Send");
     if (1 == VAPAA_CFI_is_contiguous(desc)) {
         *ierror = MPI_Send(VAPAA_P2P_ADDR(desc), count, datatype, C_MPI_DEST_F2C(dest), C_MPI_TAG_F2C(tag), comm);
     } else {
@@ -578,6 +583,7 @@ void CFI_MPI_Send_c(CFI_cdesc_t * desc, int64_t count, int datatype_f, int dest,
 {
     MPI_Datatype datatype = C_MPI_TYPE_FROMINT(datatype_f);
     MPI_Comm comm = C_MPI_COMM_FROMINT(comm_f);
+    VAPAA_CFI_WARN_DATATYPE_MISMATCH(desc, datatype, "MPI_Send_c");
     if (count < 0) {
         *ierror = MPI_ERR_COUNT;
         C_MPI_RC_FIX(*ierror);
@@ -709,6 +715,7 @@ void CFI_MPI_Isend(CFI_cdesc_t * desc, int count, int datatype_f, int dest, int 
     MPI_Request request = MPI_REQUEST_NULL;
     MPI_Datatype datatype = C_MPI_TYPE_FROMINT(datatype_f);
     MPI_Comm comm = C_MPI_COMM_FROMINT(comm_f);
+    VAPAA_CFI_WARN_DATATYPE_MISMATCH(desc, datatype, "MPI_Isend");
     if (1 == VAPAA_CFI_is_contiguous(desc)) {
         *ierror = MPI_Isend(VAPAA_P2P_ADDR(desc), count, datatype, C_MPI_DEST_F2C(dest), C_MPI_TAG_F2C(tag), comm, &request);
     } else {
@@ -870,6 +877,7 @@ void CFI_MPI_Recv(CFI_cdesc_t * desc, int count, int datatype_f, int source, int
     MPI_Datatype datatype = C_MPI_TYPE_FROMINT(datatype_f);
     MPI_Comm comm = C_MPI_COMM_FROMINT(comm_f);
     MPI_Status status_c;
+    VAPAA_CFI_WARN_DATATYPE_MISMATCH(desc, datatype, "MPI_Recv");
     if (1 == VAPAA_CFI_is_contiguous(desc)) {
         *ierror = MPI_Recv(VAPAA_P2P_ADDR(desc), count, datatype, C_MPI_SOURCE_F2C(source), C_MPI_TAG_F2C(tag), comm,
                            C_MPI_STATUS_ARG(status, &status_c));
@@ -895,6 +903,7 @@ void CFI_MPI_Recv_c(CFI_cdesc_t * desc, int64_t count, int datatype_f, int sourc
     MPI_Datatype datatype = C_MPI_TYPE_FROMINT(datatype_f);
     MPI_Comm comm = C_MPI_COMM_FROMINT(comm_f);
     MPI_Status status_c;
+    VAPAA_CFI_WARN_DATATYPE_MISMATCH(desc, datatype, "MPI_Recv_c");
     if (count < 0) {
         *ierror = MPI_ERR_COUNT;
         C_MPI_RC_FIX(*ierror);
@@ -955,6 +964,7 @@ void CFI_MPI_Irecv(CFI_cdesc_t * desc, int count, int datatype_f, int source, in
     MPI_Request request = MPI_REQUEST_NULL;
     MPI_Datatype datatype = C_MPI_TYPE_FROMINT(datatype_f);
     MPI_Comm comm = C_MPI_COMM_FROMINT(comm_f);
+    VAPAA_CFI_WARN_DATATYPE_MISMATCH(desc, datatype, "MPI_Irecv");
     if (1 == VAPAA_CFI_is_contiguous(desc)) {
         *ierror = MPI_Irecv(VAPAA_P2P_ADDR(desc), count, datatype, C_MPI_SOURCE_F2C(source), C_MPI_TAG_F2C(tag), comm, &request);
     } else {
@@ -1061,6 +1071,7 @@ void CFI_MPI_Psend_init(CFI_cdesc_t * desc, int partitions, int count, int datat
     MPI_Datatype datatype = C_MPI_TYPE_FROMINT(datatype_f);
     MPI_Comm comm = C_MPI_COMM_FROMINT(comm_f);
     MPI_Info info = C_MPI_INFO_FROMINT(info_f);
+    VAPAA_CFI_WARN_DATATYPE_MISMATCH(desc, datatype, "MPI_Psend_init");
 #if MPI_VERSION >= 4
     if (1 == VAPAA_CFI_is_contiguous(desc)) {
         *ierror = MPI_Psend_init(VAPAA_P2P_ADDR(desc), partitions, count, datatype, C_MPI_DEST_F2C(dest),
@@ -1110,6 +1121,7 @@ void CFI_MPI_Precv_init(CFI_cdesc_t * desc, int partitions, int count, int datat
     MPI_Datatype datatype = C_MPI_TYPE_FROMINT(datatype_f);
     MPI_Comm comm = C_MPI_COMM_FROMINT(comm_f);
     MPI_Info info = C_MPI_INFO_FROMINT(info_f);
+    VAPAA_CFI_WARN_DATATYPE_MISMATCH(desc, datatype, "MPI_Precv_init");
 #if MPI_VERSION >= 4
     if (1 == VAPAA_CFI_is_contiguous(desc)) {
         *ierror = MPI_Precv_init(VAPAA_P2P_ADDR(desc), partitions, count, datatype, C_MPI_SOURCE_F2C(source),
@@ -1154,6 +1166,7 @@ void CFI_MPI_Mrecv(CFI_cdesc_t * desc, int count, int datatype_f, int * message_
     MPI_Datatype datatype = C_MPI_TYPE_FROMINT(datatype_f);
     MPI_Message  message  = C_MPI_MESSAGE_FROMINT(*message_f);
     MPI_Status status_c;
+    VAPAA_CFI_WARN_DATATYPE_MISMATCH(desc, datatype, "MPI_Mrecv");
     if (1 == VAPAA_CFI_is_contiguous(desc)) {
         *ierror = MPI_Mrecv(VAPAA_P2P_ADDR(desc), count, datatype, &message,
                             C_MPI_STATUS_ARG(status, &status_c));
@@ -1192,6 +1205,7 @@ void CFI_MPI_Imrecv(CFI_cdesc_t * desc, int count, int datatype_f, int * message
     MPI_Request  request  = MPI_REQUEST_NULL;
     MPI_Datatype datatype = C_MPI_TYPE_FROMINT(datatype_f);
     MPI_Message  message  = C_MPI_MESSAGE_FROMINT(*message_f);
+    VAPAA_CFI_WARN_DATATYPE_MISMATCH(desc, datatype, "MPI_Imrecv");
     if (1 == VAPAA_CFI_is_contiguous(desc)) {
         *ierror = MPI_Imrecv(VAPAA_P2P_ADDR(desc), count, datatype, &message, &request);
     } else {
@@ -1235,6 +1249,8 @@ void CFI_MPI_Sendrecv(CFI_cdesc_t * sdesc, int scount, int sdatatype_f, int dest
     MPI_Datatype rdatatype = C_MPI_TYPE_FROMINT(rdatatype_f);
     MPI_Comm comm = C_MPI_COMM_FROMINT(comm_f);
     MPI_Status status_c;
+    VAPAA_CFI_WARN_DATATYPE_MISMATCH(sdesc, sdatatype, "MPI_Sendrecv");
+    VAPAA_CFI_WARN_DATATYPE_MISMATCH(rdesc, rdatatype, "MPI_Sendrecv");
     if ((1 == VAPAA_CFI_is_contiguous(sdesc)) && (1 == VAPAA_CFI_is_contiguous(rdesc))) {
         *ierror = MPI_Sendrecv(VAPAA_P2P_ADDR(sdesc), scount, sdatatype, C_MPI_DEST_F2C(dest), C_MPI_TAG_F2C(stag),
                                VAPAA_P2P_ADDR(rdesc), rcount, rdatatype, C_MPI_SOURCE_F2C(src), C_MPI_TAG_F2C(rtag),
@@ -1277,6 +1293,7 @@ void CFI_MPI_Pack(CFI_cdesc_t * indesc, int incount, int datatype_f, CFI_cdesc_t
 {
     MPI_Datatype datatype = C_MPI_TYPE_FROMINT(datatype_f);
     MPI_Comm comm = C_MPI_COMM_FROMINT(comm_f);
+    VAPAA_CFI_WARN_DATATYPE_MISMATCH(indesc, datatype, "MPI_Pack");
     if (0 == VAPAA_CFI_is_contiguous(outdesc)) {
         VAPAA_Warning("MPI_Pack requires the output buffer be contiguous.\n");
         *ierror = MPI_ERR_ARG;
@@ -1312,6 +1329,7 @@ void CFI_MPI_Unpack(CFI_cdesc_t * indesc, int insize, int * position, CFI_cdesc_
 {
     MPI_Datatype datatype = C_MPI_TYPE_FROMINT(datatype_f);
     MPI_Comm comm = C_MPI_COMM_FROMINT(comm_f);
+    VAPAA_CFI_WARN_DATATYPE_MISMATCH(outdesc, datatype, "MPI_Unpack");
     if (0 == VAPAA_CFI_is_contiguous(indesc)) {
         VAPAA_Warning("MPI_Unpack requires the input buffer be contiguous.\n");
         *ierror = MPI_ERR_ARG;
