@@ -34,6 +34,7 @@ contains
     subroutine VAPAA_MPIFH_Init_support(ierror_c) bind(C,name="VAPAA_MPIFH_Init_support")
         use mpi_core_c, only: C_MPI_Abi_init_fortran
         use detect_sentinels_c
+        use mpi_verbose_f, only: VAPAA_VERBOSE_INIT
         integer(c_int), intent(inout) :: ierror_c
         integer, parameter :: MPI_STATUS_SIZE = 8
         integer :: MPI_BOTTOM
@@ -95,6 +96,7 @@ contains
         call C_MPI_ARGVS_NULL(MPI_ARGVS_NULL)
         call C_MPI_UNWEIGHTED(MPI_UNWEIGHTED)
         call C_MPI_WEIGHTS_EMPTY(MPI_WEIGHTS_EMPTY)
+        if (ierror_c == 0_c_int) call VAPAA_VERBOSE_INIT('mpif.h')
     end subroutine VAPAA_MPIFH_Init_support
 
 end module mpi_f77_support

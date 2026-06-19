@@ -56,6 +56,21 @@ module mpi_core_c
     end interface
 
     interface
+        subroutine C_MPI_Verbose_init(binding, compiler_version, compiler_options, &
+                                      logical_size, integer_size, real_size, &
+                                      double_precision_size) &
+                   bind(C,name="C_MPI_Verbose_init")
+            use iso_c_binding, only: c_char, c_int
+            implicit none
+            character(kind=c_char), dimension(*), intent(in) :: binding
+            character(kind=c_char), dimension(*), intent(in) :: compiler_version
+            character(kind=c_char), dimension(*), intent(in) :: compiler_options
+            integer(kind=c_int), intent(in) :: logical_size, integer_size, real_size
+            integer(kind=c_int), intent(in) :: double_precision_size
+        end subroutine C_MPI_Verbose_init
+    end interface
+
+    interface
         subroutine C_MPI_Initialized(flag, ierror) &
                    bind(C,name="C_MPI_Initialized")
             use iso_c_binding, only: c_int

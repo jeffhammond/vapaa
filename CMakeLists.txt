@@ -82,6 +82,34 @@ set(vapa_lib vapa)
 
 add_library(${vapa_lib} STATIC)
 
+set(VAPAA_GIT_HASH "unknown")
+set(VAPAA_GIT_DIRTY "unknown")
+find_package(Git QUIET)
+if(GIT_FOUND)
+  execute_process(
+    COMMAND "${GIT_EXECUTABLE}" rev-parse --short=12 HEAD
+    WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
+    OUTPUT_VARIABLE VAPAA_GIT_HASH_OUTPUT
+    ERROR_QUIET
+    OUTPUT_STRIP_TRAILING_WHITESPACE
+    RESULT_VARIABLE VAPAA_GIT_HASH_RESULT)
+  if(VAPAA_GIT_HASH_RESULT EQUAL 0 AND NOT VAPAA_GIT_HASH_OUTPUT STREQUAL "")
+    set(VAPAA_GIT_HASH "${VAPAA_GIT_HASH_OUTPUT}")
+  endif()
+
+  execute_process(
+    COMMAND "${GIT_EXECUTABLE}" diff-index --quiet HEAD --
+    WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
+    OUTPUT_QUIET
+    ERROR_QUIET
+    RESULT_VARIABLE VAPAA_GIT_DIRTY_RESULT)
+  if(VAPAA_GIT_DIRTY_RESULT EQUAL 0)
+    set(VAPAA_GIT_DIRTY "clean")
+  elseif(VAPAA_GIT_DIRTY_RESULT EQUAL 1)
+    set(VAPAA_GIT_DIRTY "dirty")
+  endif()
+endif()
+
 if(DEFINED MPI_VENDOR)
   set(FLAG_MPI ${MPI_VENDOR})
   message(STATUS "MPI Vendor explicitly set to: ${MPI_VENDOR}")
@@ -103,7 +131,11 @@ endif()
 message(STATUS "Final MPI Vendor Flag: ${FLAG_MPI}")
 
 target_compile_options(${vapa_lib} PRIVATE -Wall -Wextra -fPIE) 
-target_compile_definitions(${vapa_lib} PRIVATE -DHAVE_CFI ${FLAG_MPI})
+target_compile_definitions(${vapa_lib} PRIVATE
+  -DHAVE_CFI
+  ${FLAG_MPI}
+  VAPAA_GIT_HASH="${VAPAA_GIT_HASH}"
+  VAPAA_GIT_DIRTY="${VAPAA_GIT_DIRTY}")
 target_link_libraries(${vapa_lib} PRIVATE MPI::MPI_C)
 
 # Set the library output and module directories

@@ -83,6 +83,17 @@ foreach(TEST_SOURCE ${TEST_SOURCES})
   endif()
 endforeach()
 
+add_test(NAME test_verbose_init
+         COMMAND ${MPIEXEC_EXECUTABLE} ${MPIEXEC_NUMPROC_FLAG} 1
+                 $<TARGET_FILE:test_core>)
+set(verbose_test_environment "${vapaa_test_environment}")
+list(APPEND verbose_test_environment "VAPAA_VERBOSE=1")
+set_tests_properties(test_verbose_init PROPERTIES
+  WORKING_DIRECTORY "${CMAKE_BINARY_DIR}/tests"
+  PASS_REGULAR_EXPRESSION "Vapaa verbose init begin"
+  ENVIRONMENT "${verbose_test_environment}"
+)
+
 add_executable(test_typecheck_warnings ${TYPECHECK_WARNING_TEST_SOURCE})
 target_compile_options(test_typecheck_warnings PRIVATE -Wall -Wextra -g -std=f2018 -DHAVE_CFI -fPIE)
 target_include_directories(test_typecheck_warnings

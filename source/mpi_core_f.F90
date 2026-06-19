@@ -176,17 +176,20 @@ module mpi_core_f
         subroutine MPI_Init_f08(ierror) 
             use iso_c_binding, only: c_sizeof, c_int
             use mpi_core_c, only: C_MPI_Init
+            use mpi_verbose_f, only: VAPAA_VERBOSE_INIT
             integer, optional, intent(out) :: ierror
             integer(kind=c_int) :: ierror_c
             call C_MPI_Init(ierror_c)
             call F_MPI_INIT_ABI_FORTRAN(ierror_c)
             call F_MPI_INIT_ADDRESS_SENTINELS()
             call F_Check_design_assumptions()
+            if (ierror_c == 0_c_int) call VAPAA_VERBOSE_INIT('mpi_f08')
             if (present(ierror)) ierror = ierror_c
         end subroutine MPI_Init_f08
 
         subroutine MPI_Init_thread_f08(required, provided, ierror) 
             use mpi_core_c, only: C_MPI_Init_thread
+            use mpi_verbose_f, only: VAPAA_VERBOSE_INIT
             integer, intent(in) :: required
             integer, intent(out) :: provided
             integer, optional, intent(out) :: ierror
@@ -197,6 +200,7 @@ module mpi_core_f
             call F_MPI_INIT_ABI_FORTRAN(ierror_c)
             call F_MPI_INIT_ADDRESS_SENTINELS()
             call F_Check_design_assumptions()
+            if (ierror_c == 0_c_int) call VAPAA_VERBOSE_INIT('mpi_f08')
             if (present(ierror)) ierror = ierror_c
         end subroutine MPI_Init_thread_f08
 

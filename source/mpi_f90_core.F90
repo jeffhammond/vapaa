@@ -133,18 +133,21 @@ contains
     subroutine MPI_Init_f90(ierror)
         use mpi_core_c, only: C_MPI_Init
         use mpi_f90_util, only: f90_finish_ierror
+        use mpi_verbose_f, only: VAPAA_VERBOSE_INIT
         integer, optional, intent(out) :: ierror
         integer(c_int) :: ierror_c
         call C_MPI_Init(ierror_c)
         call F90_MPI_INIT_ABI_FORTRAN(ierror_c)
         call F90_MPI_INIT_ADDRESS_SENTINELS()
         call F90_Check_design_assumptions()
+        if (ierror_c == 0_c_int) call VAPAA_VERBOSE_INIT('mpi')
         call f90_finish_ierror(ierror, ierror_c)
     end subroutine MPI_Init_f90
 
     subroutine MPI_Init_thread_f90(required, provided, ierror)
         use mpi_core_c, only: C_MPI_Init_thread
         use mpi_f90_util, only: f90_finish_ierror
+        use mpi_verbose_f, only: VAPAA_VERBOSE_INIT
         integer, intent(in) :: required
         integer, intent(out) :: provided
         integer, optional, intent(out) :: ierror
@@ -155,6 +158,7 @@ contains
         call F90_MPI_INIT_ABI_FORTRAN(ierror_c)
         call F90_MPI_INIT_ADDRESS_SENTINELS()
         call F90_Check_design_assumptions()
+        if (ierror_c == 0_c_int) call VAPAA_VERBOSE_INIT('mpi')
         call f90_finish_ierror(ierror, ierror_c)
     end subroutine MPI_Init_thread_f90
 
