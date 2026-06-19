@@ -813,16 +813,31 @@ void VAPAA_MPI_Type_get_contents(int *datatype_f, int *mi, int *ma, int *md, int
     }
 
     MPI_Datatype datatype = C_MPI_TYPE_FROMINT(*datatype_f);
-    MPI_Datatype *types = malloc((size_t) *md * sizeof(*types));
-    if (*md > 0 && types == NULL) {
-        *ierror = C_MPI_ERROR_CODE_C2F(MPI_ERR_NO_MEM);
+
+    int ni = 0, na = 0, nd = 0, combiner = 0;
+    *ierror = MPI_Type_get_envelope(datatype, &ni, &na, &nd, &combiner);
+    if (*ierror != MPI_SUCCESS) {
+        C_MPI_RC_FIX(*ierror);
+        return;
+    }
+    if (*mi < ni || *ma < na || *md < nd) {
+        *ierror = C_MPI_ERROR_CODE_C2F(MPI_ERR_ARG);
         return;
     }
     for (int i = 0; i < *md; ++i) {
+        types_f[i] = VAPAA_MPI_DATATYPE_NULL;
+    }
+
+    MPI_Datatype *types = malloc((size_t) nd * sizeof(*types));
+    if (nd > 0 && types == NULL) {
+        *ierror = C_MPI_ERROR_CODE_C2F(MPI_ERR_NO_MEM);
+        return;
+    }
+    for (int i = 0; i < nd; ++i) {
         types[i] = MPI_DATATYPE_NULL;
     }
-    *ierror = MPI_Type_get_contents(datatype, *mi, *ma, *md, ints, (MPI_Aint *) addrs_f, types);
-    VAPAA_MPI_TYPES_TOINT_ARRAY(*md, types, types_f);
+    *ierror = MPI_Type_get_contents(datatype, ni, na, nd, ints, (MPI_Aint *) addrs_f, types);
+    VAPAA_MPI_TYPES_TOINT_ARRAY(nd, types, types_f);
     free(types);
     C_MPI_RC_FIX(*ierror);
 }
@@ -850,19 +865,39 @@ void VAPAA_MPI_Type_get_contents_c(int *datatype_f, int64_t *mi_f, int64_t *ma_f
         C_MPI_RC_FIX(*ierror);
         return;
     }
-    MPI_Datatype *types = malloc((size_t) md * sizeof(*types));
-    if (md > 0 && types == NULL) {
-        *ierror = C_MPI_ERROR_CODE_C2F(MPI_ERR_NO_MEM);
-        return;
-    }
     for (int i = 0; i < md; ++i) {
-        types[i] = MPI_DATATYPE_NULL;
+        types_f[i] = VAPAA_MPI_DATATYPE_NULL;
     }
 #if MPI_VERSION >= 4
-    *ierror = MPI_Type_get_contents_c(datatype, (MPI_Count) *mi_f, (MPI_Count) *ma_f, (MPI_Count) *ml_f, (MPI_Count) *md_f,
-                                      ints, (MPI_Aint *) addrs_f, (MPI_Count *) counts_f, types);
+    MPI_Count ni = 0, na = 0, nl = 0, nd = 0;
+    int combiner = 0, nd_i = 0;
+    *ierror = MPI_Type_get_envelope_c(datatype, &ni, &na, &nl, &nd, &combiner);
+    if (*ierror == MPI_SUCCESS && (*mi_f < (int64_t) ni || *ma_f < (int64_t) na ||
+                                   *ml_f < (int64_t) nl || *md_f < (int64_t) nd)) {
+        *ierror = MPI_ERR_ARG;
+    }
+    if (*ierror == MPI_SUCCESS) {
+        *ierror = VAPAA_MPI_COUNT_TO_INT((int64_t) nd, &nd_i);
+    }
+    MPI_Datatype *types = NULL;
+    if (*ierror == MPI_SUCCESS) {
+        types = malloc((size_t) nd_i * sizeof(*types));
+        if (nd_i > 0 && types == NULL) {
+            *ierror = MPI_ERR_NO_MEM;
+        }
+    }
+    if (*ierror == MPI_SUCCESS) {
+        for (int i = 0; i < nd_i; ++i) {
+            types[i] = MPI_DATATYPE_NULL;
+        }
+        *ierror = MPI_Type_get_contents_c(datatype, ni, na, nl, nd,
+                                          ints, (MPI_Aint *) addrs_f, (MPI_Count *) counts_f, types);
+        VAPAA_MPI_TYPES_TOINT_ARRAY(nd_i, types, types_f);
+    }
+    free(types);
 #else
     int mi = 0, ma = 0;
+    MPI_Datatype *types = NULL;
     (void) counts_f;
     *ierror = VAPAA_MPI_COUNT_TO_INT(*mi_f, &mi);
     if (*ierror == MPI_SUCCESS) {
@@ -872,11 +907,20 @@ void VAPAA_MPI_Type_get_contents_c(int *datatype_f, int64_t *mi_f, int64_t *ma_f
         *ierror = MPI_ERR_ARG;
     }
     if (*ierror == MPI_SUCCESS) {
-        *ierror = MPI_Type_get_contents(datatype, mi, ma, md, ints, (MPI_Aint *) addrs_f, types);
+        types = malloc((size_t) md * sizeof(*types));
+        if (md > 0 && types == NULL) {
+            *ierror = MPI_ERR_NO_MEM;
+        }
     }
-#endif
-    VAPAA_MPI_TYPES_TOINT_ARRAY(md, types, types_f);
+    if (*ierror == MPI_SUCCESS) {
+        for (int i = 0; i < md; ++i) {
+            types[i] = MPI_DATATYPE_NULL;
+        }
+        *ierror = MPI_Type_get_contents(datatype, mi, ma, md, ints, (MPI_Aint *) addrs_f, types);
+        VAPAA_MPI_TYPES_TOINT_ARRAY(md, types, types_f);
+    }
     free(types);
+#endif
     C_MPI_RC_FIX(*ierror);
 }
 

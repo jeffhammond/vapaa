@@ -4,20 +4,21 @@ C     See COPYRIGHT in top-level directory
 C
 
 C Basic test for MPI_Bsend
-C     We test a basic buffered send of 10 INTEGERs and assume a buffer
-C     of 400 CHARACTERs are sufficient to account for MPI_BSEND_OVERHEAD
+C     We test a basic buffered send of 10 INTEGERs and size the attached
+C     buffer from MPI_BSEND_OVERHEAD.
 
       program bsend
       implicit none
       include 'mpif.h'
       integer ierr, errs, comm
-      character dummy_buf(400)
-      INTEGER dummy_size
+      integer N, dummy_size
+      parameter (N=10)
+      character dummy_buf(MPI_BSEND_OVERHEAD+N*4)
 C
       errs = 0
       comm = MPI_COMM_WORLD;
       call MTest_Init( ierr )
-      call mpi_buffer_attach(dummy_buf, 400, ierr )
+      call mpi_buffer_attach(dummy_buf, MPI_BSEND_OVERHEAD+N*4, ierr )
       call test_bsend( comm, errs )
       call mpi_buffer_detach(dummy_buf, dummy_size, ierr )
       call MTest_Finalize( errs )
