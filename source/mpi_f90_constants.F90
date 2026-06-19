@@ -75,6 +75,7 @@ module mpi_f90_constants
     integer, parameter :: MPI_TYPECLASS_INTEGER = VAPAA_MPI_TYPECLASS_INTEGER
     integer, parameter :: MPI_TYPECLASS_REAL = VAPAA_MPI_TYPECLASS_REAL
     integer, parameter :: MPI_TYPECLASS_COMPLEX = VAPAA_MPI_TYPECLASS_COMPLEX
+    integer, parameter :: MPIX_TYPECLASS_LOGICAL = VAPAA_MPIX_TYPECLASS_LOGICAL
 
     integer, parameter :: MPI_COMM_TYPE_SHARED = VAPAA_MPI_COMM_TYPE_SHARED
     integer, parameter :: MPI_COMM_TYPE_HW_UNGUIDED = VAPAA_MPI_COMM_TYPE_HW_UNGUIDED
@@ -272,7 +273,55 @@ module mpi_f90_constants
     integer, parameter :: MPI_ERR_SESSION = VAPAA_MPI_ERR_SESSION
     integer, parameter :: MPI_ERR_ERRHANDLER = VAPAA_MPI_ERR_ERRHANDLER
     integer, parameter :: MPI_ERR_ABI = VAPAA_MPI_ERR_ABI
+    integer, parameter :: MPI_T_ERR_CANNOT_INIT = VAPAA_MPI_T_ERR_CANNOT_INIT
+    integer, parameter :: MPI_T_ERR_NOT_ACCESSIBLE = VAPAA_MPI_T_ERR_NOT_ACCESSIBLE
+    integer, parameter :: MPI_T_ERR_NOT_INITIALIZED = VAPAA_MPI_T_ERR_NOT_INITIALIZED
+    integer, parameter :: MPI_T_ERR_NOT_SUPPORTED = VAPAA_MPI_T_ERR_NOT_SUPPORTED
+    integer, parameter :: MPI_T_ERR_MEMORY = VAPAA_MPI_T_ERR_MEMORY
+    integer, parameter :: MPI_T_ERR_INVALID = VAPAA_MPI_T_ERR_INVALID
+    integer, parameter :: MPI_T_ERR_INVALID_INDEX = VAPAA_MPI_T_ERR_INVALID_INDEX
+    integer, parameter :: MPI_T_ERR_INVALID_ITEM = VAPAA_MPI_T_ERR_INVALID_ITEM
+    integer, parameter :: MPI_T_ERR_INVALID_SESSION = VAPAA_MPI_T_ERR_INVALID_SESSION
+    integer, parameter :: MPI_T_ERR_INVALID_HANDLE = VAPAA_MPI_T_ERR_INVALID_HANDLE
+    integer, parameter :: MPI_T_ERR_INVALID_NAME = VAPAA_MPI_T_ERR_INVALID_NAME
+    integer, parameter :: MPI_T_ERR_OUT_OF_HANDLES = VAPAA_MPI_T_ERR_OUT_OF_HANDLES
+    integer, parameter :: MPI_T_ERR_OUT_OF_SESSIONS = VAPAA_MPI_T_ERR_OUT_OF_SESSIONS
+    integer, parameter :: MPI_T_ERR_CVAR_SET_NOT_NOW = VAPAA_MPI_T_ERR_CVAR_SET_NOT_NOW
+    integer, parameter :: MPI_T_ERR_CVAR_SET_NEVER = VAPAA_MPI_T_ERR_CVAR_SET_NEVER
+    integer, parameter :: MPI_T_ERR_PVAR_NO_WRITE = VAPAA_MPI_T_ERR_PVAR_NO_WRITE
+    integer, parameter :: MPI_T_ERR_PVAR_NO_STARTSTOP = VAPAA_MPI_T_ERR_PVAR_NO_STARTSTOP
+    integer, parameter :: MPI_T_ERR_PVAR_NO_ATOMIC = VAPAA_MPI_T_ERR_PVAR_NO_ATOMIC
     integer, parameter :: MPI_ERR_LASTCODE = VAPAA_MPI_ERR_LASTCODE
+
+    integer, parameter :: MPI_MODE_APPEND = VAPAA_MPI_MODE_APPEND
+    integer, parameter :: MPI_MODE_CREATE = VAPAA_MPI_MODE_CREATE
+    integer, parameter :: MPI_MODE_DELETE_ON_CLOSE = VAPAA_MPI_MODE_DELETE_ON_CLOSE
+    integer, parameter :: MPI_MODE_EXCL = VAPAA_MPI_MODE_EXCL
+    integer, parameter :: MPI_MODE_RDONLY = VAPAA_MPI_MODE_RDONLY
+    integer, parameter :: MPI_MODE_RDWR = VAPAA_MPI_MODE_RDWR
+    integer, parameter :: MPI_MODE_SEQUENTIAL = VAPAA_MPI_MODE_SEQUENTIAL
+    integer, parameter :: MPI_MODE_UNIQUE_OPEN = VAPAA_MPI_MODE_UNIQUE_OPEN
+    integer, parameter :: MPI_MODE_WRONLY = VAPAA_MPI_MODE_WRONLY
+
+    integer, parameter :: MPI_SEEK_CUR = VAPAA_MPI_SEEK_CUR
+    integer, parameter :: MPI_SEEK_END = VAPAA_MPI_SEEK_END
+    integer, parameter :: MPI_SEEK_SET = VAPAA_MPI_SEEK_SET
+
+    integer, parameter :: MPI_MODE_NOCHECK = VAPAA_MPI_MODE_NOCHECK
+    integer, parameter :: MPI_MODE_NOPRECEDE = VAPAA_MPI_MODE_NOPRECEDE
+    integer, parameter :: MPI_MODE_NOPUT = VAPAA_MPI_MODE_NOPUT
+    integer, parameter :: MPI_MODE_NOSTORE = VAPAA_MPI_MODE_NOSTORE
+    integer, parameter :: MPI_MODE_NOSUCCEED = VAPAA_MPI_MODE_NOSUCCEED
+
+    integer, parameter :: MPI_LOCK_EXCLUSIVE = VAPAA_MPI_LOCK_EXCLUSIVE
+    integer, parameter :: MPI_LOCK_SHARED = VAPAA_MPI_LOCK_SHARED
+
+    integer, parameter :: MPI_WIN_FLAVOR_CREATE = VAPAA_MPI_WIN_FLAVOR_CREATE
+    integer, parameter :: MPI_WIN_FLAVOR_ALLOCATE = VAPAA_MPI_WIN_FLAVOR_ALLOCATE
+    integer, parameter :: MPI_WIN_FLAVOR_DYNAMIC = VAPAA_MPI_WIN_FLAVOR_DYNAMIC
+    integer, parameter :: MPI_WIN_FLAVOR_SHARED = VAPAA_MPI_WIN_FLAVOR_SHARED
+    integer, parameter :: MPI_WIN_UNIFIED = VAPAA_MPI_WIN_UNIFIED
+    integer, parameter :: MPI_WIN_SEPARATE = VAPAA_MPI_WIN_SEPARATE
 
     integer :: MPI_BOTTOM = 0
     integer :: MPI_IN_PLACE = 1

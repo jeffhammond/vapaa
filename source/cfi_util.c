@@ -819,6 +819,9 @@ void VAPAA_CFI_WARN_DATATYPE_MISMATCH(const CFI_cdesc_t *desc, MPI_Datatype data
     if (desc == NULL || datatype == MPI_DATATYPE_NULL) {
         return;
     }
+    if (desc->type == CFI_type_other) {
+        return;
+    }
     if (C_IS_MPI_IN_PLACE(desc->base_addr) || C_IS_MPI_BOTTOM(desc->base_addr)) {
         return;
     }

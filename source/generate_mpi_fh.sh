@@ -94,6 +94,36 @@ C Attribute callback sentinels are external procedures in mpif.h.
       external MPI_WIN_NULL_DELETE_FN
       external MPI_WIN_DUP_FN
 EOF
+
+    cat <<'EOF'
+
+C Generated MPI procedure declarations for legacy mpif.h users.
+      double precision MPI_Wtime
+      external MPI_Wtime
+      double precision MPI_Wtick
+      external MPI_Wtick
+      integer(kind=MPI_ADDRESS_KIND) MPI_Aint_add
+      external MPI_Aint_add
+      integer(kind=MPI_ADDRESS_KIND) MPI_Aint_diff
+      external MPI_Aint_diff
+EOF
+
+    awk '
+        /^[ \t]*interface[ \t]+MPI_[A-Za-z0-9_]+/ {
+            name = $0
+            sub(/^[ \t]*interface[ \t]+/, "", name)
+            sub(/[^A-Za-z0-9_].*/, "", name)
+            print name
+        }
+    ' "${repo_root}/source"/*.F90 \
+        | sort -u \
+        | awk '
+            $1 == "MPI_Wtime" || $1 == "MPI_Wtick" { next }
+            $1 == "MPI_Aint_add" || $1 == "MPI_Aint_diff" { next }
+            $1 == "MPI_Sizeof" { next }
+            $1 == "MPI_Status_f082f" || $1 == "MPI_Status_f2f08" { next }
+            { printf("      external %s\n", $1) }
+        '
 } > "${output}"
 
 cp "${output}" "${repo_root}/source/mpif.h"

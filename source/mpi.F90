@@ -11,5 +11,6 @@ module mpi
     use mpi_f90_win
     use mpi_f90_misc
     use mpi_f90_error
+    use mpi_f90_external
     implicit none
 end module mpi
