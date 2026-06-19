@@ -629,6 +629,16 @@ static struct F_MPI_Status *f77_status_arg(int *status_f77, struct F_MPI_Status 
     return status;
 }
 
+static struct F_MPI_Status *f77_status_out_arg(int *status_f77, struct F_MPI_Status *status)
+{
+    if (C_IS_MPI_STATUS_IGNORE(status_f77)) {
+        return (struct F_MPI_Status *)status_f77;
+    }
+    memset(status, 0, sizeof(*status));
+    status->MPI_ERROR = status_f77[VAPAA_F77_MPI_ERROR];
+    return status;
+}
+
 static void f77_status_store(int *status_f77, const struct F_MPI_Status *status)
 {
     if (!C_IS_MPI_STATUS_IGNORE(status_f77)) {
@@ -636,20 +646,18 @@ static void f77_status_store(int *status_f77, const struct F_MPI_Status *status)
     }
 }
 
-static struct F_MPI_Status *f77_statuses_arg(int count, int statuses_f77[], int *ierror)
+static struct F_MPI_Status *f77_statuses_out_arg(int count, int statuses_f77[], int *ierror)
 {
-    struct F_MPI_Status *statuses;
-
     if (C_IS_MPI_STATUSES_IGNORE(statuses_f77)) {
         return (struct F_MPI_Status *)statuses_f77;
     }
-    statuses = calloc((size_t)(count > 0 ? count : 1), sizeof(*statuses));
+    struct F_MPI_Status *statuses = calloc((size_t)(count > 0 ? count : 1), sizeof(*statuses));
     if (statuses == NULL) {
         *ierror = VAPAA_MPI_ERR_NO_MEM;
         return NULL;
     }
     for (int i = 0; i < count; i++) {
-        f77_status_to_struct(&statuses_f77[i * VAPAA_F77_MPI_STATUS_SIZE], &statuses[i]);
+        statuses[i].MPI_ERROR = statuses_f77[i * VAPAA_F77_MPI_STATUS_SIZE + VAPAA_F77_MPI_ERROR];
     }
     return statuses;
 }
@@ -1156,26 +1164,26 @@ void mpi_recv_(void *buffer, int *count, int *datatype, int *source, int *tag, i
 {
     struct F_MPI_Status status_arg;
     C_MPI_Recv(buffer, *count, *datatype, *source, *tag, *comm,
-               f77_status_arg(status, &status_arg), ierror);
+               f77_status_out_arg(status, &status_arg), ierror);
     f77_status_store(status, &status_arg);
 }
 void mpi_irecv_(void *buffer, int *count, int *datatype, int *source, int *tag, int *comm, int *request, int *ierror) { C_MPI_Irecv(buffer, *count, *datatype, *source, *tag, *comm, request, ierror); }
 void mpi_wait_(int *request, int *status, int *ierror)
 {
     struct F_MPI_Status status_arg;
-    C_MPI_Wait(request, f77_status_arg(status, &status_arg), ierror);
+    C_MPI_Wait(request, f77_status_out_arg(status, &status_arg), ierror);
     f77_status_store(status, &status_arg);
 }
 void mpi_waitall_(int *count, int requests[], int statuses[], int *ierror)
 {
-    struct F_MPI_Status *statuses_arg = f77_statuses_arg(*count, statuses, ierror);
+    struct F_MPI_Status *statuses_arg = f77_statuses_out_arg(*count, statuses, ierror);
     if (statuses_arg == NULL && !C_IS_MPI_STATUSES_IGNORE(statuses)) return;
     C_MPI_Waitall(*count, requests, statuses_arg, ierror);
     f77_statuses_store_free(*count, statuses, statuses_arg);
 }
 void mpi_waitsome_(int *incount, int requests[], int *outcount, int indices[], int statuses[], int *ierror)
 {
-    struct F_MPI_Status *statuses_arg = f77_statuses_arg(*incount, statuses, ierror);
+    struct F_MPI_Status *statuses_arg = f77_statuses_out_arg(*incount, statuses, ierror);
     if (statuses_arg == NULL && !C_IS_MPI_STATUSES_IGNORE(statuses)) return;
     C_MPI_Waitsome(*incount, requests, outcount, indices, statuses_arg, ierror);
     if (*outcount > 0) {
@@ -1187,13 +1195,13 @@ void mpi_waitsome_(int *incount, int requests[], int *outcount, int indices[], i
 void mpi_test_(int *request, int *flag, int *status, int *ierror)
 {
     struct F_MPI_Status status_arg;
-    C_MPI_Test(request, flag, f77_status_arg(status, &status_arg), ierror);
+    C_MPI_Test(request, flag, f77_status_out_arg(status, &status_arg), ierror);
     if (*flag) f77_status_store(status, &status_arg);
     f77_logical_store(flag, *flag);
 }
 void mpi_testall_(int *count, int requests[], int *flag, int statuses[], int *ierror)
 {
-    struct F_MPI_Status *statuses_arg = f77_statuses_arg(*count, statuses, ierror);
+    struct F_MPI_Status *statuses_arg = f77_statuses_out_arg(*count, statuses, ierror);
     if (statuses_arg == NULL && !C_IS_MPI_STATUSES_IGNORE(statuses)) return;
     C_MPI_Testall(*count, requests, flag, statuses_arg, ierror);
     if (*flag) {
@@ -1205,7 +1213,7 @@ void mpi_testall_(int *count, int requests[], int *flag, int statuses[], int *ie
 }
 void mpi_testsome_(int *incount, int requests[], int *outcount, int indices[], int statuses[], int *ierror)
 {
-    struct F_MPI_Status *statuses_arg = f77_statuses_arg(*incount, statuses, ierror);
+    struct F_MPI_Status *statuses_arg = f77_statuses_out_arg(*incount, statuses, ierror);
     if (statuses_arg == NULL && !C_IS_MPI_STATUSES_IGNORE(statuses)) return;
     C_MPI_Testsome(*incount, requests, outcount, indices, statuses_arg, ierror);
     if (*outcount > 0) {
@@ -1217,7 +1225,7 @@ void mpi_testsome_(int *incount, int requests[], int *outcount, int indices[], i
 void mpi_testany_(int *count, int requests[], int *index, int *flag, int *status, int *ierror)
 {
     struct F_MPI_Status status_arg;
-    C_MPI_Testany(*count, requests, index, flag, f77_status_arg(status, &status_arg), ierror);
+    C_MPI_Testany(*count, requests, index, flag, f77_status_out_arg(status, &status_arg), ierror);
     if (*flag && *index != MPI_UNDEFINED) {
         f77_status_store(status, &status_arg);
         *index += 1;
@@ -1229,7 +1237,7 @@ void mpi_testany_(int *count, int requests[], int *index, int *flag, int *status
 void mpi_waitany_(int *count, int requests[], int *index, int *status, int *ierror)
 {
     struct F_MPI_Status status_arg;
-    C_MPI_Waitany(*count, requests, index, f77_status_arg(status, &status_arg), ierror);
+    C_MPI_Waitany(*count, requests, index, f77_status_out_arg(status, &status_arg), ierror);
     if (*index != MPI_UNDEFINED) {
         f77_status_store(status, &status_arg);
         *index += 1;
@@ -1240,26 +1248,26 @@ void mpi_waitany_(int *count, int requests[], int *index, int *status, int *ierr
 void mpi_probe_(int *source, int *tag, int *comm, int *status, int *ierror)
 {
     struct F_MPI_Status status_arg;
-    C_MPI_Probe(*source, *tag, *comm, f77_status_arg(status, &status_arg), ierror);
+    C_MPI_Probe(*source, *tag, *comm, f77_status_out_arg(status, &status_arg), ierror);
     f77_status_store(status, &status_arg);
 }
 void mpi_mprobe_(int *source, int *tag, int *comm, int *message, int *status, int *ierror)
 {
     struct F_MPI_Status status_arg;
-    C_MPI_Mprobe(*source, *tag, *comm, message, f77_status_arg(status, &status_arg), ierror);
+    C_MPI_Mprobe(*source, *tag, *comm, message, f77_status_out_arg(status, &status_arg), ierror);
     f77_status_store(status, &status_arg);
 }
 void mpi_iprobe_(int *source, int *tag, int *comm, int *flag, int *status, int *ierror)
 {
     struct F_MPI_Status status_arg;
-    C_MPI_Iprobe(*source, *tag, *comm, flag, f77_status_arg(status, &status_arg), ierror);
+    C_MPI_Iprobe(*source, *tag, *comm, flag, f77_status_out_arg(status, &status_arg), ierror);
     if (*flag) f77_status_store(status, &status_arg);
     f77_logical_store(flag, *flag);
 }
 void mpi_improbe_(int *source, int *tag, int *comm, int *flag, int *message, int *status, int *ierror)
 {
     struct F_MPI_Status status_arg;
-    C_MPI_Improbe(*source, *tag, *comm, flag, message, f77_status_arg(status, &status_arg), ierror);
+    C_MPI_Improbe(*source, *tag, *comm, flag, message, f77_status_out_arg(status, &status_arg), ierror);
     if (*flag) f77_status_store(status, &status_arg);
     f77_logical_store(flag, *flag);
 }
@@ -1294,7 +1302,7 @@ void mpi_sendrecv_(void *sbuf, int *scount, int *stype, int *dest, int *stag, vo
 {
     struct F_MPI_Status status_arg;
     C_MPI_Sendrecv(sbuf, *scount, *stype, *dest, *stag, rbuf, *rcount, *rtype, *source, *rtag,
-                   *comm, f77_status_arg(status, &status_arg), ierror);
+                   *comm, f77_status_out_arg(status, &status_arg), ierror);
     f77_status_store(status, &status_arg);
 }
 void mpi_sendrecv_replace_(void *buf, int *count, int *datatype_f, int *dest, int *sendtag,
@@ -1305,12 +1313,11 @@ void mpi_sendrecv_replace_(void *buf, int *count, int *datatype_f, int *dest, in
     MPI_Status status_c;
     MPI_Status *status_arg = MPI_STATUS_IGNORE;
     void *addr = C_IS_MPI_BOTTOM(buf) ? MPI_BOTTOM : buf;
-
     struct F_MPI_Status status_f;
 
     if (!C_IS_MPI_STATUS_IGNORE(status)) {
-        f77_status_to_struct(status, &status_f);
-        C_MPI_STATUS_TO_C(&status_f, &status_c);
+        memset(&status_c, 0, sizeof(status_c));
+        status_c.MPI_ERROR = status[VAPAA_F77_MPI_ERROR];
         status_arg = &status_c;
     }
     *ierror = MPI_Sendrecv_replace(addr, *count, datatype, C_MPI_DEST_F2C(*dest),
@@ -1325,7 +1332,7 @@ void mpi_sendrecv_replace_(void *buf, int *count, int *datatype_f, int *dest, in
 void mpi_mrecv_(void *buffer, int *count, int *datatype, int *message, int *status, int *ierror)
 {
     struct F_MPI_Status status_arg;
-    C_MPI_Mrecv(buffer, *count, *datatype, message, f77_status_arg(status, &status_arg), ierror);
+    C_MPI_Mrecv(buffer, *count, *datatype, message, f77_status_out_arg(status, &status_arg), ierror);
     f77_status_store(status, &status_arg);
 }
 void mpi_imrecv_(void *buffer, int *count, int *datatype, int *message, int *request, int *ierror)

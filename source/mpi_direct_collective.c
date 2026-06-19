@@ -66,6 +66,19 @@ static MPI_Datatype *VAPAA_COLL_TYPES_FROMINT(const int types_f[], int n)
     return types;
 }
 
+static MPI_Datatype *VAPAA_COLL_NULL_TYPES(int n)
+{
+    if (n <= 0) {
+        return NULL;
+    }
+    MPI_Datatype *types = malloc((size_t)n * sizeof(*types));
+    VAPAA_Assert(types != NULL);
+    for (int i = 0; i < n; ++i) {
+        types[i] = MPI_DATATYPE_NULL;
+    }
+    return types;
+}
+
 static void VAPAA_COLL_WARN_DATATYPE_ARRAY(CFI_cdesc_t *desc, const MPI_Datatype types[], int n,
                                            const char *mpi_function)
 {
@@ -617,13 +630,25 @@ void VAPAA_MPI_Ialltoallw(CFI_cdesc_t *sendbuf, const int sendcounts[], const in
     if (VAPAA_COLL_REQUIRE_CONTIG2(sendbuf, recvbuf, comm)) {
         int size = 0;
         (void)MPI_Comm_size(comm, &size);
-        MPI_Datatype *sendtypes = VAPAA_COLL_TYPES_FROMINT(sendtypes_f, size);
         MPI_Datatype *recvtypes = VAPAA_COLL_TYPES_FROMINT(recvtypes_f, size);
-        VAPAA_COLL_WARN_DATATYPE_ARRAY(sendbuf, sendtypes, size, "MPI_Ialltoallw");
         VAPAA_COLL_WARN_DATATYPE_ARRAY(recvbuf, recvtypes, size, "MPI_Ialltoallw");
-        *ierror = MPI_Ialltoallw(VAPAA_COLL_IN_ADDR(sendbuf), sendcounts, sdispls, sendtypes,
-                                 VAPAA_COLL_ADDR(recvbuf), recvcounts, rdispls, recvtypes, comm, &request);
-        free(sendtypes);
+        if (VAPAA_COLL_IN_ADDR(sendbuf) == MPI_IN_PLACE) {
+            int *zero_counts = calloc((size_t)(size > 0 ? size : 1), sizeof(*zero_counts));
+            int *zero_displs = calloc((size_t)(size > 0 ? size : 1), sizeof(*zero_displs));
+            MPI_Datatype *sendtypes = VAPAA_COLL_NULL_TYPES(size);
+            VAPAA_Assert(zero_counts != NULL && zero_displs != NULL);
+            *ierror = MPI_Ialltoallw(MPI_IN_PLACE, zero_counts, zero_displs, sendtypes,
+                                     VAPAA_COLL_ADDR(recvbuf), recvcounts, rdispls, recvtypes, comm, &request);
+            free(zero_counts);
+            free(zero_displs);
+            free(sendtypes);
+        } else {
+            MPI_Datatype *sendtypes = VAPAA_COLL_TYPES_FROMINT(sendtypes_f, size);
+            VAPAA_COLL_WARN_DATATYPE_ARRAY(sendbuf, sendtypes, size, "MPI_Ialltoallw");
+            *ierror = MPI_Ialltoallw(VAPAA_COLL_ADDR(sendbuf), sendcounts, sdispls, sendtypes,
+                                     VAPAA_COLL_ADDR(recvbuf), recvcounts, rdispls, recvtypes, comm, &request);
+            free(sendtypes);
+        }
         free(recvtypes);
     }
     VAPAA_COLL_FINISH_REQUEST(request, request_f, ierror);
@@ -641,13 +666,27 @@ void VAPAA_MPI_Alltoallw_init(CFI_cdesc_t *sendbuf, const int sendcounts[], cons
     if (VAPAA_COLL_REQUIRE_CONTIG2(sendbuf, recvbuf, comm)) {
         int size = 0;
         (void)MPI_Comm_size(comm, &size);
-        MPI_Datatype *sendtypes = VAPAA_COLL_TYPES_FROMINT(sendtypes_f, size);
         MPI_Datatype *recvtypes = VAPAA_COLL_TYPES_FROMINT(recvtypes_f, size);
-        VAPAA_COLL_WARN_DATATYPE_ARRAY(sendbuf, sendtypes, size, "MPI_Alltoallw_init");
         VAPAA_COLL_WARN_DATATYPE_ARRAY(recvbuf, recvtypes, size, "MPI_Alltoallw_init");
-        *ierror = MPI_Alltoallw_init(VAPAA_COLL_IN_ADDR(sendbuf), sendcounts, sdispls, sendtypes,
-                                     VAPAA_COLL_ADDR(recvbuf), recvcounts, rdispls, recvtypes, comm, info, &request);
-        free(sendtypes);
+        if (VAPAA_COLL_IN_ADDR(sendbuf) == MPI_IN_PLACE) {
+            int *zero_counts = calloc((size_t)(size > 0 ? size : 1), sizeof(*zero_counts));
+            int *zero_displs = calloc((size_t)(size > 0 ? size : 1), sizeof(*zero_displs));
+            MPI_Datatype *sendtypes = VAPAA_COLL_NULL_TYPES(size);
+            VAPAA_Assert(zero_counts != NULL && zero_displs != NULL);
+            *ierror = MPI_Alltoallw_init(MPI_IN_PLACE, zero_counts, zero_displs, sendtypes,
+                                         VAPAA_COLL_ADDR(recvbuf), recvcounts, rdispls, recvtypes, comm, info,
+                                         &request);
+            free(zero_counts);
+            free(zero_displs);
+            free(sendtypes);
+        } else {
+            MPI_Datatype *sendtypes = VAPAA_COLL_TYPES_FROMINT(sendtypes_f, size);
+            VAPAA_COLL_WARN_DATATYPE_ARRAY(sendbuf, sendtypes, size, "MPI_Alltoallw_init");
+            *ierror = MPI_Alltoallw_init(VAPAA_COLL_ADDR(sendbuf), sendcounts, sdispls, sendtypes,
+                                         VAPAA_COLL_ADDR(recvbuf), recvcounts, rdispls, recvtypes, comm, info,
+                                         &request);
+            free(sendtypes);
+        }
         free(recvtypes);
     }
     VAPAA_COLL_FINISH_REQUEST(request, request_f, ierror);

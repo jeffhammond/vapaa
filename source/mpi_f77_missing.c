@@ -117,6 +117,16 @@ static struct F_MPI_Status *f77_status_arg(int *status_f77, struct F_MPI_Status 
     return status;
 }
 
+static struct F_MPI_Status *f77_status_out_arg(int *status_f77, struct F_MPI_Status *status)
+{
+    if (C_IS_MPI_STATUS_IGNORE(status_f77)) {
+        return (struct F_MPI_Status *)status_f77;
+    }
+    memset(status, 0, sizeof(*status));
+    status->MPI_ERROR = status_f77[F77_MPI_ERROR];
+    return status;
+}
+
 static void f77_status_store(int *status_f77, const struct F_MPI_Status *status)
 {
     if (!C_IS_MPI_STATUS_IGNORE(status_f77)) {
@@ -124,14 +134,13 @@ static void f77_status_store(int *status_f77, const struct F_MPI_Status *status)
     }
 }
 
-static MPI_Status *f77_native_status_arg(int *status_f77, MPI_Status *status)
+static MPI_Status *f77_native_status_out_arg(int *status_f77, MPI_Status *status)
 {
-    struct F_MPI_Status f_status;
     if (C_IS_MPI_STATUS_IGNORE(status_f77)) {
         return MPI_STATUS_IGNORE;
     }
-    f77_status_to_struct(status_f77, &f_status);
-    C_MPI_STATUS_TO_C(&f_status, status);
+    memset(status, 0, sizeof(*status));
+    status->MPI_ERROR = status_f77[F77_MPI_ERROR];
     return status;
 }
 
@@ -144,7 +153,7 @@ static void f77_native_status_store(int *status_f77, const MPI_Status *status)
     }
 }
 
-static struct F_MPI_Status *f77_statuses_arg(int count, int statuses_f77[], int *ierror)
+static struct F_MPI_Status *f77_statuses_out_arg(int count, int statuses_f77[], int *ierror)
 {
     if (C_IS_MPI_STATUSES_IGNORE(statuses_f77)) {
         return (struct F_MPI_Status *)statuses_f77;
@@ -155,7 +164,7 @@ static struct F_MPI_Status *f77_statuses_arg(int count, int statuses_f77[], int 
         return NULL;
     }
     for (int i = 0; i < count; i++) {
-        f77_status_to_struct(&statuses_f77[i * F77_MPI_STATUS_SIZE], &statuses[i]);
+        statuses[i].MPI_ERROR = statuses_f77[i * F77_MPI_STATUS_SIZE + F77_MPI_ERROR];
     }
     return statuses;
 }
@@ -956,7 +965,7 @@ void mpi_file_read_(int *file_f, void *buf, int *count_f, int *datatype_f, int *
     MPI_File file = C_MPI_FILE_FROMINT(*file_f);
     MPI_Datatype datatype = C_MPI_TYPE_FROMINT(*datatype_f);
     MPI_Status status_c;
-    MPI_Status *status_arg = f77_native_status_arg(status, &status_c);
+    MPI_Status *status_arg = f77_native_status_out_arg(status, &status_c);
     *ierror = MPI_File_read(file, f77_addr(buf), *count_f, datatype, status_arg);
     if (*ierror == MPI_SUCCESS) f77_native_status_store(status, &status_c);
     C_MPI_RC_FIX(*ierror);
@@ -967,7 +976,7 @@ void mpi_file_read_all_(int *file_f, void *buf, int *count_f, int *datatype_f, i
     MPI_File file = C_MPI_FILE_FROMINT(*file_f);
     MPI_Datatype datatype = C_MPI_TYPE_FROMINT(*datatype_f);
     MPI_Status status_c;
-    MPI_Status *status_arg = f77_native_status_arg(status, &status_c);
+    MPI_Status *status_arg = f77_native_status_out_arg(status, &status_c);
     *ierror = MPI_File_read_all(file, f77_addr(buf), *count_f, datatype, status_arg);
     if (*ierror == MPI_SUCCESS) f77_native_status_store(status, &status_c);
     C_MPI_RC_FIX(*ierror);
@@ -985,7 +994,7 @@ void mpi_file_read_all_end_(int *file_f, void *buf, int *status, int *ierror)
 {
     MPI_File file = C_MPI_FILE_FROMINT(*file_f);
     MPI_Status status_c;
-    MPI_Status *status_arg = f77_native_status_arg(status, &status_c);
+    MPI_Status *status_arg = f77_native_status_out_arg(status, &status_c);
     *ierror = MPI_File_read_all_end(file, f77_addr(buf), status_arg);
     if (*ierror == MPI_SUCCESS) f77_native_status_store(status, &status_c);
     C_MPI_RC_FIX(*ierror);
@@ -996,7 +1005,7 @@ void mpi_file_read_at_(int *file_f, int64_t *offset_f, void *buf, int *count_f, 
     MPI_File file = C_MPI_FILE_FROMINT(*file_f);
     MPI_Datatype datatype = C_MPI_TYPE_FROMINT(*datatype_f);
     MPI_Status status_c;
-    MPI_Status *status_arg = f77_native_status_arg(status, &status_c);
+    MPI_Status *status_arg = f77_native_status_out_arg(status, &status_c);
     *ierror = MPI_File_read_at(file, f77_offset_f2c(*offset_f), f77_addr(buf), *count_f, datatype, status_arg);
     if (*ierror == MPI_SUCCESS) f77_native_status_store(status, &status_c);
     C_MPI_RC_FIX(*ierror);
@@ -1007,7 +1016,7 @@ void mpi_file_read_at_all_(int *file_f, int64_t *offset_f, void *buf, int *count
     MPI_File file = C_MPI_FILE_FROMINT(*file_f);
     MPI_Datatype datatype = C_MPI_TYPE_FROMINT(*datatype_f);
     MPI_Status status_c;
-    MPI_Status *status_arg = f77_native_status_arg(status, &status_c);
+    MPI_Status *status_arg = f77_native_status_out_arg(status, &status_c);
     *ierror = MPI_File_read_at_all(file, f77_offset_f2c(*offset_f), f77_addr(buf), *count_f, datatype, status_arg);
     if (*ierror == MPI_SUCCESS) f77_native_status_store(status, &status_c);
     C_MPI_RC_FIX(*ierror);
@@ -1025,7 +1034,7 @@ void mpi_file_read_at_all_end_(int *file_f, void *buf, int *status, int *ierror)
 {
     MPI_File file = C_MPI_FILE_FROMINT(*file_f);
     MPI_Status status_c;
-    MPI_Status *status_arg = f77_native_status_arg(status, &status_c);
+    MPI_Status *status_arg = f77_native_status_out_arg(status, &status_c);
     *ierror = MPI_File_read_at_all_end(file, f77_addr(buf), status_arg);
     if (*ierror == MPI_SUCCESS) f77_native_status_store(status, &status_c);
     C_MPI_RC_FIX(*ierror);
@@ -1036,7 +1045,7 @@ void mpi_file_read_ordered_(int *file_f, void *buf, int *count_f, int *datatype_
     MPI_File file = C_MPI_FILE_FROMINT(*file_f);
     MPI_Datatype datatype = C_MPI_TYPE_FROMINT(*datatype_f);
     MPI_Status status_c;
-    MPI_Status *status_arg = f77_native_status_arg(status, &status_c);
+    MPI_Status *status_arg = f77_native_status_out_arg(status, &status_c);
     *ierror = MPI_File_read_ordered(file, f77_addr(buf), *count_f, datatype, status_arg);
     if (*ierror == MPI_SUCCESS) f77_native_status_store(status, &status_c);
     C_MPI_RC_FIX(*ierror);
@@ -1054,7 +1063,7 @@ void mpi_file_read_ordered_end_(int *file_f, void *buf, int *status, int *ierror
 {
     MPI_File file = C_MPI_FILE_FROMINT(*file_f);
     MPI_Status status_c;
-    MPI_Status *status_arg = f77_native_status_arg(status, &status_c);
+    MPI_Status *status_arg = f77_native_status_out_arg(status, &status_c);
     *ierror = MPI_File_read_ordered_end(file, f77_addr(buf), status_arg);
     if (*ierror == MPI_SUCCESS) f77_native_status_store(status, &status_c);
     C_MPI_RC_FIX(*ierror);
@@ -1065,7 +1074,7 @@ void mpi_file_read_shared_(int *file_f, void *buf, int *count_f, int *datatype_f
     MPI_File file = C_MPI_FILE_FROMINT(*file_f);
     MPI_Datatype datatype = C_MPI_TYPE_FROMINT(*datatype_f);
     MPI_Status status_c;
-    MPI_Status *status_arg = f77_native_status_arg(status, &status_c);
+    MPI_Status *status_arg = f77_native_status_out_arg(status, &status_c);
     *ierror = MPI_File_read_shared(file, f77_addr(buf), *count_f, datatype, status_arg);
     if (*ierror == MPI_SUCCESS) f77_native_status_store(status, &status_c);
     C_MPI_RC_FIX(*ierror);
@@ -1132,7 +1141,7 @@ void mpi_file_write_(int *file_f, void *buf, int *count_f, int *datatype_f, int 
     MPI_File file = C_MPI_FILE_FROMINT(*file_f);
     MPI_Datatype datatype = C_MPI_TYPE_FROMINT(*datatype_f);
     MPI_Status status_c;
-    MPI_Status *status_arg = f77_native_status_arg(status, &status_c);
+    MPI_Status *status_arg = f77_native_status_out_arg(status, &status_c);
     *ierror = MPI_File_write(file, f77_addr(buf), *count_f, datatype, status_arg);
     if (*ierror == MPI_SUCCESS) f77_native_status_store(status, &status_c);
     C_MPI_RC_FIX(*ierror);
@@ -1143,7 +1152,7 @@ void mpi_file_write_all_(int *file_f, void *buf, int *count_f, int *datatype_f, 
     MPI_File file = C_MPI_FILE_FROMINT(*file_f);
     MPI_Datatype datatype = C_MPI_TYPE_FROMINT(*datatype_f);
     MPI_Status status_c;
-    MPI_Status *status_arg = f77_native_status_arg(status, &status_c);
+    MPI_Status *status_arg = f77_native_status_out_arg(status, &status_c);
     *ierror = MPI_File_write_all(file, f77_addr(buf), *count_f, datatype, status_arg);
     if (*ierror == MPI_SUCCESS) f77_native_status_store(status, &status_c);
     C_MPI_RC_FIX(*ierror);
@@ -1161,7 +1170,7 @@ void mpi_file_write_all_end_(int *file_f, void *buf, int *status, int *ierror)
 {
     MPI_File file = C_MPI_FILE_FROMINT(*file_f);
     MPI_Status status_c;
-    MPI_Status *status_arg = f77_native_status_arg(status, &status_c);
+    MPI_Status *status_arg = f77_native_status_out_arg(status, &status_c);
     *ierror = MPI_File_write_all_end(file, f77_addr(buf), status_arg);
     if (*ierror == MPI_SUCCESS) f77_native_status_store(status, &status_c);
     C_MPI_RC_FIX(*ierror);
@@ -1172,7 +1181,7 @@ void mpi_file_write_at_(int *file_f, int64_t *offset_f, void *buf, int *count_f,
     MPI_File file = C_MPI_FILE_FROMINT(*file_f);
     MPI_Datatype datatype = C_MPI_TYPE_FROMINT(*datatype_f);
     MPI_Status status_c;
-    MPI_Status *status_arg = f77_native_status_arg(status, &status_c);
+    MPI_Status *status_arg = f77_native_status_out_arg(status, &status_c);
     *ierror = MPI_File_write_at(file, f77_offset_f2c(*offset_f), f77_addr(buf), *count_f, datatype, status_arg);
     if (*ierror == MPI_SUCCESS) f77_native_status_store(status, &status_c);
     C_MPI_RC_FIX(*ierror);
@@ -1183,7 +1192,7 @@ void mpi_file_write_at_all_(int *file_f, int64_t *offset_f, void *buf, int *coun
     MPI_File file = C_MPI_FILE_FROMINT(*file_f);
     MPI_Datatype datatype = C_MPI_TYPE_FROMINT(*datatype_f);
     MPI_Status status_c;
-    MPI_Status *status_arg = f77_native_status_arg(status, &status_c);
+    MPI_Status *status_arg = f77_native_status_out_arg(status, &status_c);
     *ierror = MPI_File_write_at_all(file, f77_offset_f2c(*offset_f), f77_addr(buf), *count_f, datatype, status_arg);
     if (*ierror == MPI_SUCCESS) f77_native_status_store(status, &status_c);
     C_MPI_RC_FIX(*ierror);
@@ -1201,7 +1210,7 @@ void mpi_file_write_at_all_end_(int *file_f, void *buf, int *status, int *ierror
 {
     MPI_File file = C_MPI_FILE_FROMINT(*file_f);
     MPI_Status status_c;
-    MPI_Status *status_arg = f77_native_status_arg(status, &status_c);
+    MPI_Status *status_arg = f77_native_status_out_arg(status, &status_c);
     *ierror = MPI_File_write_at_all_end(file, f77_addr(buf), status_arg);
     if (*ierror == MPI_SUCCESS) f77_native_status_store(status, &status_c);
     C_MPI_RC_FIX(*ierror);
@@ -1212,7 +1221,7 @@ void mpi_file_write_ordered_(int *file_f, void *buf, int *count_f, int *datatype
     MPI_File file = C_MPI_FILE_FROMINT(*file_f);
     MPI_Datatype datatype = C_MPI_TYPE_FROMINT(*datatype_f);
     MPI_Status status_c;
-    MPI_Status *status_arg = f77_native_status_arg(status, &status_c);
+    MPI_Status *status_arg = f77_native_status_out_arg(status, &status_c);
     *ierror = MPI_File_write_ordered(file, f77_addr(buf), *count_f, datatype, status_arg);
     if (*ierror == MPI_SUCCESS) f77_native_status_store(status, &status_c);
     C_MPI_RC_FIX(*ierror);
@@ -1230,7 +1239,7 @@ void mpi_file_write_ordered_end_(int *file_f, void *buf, int *status, int *ierro
 {
     MPI_File file = C_MPI_FILE_FROMINT(*file_f);
     MPI_Status status_c;
-    MPI_Status *status_arg = f77_native_status_arg(status, &status_c);
+    MPI_Status *status_arg = f77_native_status_out_arg(status, &status_c);
     *ierror = MPI_File_write_ordered_end(file, f77_addr(buf), status_arg);
     if (*ierror == MPI_SUCCESS) f77_native_status_store(status, &status_c);
     C_MPI_RC_FIX(*ierror);
@@ -1241,7 +1250,7 @@ void mpi_file_write_shared_(int *file_f, void *buf, int *count_f, int *datatype_
     MPI_File file = C_MPI_FILE_FROMINT(*file_f);
     MPI_Datatype datatype = C_MPI_TYPE_FROMINT(*datatype_f);
     MPI_Status status_c;
-    MPI_Status *status_arg = f77_native_status_arg(status, &status_c);
+    MPI_Status *status_arg = f77_native_status_out_arg(status, &status_c);
     *ierror = MPI_File_write_shared(file, f77_addr(buf), *count_f, datatype, status_arg);
     if (*ierror == MPI_SUCCESS) f77_native_status_store(status, &status_c);
     C_MPI_RC_FIX(*ierror);
@@ -1867,7 +1876,7 @@ extern void C_MPI_Request_get_status(const int *request_f, int *flag_f, struct F
 void mpi_request_get_status_(int *request_f, int *flag, int *status, int *ierror)
 {
     struct F_MPI_Status status_arg;
-    C_MPI_Request_get_status(request_f, flag, f77_status_arg(status, &status_arg), ierror);
+    C_MPI_Request_get_status(request_f, flag, f77_status_out_arg(status, &status_arg), ierror);
     if (*flag) f77_status_store(status, &status_arg);
     f77_store_logical(flag, *flag);
 }
@@ -1875,7 +1884,7 @@ void mpi_request_get_status_(int *request_f, int *flag, int *status, int *ierror
 extern void C_MPI_Request_get_status_all(int *count, int requests_f[], int *flag_f, struct F_MPI_Status statuses_f[], int *ierror);
 void mpi_request_get_status_all_(int *count, int requests_f[], int *flag, int statuses[], int *ierror)
 {
-    struct F_MPI_Status *statuses_arg = f77_statuses_arg(*count, statuses, ierror);
+    struct F_MPI_Status *statuses_arg = f77_statuses_out_arg(*count, statuses, ierror);
     if (statuses_arg == NULL && !C_IS_MPI_STATUSES_IGNORE(statuses)) return;
     C_MPI_Request_get_status_all(count, requests_f, flag, statuses_arg, ierror);
     if (*flag) {
@@ -1890,7 +1899,7 @@ extern void C_MPI_Request_get_status_any(int *count, int requests_f[], int *inde
 void mpi_request_get_status_any_(int *count, int requests_f[], int *index, int *flag, int *status, int *ierror)
 {
     struct F_MPI_Status status_arg;
-    C_MPI_Request_get_status_any(count, requests_f, index, flag, f77_status_arg(status, &status_arg), ierror);
+    C_MPI_Request_get_status_any(count, requests_f, index, flag, f77_status_out_arg(status, &status_arg), ierror);
     if (*flag && *index != VAPAA_MPI_UNDEFINED) {
         f77_status_store(status, &status_arg);
         *index += 1;
@@ -1901,7 +1910,7 @@ void mpi_request_get_status_any_(int *count, int requests_f[], int *index, int *
 extern void C_MPI_Request_get_status_some(int *incount, int requests_f[], int *outcount_f, int indices[], struct F_MPI_Status statuses_f[], int *ierror);
 void mpi_request_get_status_some_(int *incount, int requests_f[], int *outcount, int indices[], int statuses[], int *ierror)
 {
-    struct F_MPI_Status *statuses_arg = f77_statuses_arg(*incount, statuses, ierror);
+    struct F_MPI_Status *statuses_arg = f77_statuses_out_arg(*incount, statuses, ierror);
     if (statuses_arg == NULL && !C_IS_MPI_STATUSES_IGNORE(statuses)) return;
     C_MPI_Request_get_status_some(incount, requests_f, outcount, indices, statuses_arg, ierror);
     if (*outcount > 0) {

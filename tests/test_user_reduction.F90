@@ -1,4 +1,4 @@
-module m
+module test_user_reduction_m
     contains
          subroutine f( cin, cout, count, datatype )
          use iso_c_binding, only: c_ptr, c_f_pointer
@@ -29,11 +29,11 @@ module m
              end do
          end subroutine g
 #endif
-end module m
+end module test_user_reduction_m
 
 program main
     use mpi_f08
-    use m, only: f
+    use test_user_reduction_m, only: f
     implicit none
 #if 0
     external :: f

@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
+#include <string.h>
 #include <limits.h>
 #include <mpi.h>
 #include "ISO_Fortran_binding.h"
@@ -33,7 +34,8 @@ static MPI_Status *C_MPI_STATUS_ARG(struct F_MPI_Status *status_f, MPI_Status *s
     if (C_IS_MPI_STATUS_IGNORE(status_f)) {
         return MPI_STATUS_IGNORE;
     }
-    C_MPI_STATUS_TO_C(status_f, status_c);
+    memset(status_c, 0, sizeof(*status_c));
+    status_c->MPI_ERROR = status_f->MPI_ERROR;
     return status_c;
 }
 
@@ -59,7 +61,7 @@ static MPI_Status *C_MPI_STATUSES_ARG(int count, struct F_MPI_Status statuses_f[
         return MPI_STATUSES_IGNORE;
     }
 
-    statuses = malloc((count > 0 ? count : 1) * sizeof(MPI_Status));
+    statuses = calloc((size_t)(count > 0 ? count : 1), sizeof(MPI_Status));
     if (statuses == NULL) {
         *ierror = MPI_ERR_OTHER;
         C_MPI_RC_FIX(*ierror);
@@ -67,7 +69,7 @@ static MPI_Status *C_MPI_STATUSES_ARG(int count, struct F_MPI_Status statuses_f[
     }
 
     for (int i = 0; i < count; i++) {
-        C_MPI_STATUS_TO_C(&statuses_f[i], &statuses[i]);
+        statuses[i].MPI_ERROR = statuses_f[i].MPI_ERROR;
     }
     return statuses;
 }
@@ -230,9 +232,9 @@ void C_MPI_Probe(int source, int tag, int comm_f, struct F_MPI_Status * status_f
 {
     MPI_Comm comm = C_MPI_COMM_FROMINT(comm_f);
     const bool need_status = !C_IS_MPI_STATUS_IGNORE(status_f);
-    MPI_Status status;
+    MPI_Status status = {0};
     if (need_status) {
-        C_MPI_STATUS_TO_C(status_f, &status);
+        status.MPI_ERROR = status_f->MPI_ERROR;
     }
     *ierror = MPI_Probe(C_MPI_SOURCE_F2C(source), C_MPI_TAG_F2C(tag), comm,
                         need_status ? &status : MPI_STATUS_IGNORE);
@@ -433,11 +435,14 @@ void C_MPI_Waitall(int count, int requests_f[], struct F_MPI_Status statuses_f[]
     }
     else
     {
-        MPI_Status * statuses = malloc( count * sizeof(MPI_Status) );
+        MPI_Status * statuses = calloc((size_t)(count > 0 ? count : 1), sizeof(MPI_Status));
         if (statuses == NULL) {
             *ierror = MPI_ERR_OTHER;
             C_MPI_RC_FIX(*ierror);
             return;
+        }
+        for (int i=0; i<count; i++) {
+            statuses[i].MPI_ERROR = statuses_f[i].MPI_ERROR;
         }
         *ierror = MPI_Waitall(count, requests, statuses);
         for (int i=0; i<count; i++) {

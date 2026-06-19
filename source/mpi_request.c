@@ -13,9 +13,12 @@ void C_MPI_Request_get_status(const int * request_f, int * flag_f, struct F_MPI_
     if (C_IS_MPI_STATUS_IGNORE(status_f)) {
         *ierror = MPI_Request_get_status(request, &flag, MPI_STATUS_IGNORE);
     } else {
-        MPI_Status status;
+        MPI_Status status = {0};
+        status.MPI_ERROR = status_f->MPI_ERROR;
         *ierror = MPI_Request_get_status(request, &flag, &status);
-        C_MPI_STATUS_FROM_C(&status, status_f);
+        if (*ierror == MPI_SUCCESS && flag) {
+            C_MPI_STATUS_FROM_C(&status, status_f);
+        }
     }
     *flag_f = flag;
     C_MPI_RC_FIX(*ierror);
@@ -38,15 +41,18 @@ void C_MPI_Request_get_status_all(int * count, int requests_f[], int * flag_f,
     if (C_IS_MPI_STATUSES_IGNORE(statuses_f)) {
         *ierror = MPI_Request_get_status_all(*count, requests, flag_f, MPI_STATUSES_IGNORE);
     } else {
-        MPI_Status *statuses = malloc((size_t) *count * sizeof(MPI_Status));
+        MPI_Status *statuses = calloc((size_t)(*count > 0 ? *count : 1), sizeof(MPI_Status));
         if (statuses == NULL) {
             free(requests);
             *ierror = MPI_ERR_OTHER;
             C_MPI_RC_FIX(*ierror);
             return;
         }
+        for (int i = 0; i < *count; i++) {
+            statuses[i].MPI_ERROR = statuses_f[i].MPI_ERROR;
+        }
         *ierror = MPI_Request_get_status_all(*count, requests, flag_f, statuses);
-        if (*ierror == MPI_SUCCESS) {
+        if (*ierror == MPI_SUCCESS && *flag_f) {
             for (int i = 0; i < *count; i++) {
                 C_MPI_STATUS_FROM_C(&statuses[i], &statuses_f[i]);
             }
@@ -80,9 +86,10 @@ void C_MPI_Request_get_status_any(int * count, int requests_f[], int * index_f, 
     if (C_IS_MPI_STATUS_IGNORE(status_f)) {
         *ierror = MPI_Request_get_status_any(*count, requests, &index, flag_f, MPI_STATUS_IGNORE);
     } else {
-        MPI_Status status;
+        MPI_Status status = {0};
+        status.MPI_ERROR = status_f->MPI_ERROR;
         *ierror = MPI_Request_get_status_any(*count, requests, &index, flag_f, &status);
-        if (*ierror == MPI_SUCCESS) {
+        if (*ierror == MPI_SUCCESS && *flag_f && index != MPI_UNDEFINED) {
             C_MPI_STATUS_FROM_C(&status, status_f);
         }
     }
@@ -114,12 +121,15 @@ void C_MPI_Request_get_status_some(int * incount, int requests_f[], int * outcou
     if (C_IS_MPI_STATUSES_IGNORE(statuses_f)) {
         *ierror = MPI_Request_get_status_some(*incount, requests, outcount_f, indices, MPI_STATUSES_IGNORE);
     } else {
-        MPI_Status *statuses = malloc((size_t) *incount * sizeof(MPI_Status));
+        MPI_Status *statuses = calloc((size_t)(*incount > 0 ? *incount : 1), sizeof(MPI_Status));
         if (statuses == NULL) {
             free(requests);
             *ierror = MPI_ERR_OTHER;
             C_MPI_RC_FIX(*ierror);
             return;
+        }
+        for (int i = 0; i < *incount; i++) {
+            statuses[i].MPI_ERROR = statuses_f[i].MPI_ERROR;
         }
         *ierror = MPI_Request_get_status_some(*incount, requests, outcount_f, indices, statuses);
         if (*ierror == MPI_SUCCESS && *outcount_f > 0) {

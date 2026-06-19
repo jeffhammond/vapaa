@@ -46,10 +46,10 @@ void VAPAA_MPI_Sendrecv_replace(CFI_cdesc_t *buf, int *count, int *datatype_f, i
     MPI_Comm comm = C_MPI_COMM_FROMINT(*comm_f);
     VAPAA_CFI_WARN_DATATYPE_MISMATCH(buf, datatype, "MPI_Sendrecv_replace");
     if (VAPAA_CFI_is_contiguous(buf) == 1) {
-        MPI_Status status_c;
+        MPI_Status status_c = {0};
         MPI_Status *status_arg = MPI_STATUS_IGNORE;
         if (!C_IS_MPI_STATUS_IGNORE(status)) {
-            C_MPI_STATUS_TO_C(status, &status_c);
+            status_c.MPI_ERROR = status->MPI_ERROR;
             status_arg = &status_c;
         }
         *ierror = MPI_Sendrecv_replace(VAPAA_ADDR(buf), *count, datatype, C_MPI_DEST_F2C(*dest),
