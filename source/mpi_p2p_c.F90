@@ -208,6 +208,33 @@ module mpi_p2p_c
     end interface
 #endif
 
+#ifdef HAVE_PGIF
+    interface
+        subroutine PGIF_MPI_Send(buffer, count, datatype, dest, tag, comm, &
+                                 ierror)
+            use iso_c_binding, only: c_int
+            implicit none
+            type(*), dimension(..), intent(in) :: buffer
+!pgi$ ignore_tkr(c) buffer
+            integer(kind=c_int), intent(in) :: count, datatype, dest, tag, comm
+            integer(kind=c_int), intent(out) :: ierror
+        end subroutine PGIF_MPI_Send
+    end interface
+
+    interface
+        subroutine PGIF_MPI_Send_c(buffer, count, datatype, dest, tag, comm, &
+                                   ierror)
+            use iso_c_binding, only: c_int, c_int64_t
+            implicit none
+            type(*), dimension(..), intent(in) :: buffer
+!pgi$ ignore_tkr(c) buffer
+            integer(kind=c_int64_t), intent(in) :: count
+            integer(kind=c_int), intent(in) :: datatype, dest, tag, comm
+            integer(kind=c_int), intent(out) :: ierror
+        end subroutine PGIF_MPI_Send_c
+    end interface
+#endif
+
     interface
         subroutine C_MPI_Bsend(buffer, count, datatype, dest, tag, comm, &
                                ierror) &
@@ -353,6 +380,20 @@ module mpi_p2p_c
     end interface
 #endif
 
+#ifdef HAVE_PGIF
+    interface
+        subroutine PGIF_MPI_Isend(buffer, count, datatype, dest, tag, comm, &
+                                  request, ierror)
+            use iso_c_binding, only: c_int
+            implicit none
+            type(*), dimension(..), intent(in), asynchronous :: buffer
+!pgi$ ignore_tkr(c) buffer
+            integer(kind=c_int), intent(in) :: count, datatype, dest, tag, comm
+            integer(kind=c_int), intent(out) :: request, ierror
+        end subroutine PGIF_MPI_Isend
+    end interface
+#endif
+
     interface
         subroutine C_MPI_Ibsend(buffer, count, datatype, dest, tag, comm, request, &
                                 ierror) &
@@ -491,6 +532,37 @@ module mpi_p2p_c
     end interface
 #endif
 
+#ifdef HAVE_PGIF
+    interface
+        subroutine PGIF_MPI_Recv(buffer, count, datatype, source, tag, comm, &
+                                 status, ierror)
+            use iso_c_binding, only: c_int
+            use mpi_handle_types, only: MPI_Status
+            implicit none
+            type(*), dimension(..), intent(inout) :: buffer
+!pgi$ ignore_tkr(c) buffer
+            integer(kind=c_int), intent(in) :: count, datatype, source, tag, comm
+            type(MPI_Status), intent(inout) :: status
+            integer(kind=c_int), intent(out) :: ierror
+        end subroutine PGIF_MPI_Recv
+    end interface
+
+    interface
+        subroutine PGIF_MPI_Recv_c(buffer, count, datatype, source, tag, comm, &
+                                   status, ierror)
+            use iso_c_binding, only: c_int, c_int64_t
+            use mpi_handle_types, only: MPI_Status
+            implicit none
+            type(*), dimension(..), intent(inout), asynchronous :: buffer
+!pgi$ ignore_tkr(c) buffer
+            integer(kind=c_int64_t), intent(in) :: count
+            integer(kind=c_int), intent(in) :: datatype, source, tag, comm
+            type(MPI_Status), intent(inout) :: status
+            integer(kind=c_int), intent(out) :: ierror
+        end subroutine PGIF_MPI_Recv_c
+    end interface
+#endif
+
     interface
         subroutine C_MPI_Irecv(buffer, count, datatype, source, tag, comm, request, &
                               ierror) &
@@ -514,6 +586,20 @@ module mpi_p2p_c
             integer(kind=c_int), intent(in), value :: count, datatype, source, tag, comm
             integer(kind=c_int), intent(out) :: request, ierror
         end subroutine CFI_MPI_Irecv
+    end interface
+#endif
+
+#ifdef HAVE_PGIF
+    interface
+        subroutine PGIF_MPI_Irecv(buffer, count, datatype, source, tag, comm, &
+                                  request, ierror)
+            use iso_c_binding, only: c_int
+            implicit none
+            type(*), dimension(..), intent(inout), asynchronous :: buffer
+!pgi$ ignore_tkr(c) buffer
+            integer(kind=c_int), intent(in) :: count, datatype, source, tag, comm
+            integer(kind=c_int), intent(out) :: request, ierror
+        end subroutine PGIF_MPI_Irecv
     end interface
 #endif
 

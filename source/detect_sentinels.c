@@ -12,7 +12,7 @@ void * f08_MPI_ARGVS_NULL_address = {0};      // MPI_ARGVS_NULL
 void * f08_MPI_UNWEIGHTED_address = {0};      // MPI_UNWEIGHTED
 void * f08_MPI_WEIGHTS_EMPTY_address = {0};   // MPI_WEIGHTS_EMPTY
 
-#ifdef HAVE_CFI
+#if defined(HAVE_CFI) || defined(HAVE_PGIF)
 void C_MPI_BOTTOM(CFI_cdesc_t * desc)
 {
     void * addr = desc->base_addr;
@@ -25,7 +25,7 @@ void C_MPI_BOTTOM(void * class)
 }
 #endif
 
-#ifdef HAVE_CFI
+#if defined(HAVE_CFI) || defined(HAVE_PGIF)
 void C_MPI_STATUS_IGNORE(CFI_cdesc_t * desc)
 {
     void * addr = desc->base_addr;
@@ -38,7 +38,7 @@ void C_MPI_STATUS_IGNORE(void * class)
 }
 #endif
 
-#ifdef HAVE_CFI
+#if defined(HAVE_CFI) || defined(HAVE_PGIF)
 void C_MPI_STATUSES_IGNORE(CFI_cdesc_t * desc)
 {
     void * addr = desc->base_addr;
@@ -51,7 +51,7 @@ void C_MPI_STATUSES_IGNORE(void * class)
 }
 #endif
 
-#ifdef HAVE_CFI
+#if defined(HAVE_CFI) || defined(HAVE_PGIF)
 void C_MPI_ERRCODES_IGNORE(CFI_cdesc_t * desc)
 {
     void * addr = desc->base_addr;
@@ -64,7 +64,7 @@ void C_MPI_ERRCODES_IGNORE(void * class)
 }
 #endif
 
-#ifdef HAVE_CFI
+#if defined(HAVE_CFI) || defined(HAVE_PGIF)
 void C_MPI_IN_PLACE(CFI_cdesc_t * desc)
 {
     void * addr = desc->base_addr;
@@ -77,7 +77,7 @@ void C_MPI_IN_PLACE(void * class)
 }
 #endif
 
-#ifdef HAVE_CFI
+#if defined(HAVE_CFI) || defined(HAVE_PGIF)
 void C_MPI_ARGV_NULL(CFI_cdesc_t * desc)
 {
     void * addr = desc->base_addr;
@@ -90,7 +90,7 @@ void C_MPI_ARGV_NULL(void * class)
 }
 #endif
 
-#ifdef HAVE_CFI
+#if defined(HAVE_CFI) || defined(HAVE_PGIF)
 void C_MPI_ARGVS_NULL(CFI_cdesc_t * desc)
 {
     void * addr = desc->base_addr;
@@ -103,7 +103,7 @@ void C_MPI_ARGVS_NULL(void * class)
 }
 #endif
 
-#ifdef HAVE_CFI
+#if defined(HAVE_CFI) || defined(HAVE_PGIF)
 void C_MPI_UNWEIGHTED(CFI_cdesc_t * desc)
 {
     void * addr = desc->base_addr;
@@ -116,7 +116,7 @@ void C_MPI_UNWEIGHTED(void * class)
 }
 #endif
 
-#ifdef HAVE_CFI
+#if defined(HAVE_CFI) || defined(HAVE_PGIF)
 void C_MPI_WEIGHTS_EMPTY(CFI_cdesc_t * desc)
 {
     void * addr = desc->base_addr;

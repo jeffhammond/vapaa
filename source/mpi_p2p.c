@@ -12,6 +12,9 @@
 #include "convert_constants.h"
 #include "cfi_util.h"
 #include "debug.h"
+#ifdef HAVE_PGIF
+#include "pgif_util.h"
+#endif
 
 // STANDARD STUFF
 
@@ -50,6 +53,13 @@ static void C_MPI_STATUS_STORE(const MPI_Status *status_c, struct F_MPI_Status *
 static void *VAPAA_P2P_ADDR(CFI_cdesc_t *desc)
 {
     return C_IS_MPI_BOTTOM(desc->base_addr) ? MPI_BOTTOM : desc->base_addr;
+}
+#endif
+
+#ifdef HAVE_PGIF
+static void *VAPAA_PGIF_P2P_ADDR(void *base)
+{
+    return C_IS_MPI_BOTTOM(base) ? MPI_BOTTOM : base;
 }
 #endif
 
@@ -117,6 +127,33 @@ static void CFI_MPI_Sendlike(CFI_cdesc_t *desc, int count, int datatype_f, int d
 }
 #endif
 
+#ifdef HAVE_PGIF
+static void PGIF_MPI_Sendlike(void *buffer, const VAPAA_PGIF_Desc *desc, int count,
+                              int datatype_f, int dest, int tag, int comm_f,
+                              C_MPI_Sendlike_fn fn, int *ierror)
+{
+    MPI_Datatype datatype = C_MPI_TYPE_FROMINT(datatype_f);
+    MPI_Comm comm = C_MPI_COMM_FROMINT(comm_f);
+
+    if (!VAPAA_PGIF_is_valid(desc) || 1 == VAPAA_PGIF_is_contiguous(desc)) {
+        *ierror = fn(VAPAA_PGIF_P2P_ADDR(buffer), count, datatype,
+                     C_MPI_DEST_F2C(dest), C_MPI_TAG_F2C(tag), comm);
+    } else {
+        int rc;
+        MPI_Datatype subarray_type = MPI_DATATYPE_NULL;
+        rc = VAPAA_PGIF_CREATE_DATATYPE(desc, count, datatype, &subarray_type);
+        VAPAA_Assert(rc == MPI_SUCCESS);
+        rc = PMPI_Type_commit(&subarray_type);
+        VAPAA_Assert(rc == MPI_SUCCESS);
+        *ierror = fn(VAPAA_PGIF_P2P_ADDR(buffer), 1, subarray_type,
+                     C_MPI_DEST_F2C(dest), C_MPI_TAG_F2C(tag), comm);
+        rc = PMPI_Type_free(&subarray_type);
+        VAPAA_Assert(rc == MPI_SUCCESS);
+    }
+    C_MPI_RC_FIX(*ierror);
+}
+#endif
+
 static void C_MPI_Isendlike(void *buffer, int count, int datatype_f, int dest, int tag, int comm_f,
                             C_MPI_Isendlike_fn fn, int *request_f, int *ierror)
 {
@@ -146,6 +183,35 @@ static void CFI_MPI_Isendlike(CFI_cdesc_t *desc, int count, int datatype_f, int 
         rc = PMPI_Type_commit(&subarray_type);
         VAPAA_Assert(rc == MPI_SUCCESS);
         *ierror = fn(VAPAA_P2P_ADDR(desc), 1, subarray_type, C_MPI_DEST_F2C(dest), C_MPI_TAG_F2C(tag), comm, &request);
+        rc = PMPI_Type_free(&subarray_type);
+        VAPAA_Assert(rc == MPI_SUCCESS);
+    }
+    *request_f = C_MPI_REQUEST_TOINT(request);
+    C_MPI_RC_FIX(*ierror);
+}
+#endif
+
+#ifdef HAVE_PGIF
+static void PGIF_MPI_Isendlike(void *buffer, const VAPAA_PGIF_Desc *desc, int count,
+                               int datatype_f, int dest, int tag, int comm_f,
+                               C_MPI_Isendlike_fn fn, int *request_f, int *ierror)
+{
+    MPI_Request request = MPI_REQUEST_NULL;
+    MPI_Datatype datatype = C_MPI_TYPE_FROMINT(datatype_f);
+    MPI_Comm comm = C_MPI_COMM_FROMINT(comm_f);
+
+    if (!VAPAA_PGIF_is_valid(desc) || 1 == VAPAA_PGIF_is_contiguous(desc)) {
+        *ierror = fn(VAPAA_PGIF_P2P_ADDR(buffer), count, datatype,
+                     C_MPI_DEST_F2C(dest), C_MPI_TAG_F2C(tag), comm, &request);
+    } else {
+        int rc;
+        MPI_Datatype subarray_type = MPI_DATATYPE_NULL;
+        rc = VAPAA_PGIF_CREATE_DATATYPE(desc, count, datatype, &subarray_type);
+        VAPAA_Assert(rc == MPI_SUCCESS);
+        rc = PMPI_Type_commit(&subarray_type);
+        VAPAA_Assert(rc == MPI_SUCCESS);
+        *ierror = fn(VAPAA_PGIF_P2P_ADDR(buffer), 1, subarray_type,
+                     C_MPI_DEST_F2C(dest), C_MPI_TAG_F2C(tag), comm, &request);
         rc = PMPI_Type_free(&subarray_type);
         VAPAA_Assert(rc == MPI_SUCCESS);
     }
@@ -627,6 +693,28 @@ void CFI_MPI_Send_c(CFI_cdesc_t * desc, int64_t count, int datatype_f, int dest,
 }
 #endif
 
+#ifdef HAVE_PGIF
+void pgif_mpi_send_(void *buffer, int *count, int *datatype_f, int *dest,
+                    int *tag, int *comm_f, int *ierror, VAPAA_PGIF_Desc *desc)
+{
+    PGIF_MPI_Sendlike(buffer, desc, *count, *datatype_f, *dest, *tag,
+                      *comm_f, MPI_Send, ierror);
+}
+
+void pgif_mpi_send_c_(void *buffer, int64_t *count, int *datatype_f, int *dest,
+                      int *tag, int *comm_f, int *ierror, VAPAA_PGIF_Desc *desc)
+{
+    int count_i = 0;
+    *ierror = C_MPI_COUNT64_TO_INT(*count, &count_i);
+    if (*ierror == MPI_SUCCESS) {
+        PGIF_MPI_Sendlike(buffer, desc, count_i, *datatype_f, *dest, *tag,
+                          *comm_f, MPI_Send, ierror);
+    } else {
+        C_MPI_RC_FIX(*ierror);
+    }
+}
+#endif
+
 void C_MPI_Bsend(void * buffer, int count, int datatype_f, int dest, int tag, int comm_f, int * ierror)
 {
     C_MPI_Sendlike(buffer, count, datatype_f, dest, tag, comm_f, MPI_Bsend, ierror);
@@ -736,6 +824,16 @@ void CFI_MPI_Isend(CFI_cdesc_t * desc, int count, int datatype_f, int dest, int 
     }
     *request_f = C_MPI_REQUEST_TOINT(request);
     C_MPI_RC_FIX(*ierror);
+}
+#endif
+
+#ifdef HAVE_PGIF
+void pgif_mpi_isend_(void *buffer, int *count, int *datatype_f, int *dest,
+                     int *tag, int *comm_f, int *request_f, int *ierror,
+                     VAPAA_PGIF_Desc *desc)
+{
+    PGIF_MPI_Isendlike(buffer, desc, *count, *datatype_f, *dest, *tag,
+                       *comm_f, MPI_Isend, request_f, ierror);
 }
 #endif
 
@@ -953,6 +1051,53 @@ void CFI_MPI_Recv_c(CFI_cdesc_t * desc, int64_t count, int datatype_f, int sourc
 }
 #endif
 
+#ifdef HAVE_PGIF
+void pgif_mpi_recv_(void *buffer, int *count, int *datatype_f, int *source,
+                    int *tag, int *comm_f, struct F_MPI_Status *status,
+                    int *ierror, VAPAA_PGIF_Desc *desc)
+{
+    MPI_Datatype datatype = C_MPI_TYPE_FROMINT(*datatype_f);
+    MPI_Comm comm = C_MPI_COMM_FROMINT(*comm_f);
+    MPI_Status status_c;
+
+    if (!VAPAA_PGIF_is_valid(desc) || 1 == VAPAA_PGIF_is_contiguous(desc)) {
+        *ierror = MPI_Recv(VAPAA_PGIF_P2P_ADDR(buffer), *count, datatype,
+                           C_MPI_SOURCE_F2C(*source), C_MPI_TAG_F2C(*tag), comm,
+                           C_MPI_STATUS_ARG(status, &status_c));
+    } else {
+        int rc;
+        MPI_Datatype subarray_type = MPI_DATATYPE_NULL;
+        rc = VAPAA_PGIF_CREATE_DATATYPE(desc, *count, datatype, &subarray_type);
+        VAPAA_Assert(rc == MPI_SUCCESS);
+        rc = PMPI_Type_commit(&subarray_type);
+        VAPAA_Assert(rc == MPI_SUCCESS);
+        *ierror = MPI_Recv(VAPAA_PGIF_P2P_ADDR(buffer), 1, subarray_type,
+                           C_MPI_SOURCE_F2C(*source), C_MPI_TAG_F2C(*tag), comm,
+                           C_MPI_STATUS_ARG(status, &status_c));
+        rc = PMPI_Type_free(&subarray_type);
+        VAPAA_Assert(rc == MPI_SUCCESS);
+    }
+    if (*ierror == MPI_SUCCESS) {
+        C_MPI_STATUS_STORE(&status_c, status);
+    }
+    C_MPI_RC_FIX(*ierror);
+}
+
+void pgif_mpi_recv_c_(void *buffer, int64_t *count, int *datatype_f, int *source,
+                      int *tag, int *comm_f, struct F_MPI_Status *status,
+                      int *ierror, VAPAA_PGIF_Desc *desc)
+{
+    int count_i = 0;
+    *ierror = C_MPI_COUNT64_TO_INT(*count, &count_i);
+    if (*ierror == MPI_SUCCESS) {
+        pgif_mpi_recv_(buffer, &count_i, datatype_f, source, tag, comm_f,
+                       status, ierror, desc);
+    } else {
+        C_MPI_RC_FIX(*ierror);
+    }
+}
+#endif
+
 void C_MPI_Irecv(void * buffer, int count, int datatype_f, int source, int tag, int comm_f, int * request_f, int * ierror)
 {
     MPI_Request request = MPI_REQUEST_NULL;
@@ -980,6 +1125,37 @@ void CFI_MPI_Irecv(CFI_cdesc_t * desc, int count, int datatype_f, int source, in
         rc = PMPI_Type_commit(&subarray_type);
         VAPAA_Assert(rc == MPI_SUCCESS);
         *ierror = MPI_Irecv(VAPAA_P2P_ADDR(desc), 1, subarray_type, C_MPI_SOURCE_F2C(source), C_MPI_TAG_F2C(tag), comm, &request);
+        rc = PMPI_Type_free(&subarray_type);
+        VAPAA_Assert(rc == MPI_SUCCESS);
+    }
+    *request_f = C_MPI_REQUEST_TOINT(request);
+    C_MPI_RC_FIX(*ierror);
+}
+#endif
+
+#ifdef HAVE_PGIF
+void pgif_mpi_irecv_(void *buffer, int *count, int *datatype_f, int *source,
+                     int *tag, int *comm_f, int *request_f, int *ierror,
+                     VAPAA_PGIF_Desc *desc)
+{
+    MPI_Request request = MPI_REQUEST_NULL;
+    MPI_Datatype datatype = C_MPI_TYPE_FROMINT(*datatype_f);
+    MPI_Comm comm = C_MPI_COMM_FROMINT(*comm_f);
+
+    if (!VAPAA_PGIF_is_valid(desc) || 1 == VAPAA_PGIF_is_contiguous(desc)) {
+        *ierror = MPI_Irecv(VAPAA_PGIF_P2P_ADDR(buffer), *count, datatype,
+                            C_MPI_SOURCE_F2C(*source), C_MPI_TAG_F2C(*tag), comm,
+                            &request);
+    } else {
+        int rc;
+        MPI_Datatype subarray_type = MPI_DATATYPE_NULL;
+        rc = VAPAA_PGIF_CREATE_DATATYPE(desc, *count, datatype, &subarray_type);
+        VAPAA_Assert(rc == MPI_SUCCESS);
+        rc = PMPI_Type_commit(&subarray_type);
+        VAPAA_Assert(rc == MPI_SUCCESS);
+        *ierror = MPI_Irecv(VAPAA_PGIF_P2P_ADDR(buffer), 1, subarray_type,
+                            C_MPI_SOURCE_F2C(*source), C_MPI_TAG_F2C(*tag), comm,
+                            &request);
         rc = PMPI_Type_free(&subarray_type);
         VAPAA_Assert(rc == MPI_SUCCESS);
     }

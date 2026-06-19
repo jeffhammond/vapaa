@@ -26,6 +26,9 @@ option(VAPAA_ENABLE_MPIFH_TESTS
 option(VAPAA_ENABLE_CFI
        "Build CFI assumed-type/assumed-rank buffer bindings"
        ON)
+option(VAPAA_ENABLE_PGIF
+       "Build NVHPC PGI descriptor buffer bindings"
+       ON)
 set(CMAKE_C_STANDARD 11)
 set(CMAKE_C_STANDARD_REQUIRED ON)
 set(CMAKE_C_EXTENSIONS OFF) 
@@ -258,6 +261,12 @@ if(CMAKE_Fortran_COMPILER_ID STREQUAL "NVHPC" AND VAPAA_ENABLE_CFI)
       "Build CFI assumed-type/assumed-rank buffer bindings" FORCE)
 endif()
 
+set(VAPAA_HAVE_PGIF OFF)
+if(CMAKE_Fortran_COMPILER_ID STREQUAL "NVHPC" AND VAPAA_ENABLE_PGIF)
+  set(VAPAA_HAVE_PGIF ON)
+  message(STATUS "Enabling NVHPC PGI descriptor buffer bindings")
+endif()
+
 target_compile_options(${vapa_lib} PRIVATE -Wall -Wextra -fPIE) 
 target_compile_definitions(${vapa_lib} PRIVATE
   ${FLAG_MPI}
@@ -266,6 +275,9 @@ target_compile_definitions(${vapa_lib} PRIVATE
   VAPAA_GIT_DIRTY="${VAPAA_GIT_DIRTY}")
 if(VAPAA_ENABLE_CFI)
   target_compile_definitions(${vapa_lib} PRIVATE HAVE_CFI)
+endif()
+if(VAPAA_HAVE_PGIF)
+  target_compile_definitions(${vapa_lib} PRIVATE HAVE_PGIF)
 endif()
 target_link_libraries(${vapa_lib} PRIVATE MPI::MPI_C)
 

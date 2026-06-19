@@ -1,4 +1,7 @@
 set(TYPECHECK_WARNING_TEST_SOURCE "${CMAKE_CURRENT_SOURCE_DIR}/test_typecheck_warnings.F90")
+set(PGIF_DESCRIPTOR_TEST_SOURCE "${CMAKE_CURRENT_SOURCE_DIR}/test_pgif_descriptor.F90")
+set(PGIF_DESCRIPTOR_TEST_C_SOURCE "${CMAKE_CURRENT_SOURCE_DIR}/test_pgif_descriptor.c")
+set(PGIF_MPI_BYTE_TEST_SOURCE "${CMAKE_CURRENT_SOURCE_DIR}/test_pgif_mpi_byte_noncontig.F90")
 
 set(vapaa_cfi_element_type_warnings_available TRUE)
 if(NOT VAPAA_ENABLE_CFI OR CMAKE_Fortran_COMPILER_ID MATCHES "Intel|NVHPC")
@@ -8,6 +11,10 @@ endif()
 # Find all Fortran files in the current directory
 file(GLOB TEST_SOURCES "*.F90")
 list(REMOVE_ITEM TEST_SOURCES "${TYPECHECK_WARNING_TEST_SOURCE}")
+if(NOT VAPAA_HAVE_PGIF)
+  list(REMOVE_ITEM TEST_SOURCES "${PGIF_DESCRIPTOR_TEST_SOURCE}")
+  list(REMOVE_ITEM TEST_SOURCES "${PGIF_MPI_BYTE_TEST_SOURCE}")
+endif()
 
 # Number of MPI processes
 set(MPI_NUM_PROCESSES 4)
@@ -73,6 +80,11 @@ foreach(TEST_SOURCE ${TEST_SOURCES})
   target_include_directories(${TEST_NAME}
                              PRIVATE "${CMAKE_BINARY_DIR}/modules")
   target_link_libraries(${TEST_NAME} PRIVATE ${vapa_lib})
+  if(TEST_NAME STREQUAL "test_pgif_descriptor")
+    target_sources(${TEST_NAME} PRIVATE "${PGIF_DESCRIPTOR_TEST_C_SOURCE}")
+    target_include_directories(${TEST_NAME} PRIVATE "${CMAKE_SOURCE_DIR}/source")
+    target_link_libraries(${TEST_NAME} PRIVATE MPI::MPI_C)
+  endif()
   
   # Set the output directory for the executables
   set_target_properties(${TEST_NAME} PROPERTIES

@@ -1,8 +1,14 @@
 #ifndef CFI_UTIL_H
 #define CFI_UTIL_H
 
+#include <stddef.h>
 #include <mpi.h>
 #include "ISO_Fortran_binding.h"
+
+typedef struct {
+    MPI_Aint iov_base;
+    MPI_Aint iov_len;
+} VAPAA_Iov;
 
 static inline int VAPAA_CFI_is_contiguous(const CFI_cdesc_t *desc)
 {
@@ -31,6 +37,8 @@ static inline int VAPAA_CFI_is_contiguous(const CFI_cdesc_t *desc)
 
 int VAPAA_CFI_CREATE_DATATYPE(const CFI_cdesc_t * desc, int count, MPI_Datatype input_datatype, 
                               MPI_Datatype * array_datatype);
+int VAPAA_CREATE_DATATYPE_IOV(MPI_Datatype dt, VAPAA_Iov **iov,
+                              size_t *actual_iov_len, size_t *actual_iov_bytes);
 
 void VAPAA_CFI_DATATYPE_DIAGNOSTICS_INIT(void);
 void VAPAA_CFI_SET_FORTRAN_TYPE_SIZES(int logical_size, int integer_size,

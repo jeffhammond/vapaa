@@ -72,6 +72,9 @@ module mpi_p2p_f
             type(MPI_Comm), intent(in) :: comm
             integer, optional, intent(out) :: ierror
         end subroutine MPI_Send_c_f08ts
+#elif defined(HAVE_PGIF)
+        module procedure MPI_Send_pgif_f08ts
+        module procedure MPI_Send_c_pgif_f08ts
 #else
         module procedure MPI_Send_f08
         module procedure MPI_Send_c_f08
@@ -82,6 +85,9 @@ module mpi_p2p_f
 #ifdef HAVE_CFI
         module procedure PMPI_Send_f08ts
         module procedure PMPI_Send_c_f08ts
+#elif defined(HAVE_PGIF)
+        module procedure MPI_Send_pgif_f08ts
+        module procedure MPI_Send_c_pgif_f08ts
 #else
         module procedure MPI_Send_f08
         module procedure MPI_Send_c_f08
@@ -133,6 +139,8 @@ module mpi_p2p_f
     interface MPI_Isend
 #ifdef HAVE_CFI
         module procedure MPI_Isend_f08ts
+#elif defined(HAVE_PGIF)
+        module procedure MPI_Isend_pgif_f08ts
 #else
         module procedure MPI_Isend_f08
 #endif
@@ -184,6 +192,9 @@ module mpi_p2p_f
             type(MPI_Status), intent(out), target :: status
             integer, optional, intent(out) :: ierror
         end subroutine MPI_Recv_c_f08ts
+#elif defined(HAVE_PGIF)
+        module procedure MPI_Recv_pgif_f08ts
+        module procedure MPI_Recv_c_pgif_f08ts
 #else
         module procedure MPI_Recv_f08
         module procedure MPI_Recv_c_f08
@@ -194,6 +205,9 @@ module mpi_p2p_f
 #ifdef HAVE_CFI
         module procedure PMPI_Recv_f08ts
         module procedure PMPI_Recv_c_f08ts
+#elif defined(HAVE_PGIF)
+        module procedure MPI_Recv_pgif_f08ts
+        module procedure MPI_Recv_c_pgif_f08ts
 #else
         module procedure MPI_Recv_f08
         module procedure MPI_Recv_c_f08
@@ -203,6 +217,8 @@ module mpi_p2p_f
     interface MPI_Irecv
 #ifdef HAVE_CFI
         module procedure MPI_Irecv_f08ts
+#elif defined(HAVE_PGIF)
+        module procedure MPI_Irecv_pgif_f08ts
 #else
 #ifndef __NVCOMPILER
         module procedure MPI_Irecv_scalar_f08
@@ -646,6 +662,45 @@ module mpi_p2p_f
         end subroutine PMPI_Send_c_f08ts
 #endif
 
+#ifdef HAVE_PGIF
+        subroutine MPI_Send_pgif_f08ts(buffer, count, datatype, dest, tag, comm, ierror)
+            use mpi_handle_types, only: MPI_Comm, MPI_Datatype
+            use mpi_p2p_c, only: PGIF_MPI_Send
+            type(*), dimension(..), intent(in) :: buffer
+!pgi$ ignore_tkr(c) buffer
+            integer, intent(in) :: count, dest, tag
+            type(MPI_Datatype), intent(in) :: datatype
+            type(MPI_Comm), intent(in) :: comm
+            integer, optional, intent(out) :: ierror
+            integer(kind=c_int) :: count_c, dest_c, tag_c, ierror_c
+            count_c = count
+            dest_c = dest
+            tag_c = tag
+            call PGIF_MPI_Send(buffer, count_c, datatype % MPI_VAL, dest_c, tag_c, &
+                               comm % MPI_VAL, ierror_c)
+            if (present(ierror)) ierror = ierror_c
+        end subroutine MPI_Send_pgif_f08ts
+
+        subroutine MPI_Send_c_pgif_f08ts(buffer, count, datatype, dest, tag, comm, ierror)
+            use mpi_global_constants, only: MPI_COUNT_KIND
+            use mpi_handle_types, only: MPI_Comm, MPI_Datatype
+            use mpi_p2p_c, only: PGIF_MPI_Send_c
+            type(*), dimension(..), intent(in) :: buffer
+!pgi$ ignore_tkr(c) buffer
+            integer(kind=MPI_COUNT_KIND), intent(in) :: count
+            integer, intent(in) :: dest, tag
+            type(MPI_Datatype), intent(in) :: datatype
+            type(MPI_Comm), intent(in) :: comm
+            integer, optional, intent(out) :: ierror
+            integer(kind=c_int) :: dest_c, tag_c, ierror_c
+            dest_c = dest
+            tag_c = tag
+            call PGIF_MPI_Send_c(buffer, count, datatype % MPI_VAL, dest_c, tag_c, &
+                                 comm % MPI_VAL, ierror_c)
+            if (present(ierror)) ierror = ierror_c
+        end subroutine MPI_Send_c_pgif_f08ts
+#endif
+
         subroutine MPI_Bsend_f08(buffer, count, datatype, dest, tag, comm, ierror)
             use mpi_handle_types, only: MPI_Comm, MPI_Datatype
             use mpi_p2p_c, only: C_MPI_Bsend
@@ -829,6 +884,27 @@ module mpi_p2p_f
             call CFI_MPI_Isend(buffer, count_c, datatype % MPI_VAL, dest_c, tag_c, comm % MPI_VAL, request % MPI_VAL, ierror_c)
             if (present(ierror)) ierror = ierror_c
         end subroutine MPI_Isend_f08ts
+#endif
+
+#ifdef HAVE_PGIF
+        subroutine MPI_Isend_pgif_f08ts(buffer, count, datatype, dest, tag, comm, request, ierror)
+            use mpi_handle_types, only: MPI_Comm, MPI_Datatype, MPI_Request
+            use mpi_p2p_c, only: PGIF_MPI_Isend
+            type(*), dimension(..), intent(in), asynchronous :: buffer
+!pgi$ ignore_tkr(c) buffer
+            integer, intent(in) :: count, dest, tag
+            type(MPI_Datatype), intent(in) :: datatype
+            type(MPI_Comm), intent(in) :: comm
+            type(MPI_Request), intent(out) :: request
+            integer, optional, intent(out) :: ierror
+            integer(kind=c_int) :: count_c, dest_c, tag_c, ierror_c
+            count_c = count
+            dest_c = dest
+            tag_c = tag
+            call PGIF_MPI_Isend(buffer, count_c, datatype % MPI_VAL, dest_c, tag_c, &
+                                comm % MPI_VAL, request % MPI_VAL, ierror_c)
+            if (present(ierror)) ierror = ierror_c
+        end subroutine MPI_Isend_pgif_f08ts
 #endif
 
         subroutine MPI_Ibsend_f08(buffer, count, datatype, dest, tag, comm, request, ierror)
@@ -1178,6 +1254,47 @@ module mpi_p2p_f
         end subroutine PMPI_Recv_c_f08ts
 #endif
 
+#ifdef HAVE_PGIF
+        subroutine MPI_Recv_pgif_f08ts(buffer, count, datatype, source, tag, comm, stat, ierror)
+            use mpi_handle_types, only: MPI_Comm, MPI_Datatype, MPI_Status
+            use mpi_p2p_c, only: PGIF_MPI_Recv
+            type(*), dimension(..), intent(inout) :: buffer
+!pgi$ ignore_tkr(c) buffer
+            integer, intent(in) :: count, source, tag
+            type(MPI_Datatype), intent(in) :: datatype
+            type(MPI_Comm), intent(in) :: comm
+            type(MPI_Status), intent(inout) :: stat
+            integer, optional, intent(out) :: ierror
+            integer(kind=c_int) :: count_c, source_c, tag_c, ierror_c
+            count_c = count
+            source_c = source
+            tag_c = tag
+            call PGIF_MPI_Recv(buffer, count_c, datatype % MPI_VAL, source_c, tag_c, &
+                               comm % MPI_VAL, stat, ierror_c)
+            if (present(ierror)) ierror = ierror_c
+        end subroutine MPI_Recv_pgif_f08ts
+
+        subroutine MPI_Recv_c_pgif_f08ts(buffer, count, datatype, source, tag, comm, stat, ierror)
+            use mpi_global_constants, only: MPI_COUNT_KIND
+            use mpi_handle_types, only: MPI_Comm, MPI_Datatype, MPI_Status
+            use mpi_p2p_c, only: PGIF_MPI_Recv_c
+            type(*), dimension(..), intent(inout), asynchronous :: buffer
+!pgi$ ignore_tkr(c) buffer
+            integer(kind=MPI_COUNT_KIND), intent(in) :: count
+            integer, intent(in) :: source, tag
+            type(MPI_Datatype), intent(in) :: datatype
+            type(MPI_Comm), intent(in) :: comm
+            type(MPI_Status), intent(inout) :: stat
+            integer, optional, intent(out) :: ierror
+            integer(kind=c_int) :: source_c, tag_c, ierror_c
+            source_c = source
+            tag_c = tag
+            call PGIF_MPI_Recv_c(buffer, count, datatype % MPI_VAL, source_c, tag_c, &
+                                 comm % MPI_VAL, stat, ierror_c)
+            if (present(ierror)) ierror = ierror_c
+        end subroutine MPI_Recv_c_pgif_f08ts
+#endif
+
         subroutine MPI_Irecv_f08(buffer, count, datatype, source, tag, comm, request, ierror) 
             use mpi_handle_types, only: MPI_Comm, MPI_Datatype, MPI_Request
             use mpi_p2p_c, only: C_MPI_Irecv
@@ -1240,6 +1357,27 @@ module mpi_p2p_f
             call CFI_MPI_Irecv(buffer, count_c, datatype % MPI_VAL, source_c, tag_c, comm % MPI_VAL, request % MPI_VAL, ierror_c)
             if (present(ierror)) ierror = ierror_c
         end subroutine MPI_Irecv_f08ts
+#endif
+
+#ifdef HAVE_PGIF
+        subroutine MPI_Irecv_pgif_f08ts(buffer, count, datatype, source, tag, comm, request, ierror)
+            use mpi_handle_types, only: MPI_Comm, MPI_Datatype, MPI_Request
+            use mpi_p2p_c, only: PGIF_MPI_Irecv
+            type(*), dimension(..), intent(inout), asynchronous :: buffer
+!pgi$ ignore_tkr(c) buffer
+            integer, intent(in) :: count, source, tag
+            type(MPI_Datatype), intent(in) :: datatype
+            type(MPI_Comm), intent(in) :: comm
+            type(MPI_Request), intent(out) :: request
+            integer, optional, intent(out) :: ierror
+            integer(kind=c_int) :: count_c, source_c, tag_c, ierror_c
+            count_c = count
+            source_c = source
+            tag_c = tag
+            call PGIF_MPI_Irecv(buffer, count_c, datatype % MPI_VAL, source_c, tag_c, &
+                                comm % MPI_VAL, request % MPI_VAL, ierror_c)
+            if (present(ierror)) ierror = ierror_c
+        end subroutine MPI_Irecv_pgif_f08ts
 #endif
 
         subroutine MPI_Recv_init_f08(buffer, count, datatype, source, tag, comm, request, ierror)

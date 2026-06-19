@@ -170,11 +170,6 @@ static bool VAPAA_MPI_DATATYPE_IS_CONTIGUOUS(MPI_Datatype t)
 #endif
 
 typedef struct {
-    MPI_Aint iov_base;
-    MPI_Aint iov_len;
-} VAPAA_Iov;
-
-typedef struct {
     VAPAA_Iov *iov;
     size_t len;
     size_t cap;
@@ -290,8 +285,8 @@ static void VAPAA_IOV_FREE(VAPAA_Iov_list *list)
 
 static int VAPAA_CREATE_STANDARD_IOV(MPI_Datatype dt, VAPAA_Iov **iov,
                                      size_t *actual_iov_len, size_t *actual_iov_bytes);
-static int VAPAA_CREATE_DATATYPE_IOV(MPI_Datatype dt, VAPAA_Iov **iov,
-                                     size_t *actual_iov_len, size_t *actual_iov_bytes);
+int VAPAA_CREATE_DATATYPE_IOV(MPI_Datatype dt, VAPAA_Iov **iov,
+                              size_t *actual_iov_len, size_t *actual_iov_bytes);
 
 typedef enum {
     VAPAA_CFI_CATEGORY_UNKNOWN = 0,
@@ -1656,8 +1651,8 @@ static int VAPAA_CREATE_MPIX_IOV(MPI_Datatype dt, VAPAA_Iov **iov,
 }
 #endif
 
-static int VAPAA_CREATE_DATATYPE_IOV(MPI_Datatype dt, VAPAA_Iov **iov,
-                                     size_t *actual_iov_len, size_t *actual_iov_bytes)
+int VAPAA_CREATE_DATATYPE_IOV(MPI_Datatype dt, VAPAA_Iov **iov,
+                              size_t *actual_iov_len, size_t *actual_iov_bytes)
 {
 #if VAPAA_HAVE_MPIX_IOV
     /* Native MPICH keeps the MPIX fast path unless debugging asks otherwise. */
