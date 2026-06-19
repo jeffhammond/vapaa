@@ -115,27 +115,27 @@ C
 C One MPI implementation failed to increment the position; instead, 
 C it set the value with the amount of data packed in this call
 C We use aintv(3) to detect and report this specific error
-       call mpi_pack_external( 'external32', inbuf, insize, MPI_INTEGER,
+       call pack_external_i( 'external32', inbuf, insize, MPI_INTEGER,
      &               packbuf, aintv(1), aintv(2), ierr )
        if (aintv(2) .le. aintv(3)) then
             print *, ' Position decreased after pack of integer!'
        endif
        aintv(3) = aintv(2)
-       call mpi_pack_external( 'external32', rbuf, rsize, 
-     &               MPI_DOUBLE_PRECISION, packbuf, aintv(1), 
+       call pack_external_r8( 'external32', rbuf, rsize,
+     &               MPI_DOUBLE_PRECISION, packbuf, aintv(1),
      &               aintv(2), ierr )
        if (aintv(2) .le. aintv(3)) then
             print *, ' Position decreased after pack of real!'
        endif
        aintv(3) = aintv(2)
-       call mpi_pack_external( 'external32', cbuf, csize, 
-     &               MPI_CHARACTER, packbuf, aintv(1), 
+       call pack_external_c( 'external32', cbuf, csize,
+     &               MPI_CHARACTER, packbuf, aintv(1),
      &               aintv(2), ierr )
        if (aintv(2) .le. aintv(3)) then
             print *, ' Position decreased after pack of character!'
        endif
        aintv(3) = aintv(2)
-       call mpi_pack_external( 'external32', inbuf2, insize2, 
+       call pack_external_i( 'external32', inbuf2, insize2,
      &               MPI_INTEGER,
      &               packbuf, aintv(1), aintv(2), ierr )
        if (aintv(2) .le. aintv(3)) then
@@ -145,13 +145,13 @@ C We use aintv(3) to detect and report this specific error
 C
 C We could try sending this with MPI_BYTE...
        aintv(2) = 0
-       call mpi_unpack_external( 'external32', packbuf, aintv(1),
+       call unpack_external_i( 'external32', packbuf, aintv(1),
      &  aintv(2), ioutbuf, insize, MPI_INTEGER, ierr )
-       call mpi_unpack_external( 'external32', packbuf, aintv(1),
+       call unpack_external_r8( 'external32', packbuf, aintv(1),
      &  aintv(2), routbuf, rsize, MPI_DOUBLE_PRECISION, ierr )
-       call mpi_unpack_external( 'external32', packbuf, aintv(1),
+       call unpack_external_c( 'external32', packbuf, aintv(1),
      &  aintv(2), coutbuf, csize, MPI_CHARACTER, ierr )
-       call mpi_unpack_external( 'external32', packbuf, aintv(1),
+       call unpack_external_i( 'external32', packbuf, aintv(1),
      &  aintv(2), ioutbuf2, insize2, MPI_INTEGER, ierr )
 C
 C Now, test the values

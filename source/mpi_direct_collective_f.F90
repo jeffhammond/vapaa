@@ -807,45 +807,98 @@ module mpi_direct_collective_f
             call finish_ierror(ierror, ierror_c)
         end subroutine
 
-#define REDUCE_REQ_F08(FNAME,CNAME) \
-        subroutine FNAME(sendbuf, recvbuf, count, datatype, op, comm, request, ierror); \
-            type(*), dimension(..), intent(in), asynchronous :: sendbuf; \
-            type(*), dimension(..), asynchronous :: recvbuf; \
-            integer, intent(in) :: count; \
-            type(MPI_Datatype), intent(in) :: datatype; \
-            type(MPI_Op), intent(in) :: op; \
-            type(MPI_Comm), intent(in) :: comm; \
-            type(MPI_Request), intent(out) :: request; \
-            integer, optional, intent(out) :: ierror; \
-            integer(c_int) :: ierror_c; \
-            call CNAME(sendbuf, recvbuf, int(count,c_int), datatype % MPI_VAL, op % MPI_VAL, comm % MPI_VAL, \
-                       request % MPI_VAL, ierror_c); \
-            call finish_ierror(ierror, ierror_c); \
-        end subroutine FNAME
+        subroutine MPI_Iallreduce_f08ts(sendbuf, recvbuf, count, datatype, op, comm, request, ierror)
+            type(*), dimension(..), intent(in), asynchronous :: sendbuf
+            type(*), dimension(..), asynchronous :: recvbuf
+            integer, intent(in) :: count
+            type(MPI_Datatype), intent(in) :: datatype
+            type(MPI_Op), intent(in) :: op
+            type(MPI_Comm), intent(in) :: comm
+            type(MPI_Request), intent(out) :: request
+            integer, optional, intent(out) :: ierror
+            integer(c_int) :: ierror_c
+            call VAPAA_MPI_Iallreduce(sendbuf, recvbuf, int(count,c_int), datatype % MPI_VAL, op % MPI_VAL, &
+                                      comm % MPI_VAL, request % MPI_VAL, ierror_c)
+            call finish_ierror(ierror, ierror_c)
+        end subroutine
 
-#define REDUCE_INIT_F08(FNAME,CNAME) \
-        subroutine FNAME(sendbuf, recvbuf, count, datatype, op, comm, info, request, ierror); \
-            type(*), dimension(..), intent(in), asynchronous :: sendbuf; \
-            type(*), dimension(..), asynchronous :: recvbuf; \
-            integer, intent(in) :: count; \
-            type(MPI_Datatype), intent(in) :: datatype; \
-            type(MPI_Op), intent(in) :: op; \
-            type(MPI_Comm), intent(in) :: comm; \
-            type(MPI_Info), intent(in) :: info; \
-            type(MPI_Request), intent(out) :: request; \
-            integer, optional, intent(out) :: ierror; \
-            integer(c_int) :: ierror_c; \
-            call CNAME(sendbuf, recvbuf, int(count,c_int), datatype % MPI_VAL, op % MPI_VAL, comm % MPI_VAL, \
-                       info % MPI_VAL, request % MPI_VAL, ierror_c); \
-            call finish_ierror(ierror, ierror_c); \
-        end subroutine FNAME
+        subroutine MPI_Iscan_f08ts(sendbuf, recvbuf, count, datatype, op, comm, request, ierror)
+            type(*), dimension(..), intent(in), asynchronous :: sendbuf
+            type(*), dimension(..), asynchronous :: recvbuf
+            integer, intent(in) :: count
+            type(MPI_Datatype), intent(in) :: datatype
+            type(MPI_Op), intent(in) :: op
+            type(MPI_Comm), intent(in) :: comm
+            type(MPI_Request), intent(out) :: request
+            integer, optional, intent(out) :: ierror
+            integer(c_int) :: ierror_c
+            call VAPAA_MPI_Iscan(sendbuf, recvbuf, int(count,c_int), datatype % MPI_VAL, op % MPI_VAL, &
+                                 comm % MPI_VAL, request % MPI_VAL, ierror_c)
+            call finish_ierror(ierror, ierror_c)
+        end subroutine
 
-        REDUCE_REQ_F08(MPI_Iallreduce_f08ts,VAPAA_MPI_Iallreduce)
-        REDUCE_REQ_F08(MPI_Iscan_f08ts,VAPAA_MPI_Iscan)
-        REDUCE_REQ_F08(MPI_Iexscan_f08ts,VAPAA_MPI_Iexscan)
-        REDUCE_INIT_F08(MPI_Allreduce_init_f08ts,VAPAA_MPI_Allreduce_init)
-        REDUCE_INIT_F08(MPI_Scan_init_f08ts,VAPAA_MPI_Scan_init)
-        REDUCE_INIT_F08(MPI_Exscan_init_f08ts,VAPAA_MPI_Exscan_init)
+        subroutine MPI_Iexscan_f08ts(sendbuf, recvbuf, count, datatype, op, comm, request, ierror)
+            type(*), dimension(..), intent(in), asynchronous :: sendbuf
+            type(*), dimension(..), asynchronous :: recvbuf
+            integer, intent(in) :: count
+            type(MPI_Datatype), intent(in) :: datatype
+            type(MPI_Op), intent(in) :: op
+            type(MPI_Comm), intent(in) :: comm
+            type(MPI_Request), intent(out) :: request
+            integer, optional, intent(out) :: ierror
+            integer(c_int) :: ierror_c
+            call VAPAA_MPI_Iexscan(sendbuf, recvbuf, int(count,c_int), datatype % MPI_VAL, op % MPI_VAL, &
+                                   comm % MPI_VAL, request % MPI_VAL, ierror_c)
+            call finish_ierror(ierror, ierror_c)
+        end subroutine
+
+        subroutine MPI_Allreduce_init_f08ts(sendbuf, recvbuf, count, datatype, op, comm, info, request, ierror)
+            type(*), dimension(..), intent(in), asynchronous :: sendbuf
+            type(*), dimension(..), asynchronous :: recvbuf
+            integer, intent(in) :: count
+            type(MPI_Datatype), intent(in) :: datatype
+            type(MPI_Op), intent(in) :: op
+            type(MPI_Comm), intent(in) :: comm
+            type(MPI_Info), intent(in) :: info
+            type(MPI_Request), intent(out) :: request
+            integer, optional, intent(out) :: ierror
+            integer(c_int) :: ierror_c
+            call VAPAA_MPI_Allreduce_init(sendbuf, recvbuf, int(count,c_int), datatype % MPI_VAL, op % MPI_VAL, &
+                                          comm % MPI_VAL, info % MPI_VAL, request % MPI_VAL, ierror_c)
+            call finish_ierror(ierror, ierror_c)
+        end subroutine
+
+        subroutine MPI_Scan_init_f08ts(sendbuf, recvbuf, count, datatype, op, comm, info, request, ierror)
+            type(*), dimension(..), intent(in), asynchronous :: sendbuf
+            type(*), dimension(..), asynchronous :: recvbuf
+            integer, intent(in) :: count
+            type(MPI_Datatype), intent(in) :: datatype
+            type(MPI_Op), intent(in) :: op
+            type(MPI_Comm), intent(in) :: comm
+            type(MPI_Info), intent(in) :: info
+            type(MPI_Request), intent(out) :: request
+            integer, optional, intent(out) :: ierror
+            integer(c_int) :: ierror_c
+            call VAPAA_MPI_Scan_init(sendbuf, recvbuf, int(count,c_int), datatype % MPI_VAL, op % MPI_VAL, &
+                                     comm % MPI_VAL, info % MPI_VAL, request % MPI_VAL, ierror_c)
+            call finish_ierror(ierror, ierror_c)
+        end subroutine
+
+        subroutine MPI_Exscan_init_f08ts(sendbuf, recvbuf, count, datatype, op, comm, info, request, ierror)
+            type(*), dimension(..), intent(in), asynchronous :: sendbuf
+            type(*), dimension(..), asynchronous :: recvbuf
+            integer, intent(in) :: count
+            type(MPI_Datatype), intent(in) :: datatype
+            type(MPI_Op), intent(in) :: op
+            type(MPI_Comm), intent(in) :: comm
+            type(MPI_Info), intent(in) :: info
+            type(MPI_Request), intent(out) :: request
+            integer, optional, intent(out) :: ierror
+            integer(c_int) :: ierror_c
+            call VAPAA_MPI_Exscan_init(sendbuf, recvbuf, int(count,c_int), datatype % MPI_VAL, op % MPI_VAL, &
+                                       comm % MPI_VAL, info % MPI_VAL, request % MPI_VAL, ierror_c)
+            call finish_ierror(ierror, ierror_c)
+        end subroutine
 
         subroutine MPI_Ireduce_f08ts(sendbuf, recvbuf, count, datatype, op, root, comm, request, ierror)
             type(*), dimension(..), intent(in), asynchronous :: sendbuf
@@ -878,77 +931,137 @@ module mpi_direct_collective_f
             call finish_ierror(ierror, ierror_c)
         end subroutine
 
-#define ROOT_PAIR_REQ_F08(FNAME,CNAME) \
-        subroutine FNAME(sendbuf, sendcount, sendtype, recvbuf, recvcount, recvtype, root, comm, request, ierror); \
-            type(*), dimension(..), intent(in), asynchronous :: sendbuf; \
-            type(*), dimension(..), asynchronous :: recvbuf; \
-            integer, intent(in) :: sendcount, recvcount, root; \
-            type(MPI_Datatype), intent(in) :: sendtype, recvtype; \
-            type(MPI_Comm), intent(in) :: comm; \
-            type(MPI_Request), intent(out) :: request; \
-            integer, optional, intent(out) :: ierror; \
-            integer(c_int) :: ierror_c; \
-            call CNAME(sendbuf, int(sendcount,c_int), sendtype % MPI_VAL, recvbuf, int(recvcount,c_int), \
-                       recvtype % MPI_VAL, int(root,c_int), comm % MPI_VAL, request % MPI_VAL, ierror_c); \
-            call finish_ierror(ierror, ierror_c); \
-        end subroutine FNAME
+        subroutine MPI_Igather_f08ts(sendbuf, sendcount, sendtype, recvbuf, recvcount, recvtype, root, comm, &
+                                     request, ierror)
+            type(*), dimension(..), intent(in), asynchronous :: sendbuf
+            type(*), dimension(..), asynchronous :: recvbuf
+            integer, intent(in) :: sendcount, recvcount, root
+            type(MPI_Datatype), intent(in) :: sendtype, recvtype
+            type(MPI_Comm), intent(in) :: comm
+            type(MPI_Request), intent(out) :: request
+            integer, optional, intent(out) :: ierror
+            integer(c_int) :: ierror_c
+            call VAPAA_MPI_Igather(sendbuf, int(sendcount,c_int), sendtype % MPI_VAL, recvbuf, &
+                                   int(recvcount,c_int), recvtype % MPI_VAL, int(root,c_int), comm % MPI_VAL, &
+                                   request % MPI_VAL, ierror_c)
+            call finish_ierror(ierror, ierror_c)
+        end subroutine
 
-#define ROOT_PAIR_INIT_F08(FNAME,CNAME) \
-        subroutine FNAME(sendbuf, sendcount, sendtype, recvbuf, recvcount, recvtype, root, comm, info, request, ierror); \
-            type(*), dimension(..), intent(in), asynchronous :: sendbuf; \
-            type(*), dimension(..), asynchronous :: recvbuf; \
-            integer, intent(in) :: sendcount, recvcount, root; \
-            type(MPI_Datatype), intent(in) :: sendtype, recvtype; \
-            type(MPI_Comm), intent(in) :: comm; \
-            type(MPI_Info), intent(in) :: info; \
-            type(MPI_Request), intent(out) :: request; \
-            integer, optional, intent(out) :: ierror; \
-            integer(c_int) :: ierror_c; \
-            call CNAME(sendbuf, int(sendcount,c_int), sendtype % MPI_VAL, recvbuf, int(recvcount,c_int), \
-                       recvtype % MPI_VAL, int(root,c_int), comm % MPI_VAL, info % MPI_VAL, request % MPI_VAL, \
-                       ierror_c); \
-            call finish_ierror(ierror, ierror_c); \
-        end subroutine FNAME
+        subroutine MPI_Iscatter_f08ts(sendbuf, sendcount, sendtype, recvbuf, recvcount, recvtype, root, comm, &
+                                      request, ierror)
+            type(*), dimension(..), intent(in), asynchronous :: sendbuf
+            type(*), dimension(..), asynchronous :: recvbuf
+            integer, intent(in) :: sendcount, recvcount, root
+            type(MPI_Datatype), intent(in) :: sendtype, recvtype
+            type(MPI_Comm), intent(in) :: comm
+            type(MPI_Request), intent(out) :: request
+            integer, optional, intent(out) :: ierror
+            integer(c_int) :: ierror_c
+            call VAPAA_MPI_Iscatter(sendbuf, int(sendcount,c_int), sendtype % MPI_VAL, recvbuf, &
+                                    int(recvcount,c_int), recvtype % MPI_VAL, int(root,c_int), comm % MPI_VAL, &
+                                    request % MPI_VAL, ierror_c)
+            call finish_ierror(ierror, ierror_c)
+        end subroutine
 
-#define PAIR_REQ_F08(FNAME,CNAME) \
-        subroutine FNAME(sendbuf, sendcount, sendtype, recvbuf, recvcount, recvtype, comm, request, ierror); \
-            type(*), dimension(..), intent(in), asynchronous :: sendbuf; \
-            type(*), dimension(..), asynchronous :: recvbuf; \
-            integer, intent(in) :: sendcount, recvcount; \
-            type(MPI_Datatype), intent(in) :: sendtype, recvtype; \
-            type(MPI_Comm), intent(in) :: comm; \
-            type(MPI_Request), intent(out) :: request; \
-            integer, optional, intent(out) :: ierror; \
-            integer(c_int) :: ierror_c; \
-            call CNAME(sendbuf, int(sendcount,c_int), sendtype % MPI_VAL, recvbuf, int(recvcount,c_int), \
-                       recvtype % MPI_VAL, comm % MPI_VAL, request % MPI_VAL, ierror_c); \
-            call finish_ierror(ierror, ierror_c); \
-        end subroutine FNAME
+        subroutine MPI_Gather_init_f08ts(sendbuf, sendcount, sendtype, recvbuf, recvcount, recvtype, root, comm, &
+                                         info, request, ierror)
+            type(*), dimension(..), intent(in), asynchronous :: sendbuf
+            type(*), dimension(..), asynchronous :: recvbuf
+            integer, intent(in) :: sendcount, recvcount, root
+            type(MPI_Datatype), intent(in) :: sendtype, recvtype
+            type(MPI_Comm), intent(in) :: comm
+            type(MPI_Info), intent(in) :: info
+            type(MPI_Request), intent(out) :: request
+            integer, optional, intent(out) :: ierror
+            integer(c_int) :: ierror_c
+            call VAPAA_MPI_Gather_init(sendbuf, int(sendcount,c_int), sendtype % MPI_VAL, recvbuf, &
+                                       int(recvcount,c_int), recvtype % MPI_VAL, int(root,c_int), comm % MPI_VAL, &
+                                       info % MPI_VAL, request % MPI_VAL, ierror_c)
+            call finish_ierror(ierror, ierror_c)
+        end subroutine
 
-#define PAIR_INIT_F08(FNAME,CNAME) \
-        subroutine FNAME(sendbuf, sendcount, sendtype, recvbuf, recvcount, recvtype, comm, info, request, ierror); \
-            type(*), dimension(..), intent(in), asynchronous :: sendbuf; \
-            type(*), dimension(..), asynchronous :: recvbuf; \
-            integer, intent(in) :: sendcount, recvcount; \
-            type(MPI_Datatype), intent(in) :: sendtype, recvtype; \
-            type(MPI_Comm), intent(in) :: comm; \
-            type(MPI_Info), intent(in) :: info; \
-            type(MPI_Request), intent(out) :: request; \
-            integer, optional, intent(out) :: ierror; \
-            integer(c_int) :: ierror_c; \
-            call CNAME(sendbuf, int(sendcount,c_int), sendtype % MPI_VAL, recvbuf, int(recvcount,c_int), \
-                       recvtype % MPI_VAL, comm % MPI_VAL, info % MPI_VAL, request % MPI_VAL, ierror_c); \
-            call finish_ierror(ierror, ierror_c); \
-        end subroutine FNAME
+        subroutine MPI_Scatter_init_f08ts(sendbuf, sendcount, sendtype, recvbuf, recvcount, recvtype, root, comm, &
+                                          info, request, ierror)
+            type(*), dimension(..), intent(in), asynchronous :: sendbuf
+            type(*), dimension(..), asynchronous :: recvbuf
+            integer, intent(in) :: sendcount, recvcount, root
+            type(MPI_Datatype), intent(in) :: sendtype, recvtype
+            type(MPI_Comm), intent(in) :: comm
+            type(MPI_Info), intent(in) :: info
+            type(MPI_Request), intent(out) :: request
+            integer, optional, intent(out) :: ierror
+            integer(c_int) :: ierror_c
+            call VAPAA_MPI_Scatter_init(sendbuf, int(sendcount,c_int), sendtype % MPI_VAL, recvbuf, &
+                                        int(recvcount,c_int), recvtype % MPI_VAL, int(root,c_int), comm % MPI_VAL, &
+                                        info % MPI_VAL, request % MPI_VAL, ierror_c)
+            call finish_ierror(ierror, ierror_c)
+        end subroutine
 
-        ROOT_PAIR_REQ_F08(MPI_Igather_f08ts,VAPAA_MPI_Igather)
-        ROOT_PAIR_REQ_F08(MPI_Iscatter_f08ts,VAPAA_MPI_Iscatter)
-        ROOT_PAIR_INIT_F08(MPI_Gather_init_f08ts,VAPAA_MPI_Gather_init)
-        ROOT_PAIR_INIT_F08(MPI_Scatter_init_f08ts,VAPAA_MPI_Scatter_init)
-        PAIR_REQ_F08(MPI_Iallgather_f08ts,VAPAA_MPI_Iallgather)
-        PAIR_REQ_F08(MPI_Ialltoall_f08ts,VAPAA_MPI_Ialltoall)
-        PAIR_INIT_F08(MPI_Allgather_init_f08ts,VAPAA_MPI_Allgather_init)
-        PAIR_INIT_F08(MPI_Alltoall_init_f08ts,VAPAA_MPI_Alltoall_init)
+        subroutine MPI_Iallgather_f08ts(sendbuf, sendcount, sendtype, recvbuf, recvcount, recvtype, comm, &
+                                        request, ierror)
+            type(*), dimension(..), intent(in), asynchronous :: sendbuf
+            type(*), dimension(..), asynchronous :: recvbuf
+            integer, intent(in) :: sendcount, recvcount
+            type(MPI_Datatype), intent(in) :: sendtype, recvtype
+            type(MPI_Comm), intent(in) :: comm
+            type(MPI_Request), intent(out) :: request
+            integer, optional, intent(out) :: ierror
+            integer(c_int) :: ierror_c
+            call VAPAA_MPI_Iallgather(sendbuf, int(sendcount,c_int), sendtype % MPI_VAL, recvbuf, &
+                                      int(recvcount,c_int), recvtype % MPI_VAL, comm % MPI_VAL, &
+                                      request % MPI_VAL, ierror_c)
+            call finish_ierror(ierror, ierror_c)
+        end subroutine
+
+        subroutine MPI_Ialltoall_f08ts(sendbuf, sendcount, sendtype, recvbuf, recvcount, recvtype, comm, &
+                                       request, ierror)
+            type(*), dimension(..), intent(in), asynchronous :: sendbuf
+            type(*), dimension(..), asynchronous :: recvbuf
+            integer, intent(in) :: sendcount, recvcount
+            type(MPI_Datatype), intent(in) :: sendtype, recvtype
+            type(MPI_Comm), intent(in) :: comm
+            type(MPI_Request), intent(out) :: request
+            integer, optional, intent(out) :: ierror
+            integer(c_int) :: ierror_c
+            call VAPAA_MPI_Ialltoall(sendbuf, int(sendcount,c_int), sendtype % MPI_VAL, recvbuf, &
+                                     int(recvcount,c_int), recvtype % MPI_VAL, comm % MPI_VAL, &
+                                     request % MPI_VAL, ierror_c)
+            call finish_ierror(ierror, ierror_c)
+        end subroutine
+
+        subroutine MPI_Allgather_init_f08ts(sendbuf, sendcount, sendtype, recvbuf, recvcount, recvtype, comm, &
+                                            info, request, ierror)
+            type(*), dimension(..), intent(in), asynchronous :: sendbuf
+            type(*), dimension(..), asynchronous :: recvbuf
+            integer, intent(in) :: sendcount, recvcount
+            type(MPI_Datatype), intent(in) :: sendtype, recvtype
+            type(MPI_Comm), intent(in) :: comm
+            type(MPI_Info), intent(in) :: info
+            type(MPI_Request), intent(out) :: request
+            integer, optional, intent(out) :: ierror
+            integer(c_int) :: ierror_c
+            call VAPAA_MPI_Allgather_init(sendbuf, int(sendcount,c_int), sendtype % MPI_VAL, recvbuf, &
+                                          int(recvcount,c_int), recvtype % MPI_VAL, comm % MPI_VAL, &
+                                          info % MPI_VAL, request % MPI_VAL, ierror_c)
+            call finish_ierror(ierror, ierror_c)
+        end subroutine
+
+        subroutine MPI_Alltoall_init_f08ts(sendbuf, sendcount, sendtype, recvbuf, recvcount, recvtype, comm, &
+                                           info, request, ierror)
+            type(*), dimension(..), intent(in), asynchronous :: sendbuf
+            type(*), dimension(..), asynchronous :: recvbuf
+            integer, intent(in) :: sendcount, recvcount
+            type(MPI_Datatype), intent(in) :: sendtype, recvtype
+            type(MPI_Comm), intent(in) :: comm
+            type(MPI_Info), intent(in) :: info
+            type(MPI_Request), intent(out) :: request
+            integer, optional, intent(out) :: ierror
+            integer(c_int) :: ierror_c
+            call VAPAA_MPI_Alltoall_init(sendbuf, int(sendcount,c_int), sendtype % MPI_VAL, recvbuf, &
+                                         int(recvcount,c_int), recvtype % MPI_VAL, comm % MPI_VAL, &
+                                         info % MPI_VAL, request % MPI_VAL, ierror_c)
+            call finish_ierror(ierror, ierror_c)
+        end subroutine
 
         subroutine MPI_Igatherv_f08ts(sendbuf, sendcount, sendtype, recvbuf, recvcounts, displs, recvtype, &
                                       root, comm, request, ierror)
@@ -1215,57 +1328,99 @@ module mpi_direct_collective_f
             call finish_ierror(ierror, ierror_c)
         end subroutine
 
-#define NEIGHBOR_PAIR_F08(FNAME,CNAME) \
-        subroutine FNAME(sendbuf, sendcount, sendtype, recvbuf, recvcount, recvtype, comm, ierror); \
-            type(*), dimension(..), intent(in) :: sendbuf; \
-            integer, intent(in) :: sendcount, recvcount; \
-            type(MPI_Datatype), intent(in) :: sendtype, recvtype; \
-            type(*), dimension(..) :: recvbuf; \
-            type(MPI_Comm), intent(in) :: comm; \
-            integer, optional, intent(out) :: ierror; \
-            integer(c_int) :: ierror_c; \
-            call CNAME(sendbuf, int(sendcount,c_int), sendtype % MPI_VAL, recvbuf, int(recvcount,c_int), \
-                       recvtype % MPI_VAL, comm % MPI_VAL, ierror_c); \
-            call finish_ierror(ierror, ierror_c); \
-        end subroutine FNAME
+        subroutine MPI_Neighbor_allgather_f08ts(sendbuf, sendcount, sendtype, recvbuf, recvcount, recvtype, comm, &
+                                                ierror)
+            type(*), dimension(..), intent(in) :: sendbuf
+            integer, intent(in) :: sendcount, recvcount
+            type(MPI_Datatype), intent(in) :: sendtype, recvtype
+            type(*), dimension(..) :: recvbuf
+            type(MPI_Comm), intent(in) :: comm
+            integer, optional, intent(out) :: ierror
+            integer(c_int) :: ierror_c
+            call VAPAA_MPI_Neighbor_allgather(sendbuf, int(sendcount,c_int), sendtype % MPI_VAL, recvbuf, &
+                                              int(recvcount,c_int), recvtype % MPI_VAL, comm % MPI_VAL, ierror_c)
+            call finish_ierror(ierror, ierror_c)
+        end subroutine
 
-#define NEIGHBOR_PAIR_REQ_F08(FNAME,CNAME) \
-        subroutine FNAME(sendbuf, sendcount, sendtype, recvbuf, recvcount, recvtype, comm, request, ierror); \
-            type(*), dimension(..), intent(in), asynchronous :: sendbuf; \
-            integer, intent(in) :: sendcount, recvcount; \
-            type(MPI_Datatype), intent(in) :: sendtype, recvtype; \
-            type(*), dimension(..), asynchronous :: recvbuf; \
-            type(MPI_Comm), intent(in) :: comm; \
-            type(MPI_Request), intent(out) :: request; \
-            integer, optional, intent(out) :: ierror; \
-            integer(c_int) :: ierror_c; \
-            call CNAME(sendbuf, int(sendcount,c_int), sendtype % MPI_VAL, recvbuf, int(recvcount,c_int), \
-                       recvtype % MPI_VAL, comm % MPI_VAL, request % MPI_VAL, ierror_c); \
-            call finish_ierror(ierror, ierror_c); \
-        end subroutine FNAME
+        subroutine MPI_Neighbor_alltoall_f08ts(sendbuf, sendcount, sendtype, recvbuf, recvcount, recvtype, comm, &
+                                               ierror)
+            type(*), dimension(..), intent(in) :: sendbuf
+            integer, intent(in) :: sendcount, recvcount
+            type(MPI_Datatype), intent(in) :: sendtype, recvtype
+            type(*), dimension(..) :: recvbuf
+            type(MPI_Comm), intent(in) :: comm
+            integer, optional, intent(out) :: ierror
+            integer(c_int) :: ierror_c
+            call VAPAA_MPI_Neighbor_alltoall(sendbuf, int(sendcount,c_int), sendtype % MPI_VAL, recvbuf, &
+                                             int(recvcount,c_int), recvtype % MPI_VAL, comm % MPI_VAL, ierror_c)
+            call finish_ierror(ierror, ierror_c)
+        end subroutine
 
-#define NEIGHBOR_PAIR_INIT_F08(FNAME,CNAME) \
-        subroutine FNAME(sendbuf, sendcount, sendtype, recvbuf, recvcount, recvtype, comm, info, request, ierror); \
-            type(*), dimension(..), intent(in), asynchronous :: sendbuf; \
-            integer, intent(in) :: sendcount, recvcount; \
-            type(MPI_Datatype), intent(in) :: sendtype, recvtype; \
-            type(*), dimension(..), asynchronous :: recvbuf; \
-            type(MPI_Comm), intent(in) :: comm; \
-            type(MPI_Info), intent(in) :: info; \
-            type(MPI_Request), intent(out) :: request; \
-            integer, optional, intent(out) :: ierror; \
-            integer(c_int) :: ierror_c; \
-            call CNAME(sendbuf, int(sendcount,c_int), sendtype % MPI_VAL, recvbuf, int(recvcount,c_int), \
-                       recvtype % MPI_VAL, comm % MPI_VAL, info % MPI_VAL, request % MPI_VAL, ierror_c); \
-            call finish_ierror(ierror, ierror_c); \
-        end subroutine FNAME
+        subroutine MPI_Ineighbor_allgather_f08ts(sendbuf, sendcount, sendtype, recvbuf, recvcount, recvtype, comm, &
+                                                 request, ierror)
+            type(*), dimension(..), intent(in), asynchronous :: sendbuf
+            integer, intent(in) :: sendcount, recvcount
+            type(MPI_Datatype), intent(in) :: sendtype, recvtype
+            type(*), dimension(..), asynchronous :: recvbuf
+            type(MPI_Comm), intent(in) :: comm
+            type(MPI_Request), intent(out) :: request
+            integer, optional, intent(out) :: ierror
+            integer(c_int) :: ierror_c
+            call VAPAA_MPI_Ineighbor_allgather(sendbuf, int(sendcount,c_int), sendtype % MPI_VAL, recvbuf, &
+                                               int(recvcount,c_int), recvtype % MPI_VAL, comm % MPI_VAL, &
+                                               request % MPI_VAL, ierror_c)
+            call finish_ierror(ierror, ierror_c)
+        end subroutine
 
-        NEIGHBOR_PAIR_F08(MPI_Neighbor_allgather_f08ts,VAPAA_MPI_Neighbor_allgather)
-        NEIGHBOR_PAIR_F08(MPI_Neighbor_alltoall_f08ts,VAPAA_MPI_Neighbor_alltoall)
-        NEIGHBOR_PAIR_REQ_F08(MPI_Ineighbor_allgather_f08ts,VAPAA_MPI_Ineighbor_allgather)
-        NEIGHBOR_PAIR_REQ_F08(MPI_Ineighbor_alltoall_f08ts,VAPAA_MPI_Ineighbor_alltoall)
-        NEIGHBOR_PAIR_INIT_F08(MPI_Neighbor_allgather_init_f08ts,VAPAA_MPI_Neighbor_allgather_init)
-        NEIGHBOR_PAIR_INIT_F08(MPI_Neighbor_alltoall_init_f08ts,VAPAA_MPI_Neighbor_alltoall_init)
+        subroutine MPI_Ineighbor_alltoall_f08ts(sendbuf, sendcount, sendtype, recvbuf, recvcount, recvtype, comm, &
+                                                request, ierror)
+            type(*), dimension(..), intent(in), asynchronous :: sendbuf
+            integer, intent(in) :: sendcount, recvcount
+            type(MPI_Datatype), intent(in) :: sendtype, recvtype
+            type(*), dimension(..), asynchronous :: recvbuf
+            type(MPI_Comm), intent(in) :: comm
+            type(MPI_Request), intent(out) :: request
+            integer, optional, intent(out) :: ierror
+            integer(c_int) :: ierror_c
+            call VAPAA_MPI_Ineighbor_alltoall(sendbuf, int(sendcount,c_int), sendtype % MPI_VAL, recvbuf, &
+                                              int(recvcount,c_int), recvtype % MPI_VAL, comm % MPI_VAL, &
+                                              request % MPI_VAL, ierror_c)
+            call finish_ierror(ierror, ierror_c)
+        end subroutine
+
+        subroutine MPI_Neighbor_allgather_init_f08ts(sendbuf, sendcount, sendtype, recvbuf, recvcount, recvtype, &
+                                                     comm, info, request, ierror)
+            type(*), dimension(..), intent(in), asynchronous :: sendbuf
+            integer, intent(in) :: sendcount, recvcount
+            type(MPI_Datatype), intent(in) :: sendtype, recvtype
+            type(*), dimension(..), asynchronous :: recvbuf
+            type(MPI_Comm), intent(in) :: comm
+            type(MPI_Info), intent(in) :: info
+            type(MPI_Request), intent(out) :: request
+            integer, optional, intent(out) :: ierror
+            integer(c_int) :: ierror_c
+            call VAPAA_MPI_Neighbor_allgather_init(sendbuf, int(sendcount,c_int), sendtype % MPI_VAL, recvbuf, &
+                                                   int(recvcount,c_int), recvtype % MPI_VAL, comm % MPI_VAL, &
+                                                   info % MPI_VAL, request % MPI_VAL, ierror_c)
+            call finish_ierror(ierror, ierror_c)
+        end subroutine
+
+        subroutine MPI_Neighbor_alltoall_init_f08ts(sendbuf, sendcount, sendtype, recvbuf, recvcount, recvtype, &
+                                                    comm, info, request, ierror)
+            type(*), dimension(..), intent(in), asynchronous :: sendbuf
+            integer, intent(in) :: sendcount, recvcount
+            type(MPI_Datatype), intent(in) :: sendtype, recvtype
+            type(*), dimension(..), asynchronous :: recvbuf
+            type(MPI_Comm), intent(in) :: comm
+            type(MPI_Info), intent(in) :: info
+            type(MPI_Request), intent(out) :: request
+            integer, optional, intent(out) :: ierror
+            integer(c_int) :: ierror_c
+            call VAPAA_MPI_Neighbor_alltoall_init(sendbuf, int(sendcount,c_int), sendtype % MPI_VAL, recvbuf, &
+                                                  int(recvcount,c_int), recvtype % MPI_VAL, comm % MPI_VAL, &
+                                                  info % MPI_VAL, request % MPI_VAL, ierror_c)
+            call finish_ierror(ierror, ierror_c)
+        end subroutine
 
         subroutine MPI_Neighbor_allgatherv_f08ts(sendbuf, sendcount, sendtype, recvbuf, recvcounts, &
                                                  displs, recvtype, comm, ierror)

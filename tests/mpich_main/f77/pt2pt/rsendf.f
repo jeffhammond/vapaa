@@ -63,8 +63,7 @@ C
 C
          call init_test_data(send_buf,TEST_SIZE)
 C
-         call MPI_Recv( MPI_BOTTOM, 0, MPI_INTEGER, next, tag,
-     .                  comm, status, ierr )
+         call recv_bottom(next, tag, comm, status, ierr)
 C
          call MPI_Rsend(send_buf, count, MPI_REAL, next, tag,
      .                  comm, ierr)
@@ -103,8 +102,7 @@ C
          call MPI_Irecv(recv_buf, TEST_SIZE, MPI_REAL,
      .                 MPI_ANY_SOURCE, MPI_ANY_TAG, comm,
      .                 requests(1), ierr)
-         call MPI_Send( MPI_BOTTOM, 0, MPI_INTEGER, prev, tag,
-     .                  comm, ierr )
+         call send_bottom(prev, tag, comm, ierr)
          call MPI_Wait( requests(1), status, ierr )
          call msg_check( recv_buf, prev, tag, count, status, TEST_SIZE,
      .                   'rsend and recv', errs )

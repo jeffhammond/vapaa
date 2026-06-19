@@ -50,6 +50,10 @@ contains
             MPI_UNWEIGHTED, MPI_WEIGHTS_EMPTY, MPI_STATUS_IGNORE, &
             MPI_STATUSES_IGNORE
 
+#ifndef MPI_ABI
+        if (ierror_c /= 0_c_int) continue
+#endif
+
 #ifdef MPI_ABI
         integer(c_int) :: abi_ierror_c
         integer(c_int) :: logical_size_c

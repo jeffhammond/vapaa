@@ -5,10 +5,10 @@ module mpi_abi_c
     interface
         subroutine C_MPI_Abi_get_fortran_booleans(logical_size, logical_true, logical_false, is_set, ierror) &
                    bind(C,name="C_MPI_Abi_get_fortran_booleans")
-            use iso_c_binding, only: c_int
+            use iso_c_binding, only: c_int, c_int8_t
             implicit none
             integer(kind=c_int), intent(in) :: logical_size
-            logical, intent(out) :: logical_true, logical_false
+            integer(kind=c_int8_t), intent(out) :: logical_true(*), logical_false(*)
             integer(kind=c_int), intent(out) :: is_set, ierror
         end subroutine C_MPI_Abi_get_fortran_booleans
     end interface
@@ -43,10 +43,10 @@ module mpi_abi_c
     interface
         subroutine C_MPI_Abi_set_fortran_booleans(logical_size, logical_true, logical_false, ierror) &
                    bind(C,name="C_MPI_Abi_set_fortran_booleans")
-            use iso_c_binding, only: c_int
+            use iso_c_binding, only: c_int, c_int8_t
             implicit none
             integer(kind=c_int), intent(in) :: logical_size
-            logical, intent(in) :: logical_true, logical_false
+            integer(kind=c_int8_t), intent(in) :: logical_true(*), logical_false(*)
             integer(kind=c_int), intent(out) :: ierror
         end subroutine C_MPI_Abi_set_fortran_booleans
     end interface

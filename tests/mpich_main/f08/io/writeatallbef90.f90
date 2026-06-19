@@ -172,7 +172,7 @@
 10      continue
 !
 ! Jump to 111 on a failure to open
-111	continue
+111 continue
         if (comm .ne. MPI_COMM_WORLD) then
             call mpi_comm_free( comm, ierr )
         endif

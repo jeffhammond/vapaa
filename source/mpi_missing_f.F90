@@ -510,7 +510,8 @@ module mpi_missing_f
             if (present(ierror)) ierror = ierror_c
         end subroutine MPI_Type_create_struct_f08
 
-        subroutine MPI_Type_create_struct_c_f08(count, array_of_blocklengths, array_of_displacements, array_of_types, newtype, ierror)
+        subroutine MPI_Type_create_struct_c_f08(count, array_of_blocklengths, array_of_displacements, &
+                                                array_of_types, newtype, ierror)
             use mpi_global_constants, only: MPI_COUNT_KIND
             use mpi_handle_types, only: MPI_Datatype
             use mpi_missing_c, only: VAPAA_MPI_Type_create_struct_c

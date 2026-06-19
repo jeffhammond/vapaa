@@ -26,7 +26,7 @@ C
            sbuf(i) = rank + (i-1)
        enddo
 
-       call MPI_Reduce_scatter_block(sbuf, rbuf, 1, MPI_INTEGER,
+       call MPI_Reduce_scatter_block(sbuf(1), rbuf, 1, MPI_INTEGER,
      .                               MPI_SUM, comm, ierr)
 
        sumval = size * rank + ((size-1) * size)/2

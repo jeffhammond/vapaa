@@ -176,7 +176,8 @@ module mpi_direct_win_f
             type(MPI_Win), intent(out) :: win
             integer, optional, intent(out) :: ierror
             integer(c_int) :: ierror_c
-            call VAPAA_MPI_Win_allocate(size, int(disp_unit,c_int), info % MPI_VAL, comm % MPI_VAL, baseptr, win % MPI_VAL, ierror_c)
+            call VAPAA_MPI_Win_allocate(size, int(disp_unit,c_int), info % MPI_VAL, comm % MPI_VAL, &
+                                        baseptr, win % MPI_VAL, ierror_c)
             if (present(ierror)) ierror = ierror_c
         end subroutine
 
@@ -207,7 +208,8 @@ module mpi_direct_win_f
             type(MPI_Win), intent(out) :: win
             integer, optional, intent(out) :: ierror
             integer(c_int) :: ierror_c
-            call VAPAA_MPI_Win_allocate_shared(size, int(disp_unit,c_int), info % MPI_VAL, comm % MPI_VAL, baseptr, win % MPI_VAL, ierror_c)
+            call VAPAA_MPI_Win_allocate_shared(size, int(disp_unit,c_int), info % MPI_VAL, comm % MPI_VAL, &
+                                               baseptr, win % MPI_VAL, ierror_c)
             if (present(ierror)) ierror = ierror_c
         end subroutine
 
@@ -629,17 +631,6 @@ module mpi_direct_win_f
             if (present(ierror)) ierror = ierror_c
         end subroutine
 
-#define WIN_IERR_WRAPPER_1(FNAME,CNAME) \
-        subroutine FNAME(win, ierror); \
-            use mpi_handle_types, only: MPI_Win; \
-            use mpi_direct_win_c, only: CNAME; \
-            type(MPI_Win), intent(in) :: win; \
-            integer, optional, intent(out) :: ierror; \
-            integer(c_int) :: ierror_c; \
-            call CNAME(win % MPI_VAL, ierror_c); \
-            if (present(ierror)) ierror = ierror_c; \
-        end subroutine
-
         subroutine MPI_Win_fence_f08(assert, win, ierror)
             use mpi_handle_types, only: MPI_Win
             use mpi_direct_win_c, only: VAPAA_MPI_Win_fence
@@ -663,7 +654,15 @@ module mpi_direct_win_f
             if (present(ierror)) ierror = ierror_c
         end subroutine
 
-        WIN_IERR_WRAPPER_1(MPI_Win_complete_f08,VAPAA_MPI_Win_complete)
+        subroutine MPI_Win_complete_f08(win, ierror)
+            use mpi_handle_types, only: MPI_Win
+            use mpi_direct_win_c, only: VAPAA_MPI_Win_complete
+            type(MPI_Win), intent(in) :: win
+            integer, optional, intent(out) :: ierror
+            integer(c_int) :: ierror_c
+            call VAPAA_MPI_Win_complete(win % MPI_VAL, ierror_c)
+            if (present(ierror)) ierror = ierror_c
+        end subroutine
 
         subroutine MPI_Win_post_f08(group, assert, win, ierror)
             use mpi_handle_types, only: MPI_Win, MPI_Group
@@ -677,7 +676,15 @@ module mpi_direct_win_f
             if (present(ierror)) ierror = ierror_c
         end subroutine
 
-        WIN_IERR_WRAPPER_1(MPI_Win_wait_f08,VAPAA_MPI_Win_wait)
+        subroutine MPI_Win_wait_f08(win, ierror)
+            use mpi_handle_types, only: MPI_Win
+            use mpi_direct_win_c, only: VAPAA_MPI_Win_wait
+            type(MPI_Win), intent(in) :: win
+            integer, optional, intent(out) :: ierror
+            integer(c_int) :: ierror_c
+            call VAPAA_MPI_Win_wait(win % MPI_VAL, ierror_c)
+            if (present(ierror)) ierror = ierror_c
+        end subroutine
 
         subroutine MPI_Win_test_f08(win, flag, ierror)
             use mpi_handle_types, only: MPI_Win
@@ -724,7 +731,15 @@ module mpi_direct_win_f
             if (present(ierror)) ierror = ierror_c
         end subroutine
 
-        WIN_IERR_WRAPPER_1(MPI_Win_unlock_all_f08,VAPAA_MPI_Win_unlock_all)
+        subroutine MPI_Win_unlock_all_f08(win, ierror)
+            use mpi_handle_types, only: MPI_Win
+            use mpi_direct_win_c, only: VAPAA_MPI_Win_unlock_all
+            type(MPI_Win), intent(in) :: win
+            integer, optional, intent(out) :: ierror
+            integer(c_int) :: ierror_c
+            call VAPAA_MPI_Win_unlock_all(win % MPI_VAL, ierror_c)
+            if (present(ierror)) ierror = ierror_c
+        end subroutine
 
         subroutine MPI_Win_flush_f08(rank, win, ierror)
             use mpi_handle_types, only: MPI_Win
@@ -737,7 +752,15 @@ module mpi_direct_win_f
             if (present(ierror)) ierror = ierror_c
         end subroutine
 
-        WIN_IERR_WRAPPER_1(MPI_Win_flush_all_f08,VAPAA_MPI_Win_flush_all)
+        subroutine MPI_Win_flush_all_f08(win, ierror)
+            use mpi_handle_types, only: MPI_Win
+            use mpi_direct_win_c, only: VAPAA_MPI_Win_flush_all
+            type(MPI_Win), intent(in) :: win
+            integer, optional, intent(out) :: ierror
+            integer(c_int) :: ierror_c
+            call VAPAA_MPI_Win_flush_all(win % MPI_VAL, ierror_c)
+            if (present(ierror)) ierror = ierror_c
+        end subroutine
 
         subroutine MPI_Win_flush_local_f08(rank, win, ierror)
             use mpi_handle_types, only: MPI_Win
@@ -750,7 +773,24 @@ module mpi_direct_win_f
             if (present(ierror)) ierror = ierror_c
         end subroutine
 
-        WIN_IERR_WRAPPER_1(MPI_Win_flush_local_all_f08,VAPAA_MPI_Win_flush_local_all)
-        WIN_IERR_WRAPPER_1(MPI_Win_sync_f08,VAPAA_MPI_Win_sync)
+        subroutine MPI_Win_flush_local_all_f08(win, ierror)
+            use mpi_handle_types, only: MPI_Win
+            use mpi_direct_win_c, only: VAPAA_MPI_Win_flush_local_all
+            type(MPI_Win), intent(in) :: win
+            integer, optional, intent(out) :: ierror
+            integer(c_int) :: ierror_c
+            call VAPAA_MPI_Win_flush_local_all(win % MPI_VAL, ierror_c)
+            if (present(ierror)) ierror = ierror_c
+        end subroutine
+
+        subroutine MPI_Win_sync_f08(win, ierror)
+            use mpi_handle_types, only: MPI_Win
+            use mpi_direct_win_c, only: VAPAA_MPI_Win_sync
+            type(MPI_Win), intent(in) :: win
+            integer, optional, intent(out) :: ierror
+            integer(c_int) :: ierror_c
+            call VAPAA_MPI_Win_sync(win % MPI_VAL, ierror_c)
+            if (present(ierror)) ierror = ierror_c
+        end subroutine
 
 end module mpi_direct_win_f

@@ -55,6 +55,7 @@ set(vapaa_mpich_main_f77_fortran_options
   -Wall -Wextra -g -fPIE
   $<$<COMPILE_LANG_AND_ID:Fortran,GNU>:-std=legacy>
   $<$<COMPILE_LANG_AND_ID:Fortran,GNU>:-ffixed-line-length-none>
+  $<$<COMPILE_LANG_AND_ID:Fortran,GNU>:-fallow-argument-mismatch>
   $<$<COMPILE_LANG_AND_ID:Fortran,GNU>:-Wno-unused-parameter>)
 
 add_library(mpich_main_mtest_f77 OBJECT
@@ -79,9 +80,17 @@ function(vapaa_add_mpich_main_f77_test category test_name np)
   if(category STREQUAL "pt2pt" AND test_name STREQUAL "greqf")
     list(APPEND extra_sources "${test_dir}/dummyf.f")
   endif()
+  if(category STREQUAL "pt2pt" AND test_name STREQUAL "rsendf")
+    list(APPEND extra_sources "${test_dir}/bottom_pt2pt.f")
+  endif()
 
   if(category STREQUAL "datatype" AND test_name STREQUAL "bottom")
     list(APPEND extra_sources "${test_dir}/bottomf.f" "${test_dir}/bottomc.c")
+  elseif(category STREQUAL "datatype" AND test_name STREQUAL "packef")
+    list(APPEND extra_sources "${fortran_source}"
+      "${test_dir}/packef_i.f"
+      "${test_dir}/packef_r8.f"
+      "${test_dir}/packef_c.f")
   elseif(category STREQUAL "ext" AND test_name STREQUAL "c2f2cf")
     list(APPEND extra_sources "${fortran_source}" "${test_dir}/c2f2c.c")
   elseif(category STREQUAL "ext" AND test_name STREQUAL "ctypesinf")

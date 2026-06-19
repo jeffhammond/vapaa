@@ -1,15 +1,13 @@
 program main
     use mpi_f08
     implicit none
-    integer :: me, np, i, j, ierr, eclass
+    integer :: me, np, i, j, ierr
     type(MPI_Datatype) :: v(3)
-    integer, dimension(9,8) :: A, X
+    integer, dimension(9,8) :: A
     integer, dimension(7,6) :: B
     integer, dimension(5,4) :: C
     type(MPI_Request) :: r(2)
     type(MPI_Status) :: s(2)
-    character(len=MPI_MAX_ERROR_STRING) :: string
-    integer :: len
 
     call MPI_Init()
     call MPI_Comm_rank(MPI_COMM_WORLD,me)

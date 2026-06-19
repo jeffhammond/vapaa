@@ -43,6 +43,7 @@ subroutine uop08( cin, cout, count, datatype )
     integer :: count
     type(MPI_Datatype) :: datatype
     integer, pointer :: cin_r(:), cout_r(:)
+    if (.false.) print *, datatype % MPI_VAL
     call c_f_pointer(cin, cin_r, [count])
     call c_f_pointer(cout, cout_r, [count])
     cout_r = cin_r + cout_r
@@ -64,7 +65,6 @@ program main
     end interface
 #endif
     external :: uop08
-    integer :: ierr
         print *, 'Test passed'
     !type(MPI_Op) :: sumop, sumop08
     !call MPI_Op_create( uop, .true., sumop, ierr )

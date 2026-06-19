@@ -706,20 +706,19 @@ static bool VAPAA_CFI_MATCH_COMPLEX_DATATYPE(MPI_Datatype datatype, size_t bytes
 
 static bool VAPAA_CFI_MATCH_CHARACTER_DATATYPE(const CFI_cdesc_t *desc, MPI_Datatype datatype, size_t bytes)
 {
-    if (desc->type == CFI_type_char) {
-        if (bytes >= 1 && VAPAA_CFI_DT_IS(datatype, MPI_CHARACTER)) {
+    int category = (desc->type & CFI_type_mask);
+    if (category == CFI_type_Character) {
+        if (bytes >= 1 && (VAPAA_CFI_DT_IS(datatype, MPI_CHARACTER) ||
+                           VAPAA_CFI_DT_IS(datatype, MPI_CHAR))) {
             return true;
         }
-        if (bytes >= sizeof(char) && VAPAA_CFI_DT_IS(datatype, MPI_CHAR)) {
-            return true;
-        }
-    }
 #ifdef CFI_type_ucs4_char
-    if (desc->type == CFI_type_ucs4_char && bytes >= sizeof(wchar_t) &&
-        bytes % sizeof(wchar_t) == 0 && VAPAA_CFI_DT_IS(datatype, MPI_WCHAR)) {
-        return true;
-    }
+        if (desc->type == CFI_type_ucs4_char && bytes >= sizeof(wchar_t) &&
+            bytes % sizeof(wchar_t) == 0 && VAPAA_CFI_DT_IS(datatype, MPI_WCHAR)) {
+            return true;
+        }
 #endif
+    }
     return false;
 }
 

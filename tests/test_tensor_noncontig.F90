@@ -56,9 +56,10 @@ program main
 
     block ! 5D
 
-        integer, dimension(10,10,10,10,10) :: A
-        integer, dimension(5,5,5,5,5) :: B
+        integer, allocatable :: A(:,:,:,:,:)
+        integer, allocatable :: B(:,:,:,:,:)
 
+        allocate(A(10,10,10,10,10), B(5,5,5,5,5))
         A = reshape([(i, i = 1,size(A))],shape(A))
 
         B = 0
@@ -74,6 +75,8 @@ program main
             endif
             call MPI_Abort(MPI_COMM_WORLD,5)
         endif
+
+        deallocate(A, B)
 
     end block
 

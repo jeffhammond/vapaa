@@ -14,9 +14,15 @@ if(FLAG_MPI MATCHES "OPEN_MPI")
   list(APPEND vapaa_mpich_main_f90_test_environment "OMPI_MCA_osc=pt2pt")
 endif()
 
+set(vapaa_mpich_main_f90_fortran_options
+  -Wall -Wextra -g -fPIE
+  $<$<COMPILE_LANG_AND_ID:Fortran,GNU>:-fallow-argument-mismatch>)
+
 add_library(mpich_main_mtest_f90 OBJECT
   "${MPICH_MAIN_UTIL_ROOT}/mtest_f90.f90")
-target_compile_options(mpich_main_mtest_f90 PRIVATE -Wall -Wextra -g -std=f2018 -fPIE)
+target_compile_options(mpich_main_mtest_f90 PRIVATE
+  ${vapaa_mpich_main_f90_fortran_options}
+  -std=f2018)
 target_include_directories(mpich_main_mtest_f90
   PRIVATE "${CMAKE_BINARY_DIR}/modules" "${MPICH_MAIN_INCLUDE_ROOT}")
 target_link_libraries(mpich_main_mtest_f90 PRIVATE ${vapa_lib})
@@ -50,7 +56,7 @@ function(vapaa_add_mpich_main_f90_test category test_name np)
     $<TARGET_OBJECTS:mpich_main_mtest_f90>
     $<TARGET_OBJECTS:mpich_main_mtest_c>)
   target_compile_options(${target_name} PRIVATE
-    -Wall -Wextra -g -fPIE
+    ${vapaa_mpich_main_f90_fortran_options}
     $<$<COMPILE_LANGUAGE:C>:-include>
     $<$<COMPILE_LANGUAGE:C>:${MPICH_MAIN_INCLUDE_ROOT}/vapaa_test_handle_compat.h>)
   target_compile_definitions(${target_name} PRIVATE _GNU_SOURCE)

@@ -3,6 +3,8 @@
 module mpi_f08_callbacks
     implicit none
 
+    private
+
     public :: MPI_COMM_DUP_FN
     public :: MPI_COMM_NULL_COPY_FN
     public :: MPI_COMM_NULL_DELETE_FN
@@ -14,6 +16,25 @@ module mpi_f08_callbacks
     public :: MPI_WIN_NULL_DELETE_FN
     public :: MPI_CONVERSION_FN_NULL
     public :: MPI_CONVERSION_FN_NULL_C
+    public :: MPI_Copy_function
+    public :: MPI_Delete_function
+    public :: MPI_User_function_c
+    public :: MPI_Comm_copy_attr_function
+    public :: MPI_Comm_delete_attr_function
+    public :: MPI_Type_copy_attr_function
+    public :: MPI_Type_delete_attr_function
+    public :: MPI_Win_copy_attr_function
+    public :: MPI_Win_delete_attr_function
+    public :: MPI_Comm_errhandler_function
+    public :: MPI_File_errhandler_function
+    public :: MPI_Win_errhandler_function
+    public :: MPI_Session_errhandler_function
+    public :: MPI_Grequest_query_function
+    public :: MPI_Grequest_free_function
+    public :: MPI_Grequest_cancel_function
+    public :: MPI_Datarep_extent_function
+    public :: MPI_Datarep_conversion_function
+    public :: MPI_Datarep_conversion_function_c
 
     abstract interface
         subroutine MPI_Copy_function(oldcomm, comm_keyval, extra_state, attribute_val_in, &
@@ -192,6 +213,53 @@ module mpi_f08_callbacks
 
     contains
 
+        subroutine VAPAA_IGNORE_INT(value)
+            integer, intent(in) :: value
+            if (.false.) print *, value
+        end subroutine VAPAA_IGNORE_INT
+
+        subroutine VAPAA_IGNORE_ADDRESS(value)
+            use mpi_global_constants, only: MPI_ADDRESS_KIND
+            integer(kind=MPI_ADDRESS_KIND), intent(in) :: value
+            if (.false.) print *, value
+        end subroutine VAPAA_IGNORE_ADDRESS
+
+        subroutine VAPAA_IGNORE_COUNT(value)
+            use mpi_global_constants, only: MPI_COUNT_KIND
+            integer(kind=MPI_COUNT_KIND), intent(in) :: value
+            if (.false.) print *, value
+        end subroutine VAPAA_IGNORE_COUNT
+
+        subroutine VAPAA_IGNORE_OFFSET(value)
+            use mpi_global_constants, only: MPI_OFFSET_KIND
+            integer(kind=MPI_OFFSET_KIND), intent(in) :: value
+            if (.false.) print *, value
+        end subroutine VAPAA_IGNORE_OFFSET
+
+        subroutine VAPAA_IGNORE_COMM(value)
+            use mpi_handle_types, only: MPI_Comm
+            type(MPI_Comm), intent(in) :: value
+            if (.false.) print *, value % MPI_VAL
+        end subroutine VAPAA_IGNORE_COMM
+
+        subroutine VAPAA_IGNORE_TYPE(value)
+            use mpi_handle_types, only: MPI_Datatype
+            type(MPI_Datatype), intent(in) :: value
+            if (.false.) print *, value % MPI_VAL
+        end subroutine VAPAA_IGNORE_TYPE
+
+        subroutine VAPAA_IGNORE_WIN(value)
+            use mpi_handle_types, only: MPI_Win
+            type(MPI_Win), intent(in) :: value
+            if (.false.) print *, value % MPI_VAL
+        end subroutine VAPAA_IGNORE_WIN
+
+        subroutine VAPAA_IGNORE_C_PTR(value)
+            use iso_c_binding, only: c_associated, c_ptr
+            type(c_ptr), value :: value
+            if (.false.) print *, c_associated(value)
+        end subroutine VAPAA_IGNORE_C_PTR
+
         subroutine MPI_COMM_DUP_FN(oldcomm, comm_keyval, extra_state, attribute_val_in, &
                                    attribute_val_out, flag, ierror)
             use mpi_error_f, only: MPI_SUCCESS
@@ -202,6 +270,9 @@ module mpi_f08_callbacks
             integer :: comm_keyval, ierror
             integer(kind=MPI_ADDRESS_KIND) :: extra_state, attribute_val_in, attribute_val_out
             logical :: flag
+            call VAPAA_IGNORE_COMM(oldcomm)
+            call VAPAA_IGNORE_INT(comm_keyval)
+            call VAPAA_IGNORE_ADDRESS(extra_state)
             flag = .true.
             attribute_val_out = attribute_val_in
             ierror = MPI_SUCCESS
@@ -217,6 +288,11 @@ module mpi_f08_callbacks
             integer :: comm_keyval, ierror
             integer(kind=MPI_ADDRESS_KIND) :: extra_state, attribute_val_in, attribute_val_out
             logical :: flag
+            call VAPAA_IGNORE_COMM(oldcomm)
+            call VAPAA_IGNORE_INT(comm_keyval)
+            call VAPAA_IGNORE_ADDRESS(extra_state)
+            call VAPAA_IGNORE_ADDRESS(attribute_val_in)
+            call VAPAA_IGNORE_ADDRESS(attribute_val_out)
             flag = .false.
             ierror = MPI_SUCCESS
         end subroutine MPI_COMM_NULL_COPY_FN
@@ -229,6 +305,10 @@ module mpi_f08_callbacks
             type(MPI_Comm) :: comm
             integer :: comm_keyval, ierror
             integer(kind=MPI_ADDRESS_KIND) :: attribute_val, extra_state
+            call VAPAA_IGNORE_COMM(comm)
+            call VAPAA_IGNORE_INT(comm_keyval)
+            call VAPAA_IGNORE_ADDRESS(attribute_val)
+            call VAPAA_IGNORE_ADDRESS(extra_state)
             ierror = MPI_SUCCESS
         end subroutine MPI_COMM_NULL_DELETE_FN
 
@@ -242,6 +322,9 @@ module mpi_f08_callbacks
             integer :: type_keyval, ierror
             integer(kind=MPI_ADDRESS_KIND) :: extra_state, attribute_val_in, attribute_val_out
             logical :: flag
+            call VAPAA_IGNORE_TYPE(oldtype)
+            call VAPAA_IGNORE_INT(type_keyval)
+            call VAPAA_IGNORE_ADDRESS(extra_state)
             flag = .true.
             attribute_val_out = attribute_val_in
             ierror = MPI_SUCCESS
@@ -257,6 +340,11 @@ module mpi_f08_callbacks
             integer :: type_keyval, ierror
             integer(kind=MPI_ADDRESS_KIND) :: extra_state, attribute_val_in, attribute_val_out
             logical :: flag
+            call VAPAA_IGNORE_TYPE(oldtype)
+            call VAPAA_IGNORE_INT(type_keyval)
+            call VAPAA_IGNORE_ADDRESS(extra_state)
+            call VAPAA_IGNORE_ADDRESS(attribute_val_in)
+            call VAPAA_IGNORE_ADDRESS(attribute_val_out)
             flag = .false.
             ierror = MPI_SUCCESS
         end subroutine MPI_TYPE_NULL_COPY_FN
@@ -269,6 +357,10 @@ module mpi_f08_callbacks
             type(MPI_Datatype) :: datatype
             integer :: type_keyval, ierror
             integer(kind=MPI_ADDRESS_KIND) :: attribute_val, extra_state
+            call VAPAA_IGNORE_TYPE(datatype)
+            call VAPAA_IGNORE_INT(type_keyval)
+            call VAPAA_IGNORE_ADDRESS(attribute_val)
+            call VAPAA_IGNORE_ADDRESS(extra_state)
             ierror = MPI_SUCCESS
         end subroutine MPI_TYPE_NULL_DELETE_FN
 
@@ -282,6 +374,9 @@ module mpi_f08_callbacks
             integer :: win_keyval, ierror
             integer(kind=MPI_ADDRESS_KIND) :: extra_state, attribute_val_in, attribute_val_out
             logical :: flag
+            call VAPAA_IGNORE_WIN(oldwin)
+            call VAPAA_IGNORE_INT(win_keyval)
+            call VAPAA_IGNORE_ADDRESS(extra_state)
             flag = .true.
             attribute_val_out = attribute_val_in
             ierror = MPI_SUCCESS
@@ -297,6 +392,11 @@ module mpi_f08_callbacks
             integer :: win_keyval, ierror
             integer(kind=MPI_ADDRESS_KIND) :: extra_state, attribute_val_in, attribute_val_out
             logical :: flag
+            call VAPAA_IGNORE_WIN(oldwin)
+            call VAPAA_IGNORE_INT(win_keyval)
+            call VAPAA_IGNORE_ADDRESS(extra_state)
+            call VAPAA_IGNORE_ADDRESS(attribute_val_in)
+            call VAPAA_IGNORE_ADDRESS(attribute_val_out)
             flag = .false.
             ierror = MPI_SUCCESS
         end subroutine MPI_WIN_NULL_COPY_FN
@@ -309,6 +409,10 @@ module mpi_f08_callbacks
             type(MPI_Win) :: win
             integer :: win_keyval, ierror
             integer(kind=MPI_ADDRESS_KIND) :: attribute_val, extra_state
+            call VAPAA_IGNORE_WIN(win)
+            call VAPAA_IGNORE_INT(win_keyval)
+            call VAPAA_IGNORE_ADDRESS(attribute_val)
+            call VAPAA_IGNORE_ADDRESS(extra_state)
             ierror = MPI_SUCCESS
         end subroutine MPI_WIN_NULL_DELETE_FN
 
@@ -323,6 +427,12 @@ module mpi_f08_callbacks
             integer :: count, ierror
             integer(kind=MPI_OFFSET_KIND) :: position
             integer(kind=MPI_ADDRESS_KIND) :: extra_state
+            call VAPAA_IGNORE_C_PTR(userbuf)
+            call VAPAA_IGNORE_TYPE(datatype)
+            call VAPAA_IGNORE_INT(count)
+            call VAPAA_IGNORE_C_PTR(filebuf)
+            call VAPAA_IGNORE_OFFSET(position)
+            call VAPAA_IGNORE_ADDRESS(extra_state)
             ierror = MPI_SUCCESS
         end subroutine MPI_CONVERSION_FN_NULL
 
@@ -338,6 +448,12 @@ module mpi_f08_callbacks
             integer(kind=MPI_OFFSET_KIND) :: position
             integer(kind=MPI_ADDRESS_KIND) :: extra_state
             integer :: ierror
+            call VAPAA_IGNORE_C_PTR(userbuf)
+            call VAPAA_IGNORE_TYPE(datatype)
+            call VAPAA_IGNORE_COUNT(count)
+            call VAPAA_IGNORE_C_PTR(filebuf)
+            call VAPAA_IGNORE_OFFSET(position)
+            call VAPAA_IGNORE_ADDRESS(extra_state)
             ierror = MPI_SUCCESS
         end subroutine MPI_CONVERSION_FN_NULL_C
 

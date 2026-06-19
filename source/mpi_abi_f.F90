@@ -1,7 +1,7 @@
 ! SPDX-License-Identifier: MIT
 
 module mpi_abi_f
-    use iso_c_binding, only: c_int
+    use iso_c_binding, only: c_int, c_int8_t
     implicit none
 
     interface MPI_Abi_get_fortran_booleans
@@ -32,12 +32,26 @@ module mpi_abi_f
 
         subroutine MPI_Abi_get_fortran_booleans_f08(logical_size, logical_true, logical_false, is_set, ierror)
             use mpi_abi_c, only: C_MPI_Abi_get_fortran_booleans
+            use mpi_error_f, only: MPI_ERR_ARG
             integer, intent(in) :: logical_size
             logical, intent(out) :: logical_true, logical_false, is_set
             integer, optional, intent(out) :: ierror
             integer(kind=c_int) :: logical_size_c, is_set_c, ierror_c
+            integer(kind=c_int8_t), allocatable :: logical_true_c(:), logical_false_c(:)
             logical_size_c = logical_size
-            call C_MPI_Abi_get_fortran_booleans(logical_size_c, logical_true, logical_false, is_set_c, ierror_c)
+            if (logical_size_c <= 0_c_int) then
+                logical_true = .false.
+                logical_false = .false.
+                is_set = .false.
+                if (present(ierror)) ierror = MPI_ERR_ARG
+                return
+            end if
+            allocate(logical_true_c(logical_size_c), logical_false_c(logical_size_c))
+            logical_true_c = 0_c_int8_t
+            logical_false_c = 0_c_int8_t
+            call C_MPI_Abi_get_fortran_booleans(logical_size_c, logical_true_c, logical_false_c, is_set_c, ierror_c)
+            logical_true = transfer(logical_true_c, logical_true)
+            logical_false = transfer(logical_false_c, logical_false)
             is_set = (is_set_c /= 0)
             if (present(ierror)) ierror = ierror_c
         end subroutine MPI_Abi_get_fortran_booleans_f08
@@ -75,12 +89,27 @@ module mpi_abi_f
 
         subroutine MPI_Abi_set_fortran_booleans_f08(logical_size, logical_true, logical_false, ierror)
             use mpi_abi_c, only: C_MPI_Abi_set_fortran_booleans
+            use mpi_error_f, only: MPI_ERR_ARG
             integer, intent(in) :: logical_size
             logical, intent(in) :: logical_true, logical_false
             integer, optional, intent(out) :: ierror
             integer(kind=c_int) :: logical_size_c, ierror_c
+            integer :: copy_size
+            integer(kind=c_int8_t), allocatable :: logical_true_c(:), logical_false_c(:)
             logical_size_c = logical_size
-            call C_MPI_Abi_set_fortran_booleans(logical_size_c, logical_true, logical_false, ierror_c)
+            if (logical_size_c <= 0_c_int) then
+                if (present(ierror)) ierror = MPI_ERR_ARG
+                return
+            end if
+            allocate(logical_true_c(logical_size_c), logical_false_c(logical_size_c))
+            logical_true_c = 0_c_int8_t
+            logical_false_c = 0_c_int8_t
+            copy_size = min(int(logical_size_c), storage_size(logical_true) / 8)
+            if (copy_size > 0) then
+                logical_true_c(1:copy_size) = transfer(logical_true, logical_true_c(1:copy_size))
+                logical_false_c(1:copy_size) = transfer(logical_false, logical_false_c(1:copy_size))
+            end if
+            call C_MPI_Abi_set_fortran_booleans(logical_size_c, logical_true_c, logical_false_c, ierror_c)
             if (present(ierror)) ierror = ierror_c
         end subroutine MPI_Abi_set_fortran_booleans_f08
 

@@ -335,112 +335,323 @@ module mpi_direct_file_data_f
         end subroutine finish_ierror
 
 #ifdef HAVE_CFI
-#define FILE_REQ_F08(FNAME,CNAME) \
-        subroutine FNAME(fh, buf, count, datatype, request, ierror); \
-            type(MPI_File), intent(in) :: fh; \
-            type(*), dimension(..), asynchronous :: buf; \
-            integer, intent(in) :: count; \
-            type(MPI_Datatype), intent(in) :: datatype; \
-            type(MPI_Request), intent(out) :: request; \
-            integer, optional, intent(out) :: ierror; \
-            integer(c_int) :: ierror_c; \
-            call CNAME(fh % MPI_VAL, buf, int(count,c_int), datatype % MPI_VAL, request % MPI_VAL, ierror_c); \
-            call finish_ierror(ierror, ierror_c); \
-        end subroutine FNAME
+        subroutine MPI_File_iread_f08ts(fh, buf, count, datatype, request, ierror)
+            type(MPI_File), intent(in) :: fh
+            type(*), dimension(..), asynchronous :: buf
+            integer, intent(in) :: count
+            type(MPI_Datatype), intent(in) :: datatype
+            type(MPI_Request), intent(out) :: request
+            integer, optional, intent(out) :: ierror
+            integer(c_int) :: ierror_c
+            call VAPAA_MPI_File_iread(fh % MPI_VAL, buf, int(count,c_int), datatype % MPI_VAL, &
+                                      request % MPI_VAL, ierror_c)
+            call finish_ierror(ierror, ierror_c)
+        end subroutine
 
-#define FILE_REQ_AT_F08(FNAME,CNAME) \
-        subroutine FNAME(fh, offset, buf, count, datatype, request, ierror); \
-            type(MPI_File), intent(in) :: fh; \
-            integer(kind=MPI_OFFSET_KIND), intent(in) :: offset; \
-            type(*), dimension(..), asynchronous :: buf; \
-            integer, intent(in) :: count; \
-            type(MPI_Datatype), intent(in) :: datatype; \
-            type(MPI_Request), intent(out) :: request; \
-            integer, optional, intent(out) :: ierror; \
-            integer(c_int) :: ierror_c; \
-            call CNAME(fh % MPI_VAL, int(offset,c_int64_t), buf, int(count,c_int), datatype % MPI_VAL, \
-                       request % MPI_VAL, ierror_c); \
-            call finish_ierror(ierror, ierror_c); \
-        end subroutine FNAME
+        subroutine MPI_File_iread_all_f08ts(fh, buf, count, datatype, request, ierror)
+            type(MPI_File), intent(in) :: fh
+            type(*), dimension(..), asynchronous :: buf
+            integer, intent(in) :: count
+            type(MPI_Datatype), intent(in) :: datatype
+            type(MPI_Request), intent(out) :: request
+            integer, optional, intent(out) :: ierror
+            integer(c_int) :: ierror_c
+            call VAPAA_MPI_File_iread_all(fh % MPI_VAL, buf, int(count,c_int), datatype % MPI_VAL, &
+                                          request % MPI_VAL, ierror_c)
+            call finish_ierror(ierror, ierror_c)
+        end subroutine
 
-        FILE_REQ_F08(MPI_File_iread_f08ts,VAPAA_MPI_File_iread)
-        FILE_REQ_F08(MPI_File_iread_all_f08ts,VAPAA_MPI_File_iread_all)
-        FILE_REQ_F08(MPI_File_iread_shared_f08ts,VAPAA_MPI_File_iread_shared)
-        FILE_REQ_F08(MPI_File_iwrite_f08ts,VAPAA_MPI_File_iwrite)
-        FILE_REQ_F08(MPI_File_iwrite_all_f08ts,VAPAA_MPI_File_iwrite_all)
-        FILE_REQ_F08(MPI_File_iwrite_shared_f08ts,VAPAA_MPI_File_iwrite_shared)
-        FILE_REQ_AT_F08(MPI_File_iread_at_f08ts,VAPAA_MPI_File_iread_at)
-        FILE_REQ_AT_F08(MPI_File_iread_at_all_f08ts,VAPAA_MPI_File_iread_at_all)
-        FILE_REQ_AT_F08(MPI_File_iwrite_at_f08ts,VAPAA_MPI_File_iwrite_at)
-        FILE_REQ_AT_F08(MPI_File_iwrite_at_all_f08ts,VAPAA_MPI_File_iwrite_at_all)
+        subroutine MPI_File_iread_shared_f08ts(fh, buf, count, datatype, request, ierror)
+            type(MPI_File), intent(in) :: fh
+            type(*), dimension(..), asynchronous :: buf
+            integer, intent(in) :: count
+            type(MPI_Datatype), intent(in) :: datatype
+            type(MPI_Request), intent(out) :: request
+            integer, optional, intent(out) :: ierror
+            integer(c_int) :: ierror_c
+            call VAPAA_MPI_File_iread_shared(fh % MPI_VAL, buf, int(count,c_int), datatype % MPI_VAL, &
+                                             request % MPI_VAL, ierror_c)
+            call finish_ierror(ierror, ierror_c)
+        end subroutine
 
-#define FILE_STATUS_F08(FNAME,CNAME,INTENT_SPEC) \
-        subroutine FNAME(fh, buf, count, datatype, status, ierror); \
-            type(MPI_File), intent(in) :: fh; \
-            type(*), dimension(..), INTENT_SPEC :: buf; \
-            integer, intent(in) :: count; \
-            type(MPI_Datatype), intent(in) :: datatype; \
-            type(MPI_Status), intent(out), target :: status; \
-            integer, optional, intent(out) :: ierror; \
-            integer(c_int) :: ierror_c; \
-            call CNAME(fh % MPI_VAL, buf, int(count,c_int), datatype % MPI_VAL, status, ierror_c); \
-            call finish_ierror(ierror, ierror_c); \
-        end subroutine FNAME
+        subroutine MPI_File_iwrite_f08ts(fh, buf, count, datatype, request, ierror)
+            type(MPI_File), intent(in) :: fh
+            type(*), dimension(..), asynchronous :: buf
+            integer, intent(in) :: count
+            type(MPI_Datatype), intent(in) :: datatype
+            type(MPI_Request), intent(out) :: request
+            integer, optional, intent(out) :: ierror
+            integer(c_int) :: ierror_c
+            call VAPAA_MPI_File_iwrite(fh % MPI_VAL, buf, int(count,c_int), datatype % MPI_VAL, &
+                                       request % MPI_VAL, ierror_c)
+            call finish_ierror(ierror, ierror_c)
+        end subroutine
 
-        FILE_STATUS_F08(MPI_File_read_ordered_f08ts,VAPAA_MPI_File_read_ordered,intent(inout))
-        FILE_STATUS_F08(MPI_File_read_shared_f08ts,VAPAA_MPI_File_read_shared,intent(inout))
-        FILE_STATUS_F08(MPI_File_write_ordered_f08ts,VAPAA_MPI_File_write_ordered,intent(in))
-        FILE_STATUS_F08(MPI_File_write_shared_f08ts,VAPAA_MPI_File_write_shared,intent(in))
+        subroutine MPI_File_iwrite_all_f08ts(fh, buf, count, datatype, request, ierror)
+            type(MPI_File), intent(in) :: fh
+            type(*), dimension(..), asynchronous :: buf
+            integer, intent(in) :: count
+            type(MPI_Datatype), intent(in) :: datatype
+            type(MPI_Request), intent(out) :: request
+            integer, optional, intent(out) :: ierror
+            integer(c_int) :: ierror_c
+            call VAPAA_MPI_File_iwrite_all(fh % MPI_VAL, buf, int(count,c_int), datatype % MPI_VAL, &
+                                           request % MPI_VAL, ierror_c)
+            call finish_ierror(ierror, ierror_c)
+        end subroutine
 
-#define FILE_BEGIN_F08(FNAME,CNAME,INTENT_SPEC) \
-        subroutine FNAME(fh, buf, count, datatype, ierror); \
-            type(MPI_File), intent(in) :: fh; \
-            type(*), dimension(..), INTENT_SPEC, asynchronous :: buf; \
-            integer, intent(in) :: count; \
-            type(MPI_Datatype), intent(in) :: datatype; \
-            integer, optional, intent(out) :: ierror; \
-            integer(c_int) :: ierror_c; \
-            call CNAME(fh % MPI_VAL, buf, int(count,c_int), datatype % MPI_VAL, ierror_c); \
-            call finish_ierror(ierror, ierror_c); \
-        end subroutine FNAME
+        subroutine MPI_File_iwrite_shared_f08ts(fh, buf, count, datatype, request, ierror)
+            type(MPI_File), intent(in) :: fh
+            type(*), dimension(..), asynchronous :: buf
+            integer, intent(in) :: count
+            type(MPI_Datatype), intent(in) :: datatype
+            type(MPI_Request), intent(out) :: request
+            integer, optional, intent(out) :: ierror
+            integer(c_int) :: ierror_c
+            call VAPAA_MPI_File_iwrite_shared(fh % MPI_VAL, buf, int(count,c_int), datatype % MPI_VAL, &
+                                              request % MPI_VAL, ierror_c)
+            call finish_ierror(ierror, ierror_c)
+        end subroutine
 
-#define FILE_BEGIN_AT_F08(FNAME,CNAME,INTENT_SPEC) \
-        subroutine FNAME(fh, offset, buf, count, datatype, ierror); \
-            type(MPI_File), intent(in) :: fh; \
-            integer(kind=MPI_OFFSET_KIND), intent(in) :: offset; \
-            type(*), dimension(..), INTENT_SPEC, asynchronous :: buf; \
-            integer, intent(in) :: count; \
-            type(MPI_Datatype), intent(in) :: datatype; \
-            integer, optional, intent(out) :: ierror; \
-            integer(c_int) :: ierror_c; \
-            call CNAME(fh % MPI_VAL, int(offset,c_int64_t), buf, int(count,c_int), datatype % MPI_VAL, ierror_c); \
-            call finish_ierror(ierror, ierror_c); \
-        end subroutine FNAME
+        subroutine MPI_File_iread_at_f08ts(fh, offset, buf, count, datatype, request, ierror)
+            type(MPI_File), intent(in) :: fh
+            integer(kind=MPI_OFFSET_KIND), intent(in) :: offset
+            type(*), dimension(..), asynchronous :: buf
+            integer, intent(in) :: count
+            type(MPI_Datatype), intent(in) :: datatype
+            type(MPI_Request), intent(out) :: request
+            integer, optional, intent(out) :: ierror
+            integer(c_int) :: ierror_c
+            call VAPAA_MPI_File_iread_at(fh % MPI_VAL, int(offset,c_int64_t), buf, int(count,c_int), &
+                                         datatype % MPI_VAL, request % MPI_VAL, ierror_c)
+            call finish_ierror(ierror, ierror_c)
+        end subroutine
 
-        FILE_BEGIN_F08(MPI_File_read_all_begin_f08ts,VAPAA_MPI_File_read_all_begin,intent(inout))
-        FILE_BEGIN_F08(MPI_File_read_ordered_begin_f08ts,VAPAA_MPI_File_read_ordered_begin,intent(inout))
-        FILE_BEGIN_F08(MPI_File_write_all_begin_f08ts,VAPAA_MPI_File_write_all_begin,intent(in))
-        FILE_BEGIN_F08(MPI_File_write_ordered_begin_f08ts,VAPAA_MPI_File_write_ordered_begin,intent(in))
-        FILE_BEGIN_AT_F08(MPI_File_read_at_all_begin_f08ts,VAPAA_MPI_File_read_at_all_begin,intent(inout))
-        FILE_BEGIN_AT_F08(MPI_File_write_at_all_begin_f08ts,VAPAA_MPI_File_write_at_all_begin,intent(in))
+        subroutine MPI_File_iread_at_all_f08ts(fh, offset, buf, count, datatype, request, ierror)
+            type(MPI_File), intent(in) :: fh
+            integer(kind=MPI_OFFSET_KIND), intent(in) :: offset
+            type(*), dimension(..), asynchronous :: buf
+            integer, intent(in) :: count
+            type(MPI_Datatype), intent(in) :: datatype
+            type(MPI_Request), intent(out) :: request
+            integer, optional, intent(out) :: ierror
+            integer(c_int) :: ierror_c
+            call VAPAA_MPI_File_iread_at_all(fh % MPI_VAL, int(offset,c_int64_t), buf, int(count,c_int), &
+                                             datatype % MPI_VAL, request % MPI_VAL, ierror_c)
+            call finish_ierror(ierror, ierror_c)
+        end subroutine
 
-#define FILE_END_F08(FNAME,CNAME,INTENT_SPEC) \
-        subroutine FNAME(fh, buf, status, ierror); \
-            type(MPI_File), intent(in) :: fh; \
-            type(*), dimension(..), INTENT_SPEC, asynchronous :: buf; \
-            type(MPI_Status), intent(out), target :: status; \
-            integer, optional, intent(out) :: ierror; \
-            integer(c_int) :: ierror_c; \
-            call CNAME(fh % MPI_VAL, buf, status, ierror_c); \
-            call finish_ierror(ierror, ierror_c); \
-        end subroutine FNAME
+        subroutine MPI_File_iwrite_at_f08ts(fh, offset, buf, count, datatype, request, ierror)
+            type(MPI_File), intent(in) :: fh
+            integer(kind=MPI_OFFSET_KIND), intent(in) :: offset
+            type(*), dimension(..), asynchronous :: buf
+            integer, intent(in) :: count
+            type(MPI_Datatype), intent(in) :: datatype
+            type(MPI_Request), intent(out) :: request
+            integer, optional, intent(out) :: ierror
+            integer(c_int) :: ierror_c
+            call VAPAA_MPI_File_iwrite_at(fh % MPI_VAL, int(offset,c_int64_t), buf, int(count,c_int), &
+                                          datatype % MPI_VAL, request % MPI_VAL, ierror_c)
+            call finish_ierror(ierror, ierror_c)
+        end subroutine
 
-        FILE_END_F08(MPI_File_read_all_end_f08ts,VAPAA_MPI_File_read_all_end,intent(inout))
-        FILE_END_F08(MPI_File_read_at_all_end_f08ts,VAPAA_MPI_File_read_at_all_end,intent(inout))
-        FILE_END_F08(MPI_File_read_ordered_end_f08ts,VAPAA_MPI_File_read_ordered_end,intent(inout))
-        FILE_END_F08(MPI_File_write_all_end_f08ts,VAPAA_MPI_File_write_all_end,intent(in))
-        FILE_END_F08(MPI_File_write_at_all_end_f08ts,VAPAA_MPI_File_write_at_all_end,intent(in))
-        FILE_END_F08(MPI_File_write_ordered_end_f08ts,VAPAA_MPI_File_write_ordered_end,intent(in))
+        subroutine MPI_File_iwrite_at_all_f08ts(fh, offset, buf, count, datatype, request, ierror)
+            type(MPI_File), intent(in) :: fh
+            integer(kind=MPI_OFFSET_KIND), intent(in) :: offset
+            type(*), dimension(..), asynchronous :: buf
+            integer, intent(in) :: count
+            type(MPI_Datatype), intent(in) :: datatype
+            type(MPI_Request), intent(out) :: request
+            integer, optional, intent(out) :: ierror
+            integer(c_int) :: ierror_c
+            call VAPAA_MPI_File_iwrite_at_all(fh % MPI_VAL, int(offset,c_int64_t), buf, int(count,c_int), &
+                                              datatype % MPI_VAL, request % MPI_VAL, ierror_c)
+            call finish_ierror(ierror, ierror_c)
+        end subroutine
+
+        subroutine MPI_File_read_ordered_f08ts(fh, buf, count, datatype, status, ierror)
+            type(MPI_File), intent(in) :: fh
+            type(*), dimension(..), intent(inout) :: buf
+            integer, intent(in) :: count
+            type(MPI_Datatype), intent(in) :: datatype
+            type(MPI_Status), intent(out), target :: status
+            integer, optional, intent(out) :: ierror
+            integer(c_int) :: ierror_c
+            call VAPAA_MPI_File_read_ordered(fh % MPI_VAL, buf, int(count,c_int), datatype % MPI_VAL, &
+                                             status, ierror_c)
+            call finish_ierror(ierror, ierror_c)
+        end subroutine
+
+        subroutine MPI_File_read_shared_f08ts(fh, buf, count, datatype, status, ierror)
+            type(MPI_File), intent(in) :: fh
+            type(*), dimension(..), intent(inout) :: buf
+            integer, intent(in) :: count
+            type(MPI_Datatype), intent(in) :: datatype
+            type(MPI_Status), intent(out), target :: status
+            integer, optional, intent(out) :: ierror
+            integer(c_int) :: ierror_c
+            call VAPAA_MPI_File_read_shared(fh % MPI_VAL, buf, int(count,c_int), datatype % MPI_VAL, &
+                                            status, ierror_c)
+            call finish_ierror(ierror, ierror_c)
+        end subroutine
+
+        subroutine MPI_File_write_ordered_f08ts(fh, buf, count, datatype, status, ierror)
+            type(MPI_File), intent(in) :: fh
+            type(*), dimension(..), intent(in) :: buf
+            integer, intent(in) :: count
+            type(MPI_Datatype), intent(in) :: datatype
+            type(MPI_Status), intent(out), target :: status
+            integer, optional, intent(out) :: ierror
+            integer(c_int) :: ierror_c
+            call VAPAA_MPI_File_write_ordered(fh % MPI_VAL, buf, int(count,c_int), datatype % MPI_VAL, &
+                                              status, ierror_c)
+            call finish_ierror(ierror, ierror_c)
+        end subroutine
+
+        subroutine MPI_File_write_shared_f08ts(fh, buf, count, datatype, status, ierror)
+            type(MPI_File), intent(in) :: fh
+            type(*), dimension(..), intent(in) :: buf
+            integer, intent(in) :: count
+            type(MPI_Datatype), intent(in) :: datatype
+            type(MPI_Status), intent(out), target :: status
+            integer, optional, intent(out) :: ierror
+            integer(c_int) :: ierror_c
+            call VAPAA_MPI_File_write_shared(fh % MPI_VAL, buf, int(count,c_int), datatype % MPI_VAL, &
+                                             status, ierror_c)
+            call finish_ierror(ierror, ierror_c)
+        end subroutine
+
+        subroutine MPI_File_read_all_begin_f08ts(fh, buf, count, datatype, ierror)
+            type(MPI_File), intent(in) :: fh
+            type(*), dimension(..), intent(inout), asynchronous :: buf
+            integer, intent(in) :: count
+            type(MPI_Datatype), intent(in) :: datatype
+            integer, optional, intent(out) :: ierror
+            integer(c_int) :: ierror_c
+            call VAPAA_MPI_File_read_all_begin(fh % MPI_VAL, buf, int(count,c_int), datatype % MPI_VAL, ierror_c)
+            call finish_ierror(ierror, ierror_c)
+        end subroutine
+
+        subroutine MPI_File_read_ordered_begin_f08ts(fh, buf, count, datatype, ierror)
+            type(MPI_File), intent(in) :: fh
+            type(*), dimension(..), intent(inout), asynchronous :: buf
+            integer, intent(in) :: count
+            type(MPI_Datatype), intent(in) :: datatype
+            integer, optional, intent(out) :: ierror
+            integer(c_int) :: ierror_c
+            call VAPAA_MPI_File_read_ordered_begin(fh % MPI_VAL, buf, int(count,c_int), datatype % MPI_VAL, &
+                                                   ierror_c)
+            call finish_ierror(ierror, ierror_c)
+        end subroutine
+
+        subroutine MPI_File_write_all_begin_f08ts(fh, buf, count, datatype, ierror)
+            type(MPI_File), intent(in) :: fh
+            type(*), dimension(..), intent(in), asynchronous :: buf
+            integer, intent(in) :: count
+            type(MPI_Datatype), intent(in) :: datatype
+            integer, optional, intent(out) :: ierror
+            integer(c_int) :: ierror_c
+            call VAPAA_MPI_File_write_all_begin(fh % MPI_VAL, buf, int(count,c_int), datatype % MPI_VAL, ierror_c)
+            call finish_ierror(ierror, ierror_c)
+        end subroutine
+
+        subroutine MPI_File_write_ordered_begin_f08ts(fh, buf, count, datatype, ierror)
+            type(MPI_File), intent(in) :: fh
+            type(*), dimension(..), intent(in), asynchronous :: buf
+            integer, intent(in) :: count
+            type(MPI_Datatype), intent(in) :: datatype
+            integer, optional, intent(out) :: ierror
+            integer(c_int) :: ierror_c
+            call VAPAA_MPI_File_write_ordered_begin(fh % MPI_VAL, buf, int(count,c_int), datatype % MPI_VAL, &
+                                                    ierror_c)
+            call finish_ierror(ierror, ierror_c)
+        end subroutine
+
+        subroutine MPI_File_read_at_all_begin_f08ts(fh, offset, buf, count, datatype, ierror)
+            type(MPI_File), intent(in) :: fh
+            integer(kind=MPI_OFFSET_KIND), intent(in) :: offset
+            type(*), dimension(..), intent(inout), asynchronous :: buf
+            integer, intent(in) :: count
+            type(MPI_Datatype), intent(in) :: datatype
+            integer, optional, intent(out) :: ierror
+            integer(c_int) :: ierror_c
+            call VAPAA_MPI_File_read_at_all_begin(fh % MPI_VAL, int(offset,c_int64_t), buf, int(count,c_int), &
+                                                  datatype % MPI_VAL, ierror_c)
+            call finish_ierror(ierror, ierror_c)
+        end subroutine
+
+        subroutine MPI_File_write_at_all_begin_f08ts(fh, offset, buf, count, datatype, ierror)
+            type(MPI_File), intent(in) :: fh
+            integer(kind=MPI_OFFSET_KIND), intent(in) :: offset
+            type(*), dimension(..), intent(in), asynchronous :: buf
+            integer, intent(in) :: count
+            type(MPI_Datatype), intent(in) :: datatype
+            integer, optional, intent(out) :: ierror
+            integer(c_int) :: ierror_c
+            call VAPAA_MPI_File_write_at_all_begin(fh % MPI_VAL, int(offset,c_int64_t), buf, int(count,c_int), &
+                                                   datatype % MPI_VAL, ierror_c)
+            call finish_ierror(ierror, ierror_c)
+        end subroutine
+
+        subroutine MPI_File_read_all_end_f08ts(fh, buf, status, ierror)
+            type(MPI_File), intent(in) :: fh
+            type(*), dimension(..), intent(inout), asynchronous :: buf
+            type(MPI_Status), intent(out), target :: status
+            integer, optional, intent(out) :: ierror
+            integer(c_int) :: ierror_c
+            call VAPAA_MPI_File_read_all_end(fh % MPI_VAL, buf, status, ierror_c)
+            call finish_ierror(ierror, ierror_c)
+        end subroutine
+
+        subroutine MPI_File_read_at_all_end_f08ts(fh, buf, status, ierror)
+            type(MPI_File), intent(in) :: fh
+            type(*), dimension(..), intent(inout), asynchronous :: buf
+            type(MPI_Status), intent(out), target :: status
+            integer, optional, intent(out) :: ierror
+            integer(c_int) :: ierror_c
+            call VAPAA_MPI_File_read_at_all_end(fh % MPI_VAL, buf, status, ierror_c)
+            call finish_ierror(ierror, ierror_c)
+        end subroutine
+
+        subroutine MPI_File_read_ordered_end_f08ts(fh, buf, status, ierror)
+            type(MPI_File), intent(in) :: fh
+            type(*), dimension(..), intent(inout), asynchronous :: buf
+            type(MPI_Status), intent(out), target :: status
+            integer, optional, intent(out) :: ierror
+            integer(c_int) :: ierror_c
+            call VAPAA_MPI_File_read_ordered_end(fh % MPI_VAL, buf, status, ierror_c)
+            call finish_ierror(ierror, ierror_c)
+        end subroutine
+
+        subroutine MPI_File_write_all_end_f08ts(fh, buf, status, ierror)
+            type(MPI_File), intent(in) :: fh
+            type(*), dimension(..), intent(in), asynchronous :: buf
+            type(MPI_Status), intent(out), target :: status
+            integer, optional, intent(out) :: ierror
+            integer(c_int) :: ierror_c
+            call VAPAA_MPI_File_write_all_end(fh % MPI_VAL, buf, status, ierror_c)
+            call finish_ierror(ierror, ierror_c)
+        end subroutine
+
+        subroutine MPI_File_write_at_all_end_f08ts(fh, buf, status, ierror)
+            type(MPI_File), intent(in) :: fh
+            type(*), dimension(..), intent(in), asynchronous :: buf
+            type(MPI_Status), intent(out), target :: status
+            integer, optional, intent(out) :: ierror
+            integer(c_int) :: ierror_c
+            call VAPAA_MPI_File_write_at_all_end(fh % MPI_VAL, buf, status, ierror_c)
+            call finish_ierror(ierror, ierror_c)
+        end subroutine
+
+        subroutine MPI_File_write_ordered_end_f08ts(fh, buf, status, ierror)
+            type(MPI_File), intent(in) :: fh
+            type(*), dimension(..), intent(in), asynchronous :: buf
+            type(MPI_Status), intent(out), target :: status
+            integer, optional, intent(out) :: ierror
+            integer(c_int) :: ierror_c
+            call VAPAA_MPI_File_write_ordered_end(fh % MPI_VAL, buf, status, ierror_c)
+            call finish_ierror(ierror, ierror_c)
+        end subroutine
 #endif
 
 end module mpi_direct_file_data_f

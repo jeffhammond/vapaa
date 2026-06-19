@@ -192,39 +192,87 @@ module mpi_direct_callback_f
             if (present(ierror)) ierror = ierror_c
         end subroutine finish_ierror
 
-#define ERRHANDLER_WRAPPER(FNAME,CBTYPE,CNAME) \
-        subroutine FNAME(fn, errhandler, ierror); \
-            use mpi_handle_types, only: MPI_Errhandler; \
-            procedure(CBTYPE) :: fn; \
-            type(MPI_Errhandler), intent(out) :: errhandler; \
-            integer, optional, intent(out) :: ierror; \
-            integer(c_int) :: ierror_c; \
-            call CNAME(c_funloc(fn), errhandler % MPI_VAL, ierror_c); \
-            call finish_ierror(ierror, ierror_c); \
-        end subroutine FNAME
+        subroutine MPI_Comm_create_errhandler_f08(fn, errhandler, ierror)
+            use mpi_handle_types, only: MPI_Errhandler
+            procedure(MPI_Comm_errhandler_function) :: fn
+            type(MPI_Errhandler), intent(out) :: errhandler
+            integer, optional, intent(out) :: ierror
+            integer(c_int) :: ierror_c
+            call VAPAA_MPI_Comm_create_errhandler(c_funloc(fn), errhandler % MPI_VAL, ierror_c)
+            call finish_ierror(ierror, ierror_c)
+        end subroutine MPI_Comm_create_errhandler_f08
 
-        ERRHANDLER_WRAPPER(MPI_Comm_create_errhandler_f08,MPI_Comm_errhandler_function,VAPAA_MPI_Comm_create_errhandler)
-        ERRHANDLER_WRAPPER(MPI_File_create_errhandler_f08,MPI_File_errhandler_function,VAPAA_MPI_File_create_errhandler)
-        ERRHANDLER_WRAPPER(MPI_Win_create_errhandler_f08,MPI_Win_errhandler_function,VAPAA_MPI_Win_create_errhandler)
-        ERRHANDLER_WRAPPER(MPI_Session_create_errhandler_f08,MPI_Session_errhandler_function,VAPAA_MPI_Session_create_errhandler)
+        subroutine MPI_File_create_errhandler_f08(fn, errhandler, ierror)
+            use mpi_handle_types, only: MPI_Errhandler
+            procedure(MPI_File_errhandler_function) :: fn
+            type(MPI_Errhandler), intent(out) :: errhandler
+            integer, optional, intent(out) :: ierror
+            integer(c_int) :: ierror_c
+            call VAPAA_MPI_File_create_errhandler(c_funloc(fn), errhandler % MPI_VAL, ierror_c)
+            call finish_ierror(ierror, ierror_c)
+        end subroutine MPI_File_create_errhandler_f08
 
-#define KEYVAL_WRAPPER(FNAME,COPYTYPE,DELTYPE,CNAME) \
-        subroutine FNAME(copy_fn, delete_fn, keyval, extra_state, ierror); \
-            use mpi_global_constants, only: MPI_ADDRESS_KIND; \
-            procedure(COPYTYPE) :: copy_fn; \
-            procedure(DELTYPE) :: delete_fn; \
-            integer, intent(out) :: keyval; \
-            integer(kind=MPI_ADDRESS_KIND), intent(in) :: extra_state; \
-            integer, optional, intent(out) :: ierror; \
-            integer(c_int) :: keyval_c, ierror_c; \
-            call CNAME(c_funloc(copy_fn), c_funloc(delete_fn), keyval_c, int(extra_state,c_intptr_t), ierror_c); \
-            keyval = keyval_c; \
-            call finish_ierror(ierror, ierror_c); \
-        end subroutine FNAME
+        subroutine MPI_Win_create_errhandler_f08(fn, errhandler, ierror)
+            use mpi_handle_types, only: MPI_Errhandler
+            procedure(MPI_Win_errhandler_function) :: fn
+            type(MPI_Errhandler), intent(out) :: errhandler
+            integer, optional, intent(out) :: ierror
+            integer(c_int) :: ierror_c
+            call VAPAA_MPI_Win_create_errhandler(c_funloc(fn), errhandler % MPI_VAL, ierror_c)
+            call finish_ierror(ierror, ierror_c)
+        end subroutine MPI_Win_create_errhandler_f08
 
-        KEYVAL_WRAPPER(MPI_Comm_create_keyval_f08,MPI_Comm_copy_attr_function,MPI_Comm_delete_attr_function,VAPAA_MPI_Comm_create_keyval)
-        KEYVAL_WRAPPER(MPI_Type_create_keyval_f08,MPI_Type_copy_attr_function,MPI_Type_delete_attr_function,VAPAA_MPI_Type_create_keyval)
-        KEYVAL_WRAPPER(MPI_Win_create_keyval_f08,MPI_Win_copy_attr_function,MPI_Win_delete_attr_function,VAPAA_MPI_Win_create_keyval)
+        subroutine MPI_Session_create_errhandler_f08(fn, errhandler, ierror)
+            use mpi_handle_types, only: MPI_Errhandler
+            procedure(MPI_Session_errhandler_function) :: fn
+            type(MPI_Errhandler), intent(out) :: errhandler
+            integer, optional, intent(out) :: ierror
+            integer(c_int) :: ierror_c
+            call VAPAA_MPI_Session_create_errhandler(c_funloc(fn), errhandler % MPI_VAL, ierror_c)
+            call finish_ierror(ierror, ierror_c)
+        end subroutine MPI_Session_create_errhandler_f08
+
+        subroutine MPI_Comm_create_keyval_f08(copy_fn, delete_fn, keyval, extra_state, ierror)
+            use mpi_global_constants, only: MPI_ADDRESS_KIND
+            procedure(MPI_Comm_copy_attr_function) :: copy_fn
+            procedure(MPI_Comm_delete_attr_function) :: delete_fn
+            integer, intent(out) :: keyval
+            integer(kind=MPI_ADDRESS_KIND), intent(in) :: extra_state
+            integer, optional, intent(out) :: ierror
+            integer(c_int) :: keyval_c, ierror_c
+            call VAPAA_MPI_Comm_create_keyval(c_funloc(copy_fn), c_funloc(delete_fn), keyval_c, &
+                                              int(extra_state,c_intptr_t), ierror_c)
+            keyval = keyval_c
+            call finish_ierror(ierror, ierror_c)
+        end subroutine MPI_Comm_create_keyval_f08
+
+        subroutine MPI_Type_create_keyval_f08(copy_fn, delete_fn, keyval, extra_state, ierror)
+            use mpi_global_constants, only: MPI_ADDRESS_KIND
+            procedure(MPI_Type_copy_attr_function) :: copy_fn
+            procedure(MPI_Type_delete_attr_function) :: delete_fn
+            integer, intent(out) :: keyval
+            integer(kind=MPI_ADDRESS_KIND), intent(in) :: extra_state
+            integer, optional, intent(out) :: ierror
+            integer(c_int) :: keyval_c, ierror_c
+            call VAPAA_MPI_Type_create_keyval(c_funloc(copy_fn), c_funloc(delete_fn), keyval_c, &
+                                              int(extra_state,c_intptr_t), ierror_c)
+            keyval = keyval_c
+            call finish_ierror(ierror, ierror_c)
+        end subroutine MPI_Type_create_keyval_f08
+
+        subroutine MPI_Win_create_keyval_f08(copy_fn, delete_fn, keyval, extra_state, ierror)
+            use mpi_global_constants, only: MPI_ADDRESS_KIND
+            procedure(MPI_Win_copy_attr_function) :: copy_fn
+            procedure(MPI_Win_delete_attr_function) :: delete_fn
+            integer, intent(out) :: keyval
+            integer(kind=MPI_ADDRESS_KIND), intent(in) :: extra_state
+            integer, optional, intent(out) :: ierror
+            integer(c_int) :: keyval_c, ierror_c
+            call VAPAA_MPI_Win_create_keyval(c_funloc(copy_fn), c_funloc(delete_fn), keyval_c, &
+                                             int(extra_state,c_intptr_t), ierror_c)
+            keyval = keyval_c
+            call finish_ierror(ierror, ierror_c)
+        end subroutine MPI_Win_create_keyval_f08
 
         subroutine MPI_Keyval_create_f08(copy_fn, delete_fn, keyval, extra_state, ierror)
             procedure() :: copy_fn, delete_fn
@@ -320,6 +368,7 @@ module mpi_direct_callback_f
             integer, optional, intent(out) :: ierror
             character(kind=c_char), allocatable :: command_c(:)
             integer(c_int) :: ierror_c
+            if (.false.) print *, len(argv(1))
             call make_c_string(command, command_c)
             call VAPAA_MPI_Comm_spawn(command_c, int(maxprocs,c_int), info % MPI_VAL, int(root,c_int), &
                                       comm % MPI_VAL, intercomm % MPI_VAL, array_of_errcodes, ierror_c)
@@ -344,6 +393,7 @@ module mpi_direct_callback_f
             integer(c_int), allocatable :: infos_c(:)
             integer(c_int) :: ierror_c
             integer :: i, j, clen
+            if (.false.) print *, len(array_of_argv(1,1))
             clen = len(array_of_commands(1)) + 1
             allocate(commands_c(clen * count), infos_c(count))
             commands_c = c_null_char

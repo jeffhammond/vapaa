@@ -2,7 +2,6 @@ program main
     use mpi_f08
     implicit none
     integer :: me, np, i
-    type(MPI_Datatype) :: v
     integer, dimension(30,20) :: A
     integer, dimension(10,10) :: B
     type(MPI_Request) :: r(2)

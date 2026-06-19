@@ -60,6 +60,7 @@ static void C_MPI_ERROR_MAP_REGISTER(int error_c, int error_f)
     vapaa_error_maps = m;
 }
 
+#if MPI_VERSION >= 5
 static void C_MPI_ERROR_MAP_REMOVE_F(int error_f)
 {
     struct vapaa_error_map **prev = &vapaa_error_maps;
@@ -73,6 +74,7 @@ static void C_MPI_ERROR_MAP_REMOVE_F(int error_f)
         prev = &m->next;
     }
 }
+#endif
 
 int C_MPI_ERROR_CODE_C2F(int error_c)
 {

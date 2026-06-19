@@ -11,6 +11,8 @@
 #include "detect_sentinels.h"
 #include "debug.h"
 
+typedef void (*vapaa_c_funptr)(void);
+
 typedef void (*vapaa_comm_copy_fn)(int *, int *, intptr_t *, intptr_t *, intptr_t *, int *, int *);
 typedef void (*vapaa_comm_delete_fn)(int *, int *, intptr_t *, intptr_t *, int *);
 typedef void (*vapaa_keyval_copy_fn)(int *, int *, int *, int *, int *, int *, int *);
@@ -33,7 +35,13 @@ struct vapaa_keyval_state { vapaa_keyval_copy_fn copy; vapaa_keyval_delete_fn de
 struct vapaa_type_keyval_state { vapaa_type_copy_fn copy; vapaa_type_delete_fn del; intptr_t extra; };
 struct vapaa_win_keyval_state { vapaa_win_copy_fn copy; vapaa_win_delete_fn del; intptr_t extra; };
 struct vapaa_greq_state { vapaa_greq_query_fn query; vapaa_greq_free_fn free_fn; vapaa_greq_cancel_fn cancel; intptr_t *extra; };
-struct vapaa_datarep_state { void *read_fn; void *write_fn; vapaa_datarep_extent_fn extent_fn; intptr_t extra; int use_count; };
+struct vapaa_datarep_state {
+    vapaa_c_funptr read_fn;
+    vapaa_c_funptr write_fn;
+    vapaa_datarep_extent_fn extent_fn;
+    intptr_t extra;
+    int use_count;
+};
 
 static int comm_copy_trampoline(MPI_Comm comm, int keyval, void *extra_state, void *attr_in, void *attr_out, int *flag)
 {
@@ -221,7 +229,7 @@ static int datarep_extent_trampoline(MPI_Datatype datatype, MPI_Aint *extent, vo
     return ierror;
 }
 
-void VAPAA_MPI_Comm_create_errhandler(void *fn, int *errhandler_f, int *ierror)
+void VAPAA_MPI_Comm_create_errhandler(vapaa_c_funptr fn, int *errhandler_f, int *ierror)
 {
     MPI_Errhandler errhandler = MPI_ERRHANDLER_NULL;
     *ierror = MPI_Comm_create_errhandler((MPI_Comm_errhandler_function *)fn, &errhandler);
@@ -229,7 +237,7 @@ void VAPAA_MPI_Comm_create_errhandler(void *fn, int *errhandler_f, int *ierror)
     C_MPI_RC_FIX(*ierror);
 }
 
-void VAPAA_MPI_File_create_errhandler(void *fn, int *errhandler_f, int *ierror)
+void VAPAA_MPI_File_create_errhandler(vapaa_c_funptr fn, int *errhandler_f, int *ierror)
 {
     MPI_Errhandler errhandler = MPI_ERRHANDLER_NULL;
     *ierror = MPI_File_create_errhandler((MPI_File_errhandler_function *)fn, &errhandler);
@@ -237,7 +245,7 @@ void VAPAA_MPI_File_create_errhandler(void *fn, int *errhandler_f, int *ierror)
     C_MPI_RC_FIX(*ierror);
 }
 
-void VAPAA_MPI_Win_create_errhandler(void *fn, int *errhandler_f, int *ierror)
+void VAPAA_MPI_Win_create_errhandler(vapaa_c_funptr fn, int *errhandler_f, int *ierror)
 {
     MPI_Errhandler errhandler = MPI_ERRHANDLER_NULL;
     *ierror = MPI_Win_create_errhandler((MPI_Win_errhandler_function *)fn, &errhandler);
@@ -245,7 +253,7 @@ void VAPAA_MPI_Win_create_errhandler(void *fn, int *errhandler_f, int *ierror)
     C_MPI_RC_FIX(*ierror);
 }
 
-void VAPAA_MPI_Session_create_errhandler(void *fn, int *errhandler_f, int *ierror)
+void VAPAA_MPI_Session_create_errhandler(vapaa_c_funptr fn, int *errhandler_f, int *ierror)
 {
     MPI_Errhandler errhandler = MPI_ERRHANDLER_NULL;
 #if MPI_VERSION >= 4
@@ -258,7 +266,7 @@ void VAPAA_MPI_Session_create_errhandler(void *fn, int *errhandler_f, int *ierro
     C_MPI_RC_FIX(*ierror);
 }
 
-void VAPAA_MPI_Comm_create_keyval(void *copy, void *del, int *keyval, intptr_t *extra, int *ierror)
+void VAPAA_MPI_Comm_create_keyval(vapaa_c_funptr copy, vapaa_c_funptr del, int *keyval, intptr_t *extra, int *ierror)
 {
     struct vapaa_comm_keyval_state *s = malloc(sizeof(*s));
     VAPAA_Assert(s != NULL);
@@ -267,7 +275,7 @@ void VAPAA_MPI_Comm_create_keyval(void *copy, void *del, int *keyval, intptr_t *
     C_MPI_RC_FIX(*ierror);
 }
 
-void VAPAA_MPI_Type_create_keyval(void *copy, void *del, int *keyval, intptr_t *extra, int *ierror)
+void VAPAA_MPI_Type_create_keyval(vapaa_c_funptr copy, vapaa_c_funptr del, int *keyval, intptr_t *extra, int *ierror)
 {
     struct vapaa_type_keyval_state *s = malloc(sizeof(*s));
     VAPAA_Assert(s != NULL);
@@ -276,7 +284,7 @@ void VAPAA_MPI_Type_create_keyval(void *copy, void *del, int *keyval, intptr_t *
     C_MPI_RC_FIX(*ierror);
 }
 
-void VAPAA_MPI_Win_create_keyval(void *copy, void *del, int *keyval, intptr_t *extra, int *ierror)
+void VAPAA_MPI_Win_create_keyval(vapaa_c_funptr copy, vapaa_c_funptr del, int *keyval, intptr_t *extra, int *ierror)
 {
     struct vapaa_win_keyval_state *s = malloc(sizeof(*s));
     VAPAA_Assert(s != NULL);
@@ -285,7 +293,7 @@ void VAPAA_MPI_Win_create_keyval(void *copy, void *del, int *keyval, intptr_t *e
     C_MPI_RC_FIX(*ierror);
 }
 
-void VAPAA_MPI_Keyval_create(void *copy, void *del, int *keyval, int *extra, int *ierror)
+void VAPAA_MPI_Keyval_create(vapaa_c_funptr copy, vapaa_c_funptr del, int *keyval, int *extra, int *ierror)
 {
     struct vapaa_keyval_state *s = malloc(sizeof(*s));
     VAPAA_Assert(s != NULL);
@@ -296,7 +304,8 @@ void VAPAA_MPI_Keyval_create(void *copy, void *del, int *keyval, int *extra, int
     C_MPI_RC_FIX(*ierror);
 }
 
-void VAPAA_MPI_Grequest_start(void *query, void *free_fn, void *cancel, intptr_t *extra, int *request_f, int *ierror)
+void VAPAA_MPI_Grequest_start(vapaa_c_funptr query, vapaa_c_funptr free_fn, vapaa_c_funptr cancel,
+                              intptr_t *extra, int *request_f, int *ierror)
 {
     MPI_Request request = MPI_REQUEST_NULL;
     struct vapaa_greq_state *s = malloc(sizeof(*s));
@@ -315,7 +324,7 @@ void VAPAA_MPI_Grequest_complete(int *request_f, int *ierror)
     C_MPI_RC_FIX(*ierror);
 }
 
-void VAPAA_MPI_Op_create_c(void *fn, int *commute, int *op_f, int *ierror)
+void VAPAA_MPI_Op_create_c(vapaa_c_funptr fn, int *commute, int *op_f, int *ierror)
 {
     MPI_Op op = MPI_OP_NULL;
 #if MPI_VERSION >= 4
@@ -329,7 +338,8 @@ void VAPAA_MPI_Op_create_c(void *fn, int *commute, int *op_f, int *ierror)
     C_MPI_RC_FIX(*ierror);
 }
 
-void VAPAA_MPI_Register_datarep(const char datarep[], void *read_fn, void *write_fn, void *extent_fn,
+void VAPAA_MPI_Register_datarep(const char datarep[], vapaa_c_funptr read_fn, vapaa_c_funptr write_fn,
+                                vapaa_c_funptr extent_fn,
                                 intptr_t *extra, int *ierror)
 {
     struct vapaa_datarep_state *s = malloc(sizeof(*s));
@@ -341,7 +351,8 @@ void VAPAA_MPI_Register_datarep(const char datarep[], void *read_fn, void *write
     C_MPI_RC_FIX(*ierror);
 }
 
-void VAPAA_MPI_Register_datarep_c(const char datarep[], void *read_fn, void *write_fn, void *extent_fn,
+void VAPAA_MPI_Register_datarep_c(const char datarep[], vapaa_c_funptr read_fn, vapaa_c_funptr write_fn,
+                                  vapaa_c_funptr extent_fn,
                                   intptr_t *extra, int *ierror)
 {
 #if MPI_VERSION >= 4

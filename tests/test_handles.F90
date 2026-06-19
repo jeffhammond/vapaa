@@ -21,6 +21,7 @@ program main
     call MPI_Barrier(world)
     print*,d.eq.MPI_DATATYPE_NULL,d==MPI_DATATYPE_NULL
     print*,d.ne.MPI_DATATYPE_NULL,d/=MPI_DATATYPE_NULL
+    print*,f % MPI_VAL,g % MPI_VAL,i % MPI_VAL,m % MPI_VAL,o % MPI_VAL,r % MPI_VAL,w % MPI_VAL
     call MPI_Finalize(ierror)
         print *, 'Test passed'
 end program main

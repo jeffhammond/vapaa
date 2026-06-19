@@ -76,7 +76,7 @@ C Scatter with inplace
           call mpi_scatter( sbuf, 1, MPI_INTEGER, MPI_IN_PLACE, 1,
      $         MPI_INTEGER, root, comm, ierr )
        else
-          call mpi_scatter( sbuf, 1, MPI_INTEGER, rbuf, 1,
+          call mpi_scatter( sbuf, 1, MPI_INTEGER, rbuf(1), 1,
      $         MPI_INTEGER, root, comm, ierr )
           if (rbuf(1) .ne. rank+1) then
              errs = errs + 1

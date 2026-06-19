@@ -10,7 +10,9 @@ subroutine MPI_Send_f08ts(buffer, count, datatype, dest, tag, comm, ierror)
     type(MPI_Datatype), intent(in) :: datatype
     type(MPI_Comm), intent(in) :: comm
     integer, optional, intent(out) :: ierror
+#if defined(__GNUC__) && __GNUC__ >= 12
 !GCC$ ATTRIBUTES weak :: MPI_Send_f08ts
+#endif
 
     if (present(ierror)) then
         call PMPI_Send(buffer, count, datatype, dest, tag, comm, ierror)
@@ -29,7 +31,9 @@ subroutine MPI_Send_c_f08ts(buffer, count, datatype, dest, tag, comm, ierror)
     type(MPI_Datatype), intent(in) :: datatype
     type(MPI_Comm), intent(in) :: comm
     integer, optional, intent(out) :: ierror
+#if defined(__GNUC__) && __GNUC__ >= 12
 !GCC$ ATTRIBUTES weak :: MPI_Send_c_f08ts
+#endif
 
     if (present(ierror)) then
         call PMPI_Send(buffer, count, datatype, dest, tag, comm, ierror)
@@ -47,7 +51,9 @@ subroutine MPI_Recv_f08ts(buffer, count, datatype, source, tag, comm, status, ie
     type(MPI_Comm), intent(in) :: comm
     type(MPI_Status), intent(inout), target :: status
     integer, optional, intent(out) :: ierror
+#if defined(__GNUC__) && __GNUC__ >= 12
 !GCC$ ATTRIBUTES weak :: MPI_Recv_f08ts
+#endif
 
     if (present(ierror)) then
         call PMPI_Recv(buffer, count, datatype, source, tag, comm, status, ierror)
@@ -67,7 +73,9 @@ subroutine MPI_Recv_c_f08ts(buffer, count, datatype, source, tag, comm, status, 
     type(MPI_Comm), intent(in) :: comm
     type(MPI_Status), intent(inout), target :: status
     integer, optional, intent(out) :: ierror
+#if defined(__GNUC__) && __GNUC__ >= 12
 !GCC$ ATTRIBUTES weak :: MPI_Recv_c_f08ts
+#endif
 
     if (present(ierror)) then
         call PMPI_Recv(buffer, count, datatype, source, tag, comm, status, ierror)

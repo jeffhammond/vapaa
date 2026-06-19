@@ -10,6 +10,8 @@
 #include "detect_sentinels.h"
 #include "vapaa_constants.h"
 
+typedef void (*vapaa_c_funptr)(void);
+
 void C_MPI_Init(int *ierror);
 void C_MPI_Init_thread(int *required, int *provided, int *ierror);
 void C_MPI_Finalize(int *ierror);
@@ -190,18 +192,19 @@ void C_MPI_Errhandler_free(int *errhandler, int *ierror);
 void C_MPI_Op_create(MPI_User_function *user_fn, int *commute, int *op, int *ierror);
 void C_MPI_Op_free(int *op, int *ierror);
 
-void VAPAA_MPI_Keyval_create(void *copy, void *del, int *keyval, int *extra, int *ierror);
+void VAPAA_MPI_Keyval_create(vapaa_c_funptr copy, vapaa_c_funptr del, int *keyval, int *extra,
+                             int *ierror);
 void VAPAA_MPI_Keyval_free(int *keyval, int *ierror);
 void VAPAA_MPI_Attr_put(int *comm, int *keyval, int *attrval, int *ierror);
 void VAPAA_MPI_Attr_get(int *comm, int *keyval, int *attrval, int *flag, int *ierror);
 void VAPAA_MPI_Attr_delete(int *comm, int *keyval, int *ierror);
-void VAPAA_MPI_Comm_create_keyval(void *copy, void *del, int *keyval, intptr_t *extra,
+void VAPAA_MPI_Comm_create_keyval(vapaa_c_funptr copy, vapaa_c_funptr del, int *keyval, intptr_t *extra,
                                   int *ierror);
 void VAPAA_MPI_Comm_delete_attr(int *comm, int *keyval, int *ierror);
 void VAPAA_MPI_Comm_free_keyval(int *keyval, int *ierror);
 void VAPAA_MPI_Comm_get_attr(int *comm, int *keyval, intptr_t *attrval, int *flag, int *ierror);
 void VAPAA_MPI_Comm_set_attr(int *comm, int *keyval, intptr_t *attrval, int *ierror);
-void VAPAA_MPI_Type_create_keyval(void *copy, void *del, int *keyval, intptr_t *extra,
+void VAPAA_MPI_Type_create_keyval(vapaa_c_funptr copy, vapaa_c_funptr del, int *keyval, intptr_t *extra,
                                   int *ierror);
 void VAPAA_MPI_Type_delete_attr(int *datatype, int *keyval, int *ierror);
 void VAPAA_MPI_Type_free_keyval(int *keyval, int *ierror);
@@ -743,7 +746,7 @@ void mpi_comm_remote_size_(int *comm, int *size, int *ierror) { VAPAA_MPI_Comm_r
 void mpi_comm_set_errhandler_(int *comm, int *errhandler, int *ierror) { C_MPI_Comm_set_errhandler(comm, errhandler, ierror); }
 void mpi_comm_get_errhandler_(int *comm, int *errhandler, int *ierror) { C_MPI_Comm_get_errhandler(comm, errhandler, ierror); }
 void mpi_comm_call_errhandler_(int *comm, int *errorcode, int *ierror) { C_MPI_Comm_call_errhandler(comm, errorcode, ierror); }
-void mpi_comm_create_errhandler_(void *fn, int *errhandler_f, int *ierror)
+void mpi_comm_create_errhandler_(vapaa_c_funptr fn, int *errhandler_f, int *ierror)
 {
     int slot = f77_comm_errhandler_alloc((vapaa_f77_comm_errhandler_fn)fn);
     MPI_Errhandler errhandler = MPI_ERRHANDLER_NULL;
@@ -1400,7 +1403,8 @@ void mpi_unpack_external_(char *datarep, void *inbuf, intptr_t *insize, intptr_t
     free(datarep_c);
     C_MPI_RC_FIX(*ierror);
 }
-void mpi_grequest_start_(void *query_fn, void *free_fn, void *cancel_fn, intptr_t *extra, int *request_f, int *ierror)
+void mpi_grequest_start_(vapaa_c_funptr query_fn, vapaa_c_funptr free_fn, vapaa_c_funptr cancel_fn,
+                         intptr_t *extra, int *request_f, int *ierror)
 {
     struct vapaa_f77_greq_state *s = malloc(sizeof(*s));
     MPI_Request request = MPI_REQUEST_NULL;
@@ -1621,7 +1625,7 @@ void mpi_errhandler_free_(int *errhandler, int *ierror)
 {
     C_MPI_Errhandler_free(errhandler, ierror);
 }
-void mpi_op_create_(void *user_fn, int *commute, int *op, int *ierror)
+void mpi_op_create_(vapaa_c_funptr user_fn, int *commute, int *op, int *ierror)
 {
     int commute_c = (*commute != 0) ? 1 : 0;
     int slot = f77_op_alloc((vapaa_f77_user_function)user_fn);
@@ -1645,17 +1649,26 @@ void mpi_op_free_(int *op, int *ierror)
     }
 }
 
-void mpi_keyval_create_(void *copy, void *del, int *keyval, int *extra, int *ierror) { VAPAA_MPI_Keyval_create(copy, del, keyval, extra, ierror); }
+void mpi_keyval_create_(vapaa_c_funptr copy, vapaa_c_funptr del, int *keyval, int *extra, int *ierror)
+{
+    VAPAA_MPI_Keyval_create(copy, del, keyval, extra, ierror);
+}
 void mpi_keyval_free_(int *keyval, int *ierror) { VAPAA_MPI_Keyval_free(keyval, ierror); }
 void mpi_attr_put_(int *comm, int *keyval, int *attrval, int *ierror) { VAPAA_MPI_Attr_put(comm, keyval, attrval, ierror); }
 void mpi_attr_get_(int *comm, int *keyval, int *attrval, int *flag, int *ierror) { VAPAA_MPI_Attr_get(comm, keyval, attrval, flag, ierror); f77_logical_store(flag, *flag); }
 void mpi_attr_delete_(int *comm, int *keyval, int *ierror) { VAPAA_MPI_Attr_delete(comm, keyval, ierror); }
-void mpi_comm_create_keyval_(void *copy, void *del, int *keyval, intptr_t *extra, int *ierror) { VAPAA_MPI_Comm_create_keyval(copy, del, keyval, extra, ierror); }
+void mpi_comm_create_keyval_(vapaa_c_funptr copy, vapaa_c_funptr del, int *keyval, intptr_t *extra, int *ierror)
+{
+    VAPAA_MPI_Comm_create_keyval(copy, del, keyval, extra, ierror);
+}
 void mpi_comm_delete_attr_(int *comm, int *keyval, int *ierror) { VAPAA_MPI_Comm_delete_attr(comm, keyval, ierror); }
 void mpi_comm_free_keyval_(int *keyval, int *ierror) { VAPAA_MPI_Comm_free_keyval(keyval, ierror); }
 void mpi_comm_get_attr_(int *comm, int *keyval, intptr_t *attrval, int *flag, int *ierror) { VAPAA_MPI_Comm_get_attr(comm, keyval, attrval, flag, ierror); f77_logical_store(flag, *flag); }
 void mpi_comm_set_attr_(int *comm, int *keyval, intptr_t *attrval, int *ierror) { VAPAA_MPI_Comm_set_attr(comm, keyval, attrval, ierror); }
-void mpi_type_create_keyval_(void *copy, void *del, int *keyval, intptr_t *extra, int *ierror) { VAPAA_MPI_Type_create_keyval(copy, del, keyval, extra, ierror); }
+void mpi_type_create_keyval_(vapaa_c_funptr copy, vapaa_c_funptr del, int *keyval, intptr_t *extra, int *ierror)
+{
+    VAPAA_MPI_Type_create_keyval(copy, del, keyval, extra, ierror);
+}
 void mpi_type_delete_attr_(int *datatype, int *keyval, int *ierror) { VAPAA_MPI_Type_delete_attr(datatype, keyval, ierror); }
 void mpi_type_free_keyval_(int *keyval, int *ierror) { VAPAA_MPI_Type_free_keyval(keyval, ierror); }
 void mpi_type_get_attr_(int *datatype, int *keyval, intptr_t *attrval, int *flag, int *ierror) { VAPAA_MPI_Type_get_attr(datatype, keyval, attrval, flag, ierror); f77_logical_store(flag, *flag); }
