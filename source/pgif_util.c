@@ -6,6 +6,7 @@
 
 #include "cfi_util.h"
 #include "debug.h"
+#include "detect_sentinels.h"
 #include "pgif_util.h"
 
 static int VAPAA_PGIF_VALIDATE(const VAPAA_PGIF_Desc *desc)
@@ -27,6 +28,21 @@ static int VAPAA_PGIF_VALIDATE(const VAPAA_PGIF_Desc *desc)
 int VAPAA_PGIF_is_valid(const VAPAA_PGIF_Desc *desc)
 {
     return VAPAA_PGIF_VALIDATE(desc) == MPI_SUCCESS;
+}
+
+int VAPAA_PGIF_buffer_is_contiguous(const VAPAA_PGIF_Desc *desc)
+{
+    return !VAPAA_PGIF_is_valid(desc) || VAPAA_PGIF_is_contiguous(desc) == 1;
+}
+
+void *VAPAA_PGIF_ADDR(void *base)
+{
+    return C_IS_MPI_BOTTOM(base) ? MPI_BOTTOM : base;
+}
+
+void *VAPAA_PGIF_IN_ADDR(void *base)
+{
+    return C_IS_MPI_IN_PLACE(base) ? MPI_IN_PLACE : VAPAA_PGIF_ADDR(base);
 }
 
 static int VAPAA_PGIF_TOTAL_ELEMENTS(const VAPAA_PGIF_Desc *desc, int *total)
@@ -89,6 +105,34 @@ static MPI_Aint VAPAA_PGIF_ELEMENT_DISPLACEMENT(const VAPAA_PGIF_Desc *desc, int
     }
 
     return displacement;
+}
+
+static int VAPAA_PGIF_LOGICAL_BYTE_DISPLACEMENT(const VAPAA_PGIF_Desc *desc,
+                                                MPI_Aint logical_byte,
+                                                int total,
+                                                MPI_Aint *displacement)
+{
+    const MPI_Aint elem_len = (MPI_Aint) desc->len;
+    const MPI_Aint total_bytes = (MPI_Aint) total * elem_len;
+
+    if (logical_byte < 0 || logical_byte > total_bytes) {
+        return MPI_ERR_ARG;
+    }
+    if (logical_byte == 0 || total == 0) {
+        *displacement = 0;
+        return MPI_SUCCESS;
+    }
+    if (logical_byte == total_bytes) {
+        *displacement = VAPAA_PGIF_ELEMENT_DISPLACEMENT(desc, total - 1) +
+                        elem_len;
+        return MPI_SUCCESS;
+    }
+
+    const MPI_Aint elem_index = logical_byte / elem_len;
+    const MPI_Aint elem_offset = logical_byte % elem_len;
+    *displacement =
+        VAPAA_PGIF_ELEMENT_DISPLACEMENT(desc, (int) elem_index) + elem_offset;
+    return MPI_SUCCESS;
 }
 
 static int VAPAA_PGIF_APPEND_BLOCK(MPI_Aint **displacements, int **blocklengths,
@@ -235,13 +279,80 @@ int VAPAA_PGIF_CREATE_DATATYPE(const VAPAA_PGIF_Desc *desc, int count,
     if (blocks == 0) {
         rc = PMPI_Type_contiguous(0, MPI_BYTE, array_datatype);
     } else {
+        MPI_Datatype hindexed = MPI_DATATYPE_NULL;
+        MPI_Aint type_extent_bytes = (MPI_Aint) count * datatype_extent;
+        MPI_Aint resized_extent = 0;
+
+        rc = VAPAA_PGIF_LOGICAL_BYTE_DISPLACEMENT(desc, type_extent_bytes,
+                                                  total, &resized_extent);
+        if (rc != MPI_SUCCESS) {
+            goto fn_exit;
+        }
+        if (resized_extent <= 0) {
+            rc = MPI_ERR_ARG;
+            goto fn_exit;
+        }
+
         rc = PMPI_Type_create_hindexed(blocks, blocklengths, displacements,
-                                       MPI_BYTE, array_datatype);
+                                       MPI_BYTE, &hindexed);
+        if (rc != MPI_SUCCESS) {
+            goto fn_exit;
+        }
+        rc = PMPI_Type_create_resized(hindexed, 0, resized_extent,
+                                      array_datatype);
+        int free_rc = PMPI_Type_free(&hindexed);
+        if (rc == MPI_SUCCESS) {
+            rc = free_rc;
+        }
     }
 
   fn_exit:
     free(iov);
     free(blocklengths);
     free(displacements);
+    return rc;
+}
+
+int VAPAA_PGIF_PREPARE_BUFFER(void *base, const VAPAA_PGIF_Desc *desc,
+                              int count, MPI_Datatype datatype,
+                              bool in_place_allowed,
+                              VAPAA_PGIF_Buffer *buffer)
+{
+    buffer->addr = in_place_allowed ? VAPAA_PGIF_IN_ADDR(base) :
+                                      VAPAA_PGIF_ADDR(base);
+    buffer->count = count;
+    buffer->datatype = datatype;
+    buffer->owned_datatype = MPI_DATATYPE_NULL;
+
+    if (buffer->addr == MPI_IN_PLACE || buffer->addr == MPI_BOTTOM ||
+        VAPAA_PGIF_buffer_is_contiguous(desc)) {
+        return MPI_SUCCESS;
+    }
+
+    int rc = VAPAA_PGIF_CREATE_DATATYPE(desc, count, datatype,
+                                        &buffer->owned_datatype);
+    if (rc != MPI_SUCCESS) {
+        return rc;
+    }
+    rc = PMPI_Type_commit(&buffer->owned_datatype);
+    if (rc != MPI_SUCCESS) {
+        (void) PMPI_Type_free(&buffer->owned_datatype);
+        buffer->owned_datatype = MPI_DATATYPE_NULL;
+        return rc;
+    }
+
+    buffer->count = 1;
+    buffer->datatype = buffer->owned_datatype;
+    return MPI_SUCCESS;
+}
+
+int VAPAA_PGIF_RELEASE_BUFFER(VAPAA_PGIF_Buffer *buffer)
+{
+    if (buffer->owned_datatype == MPI_DATATYPE_NULL) {
+        return MPI_SUCCESS;
+    }
+
+    int rc = PMPI_Type_free(&buffer->owned_datatype);
+    buffer->owned_datatype = MPI_DATATYPE_NULL;
     return rc;
 }

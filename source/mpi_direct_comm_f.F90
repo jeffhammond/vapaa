@@ -367,11 +367,18 @@ module mpi_direct_comm_f
 
         subroutine MPI_Comm_free_keyval_f08(comm_keyval, ierror)
             use mpi_direct_comm_c, only: VAPAA_MPI_Comm_free_keyval
+#ifdef HAVE_PGIF
+            use mpi_direct_callback_f, only: VAPAA_PGIF_Comm_keyval_release
+#endif
             integer, intent(inout) :: comm_keyval
             integer, optional, intent(out) :: ierror
-            integer(c_int) :: keyval_c, ierror_c
+            integer(c_int) :: keyval_c, old_keyval_c, ierror_c
             keyval_c = comm_keyval
+            old_keyval_c = keyval_c
             call VAPAA_MPI_Comm_free_keyval(keyval_c, ierror_c)
+#ifdef HAVE_PGIF
+            if (ierror_c == 0_c_int) call VAPAA_PGIF_Comm_keyval_release(int(old_keyval_c))
+#endif
             comm_keyval = keyval_c
             if (present(ierror)) ierror = ierror_c
         end subroutine MPI_Comm_free_keyval_f08

@@ -743,11 +743,18 @@ module mpi_missing_f
 
         subroutine MPI_Type_free_keyval_f08(type_keyval, ierror)
             use mpi_missing_c, only: VAPAA_MPI_Type_free_keyval
+#ifdef HAVE_PGIF
+            use mpi_direct_callback_f, only: VAPAA_PGIF_Type_keyval_release
+#endif
             integer, intent(inout) :: type_keyval
             integer, optional, intent(out) :: ierror
-            integer(c_int) :: keyval_c, ierror_c
+            integer(c_int) :: keyval_c, old_keyval_c, ierror_c
             keyval_c = type_keyval
+            old_keyval_c = keyval_c
             call VAPAA_MPI_Type_free_keyval(keyval_c, ierror_c)
+#ifdef HAVE_PGIF
+            if (ierror_c == 0_c_int) call VAPAA_PGIF_Type_keyval_release(int(old_keyval_c))
+#endif
             type_keyval = keyval_c
             if (present(ierror)) ierror = ierror_c
         end subroutine MPI_Type_free_keyval_f08

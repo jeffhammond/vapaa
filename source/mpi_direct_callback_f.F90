@@ -51,6 +51,47 @@ module mpi_direct_callback_f
         module procedure MPI_Comm_spawn_multiple_f08
     end interface
 
+#ifdef HAVE_PGIF
+    integer, parameter :: VAPAA_PGIF_KEYVAL_SLOTS = 256
+
+    type :: pgif_comm_keyval_slot
+        logical :: in_use = .false.
+        integer(c_int) :: keyval = 0_c_int
+        integer(c_intptr_t) :: extra_state = 0_c_intptr_t
+        procedure(MPI_Comm_copy_attr_function), pointer, nopass :: copy_fn => null()
+        procedure(MPI_Comm_delete_attr_function), pointer, nopass :: delete_fn => null()
+    end type pgif_comm_keyval_slot
+
+    type :: pgif_type_keyval_slot
+        logical :: in_use = .false.
+        integer(c_int) :: keyval = 0_c_int
+        integer(c_intptr_t) :: extra_state = 0_c_intptr_t
+        procedure(MPI_Type_copy_attr_function), pointer, nopass :: copy_fn => null()
+        procedure(MPI_Type_delete_attr_function), pointer, nopass :: delete_fn => null()
+    end type pgif_type_keyval_slot
+
+    type :: pgif_win_keyval_slot
+        logical :: in_use = .false.
+        integer(c_int) :: keyval = 0_c_int
+        integer(c_intptr_t) :: extra_state = 0_c_intptr_t
+        procedure(MPI_Win_copy_attr_function), pointer, nopass :: copy_fn => null()
+        procedure(MPI_Win_delete_attr_function), pointer, nopass :: delete_fn => null()
+    end type pgif_win_keyval_slot
+
+    type :: pgif_keyval_slot
+        logical :: in_use = .false.
+        integer(c_int) :: keyval = 0_c_int
+        integer(c_int) :: extra_state = 0_c_int
+        procedure(), pointer, nopass :: copy_fn => null()
+        procedure(), pointer, nopass :: delete_fn => null()
+    end type pgif_keyval_slot
+
+    type(pgif_comm_keyval_slot), save :: pgif_comm_slots(VAPAA_PGIF_KEYVAL_SLOTS)
+    type(pgif_type_keyval_slot), save :: pgif_type_slots(VAPAA_PGIF_KEYVAL_SLOTS)
+    type(pgif_win_keyval_slot), save :: pgif_win_slots(VAPAA_PGIF_KEYVAL_SLOTS)
+    type(pgif_keyval_slot), save :: pgif_keyval_slots(VAPAA_PGIF_KEYVAL_SLOTS)
+#endif
+
     interface
         subroutine VAPAA_MPI_Comm_create_errhandler(fn, errhandler, ierror) bind(C,name="VAPAA_MPI_Comm_create_errhandler")
             use iso_c_binding, only: c_funptr, c_int
@@ -174,6 +215,434 @@ module mpi_direct_callback_f
 
     contains
 
+#ifdef HAVE_PGIF
+        integer function pgif_comm_slot_alloc(copy_fn, delete_fn, extra_state) result(slot)
+            procedure(MPI_Comm_copy_attr_function) :: copy_fn
+            procedure(MPI_Comm_delete_attr_function) :: delete_fn
+            integer(c_intptr_t), intent(in) :: extra_state
+            integer :: i
+            slot = 0
+            do i = 1, VAPAA_PGIF_KEYVAL_SLOTS
+                if (.not. pgif_comm_slots(i) % in_use) then
+                    pgif_comm_slots(i) % in_use = .true.
+                    pgif_comm_slots(i) % keyval = 0_c_int
+                    pgif_comm_slots(i) % extra_state = extra_state
+                    pgif_comm_slots(i) % copy_fn => copy_fn
+                    pgif_comm_slots(i) % delete_fn => delete_fn
+                    slot = i
+                    exit
+                end if
+            end do
+        end function pgif_comm_slot_alloc
+
+        integer function pgif_type_slot_alloc(copy_fn, delete_fn, extra_state) result(slot)
+            procedure(MPI_Type_copy_attr_function) :: copy_fn
+            procedure(MPI_Type_delete_attr_function) :: delete_fn
+            integer(c_intptr_t), intent(in) :: extra_state
+            integer :: i
+            slot = 0
+            do i = 1, VAPAA_PGIF_KEYVAL_SLOTS
+                if (.not. pgif_type_slots(i) % in_use) then
+                    pgif_type_slots(i) % in_use = .true.
+                    pgif_type_slots(i) % keyval = 0_c_int
+                    pgif_type_slots(i) % extra_state = extra_state
+                    pgif_type_slots(i) % copy_fn => copy_fn
+                    pgif_type_slots(i) % delete_fn => delete_fn
+                    slot = i
+                    exit
+                end if
+            end do
+        end function pgif_type_slot_alloc
+
+        integer function pgif_win_slot_alloc(copy_fn, delete_fn, extra_state) result(slot)
+            procedure(MPI_Win_copy_attr_function) :: copy_fn
+            procedure(MPI_Win_delete_attr_function) :: delete_fn
+            integer(c_intptr_t), intent(in) :: extra_state
+            integer :: i
+            slot = 0
+            do i = 1, VAPAA_PGIF_KEYVAL_SLOTS
+                if (.not. pgif_win_slots(i) % in_use) then
+                    pgif_win_slots(i) % in_use = .true.
+                    pgif_win_slots(i) % keyval = 0_c_int
+                    pgif_win_slots(i) % extra_state = extra_state
+                    pgif_win_slots(i) % copy_fn => copy_fn
+                    pgif_win_slots(i) % delete_fn => delete_fn
+                    slot = i
+                    exit
+                end if
+            end do
+        end function pgif_win_slot_alloc
+
+        integer function pgif_keyval_slot_alloc(copy_fn, delete_fn, extra_state) result(slot)
+            procedure() :: copy_fn
+            procedure() :: delete_fn
+            integer(c_int), intent(in) :: extra_state
+            integer :: i
+            slot = 0
+            do i = 1, VAPAA_PGIF_KEYVAL_SLOTS
+                if (.not. pgif_keyval_slots(i) % in_use) then
+                    pgif_keyval_slots(i) % in_use = .true.
+                    pgif_keyval_slots(i) % keyval = 0_c_int
+                    pgif_keyval_slots(i) % extra_state = extra_state
+                    pgif_keyval_slots(i) % copy_fn => copy_fn
+                    pgif_keyval_slots(i) % delete_fn => delete_fn
+                    slot = i
+                    exit
+                end if
+            end do
+        end function pgif_keyval_slot_alloc
+
+        subroutine pgif_comm_slot_release(slot)
+            integer, intent(in) :: slot
+            if (slot < 1 .or. slot > VAPAA_PGIF_KEYVAL_SLOTS) return
+            pgif_comm_slots(slot) % in_use = .false.
+            pgif_comm_slots(slot) % keyval = 0_c_int
+            pgif_comm_slots(slot) % extra_state = 0_c_intptr_t
+            nullify(pgif_comm_slots(slot) % copy_fn)
+            nullify(pgif_comm_slots(slot) % delete_fn)
+        end subroutine pgif_comm_slot_release
+
+        subroutine pgif_type_slot_release(slot)
+            integer, intent(in) :: slot
+            if (slot < 1 .or. slot > VAPAA_PGIF_KEYVAL_SLOTS) return
+            pgif_type_slots(slot) % in_use = .false.
+            pgif_type_slots(slot) % keyval = 0_c_int
+            pgif_type_slots(slot) % extra_state = 0_c_intptr_t
+            nullify(pgif_type_slots(slot) % copy_fn)
+            nullify(pgif_type_slots(slot) % delete_fn)
+        end subroutine pgif_type_slot_release
+
+        subroutine pgif_win_slot_release(slot)
+            integer, intent(in) :: slot
+            if (slot < 1 .or. slot > VAPAA_PGIF_KEYVAL_SLOTS) return
+            pgif_win_slots(slot) % in_use = .false.
+            pgif_win_slots(slot) % keyval = 0_c_int
+            pgif_win_slots(slot) % extra_state = 0_c_intptr_t
+            nullify(pgif_win_slots(slot) % copy_fn)
+            nullify(pgif_win_slots(slot) % delete_fn)
+        end subroutine pgif_win_slot_release
+
+        subroutine pgif_keyval_slot_release(slot)
+            integer, intent(in) :: slot
+            if (slot < 1 .or. slot > VAPAA_PGIF_KEYVAL_SLOTS) return
+            pgif_keyval_slots(slot) % in_use = .false.
+            pgif_keyval_slots(slot) % keyval = 0_c_int
+            pgif_keyval_slots(slot) % extra_state = 0_c_int
+            nullify(pgif_keyval_slots(slot) % copy_fn)
+            nullify(pgif_keyval_slots(slot) % delete_fn)
+        end subroutine pgif_keyval_slot_release
+
+        subroutine VAPAA_PGIF_Comm_keyval_release(keyval)
+            integer, intent(in) :: keyval
+            integer :: i
+            do i = 1, VAPAA_PGIF_KEYVAL_SLOTS
+                if (pgif_comm_slots(i) % in_use) then
+                    if (pgif_comm_slots(i) % keyval == int(keyval, c_int)) then
+                        call pgif_comm_slot_release(i)
+                        exit
+                    end if
+                end if
+            end do
+        end subroutine VAPAA_PGIF_Comm_keyval_release
+
+        subroutine VAPAA_PGIF_Type_keyval_release(keyval)
+            integer, intent(in) :: keyval
+            integer :: i
+            do i = 1, VAPAA_PGIF_KEYVAL_SLOTS
+                if (pgif_type_slots(i) % in_use) then
+                    if (pgif_type_slots(i) % keyval == int(keyval, c_int)) then
+                        call pgif_type_slot_release(i)
+                        exit
+                    end if
+                end if
+            end do
+        end subroutine VAPAA_PGIF_Type_keyval_release
+
+        subroutine VAPAA_PGIF_Win_keyval_release(keyval)
+            integer, intent(in) :: keyval
+            integer :: i
+            do i = 1, VAPAA_PGIF_KEYVAL_SLOTS
+                if (pgif_win_slots(i) % in_use) then
+                    if (pgif_win_slots(i) % keyval == int(keyval, c_int)) then
+                        call pgif_win_slot_release(i)
+                        exit
+                    end if
+                end if
+            end do
+        end subroutine VAPAA_PGIF_Win_keyval_release
+
+        subroutine VAPAA_PGIF_Keyval_release(keyval)
+            integer, intent(in) :: keyval
+            integer :: i
+            do i = 1, VAPAA_PGIF_KEYVAL_SLOTS
+                if (pgif_keyval_slots(i) % in_use) then
+                    if (pgif_keyval_slots(i) % keyval == int(keyval, c_int)) then
+                        call pgif_keyval_slot_release(i)
+                        exit
+                    end if
+                end if
+            end do
+        end subroutine VAPAA_PGIF_Keyval_release
+
+        logical function pgif_valid_comm_slot(slot) result(valid)
+            integer, intent(in) :: slot
+            valid = slot >= 1 .and. slot <= VAPAA_PGIF_KEYVAL_SLOTS
+            if (valid) valid = pgif_comm_slots(slot) % in_use
+            if (valid) valid = associated(pgif_comm_slots(slot) % copy_fn)
+        end function pgif_valid_comm_slot
+
+        logical function pgif_valid_type_slot(slot) result(valid)
+            integer, intent(in) :: slot
+            valid = slot >= 1 .and. slot <= VAPAA_PGIF_KEYVAL_SLOTS
+            if (valid) valid = pgif_type_slots(slot) % in_use
+            if (valid) valid = associated(pgif_type_slots(slot) % copy_fn)
+        end function pgif_valid_type_slot
+
+        logical function pgif_valid_win_slot(slot) result(valid)
+            integer, intent(in) :: slot
+            valid = slot >= 1 .and. slot <= VAPAA_PGIF_KEYVAL_SLOTS
+            if (valid) valid = pgif_win_slots(slot) % in_use
+            if (valid) valid = associated(pgif_win_slots(slot) % copy_fn)
+        end function pgif_valid_win_slot
+
+        logical function pgif_valid_keyval_slot(slot) result(valid)
+            integer, intent(in) :: slot
+            valid = slot >= 1 .and. slot <= VAPAA_PGIF_KEYVAL_SLOTS
+            if (valid) valid = pgif_keyval_slots(slot) % in_use
+            if (valid) valid = associated(pgif_keyval_slots(slot) % copy_fn)
+        end function pgif_valid_keyval_slot
+
+        subroutine VAPAA_PGIF_Keyval_copy_trampoline(oldcomm_c, keyval_c, slot_c, &
+                                                     attr_in_c, attr_out_c, &
+                                                     flag_c, ierror_c) bind(C)
+            use mpi_error_f, only: MPI_ERR_OTHER, MPI_SUCCESS
+            use mpi_handle_types, only: MPI_Comm
+            integer(c_int), intent(in) :: oldcomm_c, keyval_c, slot_c, attr_in_c
+            integer(c_int), intent(out) :: attr_out_c, flag_c, ierror_c
+            type(MPI_Comm) :: oldcomm
+            integer :: slot, keyval, extra_state, attr_in, attr_out, ierror_f
+            logical :: flag
+            slot = int(slot_c)
+            if (.not. pgif_valid_keyval_slot(slot)) then
+                attr_out_c = 0_c_int
+                flag_c = 0_c_int
+                ierror_c = int(MPI_ERR_OTHER, c_int)
+                return
+            end if
+            oldcomm % MPI_VAL = oldcomm_c
+            keyval = int(keyval_c)
+            extra_state = int(pgif_keyval_slots(slot) % extra_state)
+            attr_in = int(attr_in_c)
+            attr_out = 0
+            flag = .false.
+            ierror_f = MPI_SUCCESS
+            call pgif_keyval_slots(slot) % copy_fn(oldcomm, keyval, extra_state, &
+                                                   attr_in, attr_out, flag, ierror_f)
+            attr_out_c = int(attr_out, c_int)
+            flag_c = merge(1_c_int, 0_c_int, flag)
+            ierror_c = int(ierror_f, c_int)
+        end subroutine VAPAA_PGIF_Keyval_copy_trampoline
+
+        subroutine VAPAA_PGIF_Keyval_delete_trampoline(comm_c, keyval_c, attr_c, &
+                                                       slot_c, ierror_c) bind(C)
+            use mpi_error_f, only: MPI_ERR_OTHER, MPI_SUCCESS
+            use mpi_handle_types, only: MPI_Comm
+            integer(c_int), intent(in) :: comm_c, keyval_c, attr_c, slot_c
+            integer(c_int), intent(out) :: ierror_c
+            type(MPI_Comm) :: comm
+            integer :: slot, keyval, attr, extra_state, ierror_f
+            slot = int(slot_c)
+            if (.not. pgif_valid_keyval_slot(slot)) then
+                ierror_c = int(MPI_ERR_OTHER, c_int)
+                return
+            end if
+            comm % MPI_VAL = comm_c
+            keyval = int(keyval_c)
+            attr = int(attr_c)
+            extra_state = int(pgif_keyval_slots(slot) % extra_state)
+            ierror_f = MPI_SUCCESS
+            call pgif_keyval_slots(slot) % delete_fn(comm, keyval, attr, extra_state, ierror_f)
+            ierror_c = int(ierror_f, c_int)
+        end subroutine VAPAA_PGIF_Keyval_delete_trampoline
+
+        subroutine VAPAA_PGIF_Comm_copy_trampoline(oldcomm_c, keyval_c, slot_c, attr_in_c, &
+                                                   attr_out_c, flag_c, ierror_c) bind(C)
+            use mpi_error_f, only: MPI_ERR_OTHER, MPI_SUCCESS
+            use mpi_global_constants, only: MPI_ADDRESS_KIND
+            use mpi_handle_types, only: MPI_Comm
+            integer(c_int), intent(in) :: oldcomm_c, keyval_c
+            integer(c_intptr_t), intent(in) :: slot_c, attr_in_c
+            integer(c_intptr_t), intent(out) :: attr_out_c
+            integer(c_int), intent(out) :: flag_c, ierror_c
+            type(MPI_Comm) :: oldcomm
+            integer :: slot, keyval, ierror_f
+            integer(kind=MPI_ADDRESS_KIND) :: attr_in, attr_out, extra_state
+            logical :: flag
+            slot = int(slot_c)
+            if (.not. pgif_valid_comm_slot(slot)) then
+                attr_out_c = 0_c_intptr_t
+                flag_c = 0_c_int
+                ierror_c = int(MPI_ERR_OTHER, c_int)
+                return
+            end if
+            oldcomm % MPI_VAL = oldcomm_c
+            keyval = int(keyval_c)
+            extra_state = pgif_comm_slots(slot) % extra_state
+            attr_in = attr_in_c
+            attr_out = 0
+            flag = .false.
+            ierror_f = MPI_SUCCESS
+            call pgif_comm_slots(slot) % copy_fn(oldcomm, keyval, extra_state, attr_in, &
+                                                 attr_out, flag, ierror_f)
+            attr_out_c = int(attr_out, c_intptr_t)
+            flag_c = merge(1_c_int, 0_c_int, flag)
+            ierror_c = int(ierror_f, c_int)
+        end subroutine VAPAA_PGIF_Comm_copy_trampoline
+
+        subroutine VAPAA_PGIF_Comm_delete_trampoline(comm_c, keyval_c, attr_c, slot_c, &
+                                                     ierror_c) bind(C)
+            use mpi_error_f, only: MPI_ERR_OTHER, MPI_SUCCESS
+            use mpi_global_constants, only: MPI_ADDRESS_KIND
+            use mpi_handle_types, only: MPI_Comm
+            integer(c_int), intent(in) :: comm_c, keyval_c
+            integer(c_intptr_t), intent(in) :: attr_c, slot_c
+            integer(c_int), intent(out) :: ierror_c
+            type(MPI_Comm) :: comm
+            integer :: slot, keyval, ierror_f
+            integer(kind=MPI_ADDRESS_KIND) :: attr, extra_state
+            slot = int(slot_c)
+            if (.not. pgif_valid_comm_slot(slot)) then
+                ierror_c = int(MPI_ERR_OTHER, c_int)
+                return
+            end if
+            comm % MPI_VAL = comm_c
+            keyval = int(keyval_c)
+            extra_state = pgif_comm_slots(slot) % extra_state
+            attr = attr_c
+            ierror_f = MPI_SUCCESS
+            call pgif_comm_slots(slot) % delete_fn(comm, keyval, attr, extra_state, ierror_f)
+            ierror_c = int(ierror_f, c_int)
+        end subroutine VAPAA_PGIF_Comm_delete_trampoline
+
+        subroutine VAPAA_PGIF_Type_copy_trampoline(oldtype_c, keyval_c, slot_c, attr_in_c, &
+                                                   attr_out_c, flag_c, ierror_c) bind(C)
+            use mpi_error_f, only: MPI_ERR_OTHER, MPI_SUCCESS
+            use mpi_global_constants, only: MPI_ADDRESS_KIND
+            use mpi_handle_types, only: MPI_Datatype
+            integer(c_int), intent(in) :: oldtype_c, keyval_c
+            integer(c_intptr_t), intent(in) :: slot_c, attr_in_c
+            integer(c_intptr_t), intent(out) :: attr_out_c
+            integer(c_int), intent(out) :: flag_c, ierror_c
+            type(MPI_Datatype) :: oldtype
+            integer :: slot, keyval, ierror_f
+            integer(kind=MPI_ADDRESS_KIND) :: attr_in, attr_out, extra_state
+            logical :: flag
+            slot = int(slot_c)
+            if (.not. pgif_valid_type_slot(slot)) then
+                attr_out_c = 0_c_intptr_t
+                flag_c = 0_c_int
+                ierror_c = int(MPI_ERR_OTHER, c_int)
+                return
+            end if
+            oldtype % MPI_VAL = oldtype_c
+            keyval = int(keyval_c)
+            extra_state = pgif_type_slots(slot) % extra_state
+            attr_in = attr_in_c
+            attr_out = 0
+            flag = .false.
+            ierror_f = MPI_SUCCESS
+            call pgif_type_slots(slot) % copy_fn(oldtype, keyval, extra_state, attr_in, &
+                                                 attr_out, flag, ierror_f)
+            attr_out_c = int(attr_out, c_intptr_t)
+            flag_c = merge(1_c_int, 0_c_int, flag)
+            ierror_c = int(ierror_f, c_int)
+        end subroutine VAPAA_PGIF_Type_copy_trampoline
+
+        subroutine VAPAA_PGIF_Type_delete_trampoline(datatype_c, keyval_c, attr_c, slot_c, &
+                                                     ierror_c) bind(C)
+            use mpi_error_f, only: MPI_ERR_OTHER, MPI_SUCCESS
+            use mpi_global_constants, only: MPI_ADDRESS_KIND
+            use mpi_handle_types, only: MPI_Datatype
+            integer(c_int), intent(in) :: datatype_c, keyval_c
+            integer(c_intptr_t), intent(in) :: attr_c, slot_c
+            integer(c_int), intent(out) :: ierror_c
+            type(MPI_Datatype) :: datatype
+            integer :: slot, keyval, ierror_f
+            integer(kind=MPI_ADDRESS_KIND) :: attr, extra_state
+            slot = int(slot_c)
+            if (.not. pgif_valid_type_slot(slot)) then
+                ierror_c = int(MPI_ERR_OTHER, c_int)
+                return
+            end if
+            datatype % MPI_VAL = datatype_c
+            keyval = int(keyval_c)
+            extra_state = pgif_type_slots(slot) % extra_state
+            attr = attr_c
+            ierror_f = MPI_SUCCESS
+            call pgif_type_slots(slot) % delete_fn(datatype, keyval, attr, extra_state, ierror_f)
+            ierror_c = int(ierror_f, c_int)
+        end subroutine VAPAA_PGIF_Type_delete_trampoline
+
+        subroutine VAPAA_PGIF_Win_copy_trampoline(oldwin_c, keyval_c, slot_c, attr_in_c, &
+                                                  attr_out_c, flag_c, ierror_c) bind(C)
+            use mpi_error_f, only: MPI_ERR_OTHER, MPI_SUCCESS
+            use mpi_global_constants, only: MPI_ADDRESS_KIND
+            use mpi_handle_types, only: MPI_Win
+            integer(c_int), intent(in) :: oldwin_c, keyval_c
+            integer(c_intptr_t), intent(in) :: slot_c, attr_in_c
+            integer(c_intptr_t), intent(out) :: attr_out_c
+            integer(c_int), intent(out) :: flag_c, ierror_c
+            type(MPI_Win) :: oldwin
+            integer :: slot, keyval, ierror_f
+            integer(kind=MPI_ADDRESS_KIND) :: attr_in, attr_out, extra_state
+            logical :: flag
+            slot = int(slot_c)
+            if (.not. pgif_valid_win_slot(slot)) then
+                attr_out_c = 0_c_intptr_t
+                flag_c = 0_c_int
+                ierror_c = int(MPI_ERR_OTHER, c_int)
+                return
+            end if
+            oldwin % MPI_VAL = oldwin_c
+            keyval = int(keyval_c)
+            extra_state = pgif_win_slots(slot) % extra_state
+            attr_in = attr_in_c
+            attr_out = 0
+            flag = .false.
+            ierror_f = MPI_SUCCESS
+            call pgif_win_slots(slot) % copy_fn(oldwin, keyval, extra_state, attr_in, &
+                                                attr_out, flag, ierror_f)
+            attr_out_c = int(attr_out, c_intptr_t)
+            flag_c = merge(1_c_int, 0_c_int, flag)
+            ierror_c = int(ierror_f, c_int)
+        end subroutine VAPAA_PGIF_Win_copy_trampoline
+
+        subroutine VAPAA_PGIF_Win_delete_trampoline(win_c, keyval_c, attr_c, slot_c, &
+                                                    ierror_c) bind(C)
+            use mpi_error_f, only: MPI_ERR_OTHER, MPI_SUCCESS
+            use mpi_global_constants, only: MPI_ADDRESS_KIND
+            use mpi_handle_types, only: MPI_Win
+            integer(c_int), intent(in) :: win_c, keyval_c
+            integer(c_intptr_t), intent(in) :: attr_c, slot_c
+            integer(c_int), intent(out) :: ierror_c
+            type(MPI_Win) :: win
+            integer :: slot, keyval, ierror_f
+            integer(kind=MPI_ADDRESS_KIND) :: attr, extra_state
+            slot = int(slot_c)
+            if (.not. pgif_valid_win_slot(slot)) then
+                ierror_c = int(MPI_ERR_OTHER, c_int)
+                return
+            end if
+            win % MPI_VAL = win_c
+            keyval = int(keyval_c)
+            extra_state = pgif_win_slots(slot) % extra_state
+            attr = attr_c
+            ierror_f = MPI_SUCCESS
+            call pgif_win_slots(slot) % delete_fn(win, keyval, attr, extra_state, ierror_f)
+            ierror_c = int(ierror_f, c_int)
+        end subroutine VAPAA_PGIF_Win_delete_trampoline
+#endif
+
         subroutine make_c_string(f, c)
             character(len=*), intent(in) :: f
             character(kind=c_char), allocatable, intent(out) :: c(:)
@@ -234,54 +703,147 @@ module mpi_direct_callback_f
 
         subroutine MPI_Comm_create_keyval_f08(copy_fn, delete_fn, keyval, extra_state, ierror)
             use mpi_global_constants, only: MPI_ADDRESS_KIND
+#ifdef HAVE_PGIF
+            use mpi_error_f, only: MPI_ERR_NO_MEM
+#endif
             procedure(MPI_Comm_copy_attr_function) :: copy_fn
             procedure(MPI_Comm_delete_attr_function) :: delete_fn
             integer, intent(out) :: keyval
             integer(kind=MPI_ADDRESS_KIND), intent(in) :: extra_state
             integer, optional, intent(out) :: ierror
             integer(c_int) :: keyval_c, ierror_c
+#ifdef HAVE_PGIF
+            integer :: slot
+            integer(c_intptr_t) :: slot_c
+            slot = pgif_comm_slot_alloc(copy_fn, delete_fn, int(extra_state,c_intptr_t))
+            if (slot == 0) then
+                keyval = 0
+                call finish_ierror(ierror, int(MPI_ERR_NO_MEM, c_int))
+                return
+            end if
+            slot_c = int(slot, c_intptr_t)
+            call VAPAA_MPI_Comm_create_keyval(c_funloc(VAPAA_PGIF_Comm_copy_trampoline), &
+                                              c_funloc(VAPAA_PGIF_Comm_delete_trampoline), &
+                                              keyval_c, slot_c, ierror_c)
+            if (ierror_c == 0_c_int) then
+                pgif_comm_slots(slot) % keyval = keyval_c
+            else
+                call pgif_comm_slot_release(slot)
+            end if
+#else
             call VAPAA_MPI_Comm_create_keyval(c_funloc(copy_fn), c_funloc(delete_fn), keyval_c, &
                                               int(extra_state,c_intptr_t), ierror_c)
+#endif
             keyval = keyval_c
             call finish_ierror(ierror, ierror_c)
         end subroutine MPI_Comm_create_keyval_f08
 
         subroutine MPI_Type_create_keyval_f08(copy_fn, delete_fn, keyval, extra_state, ierror)
             use mpi_global_constants, only: MPI_ADDRESS_KIND
+#ifdef HAVE_PGIF
+            use mpi_error_f, only: MPI_ERR_NO_MEM
+#endif
             procedure(MPI_Type_copy_attr_function) :: copy_fn
             procedure(MPI_Type_delete_attr_function) :: delete_fn
             integer, intent(out) :: keyval
             integer(kind=MPI_ADDRESS_KIND), intent(in) :: extra_state
             integer, optional, intent(out) :: ierror
             integer(c_int) :: keyval_c, ierror_c
+#ifdef HAVE_PGIF
+            integer :: slot
+            integer(c_intptr_t) :: slot_c
+            slot = pgif_type_slot_alloc(copy_fn, delete_fn, int(extra_state,c_intptr_t))
+            if (slot == 0) then
+                keyval = 0
+                call finish_ierror(ierror, int(MPI_ERR_NO_MEM, c_int))
+                return
+            end if
+            slot_c = int(slot, c_intptr_t)
+            call VAPAA_MPI_Type_create_keyval(c_funloc(VAPAA_PGIF_Type_copy_trampoline), &
+                                              c_funloc(VAPAA_PGIF_Type_delete_trampoline), &
+                                              keyval_c, slot_c, ierror_c)
+            if (ierror_c == 0_c_int) then
+                pgif_type_slots(slot) % keyval = keyval_c
+            else
+                call pgif_type_slot_release(slot)
+            end if
+#else
             call VAPAA_MPI_Type_create_keyval(c_funloc(copy_fn), c_funloc(delete_fn), keyval_c, &
                                               int(extra_state,c_intptr_t), ierror_c)
+#endif
             keyval = keyval_c
             call finish_ierror(ierror, ierror_c)
         end subroutine MPI_Type_create_keyval_f08
 
         subroutine MPI_Win_create_keyval_f08(copy_fn, delete_fn, keyval, extra_state, ierror)
             use mpi_global_constants, only: MPI_ADDRESS_KIND
+#ifdef HAVE_PGIF
+            use mpi_error_f, only: MPI_ERR_NO_MEM
+#endif
             procedure(MPI_Win_copy_attr_function) :: copy_fn
             procedure(MPI_Win_delete_attr_function) :: delete_fn
             integer, intent(out) :: keyval
             integer(kind=MPI_ADDRESS_KIND), intent(in) :: extra_state
             integer, optional, intent(out) :: ierror
             integer(c_int) :: keyval_c, ierror_c
+#ifdef HAVE_PGIF
+            integer :: slot
+            integer(c_intptr_t) :: slot_c
+            slot = pgif_win_slot_alloc(copy_fn, delete_fn, int(extra_state,c_intptr_t))
+            if (slot == 0) then
+                keyval = 0
+                call finish_ierror(ierror, int(MPI_ERR_NO_MEM, c_int))
+                return
+            end if
+            slot_c = int(slot, c_intptr_t)
+            call VAPAA_MPI_Win_create_keyval(c_funloc(VAPAA_PGIF_Win_copy_trampoline), &
+                                             c_funloc(VAPAA_PGIF_Win_delete_trampoline), &
+                                             keyval_c, slot_c, ierror_c)
+            if (ierror_c == 0_c_int) then
+                pgif_win_slots(slot) % keyval = keyval_c
+            else
+                call pgif_win_slot_release(slot)
+            end if
+#else
             call VAPAA_MPI_Win_create_keyval(c_funloc(copy_fn), c_funloc(delete_fn), keyval_c, &
                                              int(extra_state,c_intptr_t), ierror_c)
+#endif
             keyval = keyval_c
             call finish_ierror(ierror, ierror_c)
         end subroutine MPI_Win_create_keyval_f08
 
         subroutine MPI_Keyval_create_f08(copy_fn, delete_fn, keyval, extra_state, ierror)
-            procedure() :: copy_fn, delete_fn
+#ifdef HAVE_PGIF
+            use mpi_error_f, only: MPI_ERR_NO_MEM
+#endif
+            procedure() :: copy_fn
+            procedure() :: delete_fn
             integer, intent(out) :: keyval
             integer, intent(in) :: extra_state
             integer, optional, intent(out) :: ierror
             integer(c_int) :: keyval_c, ierror_c
+#ifdef HAVE_PGIF
+            integer :: slot
+            integer(c_int) :: slot_c
+            slot = pgif_keyval_slot_alloc(copy_fn, delete_fn, int(extra_state,c_int))
+            if (slot == 0) then
+                keyval = 0
+                call finish_ierror(ierror, int(MPI_ERR_NO_MEM, c_int))
+                return
+            end if
+            slot_c = int(slot, c_int)
+            call VAPAA_MPI_Keyval_create(c_funloc(VAPAA_PGIF_Keyval_copy_trampoline), &
+                                         c_funloc(VAPAA_PGIF_Keyval_delete_trampoline), &
+                                         keyval_c, slot_c, ierror_c)
+            if (ierror_c == 0_c_int) then
+                pgif_keyval_slots(slot) % keyval = keyval_c
+            else
+                call pgif_keyval_slot_release(slot)
+            end if
+#else
             call VAPAA_MPI_Keyval_create(c_funloc(copy_fn), c_funloc(delete_fn), keyval_c, &
                                          int(extra_state,c_int), ierror_c)
+#endif
             keyval = keyval_c
             call finish_ierror(ierror, ierror_c)
         end subroutine MPI_Keyval_create_f08

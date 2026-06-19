@@ -13,6 +13,9 @@
 #include "detect_sentinels.h"
 #include "cfi_util.h"
 #include "debug.h"
+#ifdef HAVE_PGIF
+#include "pgif_util.h"
+#endif
 
 static bool C_MPI_REJECT_USER_OP_WITH_BUILTIN_TYPE(MPI_Op op, MPI_Datatype datatype)
 {
@@ -24,6 +27,238 @@ static bool C_MPI_REJECT_USER_OP_WITH_BUILTIN_TYPE(MPI_Op op, MPI_Datatype datat
     return !C_MPI_OP_IS_BUILTIN(op) && C_MPI_TYPE_IS_BUILTIN(datatype);
 #endif
 }
+
+static int C_MPI_Alltoallv_in_place(void *buffer, const int rcounts[],
+                                    const int rdisps[], MPI_Datatype rtype,
+                                    MPI_Comm comm);
+
+#ifdef HAVE_PGIF
+static int PGIF_MPI_REQUIRE_CONTIG(const VAPAA_PGIF_Desc *desc, MPI_Comm comm)
+{
+    if (VAPAA_PGIF_buffer_is_contiguous(desc)) {
+        return 1;
+    }
+    VAPAA_Warning("this MPI wrapper requires contiguous buffers.\n");
+    MPI_Abort(comm, 99);
+    return 0;
+}
+
+static void PGIF_MPI_FINISH2(VAPAA_PGIF_Buffer *a, VAPAA_PGIF_Buffer *b)
+{
+    int rc = VAPAA_PGIF_RELEASE_BUFFER(a);
+    VAPAA_Assert(rc == MPI_SUCCESS);
+    rc = VAPAA_PGIF_RELEASE_BUFFER(b);
+    VAPAA_Assert(rc == MPI_SUCCESS);
+}
+
+void pgif_mpi_bcast_(void *buffer, int *count, int *datatype_f, int *root,
+                     int *comm_f, int *ierror, VAPAA_PGIF_Desc *buffer_desc)
+{
+    MPI_Datatype datatype = C_MPI_TYPE_FROMINT(*datatype_f);
+    MPI_Comm comm = C_MPI_COMM_FROMINT(*comm_f);
+    VAPAA_PGIF_Buffer b;
+    int rc = VAPAA_PGIF_PREPARE_BUFFER(buffer, buffer_desc, *count, datatype,
+                                       false, &b);
+    VAPAA_Assert(rc == MPI_SUCCESS);
+    *ierror = MPI_Bcast(b.addr, b.count, b.datatype, C_MPI_ROOT_F2C(*root),
+                        comm);
+    rc = VAPAA_PGIF_RELEASE_BUFFER(&b);
+    VAPAA_Assert(rc == MPI_SUCCESS);
+    C_MPI_RC_FIX(*ierror);
+}
+
+void pgif_mpi_reduce_(void *input, void *output, int *count, int *datatype_f,
+                      int *op_f, int *root, int *comm_f, int *ierror,
+                      VAPAA_PGIF_Desc *input_desc,
+                      VAPAA_PGIF_Desc *output_desc)
+{
+    MPI_Datatype datatype = C_MPI_TYPE_FROMINT(*datatype_f);
+    MPI_Op op = C_MPI_OP_FROMINT(*op_f);
+    if (C_MPI_REJECT_USER_OP_WITH_BUILTIN_TYPE(op, datatype)) {
+        VAPAA_Warning("user-def reduce op with built-in type is not supported. See docs.\n");
+        *ierror = MPI_ERR_OP;
+        C_MPI_RC_FIX(*ierror);
+        return;
+    }
+    MPI_Comm comm = C_MPI_COMM_FROMINT(*comm_f);
+    if (!PGIF_MPI_REQUIRE_CONTIG(input_desc, comm) ||
+        !PGIF_MPI_REQUIRE_CONTIG(output_desc, comm)) {
+        return;
+    }
+    *ierror = MPI_Reduce(VAPAA_PGIF_IN_ADDR(input), VAPAA_PGIF_IN_ADDR(output),
+                         *count, datatype, op, C_MPI_ROOT_F2C(*root), comm);
+    C_MPI_RC_FIX(*ierror);
+}
+
+void pgif_mpi_allreduce_(void *input, void *output, int *count,
+                         int *datatype_f, int *op_f, int *comm_f,
+                         int *ierror, VAPAA_PGIF_Desc *input_desc,
+                         VAPAA_PGIF_Desc *output_desc)
+{
+    MPI_Datatype datatype = C_MPI_TYPE_FROMINT(*datatype_f);
+    MPI_Op op = C_MPI_OP_FROMINT(*op_f);
+    if (C_MPI_REJECT_USER_OP_WITH_BUILTIN_TYPE(op, datatype)) {
+        VAPAA_Warning("user-def reduce op with built-in type is not supported. See docs.\n");
+        *ierror = MPI_ERR_OP;
+        C_MPI_RC_FIX(*ierror);
+        return;
+    }
+    MPI_Comm comm = C_MPI_COMM_FROMINT(*comm_f);
+    if (!PGIF_MPI_REQUIRE_CONTIG(input_desc, comm) ||
+        !PGIF_MPI_REQUIRE_CONTIG(output_desc, comm)) {
+        return;
+    }
+    *ierror = MPI_Allreduce(VAPAA_PGIF_IN_ADDR(input),
+                            VAPAA_PGIF_IN_ADDR(output), *count, datatype, op,
+                            comm);
+    C_MPI_RC_FIX(*ierror);
+}
+
+#define PGIF_COLL_SIMPLE2_ROOT(name, mpi_fn)                                           \
+void name(void *input, int *scount, int *stype_f, void *output, int *rcount,          \
+          int *rtype_f, int *root, int *comm_f, int *ierror,                          \
+          VAPAA_PGIF_Desc *input_desc, VAPAA_PGIF_Desc *output_desc)                  \
+{                                                                                     \
+    MPI_Datatype stype = C_MPI_TYPE_FROMINT(*stype_f);                                \
+    MPI_Datatype rtype = C_MPI_TYPE_FROMINT(*rtype_f);                                \
+    MPI_Comm comm = C_MPI_COMM_FROMINT(*comm_f);                                      \
+    VAPAA_PGIF_Buffer inbuf, outbuf;                                                  \
+    int rc = VAPAA_PGIF_PREPARE_BUFFER(input, input_desc, *scount, stype, true,       \
+                                       &inbuf);                                       \
+    VAPAA_Assert(rc == MPI_SUCCESS);                                                  \
+    rc = VAPAA_PGIF_PREPARE_BUFFER(output, output_desc, *rcount, rtype, true,         \
+                                   &outbuf);                                          \
+    VAPAA_Assert(rc == MPI_SUCCESS);                                                  \
+    *ierror = mpi_fn(inbuf.addr, inbuf.count, inbuf.datatype, outbuf.addr,            \
+                     outbuf.count, outbuf.datatype, C_MPI_ROOT_F2C(*root), comm);     \
+    PGIF_MPI_FINISH2(&inbuf, &outbuf);                                                \
+    C_MPI_RC_FIX(*ierror);                                                            \
+}
+
+#define PGIF_COLL_SIMPLE2(name, mpi_fn)                                               \
+void name(void *input, int *scount, int *stype_f, void *output, int *rcount,          \
+          int *rtype_f, int *comm_f, int *ierror, VAPAA_PGIF_Desc *input_desc,        \
+          VAPAA_PGIF_Desc *output_desc)                                               \
+{                                                                                     \
+    MPI_Datatype stype = C_MPI_TYPE_FROMINT(*stype_f);                                \
+    MPI_Datatype rtype = C_MPI_TYPE_FROMINT(*rtype_f);                                \
+    MPI_Comm comm = C_MPI_COMM_FROMINT(*comm_f);                                      \
+    VAPAA_PGIF_Buffer inbuf, outbuf;                                                  \
+    int rc = VAPAA_PGIF_PREPARE_BUFFER(input, input_desc, *scount, stype, true,       \
+                                       &inbuf);                                       \
+    VAPAA_Assert(rc == MPI_SUCCESS);                                                  \
+    rc = VAPAA_PGIF_PREPARE_BUFFER(output, output_desc, *rcount, rtype, true,         \
+                                   &outbuf);                                          \
+    VAPAA_Assert(rc == MPI_SUCCESS);                                                  \
+    *ierror = mpi_fn(inbuf.addr, inbuf.count, inbuf.datatype, outbuf.addr,            \
+                     outbuf.count, outbuf.datatype, comm);                            \
+    PGIF_MPI_FINISH2(&inbuf, &outbuf);                                                \
+    C_MPI_RC_FIX(*ierror);                                                            \
+}
+
+PGIF_COLL_SIMPLE2_ROOT(pgif_mpi_gather_, MPI_Gather)
+PGIF_COLL_SIMPLE2(pgif_mpi_allgather_, MPI_Allgather)
+PGIF_COLL_SIMPLE2_ROOT(pgif_mpi_scatter_, MPI_Scatter)
+PGIF_COLL_SIMPLE2(pgif_mpi_alltoall_, MPI_Alltoall)
+
+void pgif_mpi_gatherv_(void *input, int *scount, int *stype_f, void *output,
+                       const int rcounts[], const int rdisps[], int *rtype_f,
+                       int *root, int *comm_f, int *ierror,
+                       VAPAA_PGIF_Desc *input_desc,
+                       VAPAA_PGIF_Desc *output_desc)
+{
+    MPI_Datatype stype = C_MPI_TYPE_FROMINT(*stype_f);
+    MPI_Datatype rtype = C_MPI_TYPE_FROMINT(*rtype_f);
+    MPI_Comm comm = C_MPI_COMM_FROMINT(*comm_f);
+    if (!PGIF_MPI_REQUIRE_CONTIG(output_desc, comm)) {
+        return;
+    }
+    VAPAA_PGIF_Buffer inbuf;
+    int rc = VAPAA_PGIF_PREPARE_BUFFER(input, input_desc, *scount, stype, true,
+                                       &inbuf);
+    VAPAA_Assert(rc == MPI_SUCCESS);
+    *ierror = MPI_Gatherv(inbuf.addr, inbuf.count, inbuf.datatype,
+                          VAPAA_PGIF_IN_ADDR(output), rcounts, rdisps, rtype,
+                          C_MPI_ROOT_F2C(*root), comm);
+    rc = VAPAA_PGIF_RELEASE_BUFFER(&inbuf);
+    VAPAA_Assert(rc == MPI_SUCCESS);
+    C_MPI_RC_FIX(*ierror);
+}
+
+void pgif_mpi_allgatherv_(void *input, int *scount, int *stype_f,
+                          void *output, const int rcounts[],
+                          const int rdisps[], int *rtype_f, int *comm_f,
+                          int *ierror, VAPAA_PGIF_Desc *input_desc,
+                          VAPAA_PGIF_Desc *output_desc)
+{
+    MPI_Datatype stype = C_MPI_TYPE_FROMINT(*stype_f);
+    MPI_Datatype rtype = C_MPI_TYPE_FROMINT(*rtype_f);
+    MPI_Comm comm = C_MPI_COMM_FROMINT(*comm_f);
+    if (!PGIF_MPI_REQUIRE_CONTIG(output_desc, comm)) {
+        return;
+    }
+    VAPAA_PGIF_Buffer inbuf;
+    int rc = VAPAA_PGIF_PREPARE_BUFFER(input, input_desc, *scount, stype, true,
+                                       &inbuf);
+    VAPAA_Assert(rc == MPI_SUCCESS);
+    *ierror = MPI_Allgatherv(inbuf.addr, inbuf.count, inbuf.datatype,
+                             VAPAA_PGIF_IN_ADDR(output), rcounts, rdisps, rtype,
+                             comm);
+    rc = VAPAA_PGIF_RELEASE_BUFFER(&inbuf);
+    VAPAA_Assert(rc == MPI_SUCCESS);
+    C_MPI_RC_FIX(*ierror);
+}
+
+void pgif_mpi_scatterv_(void *input, const int scounts[], const int sdisps[],
+                        int *stype_f, void *output, int *rcount, int *rtype_f,
+                        int *root, int *comm_f, int *ierror,
+                        VAPAA_PGIF_Desc *input_desc,
+                        VAPAA_PGIF_Desc *output_desc)
+{
+    MPI_Datatype stype = C_MPI_TYPE_FROMINT(*stype_f);
+    MPI_Datatype rtype = C_MPI_TYPE_FROMINT(*rtype_f);
+    MPI_Comm comm = C_MPI_COMM_FROMINT(*comm_f);
+    if (!PGIF_MPI_REQUIRE_CONTIG(input_desc, comm)) {
+        return;
+    }
+    VAPAA_PGIF_Buffer outbuf;
+    int rc = VAPAA_PGIF_PREPARE_BUFFER(output, output_desc, *rcount, rtype,
+                                       true, &outbuf);
+    VAPAA_Assert(rc == MPI_SUCCESS);
+    *ierror = MPI_Scatterv(VAPAA_PGIF_IN_ADDR(input), scounts, sdisps, stype,
+                           outbuf.addr, outbuf.count, outbuf.datatype,
+                           C_MPI_ROOT_F2C(*root), comm);
+    rc = VAPAA_PGIF_RELEASE_BUFFER(&outbuf);
+    VAPAA_Assert(rc == MPI_SUCCESS);
+    C_MPI_RC_FIX(*ierror);
+}
+
+void pgif_mpi_alltoallv_(void *input, const int scounts[],
+                         const int sdisps[], int *stype_f, void *output,
+                         const int rcounts[], const int rdisps[],
+                         int *rtype_f, int *comm_f, int *ierror,
+                         VAPAA_PGIF_Desc *input_desc,
+                         VAPAA_PGIF_Desc *output_desc)
+{
+    MPI_Datatype stype = C_MPI_TYPE_FROMINT(*stype_f);
+    MPI_Datatype rtype = C_MPI_TYPE_FROMINT(*rtype_f);
+    MPI_Comm comm = C_MPI_COMM_FROMINT(*comm_f);
+    if (!PGIF_MPI_REQUIRE_CONTIG(input_desc, comm) ||
+        !PGIF_MPI_REQUIRE_CONTIG(output_desc, comm)) {
+        return;
+    }
+    void *in_addr = VAPAA_PGIF_IN_ADDR(input);
+    void *out_addr = VAPAA_PGIF_IN_ADDR(output);
+    if (in_addr == MPI_IN_PLACE) {
+        *ierror = C_MPI_Alltoallv_in_place(out_addr, rcounts, rdisps, rtype,
+                                           comm);
+    } else {
+        *ierror = MPI_Alltoallv(in_addr, scounts, sdisps, stype, out_addr,
+                                rcounts, rdisps, rtype, comm);
+    }
+    C_MPI_RC_FIX(*ierror);
+}
+#endif
 
 static int C_MPI_Alltoallv_in_place(void *buffer, const int rcounts[], const int rdisps[],
                                     MPI_Datatype rtype, MPI_Comm comm)

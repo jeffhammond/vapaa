@@ -93,6 +93,104 @@ module mpi_direct_misc_c
             integer(kind=c_int), intent(in) :: outcount, datatype
             integer(kind=c_int), intent(out) :: ierror
         end subroutine VAPAA_MPI_Unpack_external
+#elif defined(HAVE_PGIF)
+        subroutine VAPAA_MPI_Sendrecv_replace(buf, count, datatype, dest, sendtag, source, recvtag, comm, &
+                                             status, ierror)
+            use iso_c_binding, only: c_int
+            use mpi_handle_types, only: MPI_Status
+            implicit none
+            type(*), dimension(..), intent(inout) :: buf
+!pgi$ ignore_tkr(c) buf
+            integer(kind=c_int), intent(in) :: count, datatype, dest, sendtag, source, recvtag, comm
+            type(MPI_Status), intent(out) :: status
+            integer(kind=c_int), intent(out) :: ierror
+        end subroutine VAPAA_MPI_Sendrecv_replace
+
+        subroutine VAPAA_MPI_Scan(sendbuf, recvbuf, count, datatype, op, comm, ierror)
+            use iso_c_binding, only: c_int
+            implicit none
+            type(*), dimension(..), intent(in) :: sendbuf
+!pgi$ ignore_tkr(c) sendbuf
+            type(*), dimension(..) :: recvbuf
+!pgi$ ignore_tkr(c) recvbuf
+            integer(kind=c_int), intent(in) :: count, datatype, op, comm
+            integer(kind=c_int), intent(out) :: ierror
+        end subroutine VAPAA_MPI_Scan
+
+        subroutine VAPAA_MPI_Exscan(sendbuf, recvbuf, count, datatype, op, comm, ierror)
+            use iso_c_binding, only: c_int
+            implicit none
+            type(*), dimension(..), intent(in) :: sendbuf
+!pgi$ ignore_tkr(c) sendbuf
+            type(*), dimension(..) :: recvbuf
+!pgi$ ignore_tkr(c) recvbuf
+            integer(kind=c_int), intent(in) :: count, datatype, op, comm
+            integer(kind=c_int), intent(out) :: ierror
+        end subroutine VAPAA_MPI_Exscan
+
+        subroutine VAPAA_MPI_Reduce_scatter(sendbuf, recvbuf, recvcounts, datatype, op, comm, ierror)
+            use iso_c_binding, only: c_int
+            implicit none
+            type(*), dimension(..), intent(in) :: sendbuf
+!pgi$ ignore_tkr(c) sendbuf
+            type(*), dimension(..) :: recvbuf
+!pgi$ ignore_tkr(c) recvbuf
+            integer(kind=c_int), intent(in) :: recvcounts(*)
+            integer(kind=c_int), intent(in) :: datatype, op, comm
+            integer(kind=c_int), intent(out) :: ierror
+        end subroutine VAPAA_MPI_Reduce_scatter
+
+        subroutine VAPAA_MPI_Reduce_scatter_block(sendbuf, recvbuf, recvcount, datatype, op, comm, ierror)
+            use iso_c_binding, only: c_int
+            implicit none
+            type(*), dimension(..), intent(in) :: sendbuf
+!pgi$ ignore_tkr(c) sendbuf
+            type(*), dimension(..) :: recvbuf
+!pgi$ ignore_tkr(c) recvbuf
+            integer(kind=c_int), intent(in) :: recvcount, datatype, op, comm
+            integer(kind=c_int), intent(out) :: ierror
+        end subroutine VAPAA_MPI_Reduce_scatter_block
+
+        subroutine VAPAA_MPI_Reduce_local(inbuf, inoutbuf, count, datatype, op, ierror)
+            use iso_c_binding, only: c_int
+            implicit none
+            type(*), dimension(..), intent(in) :: inbuf
+!pgi$ ignore_tkr(c) inbuf
+            type(*), dimension(..), intent(inout) :: inoutbuf
+!pgi$ ignore_tkr(c) inoutbuf
+            integer(kind=c_int), intent(in) :: count, datatype, op
+            integer(kind=c_int), intent(out) :: ierror
+        end subroutine VAPAA_MPI_Reduce_local
+
+        subroutine VAPAA_MPI_Pack_external(datarep, inbuf, incount, datatype, outbuf, outsize, position, &
+                                           ierror)
+            use iso_c_binding, only: c_char, c_int, c_intptr_t
+            implicit none
+            character(kind=c_char), intent(in) :: datarep(*)
+            type(*), dimension(..), intent(in) :: inbuf
+!pgi$ ignore_tkr(c) inbuf
+            integer(kind=c_int), intent(in) :: incount, datatype
+            type(*), dimension(..) :: outbuf
+!pgi$ ignore_tkr(c) outbuf
+            integer(kind=c_intptr_t), intent(in) :: outsize
+            integer(kind=c_intptr_t), intent(inout) :: position
+            integer(kind=c_int), intent(out) :: ierror
+        end subroutine VAPAA_MPI_Pack_external
+
+        subroutine VAPAA_MPI_Unpack_external(datarep, inbuf, insize, position, outbuf, outcount, datatype, &
+                                             ierror)
+            use iso_c_binding, only: c_char, c_int, c_intptr_t
+            implicit none
+            character(kind=c_char), intent(in) :: datarep(*)
+            type(*), dimension(..), intent(in) :: inbuf
+!pgi$ ignore_tkr(c) inbuf
+            integer(kind=c_intptr_t), intent(in) :: insize
+            integer(kind=c_intptr_t), intent(inout) :: position
+            type(*), dimension(..) :: outbuf
+!pgi$ ignore_tkr(c) outbuf
+            integer(kind=c_int), intent(in) :: outcount, datatype
+            integer(kind=c_int), intent(out) :: ierror
+        end subroutine VAPAA_MPI_Unpack_external
 #endif
 
         subroutine VAPAA_MPI_Pack_size(incount, datatype, comm, size, ierror) bind(C,name="VAPAA_MPI_Pack_size")

@@ -11,6 +11,9 @@
 #include "detect_sentinels.h"
 #include "cfi_util.h"
 #include "debug.h"
+#ifdef HAVE_PGIF
+#include "pgif_util.h"
+#endif
 
 static bool VAPAA_REJECT_USER_OP_WITH_BUILTIN_TYPE(MPI_Op op, MPI_Datatype datatype)
 {
@@ -184,6 +187,194 @@ void VAPAA_MPI_Unpack_external(const char datarep[], CFI_cdesc_t *inbuf, intptr_
         *ierror = MPI_Unpack_external(datarep, VAPAA_ADDR(inbuf), (MPI_Aint)*insize, &pos,
                                       VAPAA_ADDR(outbuf), *outcount, datatype);
         *position = (intptr_t)pos;
+    } else {
+        *ierror = MPI_ERR_BUFFER;
+    }
+    C_MPI_RC_FIX(*ierror);
+}
+#endif
+
+#ifdef HAVE_PGIF
+static int VAPAA_PGIF_REQUIRE_CONTIG2_MISC(const VAPAA_PGIF_Desc *a,
+                                           const VAPAA_PGIF_Desc *b,
+                                           MPI_Comm comm)
+{
+    if (VAPAA_PGIF_buffer_is_contiguous(a) &&
+        VAPAA_PGIF_buffer_is_contiguous(b)) {
+        return 1;
+    }
+    VAPAA_Warning("this MPI wrapper requires contiguous buffers.\n");
+    MPI_Abort(comm, 99);
+    return 0;
+}
+
+void vapaa_mpi_sendrecv_replace_(void *buf, int *count, int *datatype_f,
+                                 int *dest, int *sendtag, int *source,
+                                 int *recvtag, int *comm_f,
+                                 struct F_MPI_Status *status, int *ierror,
+                                 VAPAA_PGIF_Desc *buf_desc)
+{
+    MPI_Datatype datatype = C_MPI_TYPE_FROMINT(*datatype_f);
+    MPI_Comm comm = C_MPI_COMM_FROMINT(*comm_f);
+    if (VAPAA_PGIF_buffer_is_contiguous(buf_desc)) {
+        MPI_Status status_c = {0};
+        MPI_Status *status_arg = MPI_STATUS_IGNORE;
+        if (!C_IS_MPI_STATUS_IGNORE(status)) {
+            status_c.MPI_ERROR = status->MPI_ERROR;
+            status_arg = &status_c;
+        }
+        *ierror = MPI_Sendrecv_replace(VAPAA_PGIF_ADDR(buf), *count,
+                                       datatype, C_MPI_DEST_F2C(*dest),
+                                       C_MPI_TAG_F2C(*sendtag),
+                                       C_MPI_SOURCE_F2C(*source),
+                                       C_MPI_TAG_F2C(*recvtag), comm,
+                                       status_arg);
+        if (!C_IS_MPI_STATUS_IGNORE(status)) {
+            C_MPI_STATUS_FROM_C(&status_c, status);
+        }
+    } else {
+        VAPAA_Warning("MPI_Sendrecv_replace requires a contiguous buffer.\n");
+        MPI_Abort(comm, 99);
+    }
+    C_MPI_RC_FIX(*ierror);
+}
+
+#define VAPAA_PGIF_SCANLIKE_WRAPPER(name, mpi_fn)                              \
+void name(void *sendbuf, void *recvbuf, int *count, int *datatype_f,          \
+          int *op_f, int *comm_f, int *ierror, VAPAA_PGIF_Desc *send_desc,    \
+          VAPAA_PGIF_Desc *recv_desc)                                         \
+{                                                                             \
+    MPI_Datatype datatype = C_MPI_TYPE_FROMINT(*datatype_f);                  \
+    MPI_Op op = C_MPI_OP_FROMINT(*op_f);                                      \
+    MPI_Comm comm = C_MPI_COMM_FROMINT(*comm_f);                              \
+    if (VAPAA_REJECT_USER_OP_WITH_BUILTIN_TYPE(op, datatype)) {               \
+        VAPAA_Warning("user-defined reduce op with built-in type is not supported without the MPI-5 ABI.\n"); \
+        *ierror = MPI_ERR_OP;                                                 \
+        C_MPI_RC_FIX(*ierror);                                                \
+        return;                                                               \
+    }                                                                         \
+    if (VAPAA_PGIF_REQUIRE_CONTIG2_MISC(send_desc, recv_desc, comm)) {        \
+        void *saddr = C_IS_MPI_IN_PLACE(sendbuf) ? MPI_IN_PLACE :             \
+                      VAPAA_PGIF_ADDR(sendbuf);                               \
+        *ierror = mpi_fn(saddr, VAPAA_PGIF_ADDR(recvbuf), *count, datatype,   \
+                         op, comm);                                           \
+    }                                                                         \
+    C_MPI_RC_FIX(*ierror);                                                    \
+}
+
+VAPAA_PGIF_SCANLIKE_WRAPPER(vapaa_mpi_scan_, MPI_Scan)
+VAPAA_PGIF_SCANLIKE_WRAPPER(vapaa_mpi_exscan_, MPI_Exscan)
+
+void vapaa_mpi_reduce_scatter_(void *sendbuf, void *recvbuf,
+                               const int recvcounts[], int *datatype_f,
+                               int *op_f, int *comm_f, int *ierror,
+                               VAPAA_PGIF_Desc *send_desc,
+                               VAPAA_PGIF_Desc *recv_desc)
+{
+    MPI_Datatype datatype = C_MPI_TYPE_FROMINT(*datatype_f);
+    MPI_Op op = C_MPI_OP_FROMINT(*op_f);
+    MPI_Comm comm = C_MPI_COMM_FROMINT(*comm_f);
+    if (VAPAA_REJECT_USER_OP_WITH_BUILTIN_TYPE(op, datatype)) {
+        VAPAA_Warning("user-defined reduce op with built-in type is not supported without the MPI-5 ABI.\n");
+        *ierror = MPI_ERR_OP;
+        C_MPI_RC_FIX(*ierror);
+        return;
+    }
+    if (VAPAA_PGIF_REQUIRE_CONTIG2_MISC(send_desc, recv_desc, comm)) {
+        void *saddr = C_IS_MPI_IN_PLACE(sendbuf) ? MPI_IN_PLACE :
+                      VAPAA_PGIF_ADDR(sendbuf);
+        *ierror = MPI_Reduce_scatter(saddr, VAPAA_PGIF_ADDR(recvbuf),
+                                     recvcounts, datatype, op, comm);
+    }
+    C_MPI_RC_FIX(*ierror);
+}
+
+void vapaa_mpi_reduce_scatter_block_(void *sendbuf, void *recvbuf,
+                                     int *recvcount, int *datatype_f,
+                                     int *op_f, int *comm_f, int *ierror,
+                                     VAPAA_PGIF_Desc *send_desc,
+                                     VAPAA_PGIF_Desc *recv_desc)
+{
+    MPI_Datatype datatype = C_MPI_TYPE_FROMINT(*datatype_f);
+    MPI_Op op = C_MPI_OP_FROMINT(*op_f);
+    MPI_Comm comm = C_MPI_COMM_FROMINT(*comm_f);
+    if (VAPAA_REJECT_USER_OP_WITH_BUILTIN_TYPE(op, datatype)) {
+        VAPAA_Warning("user-defined reduce op with built-in type is not supported without the MPI-5 ABI.\n");
+        *ierror = MPI_ERR_OP;
+        C_MPI_RC_FIX(*ierror);
+        return;
+    }
+    if (VAPAA_PGIF_REQUIRE_CONTIG2_MISC(send_desc, recv_desc, comm)) {
+        void *saddr = C_IS_MPI_IN_PLACE(sendbuf) ? MPI_IN_PLACE :
+                      VAPAA_PGIF_ADDR(sendbuf);
+        *ierror = MPI_Reduce_scatter_block(saddr, VAPAA_PGIF_ADDR(recvbuf),
+                                           *recvcount, datatype, op, comm);
+    }
+    C_MPI_RC_FIX(*ierror);
+}
+
+void vapaa_mpi_reduce_local_(void *inbuf, void *inoutbuf, int *count,
+                             int *datatype_f, int *op_f, int *ierror,
+                             VAPAA_PGIF_Desc *in_desc,
+                             VAPAA_PGIF_Desc *inout_desc)
+{
+    MPI_Datatype datatype = C_MPI_TYPE_FROMINT(*datatype_f);
+    MPI_Op op = C_MPI_OP_FROMINT(*op_f);
+    if (VAPAA_REJECT_USER_OP_WITH_BUILTIN_TYPE(op, datatype)) {
+        VAPAA_Warning("user-defined reduce op with built-in type is not supported without the MPI-5 ABI.\n");
+        *ierror = MPI_ERR_OP;
+    } else if (VAPAA_PGIF_buffer_is_contiguous(in_desc) &&
+               VAPAA_PGIF_buffer_is_contiguous(inout_desc)) {
+        *ierror = MPI_Reduce_local(VAPAA_PGIF_ADDR(inbuf),
+                                   VAPAA_PGIF_ADDR(inoutbuf), *count,
+                                   datatype, op);
+    } else {
+        *ierror = MPI_ERR_ARG;
+    }
+    C_MPI_RC_FIX(*ierror);
+}
+
+void vapaa_mpi_pack_external_(const char datarep[], void *inbuf,
+                              int *incount, int *datatype_f, void *outbuf,
+                              intptr_t *outsize, intptr_t *position,
+                              int *ierror, VAPAA_PGIF_Desc *in_desc,
+                              VAPAA_PGIF_Desc *out_desc)
+{
+    MPI_Datatype datatype = C_MPI_TYPE_FROMINT(*datatype_f);
+    if (!VAPAA_PGIF_buffer_is_contiguous(out_desc)) {
+        VAPAA_Warning("MPI_Pack_external requires the output buffer be contiguous.\n");
+        *ierror = MPI_ERR_BUFFER;
+    } else if (VAPAA_PGIF_buffer_is_contiguous(in_desc)) {
+        MPI_Aint pos = (MPI_Aint) *position;
+        *ierror = MPI_Pack_external(datarep, VAPAA_PGIF_ADDR(inbuf),
+                                    *incount, datatype,
+                                    VAPAA_PGIF_ADDR(outbuf),
+                                    (MPI_Aint) *outsize, &pos);
+        *position = (intptr_t) pos;
+    } else {
+        *ierror = MPI_ERR_BUFFER;
+    }
+    C_MPI_RC_FIX(*ierror);
+}
+
+void vapaa_mpi_unpack_external_(const char datarep[], void *inbuf,
+                                intptr_t *insize, intptr_t *position,
+                                void *outbuf, int *outcount,
+                                int *datatype_f, int *ierror,
+                                VAPAA_PGIF_Desc *in_desc,
+                                VAPAA_PGIF_Desc *out_desc)
+{
+    MPI_Datatype datatype = C_MPI_TYPE_FROMINT(*datatype_f);
+    if (!VAPAA_PGIF_buffer_is_contiguous(in_desc)) {
+        VAPAA_Warning("MPI_Unpack_external requires the input buffer be contiguous.\n");
+        *ierror = MPI_ERR_BUFFER;
+    } else if (VAPAA_PGIF_buffer_is_contiguous(out_desc)) {
+        MPI_Aint pos = (MPI_Aint) *position;
+        *ierror = MPI_Unpack_external(datarep, VAPAA_PGIF_ADDR(inbuf),
+                                      (MPI_Aint) *insize, &pos,
+                                      VAPAA_PGIF_ADDR(outbuf), *outcount,
+                                      datatype);
+        *position = (intptr_t) pos;
     } else {
         *ierror = MPI_ERR_BUFFER;
     }

@@ -4,7 +4,7 @@ module mpi_direct_misc_f
     use iso_c_binding, only: c_char, c_int, c_intptr_t, c_null_char
     implicit none
 
-#ifdef HAVE_CFI
+#if defined(HAVE_CFI) || defined(HAVE_PGIF)
     interface MPI_Sendrecv_replace
         module procedure MPI_Sendrecv_replace_f08ts
     end interface
@@ -55,11 +55,12 @@ module mpi_direct_misc_f
             end do
         end subroutine make_c_string
 
-#ifdef HAVE_CFI
+#if defined(HAVE_CFI) || defined(HAVE_PGIF)
         subroutine MPI_Sendrecv_replace_f08ts(buf, count, datatype, dest, sendtag, source, recvtag, comm, status, ierror)
             use mpi_handle_types, only: MPI_Comm, MPI_Datatype, MPI_Status
             use mpi_direct_misc_c, only: VAPAA_MPI_Sendrecv_replace
             type(*), dimension(..), intent(inout) :: buf
+!pgi$ ignore_tkr(c) buf
             integer, intent(in) :: count, dest, sendtag, source, recvtag
             type(MPI_Datatype), intent(in) :: datatype
             type(MPI_Comm), intent(in) :: comm
@@ -76,7 +77,9 @@ module mpi_direct_misc_f
             use mpi_handle_types, only: MPI_Comm, MPI_Datatype, MPI_Op
             use mpi_direct_misc_c, only: VAPAA_MPI_Scan
             type(*), dimension(..), intent(in) :: sendbuf
+!pgi$ ignore_tkr(c) sendbuf
             type(*), dimension(..) :: recvbuf
+!pgi$ ignore_tkr(c) recvbuf
             integer, intent(in) :: count
             type(MPI_Datatype), intent(in) :: datatype
             type(MPI_Op), intent(in) :: op
@@ -92,7 +95,9 @@ module mpi_direct_misc_f
             use mpi_handle_types, only: MPI_Comm, MPI_Datatype, MPI_Op
             use mpi_direct_misc_c, only: VAPAA_MPI_Exscan
             type(*), dimension(..), intent(in) :: sendbuf
+!pgi$ ignore_tkr(c) sendbuf
             type(*), dimension(..) :: recvbuf
+!pgi$ ignore_tkr(c) recvbuf
             integer, intent(in) :: count
             type(MPI_Datatype), intent(in) :: datatype
             type(MPI_Op), intent(in) :: op
@@ -108,7 +113,9 @@ module mpi_direct_misc_f
             use mpi_handle_types, only: MPI_Comm, MPI_Datatype, MPI_Op
             use mpi_direct_misc_c, only: VAPAA_MPI_Reduce_scatter
             type(*), dimension(..), intent(in) :: sendbuf
+!pgi$ ignore_tkr(c) sendbuf
             type(*), dimension(..) :: recvbuf
+!pgi$ ignore_tkr(c) recvbuf
             integer, intent(in) :: recvcounts(*)
             type(MPI_Datatype), intent(in) :: datatype
             type(MPI_Op), intent(in) :: op
@@ -124,7 +131,9 @@ module mpi_direct_misc_f
             use mpi_handle_types, only: MPI_Comm, MPI_Datatype, MPI_Op
             use mpi_direct_misc_c, only: VAPAA_MPI_Reduce_scatter_block
             type(*), dimension(..), intent(in) :: sendbuf
+!pgi$ ignore_tkr(c) sendbuf
             type(*), dimension(..) :: recvbuf
+!pgi$ ignore_tkr(c) recvbuf
             integer, intent(in) :: recvcount
             type(MPI_Datatype), intent(in) :: datatype
             type(MPI_Op), intent(in) :: op
@@ -140,7 +149,9 @@ module mpi_direct_misc_f
             use mpi_handle_types, only: MPI_Datatype, MPI_Op
             use mpi_direct_misc_c, only: VAPAA_MPI_Reduce_local
             type(*), dimension(..), intent(in) :: inbuf
+!pgi$ ignore_tkr(c) inbuf
             type(*), dimension(..), intent(inout) :: inoutbuf
+!pgi$ ignore_tkr(c) inoutbuf
             integer, intent(in) :: count
             type(MPI_Datatype), intent(in) :: datatype
             type(MPI_Op), intent(in) :: op
@@ -156,9 +167,11 @@ module mpi_direct_misc_f
             use mpi_direct_misc_c, only: VAPAA_MPI_Pack_external
             character(len=*), intent(in) :: datarep
             type(*), dimension(..), intent(in) :: inbuf
+!pgi$ ignore_tkr(c) inbuf
             integer, intent(in) :: incount
             type(MPI_Datatype), intent(in) :: datatype
             type(*), dimension(..) :: outbuf
+!pgi$ ignore_tkr(c) outbuf
             integer(kind=MPI_ADDRESS_KIND), intent(in) :: outsize
             integer(kind=MPI_ADDRESS_KIND), intent(inout) :: position
             integer, optional, intent(out) :: ierror
@@ -177,9 +190,11 @@ module mpi_direct_misc_f
             use mpi_direct_misc_c, only: VAPAA_MPI_Unpack_external
             character(len=*), intent(in) :: datarep
             type(*), dimension(..), intent(in) :: inbuf
+!pgi$ ignore_tkr(c) inbuf
             integer(kind=MPI_ADDRESS_KIND), intent(in) :: insize
             integer(kind=MPI_ADDRESS_KIND), intent(inout) :: position
             type(*), dimension(..) :: outbuf
+!pgi$ ignore_tkr(c) outbuf
             integer, intent(in) :: outcount
             type(MPI_Datatype), intent(in) :: datatype
             integer, optional, intent(out) :: ierror

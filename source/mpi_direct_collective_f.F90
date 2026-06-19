@@ -6,7 +6,7 @@ module mpi_direct_collective_f
     use mpi_handle_types, only: MPI_Comm, MPI_Datatype, MPI_Info, MPI_Op, MPI_Request
     implicit none
 
-#ifdef HAVE_CFI
+#if defined(HAVE_CFI) || defined(HAVE_PGIF)
     interface MPI_Alltoallw
         module procedure MPI_Alltoallw_f08ts
     end interface
@@ -166,6 +166,7 @@ module mpi_direct_collective_f
         module procedure MPI_Neighbor_alltoallw_init_f08ts
     end interface
 
+#ifdef HAVE_CFI
     interface
         subroutine VAPAA_MPI_Alltoallw(sendbuf, sendcounts, sdispls, sendtypes, recvbuf, recvcounts, &
                                        rdispls, recvtypes, comm, ierror) bind(C,name="VAPAA_MPI_Alltoallw")
@@ -173,9 +174,11 @@ module mpi_direct_collective_f
             use mpi_handle_types, only: MPI_Datatype
             implicit none
             type(*), dimension(..), intent(in) :: sendbuf
+!pgi$ ignore_tkr(c) sendbuf
             integer(c_int), intent(in) :: sendcounts(*), sdispls(*)
             type(MPI_Datatype), intent(in) :: sendtypes(*)
             type(*), dimension(..) :: recvbuf
+!pgi$ ignore_tkr(c) recvbuf
             integer(c_int), intent(in) :: recvcounts(*), rdispls(*)
             type(MPI_Datatype), intent(in) :: recvtypes(*)
             integer(c_int), intent(in) :: comm
@@ -201,6 +204,7 @@ module mpi_direct_collective_f
             use iso_c_binding, only: c_int
             implicit none
             type(*), dimension(..) :: buffer
+!pgi$ ignore_tkr(c) buffer
             integer(c_int), intent(in) :: count, datatype, root, comm
             integer(c_int), intent(out) :: request, ierror
         end subroutine
@@ -210,6 +214,7 @@ module mpi_direct_collective_f
             use iso_c_binding, only: c_int
             implicit none
             type(*), dimension(..), asynchronous :: buffer
+!pgi$ ignore_tkr(c) buffer
             integer(c_int), intent(in) :: count, datatype, root, comm, info
             integer(c_int), intent(out) :: request, ierror
         end subroutine
@@ -219,7 +224,9 @@ module mpi_direct_collective_f
             use iso_c_binding, only: c_int
             implicit none
             type(*), dimension(..), intent(in), asynchronous :: sendbuf
+!pgi$ ignore_tkr(c) sendbuf
             type(*), dimension(..), asynchronous :: recvbuf
+!pgi$ ignore_tkr(c) recvbuf
             integer(c_int), intent(in) :: count, datatype, op, comm
             integer(c_int), intent(out) :: request, ierror
         end subroutine
@@ -229,7 +236,9 @@ module mpi_direct_collective_f
             use iso_c_binding, only: c_int
             implicit none
             type(*), dimension(..), intent(in), asynchronous :: sendbuf
+!pgi$ ignore_tkr(c) sendbuf
             type(*), dimension(..), asynchronous :: recvbuf
+!pgi$ ignore_tkr(c) recvbuf
             integer(c_int), intent(in) :: count, datatype, op, comm
             integer(c_int), intent(out) :: request, ierror
         end subroutine
@@ -239,7 +248,9 @@ module mpi_direct_collective_f
             use iso_c_binding, only: c_int
             implicit none
             type(*), dimension(..), intent(in), asynchronous :: sendbuf
+!pgi$ ignore_tkr(c) sendbuf
             type(*), dimension(..), asynchronous :: recvbuf
+!pgi$ ignore_tkr(c) recvbuf
             integer(c_int), intent(in) :: count, datatype, op, comm
             integer(c_int), intent(out) :: request, ierror
         end subroutine
@@ -249,7 +260,9 @@ module mpi_direct_collective_f
             use iso_c_binding, only: c_int
             implicit none
             type(*), dimension(..), intent(in), asynchronous :: sendbuf
+!pgi$ ignore_tkr(c) sendbuf
             type(*), dimension(..), asynchronous :: recvbuf
+!pgi$ ignore_tkr(c) recvbuf
             integer(c_int), intent(in) :: count, datatype, op, comm, info
             integer(c_int), intent(out) :: request, ierror
         end subroutine
@@ -259,7 +272,9 @@ module mpi_direct_collective_f
             use iso_c_binding, only: c_int
             implicit none
             type(*), dimension(..), intent(in), asynchronous :: sendbuf
+!pgi$ ignore_tkr(c) sendbuf
             type(*), dimension(..), asynchronous :: recvbuf
+!pgi$ ignore_tkr(c) recvbuf
             integer(c_int), intent(in) :: count, datatype, op, comm, info
             integer(c_int), intent(out) :: request, ierror
         end subroutine
@@ -269,7 +284,9 @@ module mpi_direct_collective_f
             use iso_c_binding, only: c_int
             implicit none
             type(*), dimension(..), intent(in), asynchronous :: sendbuf
+!pgi$ ignore_tkr(c) sendbuf
             type(*), dimension(..), asynchronous :: recvbuf
+!pgi$ ignore_tkr(c) recvbuf
             integer(c_int), intent(in) :: count, datatype, op, comm, info
             integer(c_int), intent(out) :: request, ierror
         end subroutine
@@ -279,7 +296,9 @@ module mpi_direct_collective_f
             use iso_c_binding, only: c_int
             implicit none
             type(*), dimension(..), intent(in), asynchronous :: sendbuf
+!pgi$ ignore_tkr(c) sendbuf
             type(*), dimension(..), asynchronous :: recvbuf
+!pgi$ ignore_tkr(c) recvbuf
             integer(c_int), intent(in) :: count, datatype, op, root, comm
             integer(c_int), intent(out) :: request, ierror
         end subroutine
@@ -289,7 +308,9 @@ module mpi_direct_collective_f
             use iso_c_binding, only: c_int
             implicit none
             type(*), dimension(..), intent(in), asynchronous :: sendbuf
+!pgi$ ignore_tkr(c) sendbuf
             type(*), dimension(..), asynchronous :: recvbuf
+!pgi$ ignore_tkr(c) recvbuf
             integer(c_int), intent(in) :: count, datatype, op, root, comm, info
             integer(c_int), intent(out) :: request, ierror
         end subroutine
@@ -299,7 +320,9 @@ module mpi_direct_collective_f
             use iso_c_binding, only: c_int
             implicit none
             type(*), dimension(..), intent(in), asynchronous :: sendbuf
+!pgi$ ignore_tkr(c) sendbuf
             type(*), dimension(..), asynchronous :: recvbuf
+!pgi$ ignore_tkr(c) recvbuf
             integer(c_int), intent(in) :: sendcount, sendtype, recvcount, recvtype, root, comm
             integer(c_int), intent(out) :: request, ierror
         end subroutine
@@ -309,7 +332,9 @@ module mpi_direct_collective_f
             use iso_c_binding, only: c_int
             implicit none
             type(*), dimension(..), intent(in), asynchronous :: sendbuf
+!pgi$ ignore_tkr(c) sendbuf
             type(*), dimension(..), asynchronous :: recvbuf
+!pgi$ ignore_tkr(c) recvbuf
             integer(c_int), intent(in) :: sendcount, sendtype, recvcount, recvtype, root, comm
             integer(c_int), intent(out) :: request, ierror
         end subroutine
@@ -319,7 +344,9 @@ module mpi_direct_collective_f
             use iso_c_binding, only: c_int
             implicit none
             type(*), dimension(..), intent(in), asynchronous :: sendbuf
+!pgi$ ignore_tkr(c) sendbuf
             type(*), dimension(..), asynchronous :: recvbuf
+!pgi$ ignore_tkr(c) recvbuf
             integer(c_int), intent(in) :: sendcount, sendtype, recvcount, recvtype, root, comm, info
             integer(c_int), intent(out) :: request, ierror
         end subroutine
@@ -329,7 +356,9 @@ module mpi_direct_collective_f
             use iso_c_binding, only: c_int
             implicit none
             type(*), dimension(..), intent(in), asynchronous :: sendbuf
+!pgi$ ignore_tkr(c) sendbuf
             type(*), dimension(..), asynchronous :: recvbuf
+!pgi$ ignore_tkr(c) recvbuf
             integer(c_int), intent(in) :: sendcount, sendtype, recvcount, recvtype, root, comm, info
             integer(c_int), intent(out) :: request, ierror
         end subroutine
@@ -339,7 +368,9 @@ module mpi_direct_collective_f
             use iso_c_binding, only: c_int
             implicit none
             type(*), dimension(..), intent(in), asynchronous :: sendbuf
+!pgi$ ignore_tkr(c) sendbuf
             type(*), dimension(..), asynchronous :: recvbuf
+!pgi$ ignore_tkr(c) recvbuf
             integer(c_int), intent(in) :: sendcount, sendtype, recvcount, recvtype, comm
             integer(c_int), intent(out) :: request, ierror
         end subroutine
@@ -349,7 +380,9 @@ module mpi_direct_collective_f
             use iso_c_binding, only: c_int
             implicit none
             type(*), dimension(..), intent(in), asynchronous :: sendbuf
+!pgi$ ignore_tkr(c) sendbuf
             type(*), dimension(..), asynchronous :: recvbuf
+!pgi$ ignore_tkr(c) recvbuf
             integer(c_int), intent(in) :: sendcount, sendtype, recvcount, recvtype, comm
             integer(c_int), intent(out) :: request, ierror
         end subroutine
@@ -359,7 +392,9 @@ module mpi_direct_collective_f
             use iso_c_binding, only: c_int
             implicit none
             type(*), dimension(..), intent(in), asynchronous :: sendbuf
+!pgi$ ignore_tkr(c) sendbuf
             type(*), dimension(..), asynchronous :: recvbuf
+!pgi$ ignore_tkr(c) recvbuf
             integer(c_int), intent(in) :: sendcount, sendtype, recvcount, recvtype, comm, info
             integer(c_int), intent(out) :: request, ierror
         end subroutine
@@ -369,7 +404,9 @@ module mpi_direct_collective_f
             use iso_c_binding, only: c_int
             implicit none
             type(*), dimension(..), intent(in), asynchronous :: sendbuf
+!pgi$ ignore_tkr(c) sendbuf
             type(*), dimension(..), asynchronous :: recvbuf
+!pgi$ ignore_tkr(c) recvbuf
             integer(c_int), intent(in) :: sendcount, sendtype, recvcount, recvtype, comm, info
             integer(c_int), intent(out) :: request, ierror
         end subroutine
@@ -379,7 +416,9 @@ module mpi_direct_collective_f
             use iso_c_binding, only: c_int
             implicit none
             type(*), dimension(..), intent(in), asynchronous :: sendbuf
+!pgi$ ignore_tkr(c) sendbuf
             type(*), dimension(..), asynchronous :: recvbuf
+!pgi$ ignore_tkr(c) recvbuf
             integer(c_int), intent(in) :: sendcount, sendtype, recvcounts(*), displs(*), recvtype, root, comm
             integer(c_int), intent(out) :: request, ierror
         end subroutine
@@ -390,7 +429,9 @@ module mpi_direct_collective_f
             use iso_c_binding, only: c_int
             implicit none
             type(*), dimension(..), intent(in), asynchronous :: sendbuf
+!pgi$ ignore_tkr(c) sendbuf
             type(*), dimension(..), asynchronous :: recvbuf
+!pgi$ ignore_tkr(c) recvbuf
             integer(c_int), intent(in) :: sendcount, sendtype, recvcounts(*), displs(*), recvtype
             integer(c_int), intent(in) :: root, comm, info
             integer(c_int), intent(out) :: request, ierror
@@ -401,7 +442,9 @@ module mpi_direct_collective_f
             use iso_c_binding, only: c_int
             implicit none
             type(*), dimension(..), intent(in), asynchronous :: sendbuf
+!pgi$ ignore_tkr(c) sendbuf
             type(*), dimension(..), asynchronous :: recvbuf
+!pgi$ ignore_tkr(c) recvbuf
             integer(c_int), intent(in) :: sendcounts(*), displs(*), sendtype, recvcount, recvtype, root, comm
             integer(c_int), intent(out) :: request, ierror
         end subroutine
@@ -412,7 +455,9 @@ module mpi_direct_collective_f
             use iso_c_binding, only: c_int
             implicit none
             type(*), dimension(..), intent(in), asynchronous :: sendbuf
+!pgi$ ignore_tkr(c) sendbuf
             type(*), dimension(..), asynchronous :: recvbuf
+!pgi$ ignore_tkr(c) recvbuf
             integer(c_int), intent(in) :: sendcounts(*), displs(*), sendtype, recvcount, recvtype
             integer(c_int), intent(in) :: root, comm, info
             integer(c_int), intent(out) :: request, ierror
@@ -423,7 +468,9 @@ module mpi_direct_collective_f
             use iso_c_binding, only: c_int
             implicit none
             type(*), dimension(..), intent(in), asynchronous :: sendbuf
+!pgi$ ignore_tkr(c) sendbuf
             type(*), dimension(..), asynchronous :: recvbuf
+!pgi$ ignore_tkr(c) recvbuf
             integer(c_int), intent(in) :: sendcount, sendtype, recvcounts(*), displs(*), recvtype, comm
             integer(c_int), intent(out) :: request, ierror
         end subroutine
@@ -434,7 +481,9 @@ module mpi_direct_collective_f
             use iso_c_binding, only: c_int
             implicit none
             type(*), dimension(..), intent(in), asynchronous :: sendbuf
+!pgi$ ignore_tkr(c) sendbuf
             type(*), dimension(..), asynchronous :: recvbuf
+!pgi$ ignore_tkr(c) recvbuf
             integer(c_int), intent(in) :: sendcount, sendtype, recvcounts(*), displs(*), recvtype, comm, info
             integer(c_int), intent(out) :: request, ierror
         end subroutine
@@ -445,7 +494,9 @@ module mpi_direct_collective_f
             use iso_c_binding, only: c_int
             implicit none
             type(*), dimension(..), intent(in), asynchronous :: sendbuf
+!pgi$ ignore_tkr(c) sendbuf
             type(*), dimension(..), asynchronous :: recvbuf
+!pgi$ ignore_tkr(c) recvbuf
             integer(c_int), intent(in) :: sendcounts(*), sdispls(*), sendtype
             integer(c_int), intent(in) :: recvcounts(*), rdispls(*), recvtype, comm
             integer(c_int), intent(out) :: request, ierror
@@ -457,7 +508,9 @@ module mpi_direct_collective_f
             use iso_c_binding, only: c_int
             implicit none
             type(*), dimension(..), intent(in), asynchronous :: sendbuf
+!pgi$ ignore_tkr(c) sendbuf
             type(*), dimension(..), asynchronous :: recvbuf
+!pgi$ ignore_tkr(c) recvbuf
             integer(c_int), intent(in) :: sendcounts(*), sdispls(*), sendtype
             integer(c_int), intent(in) :: recvcounts(*), rdispls(*), recvtype, comm, info
             integer(c_int), intent(out) :: request, ierror
@@ -470,9 +523,11 @@ module mpi_direct_collective_f
             use mpi_handle_types, only: MPI_Datatype
             implicit none
             type(*), dimension(..), intent(in), asynchronous :: sendbuf
+!pgi$ ignore_tkr(c) sendbuf
             integer(c_int), intent(in) :: sendcounts(*), sdispls(*)
             type(MPI_Datatype), intent(in) :: sendtypes(*)
             type(*), dimension(..), asynchronous :: recvbuf
+!pgi$ ignore_tkr(c) recvbuf
             integer(c_int), intent(in) :: recvcounts(*), rdispls(*)
             type(MPI_Datatype), intent(in) :: recvtypes(*)
             integer(c_int), intent(in) :: comm
@@ -486,9 +541,11 @@ module mpi_direct_collective_f
             use mpi_handle_types, only: MPI_Datatype
             implicit none
             type(*), dimension(..), intent(in), asynchronous :: sendbuf
+!pgi$ ignore_tkr(c) sendbuf
             integer(c_int), intent(in) :: sendcounts(*), sdispls(*)
             type(MPI_Datatype), intent(in) :: sendtypes(*)
             type(*), dimension(..), asynchronous :: recvbuf
+!pgi$ ignore_tkr(c) recvbuf
             integer(c_int), intent(in) :: recvcounts(*), rdispls(*)
             type(MPI_Datatype), intent(in) :: recvtypes(*)
             integer(c_int), intent(in) :: comm, info
@@ -500,7 +557,9 @@ module mpi_direct_collective_f
             use iso_c_binding, only: c_int
             implicit none
             type(*), dimension(..), intent(in), asynchronous :: sendbuf
+!pgi$ ignore_tkr(c) sendbuf
             type(*), dimension(..), asynchronous :: recvbuf
+!pgi$ ignore_tkr(c) recvbuf
             integer(c_int), intent(in) :: recvcounts(*), datatype, op, comm
             integer(c_int), intent(out) :: request, ierror
         end subroutine
@@ -510,7 +569,9 @@ module mpi_direct_collective_f
             use iso_c_binding, only: c_int
             implicit none
             type(*), dimension(..), intent(in), asynchronous :: sendbuf
+!pgi$ ignore_tkr(c) sendbuf
             type(*), dimension(..), asynchronous :: recvbuf
+!pgi$ ignore_tkr(c) recvbuf
             integer(c_int), intent(in) :: recvcounts(*), datatype, op, comm, info
             integer(c_int), intent(out) :: request, ierror
         end subroutine
@@ -521,7 +582,9 @@ module mpi_direct_collective_f
             use iso_c_binding, only: c_int
             implicit none
             type(*), dimension(..), intent(in), asynchronous :: sendbuf
+!pgi$ ignore_tkr(c) sendbuf
             type(*), dimension(..), asynchronous :: recvbuf
+!pgi$ ignore_tkr(c) recvbuf
             integer(c_int), intent(in) :: recvcount, datatype, op, comm
             integer(c_int), intent(out) :: request, ierror
         end subroutine
@@ -532,7 +595,9 @@ module mpi_direct_collective_f
             use iso_c_binding, only: c_int
             implicit none
             type(*), dimension(..), intent(in), asynchronous :: sendbuf
+!pgi$ ignore_tkr(c) sendbuf
             type(*), dimension(..), asynchronous :: recvbuf
+!pgi$ ignore_tkr(c) recvbuf
             integer(c_int), intent(in) :: recvcount, datatype, op, comm, info
             integer(c_int), intent(out) :: request, ierror
         end subroutine
@@ -543,7 +608,9 @@ module mpi_direct_collective_f
             use iso_c_binding, only: c_int
             implicit none
             type(*), dimension(..), intent(in), asynchronous :: sendbuf
+!pgi$ ignore_tkr(c) sendbuf
             type(*), dimension(..), asynchronous :: recvbuf
+!pgi$ ignore_tkr(c) recvbuf
             integer(c_int), intent(in) :: sendcount, sendtype, dest, sendtag, recvcount, recvtype, source, recvtag, comm
             integer(c_int), intent(out) :: request, ierror
         end subroutine
@@ -553,6 +620,7 @@ module mpi_direct_collective_f
             use iso_c_binding, only: c_int
             implicit none
             type(*), dimension(..), intent(inout), asynchronous :: buf
+!pgi$ ignore_tkr(c) buf
             integer(c_int), intent(in) :: count, datatype, dest, sendtag, source, recvtag, comm
             integer(c_int), intent(out) :: request, ierror
         end subroutine
@@ -563,7 +631,9 @@ module mpi_direct_collective_f
             use iso_c_binding, only: c_int
             implicit none
             type(*), dimension(..), intent(in) :: sendbuf
+!pgi$ ignore_tkr(c) sendbuf
             type(*), dimension(..) :: recvbuf
+!pgi$ ignore_tkr(c) recvbuf
             integer(c_int), intent(in) :: sendcount, sendtype, recvcount, recvtype, comm
             integer(c_int), intent(out) :: ierror
         end subroutine
@@ -573,7 +643,9 @@ module mpi_direct_collective_f
             use iso_c_binding, only: c_int
             implicit none
             type(*), dimension(..), intent(in) :: sendbuf
+!pgi$ ignore_tkr(c) sendbuf
             type(*), dimension(..) :: recvbuf
+!pgi$ ignore_tkr(c) recvbuf
             integer(c_int), intent(in) :: sendcount, sendtype, recvcount, recvtype, comm
             integer(c_int), intent(out) :: ierror
         end subroutine
@@ -584,7 +656,9 @@ module mpi_direct_collective_f
             use iso_c_binding, only: c_int
             implicit none
             type(*), dimension(..), intent(in), asynchronous :: sendbuf
+!pgi$ ignore_tkr(c) sendbuf
             type(*), dimension(..), asynchronous :: recvbuf
+!pgi$ ignore_tkr(c) recvbuf
             integer(c_int), intent(in) :: sendcount, sendtype, recvcount, recvtype, comm
             integer(c_int), intent(out) :: request, ierror
         end subroutine
@@ -595,7 +669,9 @@ module mpi_direct_collective_f
             use iso_c_binding, only: c_int
             implicit none
             type(*), dimension(..), intent(in), asynchronous :: sendbuf
+!pgi$ ignore_tkr(c) sendbuf
             type(*), dimension(..), asynchronous :: recvbuf
+!pgi$ ignore_tkr(c) recvbuf
             integer(c_int), intent(in) :: sendcount, sendtype, recvcount, recvtype, comm
             integer(c_int), intent(out) :: request, ierror
         end subroutine
@@ -606,7 +682,9 @@ module mpi_direct_collective_f
             use iso_c_binding, only: c_int
             implicit none
             type(*), dimension(..), intent(in), asynchronous :: sendbuf
+!pgi$ ignore_tkr(c) sendbuf
             type(*), dimension(..), asynchronous :: recvbuf
+!pgi$ ignore_tkr(c) recvbuf
             integer(c_int), intent(in) :: sendcount, sendtype, recvcount, recvtype, comm, info
             integer(c_int), intent(out) :: request, ierror
         end subroutine
@@ -617,7 +695,9 @@ module mpi_direct_collective_f
             use iso_c_binding, only: c_int
             implicit none
             type(*), dimension(..), intent(in), asynchronous :: sendbuf
+!pgi$ ignore_tkr(c) sendbuf
             type(*), dimension(..), asynchronous :: recvbuf
+!pgi$ ignore_tkr(c) recvbuf
             integer(c_int), intent(in) :: sendcount, sendtype, recvcount, recvtype, comm, info
             integer(c_int), intent(out) :: request, ierror
         end subroutine
@@ -628,7 +708,9 @@ module mpi_direct_collective_f
             use iso_c_binding, only: c_int
             implicit none
             type(*), dimension(..), intent(in) :: sendbuf
+!pgi$ ignore_tkr(c) sendbuf
             type(*), dimension(..) :: recvbuf
+!pgi$ ignore_tkr(c) recvbuf
             integer(c_int), intent(in) :: sendcount, sendtype, recvcounts(*), displs(*), recvtype, comm
             integer(c_int), intent(out) :: ierror
         end subroutine
@@ -639,7 +721,9 @@ module mpi_direct_collective_f
             use iso_c_binding, only: c_int
             implicit none
             type(*), dimension(..), intent(in), asynchronous :: sendbuf
+!pgi$ ignore_tkr(c) sendbuf
             type(*), dimension(..), asynchronous :: recvbuf
+!pgi$ ignore_tkr(c) recvbuf
             integer(c_int), intent(in) :: sendcount, sendtype, recvcounts(*), displs(*), recvtype, comm
             integer(c_int), intent(out) :: request, ierror
         end subroutine
@@ -650,7 +734,9 @@ module mpi_direct_collective_f
             use iso_c_binding, only: c_int
             implicit none
             type(*), dimension(..), intent(in), asynchronous :: sendbuf
+!pgi$ ignore_tkr(c) sendbuf
             type(*), dimension(..), asynchronous :: recvbuf
+!pgi$ ignore_tkr(c) recvbuf
             integer(c_int), intent(in) :: sendcount, sendtype, recvcounts(*), displs(*), recvtype, comm, info
             integer(c_int), intent(out) :: request, ierror
         end subroutine
@@ -661,7 +747,9 @@ module mpi_direct_collective_f
             use iso_c_binding, only: c_int
             implicit none
             type(*), dimension(..), intent(in) :: sendbuf
+!pgi$ ignore_tkr(c) sendbuf
             type(*), dimension(..) :: recvbuf
+!pgi$ ignore_tkr(c) recvbuf
             integer(c_int), intent(in) :: sendcounts(*), sdispls(*), sendtype
             integer(c_int), intent(in) :: recvcounts(*), rdispls(*), recvtype, comm
             integer(c_int), intent(out) :: ierror
@@ -673,7 +761,9 @@ module mpi_direct_collective_f
             use iso_c_binding, only: c_int
             implicit none
             type(*), dimension(..), intent(in), asynchronous :: sendbuf
+!pgi$ ignore_tkr(c) sendbuf
             type(*), dimension(..), asynchronous :: recvbuf
+!pgi$ ignore_tkr(c) recvbuf
             integer(c_int), intent(in) :: sendcounts(*), sdispls(*), sendtype
             integer(c_int), intent(in) :: recvcounts(*), rdispls(*), recvtype, comm
             integer(c_int), intent(out) :: request, ierror
@@ -685,7 +775,9 @@ module mpi_direct_collective_f
             use iso_c_binding, only: c_int
             implicit none
             type(*), dimension(..), intent(in), asynchronous :: sendbuf
+!pgi$ ignore_tkr(c) sendbuf
             type(*), dimension(..), asynchronous :: recvbuf
+!pgi$ ignore_tkr(c) recvbuf
             integer(c_int), intent(in) :: sendcounts(*), sdispls(*), sendtype
             integer(c_int), intent(in) :: recvcounts(*), rdispls(*), recvtype, comm, info
             integer(c_int), intent(out) :: request, ierror
@@ -698,10 +790,12 @@ module mpi_direct_collective_f
             use mpi_handle_types, only: MPI_Datatype
             implicit none
             type(*), dimension(..), intent(in) :: sendbuf
+!pgi$ ignore_tkr(c) sendbuf
             integer(c_int), intent(in) :: sendcounts(*), recvcounts(*)
             integer(c_intptr_t), intent(in) :: sdispls(*), rdispls(*)
             type(MPI_Datatype), intent(in) :: sendtypes(*), recvtypes(*)
             type(*), dimension(..) :: recvbuf
+!pgi$ ignore_tkr(c) recvbuf
             integer(c_int), intent(in) :: comm
             integer(c_int), intent(out) :: ierror
         end subroutine
@@ -713,10 +807,12 @@ module mpi_direct_collective_f
             use mpi_handle_types, only: MPI_Datatype
             implicit none
             type(*), dimension(..), intent(in), asynchronous :: sendbuf
+!pgi$ ignore_tkr(c) sendbuf
             integer(c_int), intent(in) :: sendcounts(*), recvcounts(*)
             integer(c_intptr_t), intent(in) :: sdispls(*), rdispls(*)
             type(MPI_Datatype), intent(in) :: sendtypes(*), recvtypes(*)
             type(*), dimension(..), asynchronous :: recvbuf
+!pgi$ ignore_tkr(c) recvbuf
             integer(c_int), intent(in) :: comm
             integer(c_int), intent(out) :: request, ierror
         end subroutine
@@ -728,14 +824,655 @@ module mpi_direct_collective_f
             use mpi_handle_types, only: MPI_Datatype
             implicit none
             type(*), dimension(..), intent(in), asynchronous :: sendbuf
+!pgi$ ignore_tkr(c) sendbuf
             integer(c_int), intent(in) :: sendcounts(*), recvcounts(*)
             integer(c_intptr_t), intent(in) :: sdispls(*), rdispls(*)
             type(MPI_Datatype), intent(in) :: sendtypes(*), recvtypes(*)
             type(*), dimension(..), asynchronous :: recvbuf
+!pgi$ ignore_tkr(c) recvbuf
             integer(c_int), intent(in) :: comm, info
             integer(c_int), intent(out) :: request, ierror
         end subroutine
     end interface
+#elif defined(HAVE_PGIF)
+    interface
+        subroutine VAPAA_MPI_Alltoallw(sendbuf, sendcounts, sdispls, sendtypes, recvbuf, recvcounts, &
+                                       rdispls, recvtypes, comm, ierror)
+            use iso_c_binding, only: c_int
+            use mpi_handle_types, only: MPI_Datatype
+            implicit none
+            type(*), dimension(..), intent(in) :: sendbuf
+!pgi$ ignore_tkr(c) sendbuf
+            integer(c_int), intent(in) :: sendcounts(*), sdispls(*)
+            type(MPI_Datatype), intent(in) :: sendtypes(*)
+            type(*), dimension(..) :: recvbuf
+!pgi$ ignore_tkr(c) recvbuf
+            integer(c_int), intent(in) :: recvcounts(*), rdispls(*)
+            type(MPI_Datatype), intent(in) :: recvtypes(*)
+            integer(c_int), intent(in) :: comm
+            integer(c_int), intent(out) :: ierror
+        end subroutine
+
+        subroutine VAPAA_MPI_Ibarrier(comm, request, ierror)
+            use iso_c_binding, only: c_int
+            implicit none
+            integer(c_int), intent(in) :: comm
+            integer(c_int), intent(out) :: request, ierror
+        end subroutine
+
+        subroutine VAPAA_MPI_Barrier_init(comm, info, request, ierror)
+            use iso_c_binding, only: c_int
+            implicit none
+            integer(c_int), intent(in) :: comm, info
+            integer(c_int), intent(out) :: request, ierror
+        end subroutine
+
+        subroutine VAPAA_MPI_Ibcast(buffer, count, datatype, root, comm, request, ierror)
+            use iso_c_binding, only: c_int
+            implicit none
+            type(*), dimension(..) :: buffer
+!pgi$ ignore_tkr(c) buffer
+            integer(c_int), intent(in) :: count, datatype, root, comm
+            integer(c_int), intent(out) :: request, ierror
+        end subroutine
+
+        subroutine VAPAA_MPI_Bcast_init(buffer, count, datatype, root, comm, info, request, ierror)
+            use iso_c_binding, only: c_int
+            implicit none
+            type(*), dimension(..), asynchronous :: buffer
+!pgi$ ignore_tkr(c) buffer
+            integer(c_int), intent(in) :: count, datatype, root, comm, info
+            integer(c_int), intent(out) :: request, ierror
+        end subroutine
+
+        subroutine VAPAA_MPI_Iallreduce(sendbuf, recvbuf, count, datatype, op, comm, request, ierror)
+            use iso_c_binding, only: c_int
+            implicit none
+            type(*), dimension(..), intent(in), asynchronous :: sendbuf
+!pgi$ ignore_tkr(c) sendbuf
+            type(*), dimension(..), asynchronous :: recvbuf
+!pgi$ ignore_tkr(c) recvbuf
+            integer(c_int), intent(in) :: count, datatype, op, comm
+            integer(c_int), intent(out) :: request, ierror
+        end subroutine
+
+        subroutine VAPAA_MPI_Iscan(sendbuf, recvbuf, count, datatype, op, comm, request, ierror)
+            use iso_c_binding, only: c_int
+            implicit none
+            type(*), dimension(..), intent(in), asynchronous :: sendbuf
+!pgi$ ignore_tkr(c) sendbuf
+            type(*), dimension(..), asynchronous :: recvbuf
+!pgi$ ignore_tkr(c) recvbuf
+            integer(c_int), intent(in) :: count, datatype, op, comm
+            integer(c_int), intent(out) :: request, ierror
+        end subroutine
+
+        subroutine VAPAA_MPI_Iexscan(sendbuf, recvbuf, count, datatype, op, comm, request, ierror)
+            use iso_c_binding, only: c_int
+            implicit none
+            type(*), dimension(..), intent(in), asynchronous :: sendbuf
+!pgi$ ignore_tkr(c) sendbuf
+            type(*), dimension(..), asynchronous :: recvbuf
+!pgi$ ignore_tkr(c) recvbuf
+            integer(c_int), intent(in) :: count, datatype, op, comm
+            integer(c_int), intent(out) :: request, ierror
+        end subroutine
+
+        subroutine VAPAA_MPI_Allreduce_init(sendbuf, recvbuf, count, datatype, op, comm, info, request, &
+                                            ierror)
+            use iso_c_binding, only: c_int
+            implicit none
+            type(*), dimension(..), intent(in), asynchronous :: sendbuf
+!pgi$ ignore_tkr(c) sendbuf
+            type(*), dimension(..), asynchronous :: recvbuf
+!pgi$ ignore_tkr(c) recvbuf
+            integer(c_int), intent(in) :: count, datatype, op, comm, info
+            integer(c_int), intent(out) :: request, ierror
+        end subroutine
+
+        subroutine VAPAA_MPI_Scan_init(sendbuf, recvbuf, count, datatype, op, comm, info, request, ierror)
+            use iso_c_binding, only: c_int
+            implicit none
+            type(*), dimension(..), intent(in), asynchronous :: sendbuf
+!pgi$ ignore_tkr(c) sendbuf
+            type(*), dimension(..), asynchronous :: recvbuf
+!pgi$ ignore_tkr(c) recvbuf
+            integer(c_int), intent(in) :: count, datatype, op, comm, info
+            integer(c_int), intent(out) :: request, ierror
+        end subroutine
+
+        subroutine VAPAA_MPI_Exscan_init(sendbuf, recvbuf, count, datatype, op, comm, info, request, ierror)
+            use iso_c_binding, only: c_int
+            implicit none
+            type(*), dimension(..), intent(in), asynchronous :: sendbuf
+!pgi$ ignore_tkr(c) sendbuf
+            type(*), dimension(..), asynchronous :: recvbuf
+!pgi$ ignore_tkr(c) recvbuf
+            integer(c_int), intent(in) :: count, datatype, op, comm, info
+            integer(c_int), intent(out) :: request, ierror
+        end subroutine
+
+        subroutine VAPAA_MPI_Ireduce(sendbuf, recvbuf, count, datatype, op, root, comm, request, ierror)
+            use iso_c_binding, only: c_int
+            implicit none
+            type(*), dimension(..), intent(in), asynchronous :: sendbuf
+!pgi$ ignore_tkr(c) sendbuf
+            type(*), dimension(..), asynchronous :: recvbuf
+!pgi$ ignore_tkr(c) recvbuf
+            integer(c_int), intent(in) :: count, datatype, op, root, comm
+            integer(c_int), intent(out) :: request, ierror
+        end subroutine
+
+        subroutine VAPAA_MPI_Reduce_init(sendbuf, recvbuf, count, datatype, op, root, comm, info, request, &
+                                         ierror)
+            use iso_c_binding, only: c_int
+            implicit none
+            type(*), dimension(..), intent(in), asynchronous :: sendbuf
+!pgi$ ignore_tkr(c) sendbuf
+            type(*), dimension(..), asynchronous :: recvbuf
+!pgi$ ignore_tkr(c) recvbuf
+            integer(c_int), intent(in) :: count, datatype, op, root, comm, info
+            integer(c_int), intent(out) :: request, ierror
+        end subroutine
+
+        subroutine VAPAA_MPI_Igather(sendbuf, sendcount, sendtype, recvbuf, recvcount, recvtype, root, comm, &
+                                     request, ierror)
+            use iso_c_binding, only: c_int
+            implicit none
+            type(*), dimension(..), intent(in), asynchronous :: sendbuf
+!pgi$ ignore_tkr(c) sendbuf
+            type(*), dimension(..), asynchronous :: recvbuf
+!pgi$ ignore_tkr(c) recvbuf
+            integer(c_int), intent(in) :: sendcount, sendtype, recvcount, recvtype, root, comm
+            integer(c_int), intent(out) :: request, ierror
+        end subroutine
+
+        subroutine VAPAA_MPI_Iscatter(sendbuf, sendcount, sendtype, recvbuf, recvcount, recvtype, root, comm, &
+                                      request, ierror)
+            use iso_c_binding, only: c_int
+            implicit none
+            type(*), dimension(..), intent(in), asynchronous :: sendbuf
+!pgi$ ignore_tkr(c) sendbuf
+            type(*), dimension(..), asynchronous :: recvbuf
+!pgi$ ignore_tkr(c) recvbuf
+            integer(c_int), intent(in) :: sendcount, sendtype, recvcount, recvtype, root, comm
+            integer(c_int), intent(out) :: request, ierror
+        end subroutine
+
+        subroutine VAPAA_MPI_Gather_init(sendbuf, sendcount, sendtype, recvbuf, recvcount, recvtype, root, &
+                                         comm, info, request, ierror)
+            use iso_c_binding, only: c_int
+            implicit none
+            type(*), dimension(..), intent(in), asynchronous :: sendbuf
+!pgi$ ignore_tkr(c) sendbuf
+            type(*), dimension(..), asynchronous :: recvbuf
+!pgi$ ignore_tkr(c) recvbuf
+            integer(c_int), intent(in) :: sendcount, sendtype, recvcount, recvtype, root, comm, info
+            integer(c_int), intent(out) :: request, ierror
+        end subroutine
+
+        subroutine VAPAA_MPI_Scatter_init(sendbuf, sendcount, sendtype, recvbuf, recvcount, recvtype, root, &
+                                          comm, info, request, ierror)
+            use iso_c_binding, only: c_int
+            implicit none
+            type(*), dimension(..), intent(in), asynchronous :: sendbuf
+!pgi$ ignore_tkr(c) sendbuf
+            type(*), dimension(..), asynchronous :: recvbuf
+!pgi$ ignore_tkr(c) recvbuf
+            integer(c_int), intent(in) :: sendcount, sendtype, recvcount, recvtype, root, comm, info
+            integer(c_int), intent(out) :: request, ierror
+        end subroutine
+
+        subroutine VAPAA_MPI_Iallgather(sendbuf, sendcount, sendtype, recvbuf, recvcount, recvtype, comm, &
+                                        request, ierror)
+            use iso_c_binding, only: c_int
+            implicit none
+            type(*), dimension(..), intent(in), asynchronous :: sendbuf
+!pgi$ ignore_tkr(c) sendbuf
+            type(*), dimension(..), asynchronous :: recvbuf
+!pgi$ ignore_tkr(c) recvbuf
+            integer(c_int), intent(in) :: sendcount, sendtype, recvcount, recvtype, comm
+            integer(c_int), intent(out) :: request, ierror
+        end subroutine
+
+        subroutine VAPAA_MPI_Ialltoall(sendbuf, sendcount, sendtype, recvbuf, recvcount, recvtype, comm, &
+                                       request, ierror)
+            use iso_c_binding, only: c_int
+            implicit none
+            type(*), dimension(..), intent(in), asynchronous :: sendbuf
+!pgi$ ignore_tkr(c) sendbuf
+            type(*), dimension(..), asynchronous :: recvbuf
+!pgi$ ignore_tkr(c) recvbuf
+            integer(c_int), intent(in) :: sendcount, sendtype, recvcount, recvtype, comm
+            integer(c_int), intent(out) :: request, ierror
+        end subroutine
+
+        subroutine VAPAA_MPI_Allgather_init(sendbuf, sendcount, sendtype, recvbuf, recvcount, recvtype, &
+                                            comm, info, request, ierror)
+            use iso_c_binding, only: c_int
+            implicit none
+            type(*), dimension(..), intent(in), asynchronous :: sendbuf
+!pgi$ ignore_tkr(c) sendbuf
+            type(*), dimension(..), asynchronous :: recvbuf
+!pgi$ ignore_tkr(c) recvbuf
+            integer(c_int), intent(in) :: sendcount, sendtype, recvcount, recvtype, comm, info
+            integer(c_int), intent(out) :: request, ierror
+        end subroutine
+
+        subroutine VAPAA_MPI_Alltoall_init(sendbuf, sendcount, sendtype, recvbuf, recvcount, recvtype, &
+                                           comm, info, request, ierror)
+            use iso_c_binding, only: c_int
+            implicit none
+            type(*), dimension(..), intent(in), asynchronous :: sendbuf
+!pgi$ ignore_tkr(c) sendbuf
+            type(*), dimension(..), asynchronous :: recvbuf
+!pgi$ ignore_tkr(c) recvbuf
+            integer(c_int), intent(in) :: sendcount, sendtype, recvcount, recvtype, comm, info
+            integer(c_int), intent(out) :: request, ierror
+        end subroutine
+
+        subroutine VAPAA_MPI_Igatherv(sendbuf, sendcount, sendtype, recvbuf, recvcounts, displs, recvtype, &
+                                      root, comm, request, ierror)
+            use iso_c_binding, only: c_int
+            implicit none
+            type(*), dimension(..), intent(in), asynchronous :: sendbuf
+!pgi$ ignore_tkr(c) sendbuf
+            type(*), dimension(..), asynchronous :: recvbuf
+!pgi$ ignore_tkr(c) recvbuf
+            integer(c_int), intent(in) :: sendcount, sendtype, recvcounts(*), displs(*), recvtype, root, comm
+            integer(c_int), intent(out) :: request, ierror
+        end subroutine
+
+        subroutine VAPAA_MPI_Gatherv_init(sendbuf, sendcount, sendtype, recvbuf, recvcounts, displs, &
+                                          recvtype, root, comm, info, request, ierror)
+            use iso_c_binding, only: c_int
+            implicit none
+            type(*), dimension(..), intent(in), asynchronous :: sendbuf
+!pgi$ ignore_tkr(c) sendbuf
+            type(*), dimension(..), asynchronous :: recvbuf
+!pgi$ ignore_tkr(c) recvbuf
+            integer(c_int), intent(in) :: sendcount, sendtype, recvcounts(*), displs(*), recvtype
+            integer(c_int), intent(in) :: root, comm, info
+            integer(c_int), intent(out) :: request, ierror
+        end subroutine
+
+        subroutine VAPAA_MPI_Iscatterv(sendbuf, sendcounts, displs, sendtype, recvbuf, recvcount, recvtype, &
+                                       root, comm, request, ierror)
+            use iso_c_binding, only: c_int
+            implicit none
+            type(*), dimension(..), intent(in), asynchronous :: sendbuf
+!pgi$ ignore_tkr(c) sendbuf
+            type(*), dimension(..), asynchronous :: recvbuf
+!pgi$ ignore_tkr(c) recvbuf
+            integer(c_int), intent(in) :: sendcounts(*), displs(*), sendtype, recvcount, recvtype, root, comm
+            integer(c_int), intent(out) :: request, ierror
+        end subroutine
+
+        subroutine VAPAA_MPI_Scatterv_init(sendbuf, sendcounts, displs, sendtype, recvbuf, recvcount, &
+                                           recvtype, root, comm, info, request, ierror)
+            use iso_c_binding, only: c_int
+            implicit none
+            type(*), dimension(..), intent(in), asynchronous :: sendbuf
+!pgi$ ignore_tkr(c) sendbuf
+            type(*), dimension(..), asynchronous :: recvbuf
+!pgi$ ignore_tkr(c) recvbuf
+            integer(c_int), intent(in) :: sendcounts(*), displs(*), sendtype, recvcount, recvtype
+            integer(c_int), intent(in) :: root, comm, info
+            integer(c_int), intent(out) :: request, ierror
+        end subroutine
+
+        subroutine VAPAA_MPI_Iallgatherv(sendbuf, sendcount, sendtype, recvbuf, recvcounts, displs, &
+                                         recvtype, comm, request, ierror)
+            use iso_c_binding, only: c_int
+            implicit none
+            type(*), dimension(..), intent(in), asynchronous :: sendbuf
+!pgi$ ignore_tkr(c) sendbuf
+            type(*), dimension(..), asynchronous :: recvbuf
+!pgi$ ignore_tkr(c) recvbuf
+            integer(c_int), intent(in) :: sendcount, sendtype, recvcounts(*), displs(*), recvtype, comm
+            integer(c_int), intent(out) :: request, ierror
+        end subroutine
+
+        subroutine VAPAA_MPI_Allgatherv_init(sendbuf, sendcount, sendtype, recvbuf, recvcounts, displs, &
+                                             recvtype, comm, info, request, ierror)
+            use iso_c_binding, only: c_int
+            implicit none
+            type(*), dimension(..), intent(in), asynchronous :: sendbuf
+!pgi$ ignore_tkr(c) sendbuf
+            type(*), dimension(..), asynchronous :: recvbuf
+!pgi$ ignore_tkr(c) recvbuf
+            integer(c_int), intent(in) :: sendcount, sendtype, recvcounts(*), displs(*), recvtype, comm, info
+            integer(c_int), intent(out) :: request, ierror
+        end subroutine
+
+        subroutine VAPAA_MPI_Ialltoallv(sendbuf, sendcounts, sdispls, sendtype, recvbuf, recvcounts, &
+                                        rdispls, recvtype, comm, request, ierror)
+            use iso_c_binding, only: c_int
+            implicit none
+            type(*), dimension(..), intent(in), asynchronous :: sendbuf
+!pgi$ ignore_tkr(c) sendbuf
+            type(*), dimension(..), asynchronous :: recvbuf
+!pgi$ ignore_tkr(c) recvbuf
+            integer(c_int), intent(in) :: sendcounts(*), sdispls(*), sendtype
+            integer(c_int), intent(in) :: recvcounts(*), rdispls(*), recvtype, comm
+            integer(c_int), intent(out) :: request, ierror
+        end subroutine
+
+        subroutine VAPAA_MPI_Alltoallv_init(sendbuf, sendcounts, sdispls, sendtype, recvbuf, recvcounts, &
+                                            rdispls, recvtype, comm, info, request, ierror)
+            use iso_c_binding, only: c_int
+            implicit none
+            type(*), dimension(..), intent(in), asynchronous :: sendbuf
+!pgi$ ignore_tkr(c) sendbuf
+            type(*), dimension(..), asynchronous :: recvbuf
+!pgi$ ignore_tkr(c) recvbuf
+            integer(c_int), intent(in) :: sendcounts(*), sdispls(*), sendtype
+            integer(c_int), intent(in) :: recvcounts(*), rdispls(*), recvtype, comm, info
+            integer(c_int), intent(out) :: request, ierror
+        end subroutine
+
+        subroutine VAPAA_MPI_Ialltoallw(sendbuf, sendcounts, sdispls, sendtypes, recvbuf, recvcounts, &
+                                        rdispls, recvtypes, comm, request, ierror)
+            use iso_c_binding, only: c_int
+            use mpi_handle_types, only: MPI_Datatype
+            implicit none
+            type(*), dimension(..), intent(in), asynchronous :: sendbuf
+!pgi$ ignore_tkr(c) sendbuf
+            integer(c_int), intent(in) :: sendcounts(*), sdispls(*)
+            type(MPI_Datatype), intent(in) :: sendtypes(*)
+            type(*), dimension(..), asynchronous :: recvbuf
+!pgi$ ignore_tkr(c) recvbuf
+            integer(c_int), intent(in) :: recvcounts(*), rdispls(*)
+            type(MPI_Datatype), intent(in) :: recvtypes(*)
+            integer(c_int), intent(in) :: comm
+            integer(c_int), intent(out) :: request, ierror
+        end subroutine
+
+        subroutine VAPAA_MPI_Alltoallw_init(sendbuf, sendcounts, sdispls, sendtypes, recvbuf, recvcounts, &
+                                            rdispls, recvtypes, comm, info, request, ierror)
+            use iso_c_binding, only: c_int
+            use mpi_handle_types, only: MPI_Datatype
+            implicit none
+            type(*), dimension(..), intent(in), asynchronous :: sendbuf
+!pgi$ ignore_tkr(c) sendbuf
+            integer(c_int), intent(in) :: sendcounts(*), sdispls(*)
+            type(MPI_Datatype), intent(in) :: sendtypes(*)
+            type(*), dimension(..), asynchronous :: recvbuf
+!pgi$ ignore_tkr(c) recvbuf
+            integer(c_int), intent(in) :: recvcounts(*), rdispls(*)
+            type(MPI_Datatype), intent(in) :: recvtypes(*)
+            integer(c_int), intent(in) :: comm, info
+            integer(c_int), intent(out) :: request, ierror
+        end subroutine
+
+        subroutine VAPAA_MPI_Ireduce_scatter(sendbuf, recvbuf, recvcounts, datatype, op, comm, request, &
+                                             ierror)
+            use iso_c_binding, only: c_int
+            implicit none
+            type(*), dimension(..), intent(in), asynchronous :: sendbuf
+!pgi$ ignore_tkr(c) sendbuf
+            type(*), dimension(..), asynchronous :: recvbuf
+!pgi$ ignore_tkr(c) recvbuf
+            integer(c_int), intent(in) :: recvcounts(*), datatype, op, comm
+            integer(c_int), intent(out) :: request, ierror
+        end subroutine
+
+        subroutine VAPAA_MPI_Reduce_scatter_init(sendbuf, recvbuf, recvcounts, datatype, op, comm, info, &
+                                                 request, ierror)
+            use iso_c_binding, only: c_int
+            implicit none
+            type(*), dimension(..), intent(in), asynchronous :: sendbuf
+!pgi$ ignore_tkr(c) sendbuf
+            type(*), dimension(..), asynchronous :: recvbuf
+!pgi$ ignore_tkr(c) recvbuf
+            integer(c_int), intent(in) :: recvcounts(*), datatype, op, comm, info
+            integer(c_int), intent(out) :: request, ierror
+        end subroutine
+
+        subroutine VAPAA_MPI_Ireduce_scatter_block(sendbuf, recvbuf, recvcount, datatype, op, comm, &
+                                                   request, ierror)
+            use iso_c_binding, only: c_int
+            implicit none
+            type(*), dimension(..), intent(in), asynchronous :: sendbuf
+!pgi$ ignore_tkr(c) sendbuf
+            type(*), dimension(..), asynchronous :: recvbuf
+!pgi$ ignore_tkr(c) recvbuf
+            integer(c_int), intent(in) :: recvcount, datatype, op, comm
+            integer(c_int), intent(out) :: request, ierror
+        end subroutine
+
+        subroutine VAPAA_MPI_Reduce_scatter_block_init(sendbuf, recvbuf, recvcount, datatype, op, comm, &
+                                                       info, request, ierror)
+            use iso_c_binding, only: c_int
+            implicit none
+            type(*), dimension(..), intent(in), asynchronous :: sendbuf
+!pgi$ ignore_tkr(c) sendbuf
+            type(*), dimension(..), asynchronous :: recvbuf
+!pgi$ ignore_tkr(c) recvbuf
+            integer(c_int), intent(in) :: recvcount, datatype, op, comm, info
+            integer(c_int), intent(out) :: request, ierror
+        end subroutine
+
+        subroutine VAPAA_MPI_Isendrecv(sendbuf, sendcount, sendtype, dest, sendtag, recvbuf, recvcount, &
+                                       recvtype, source, recvtag, comm, request, ierror)
+            use iso_c_binding, only: c_int
+            implicit none
+            type(*), dimension(..), intent(in), asynchronous :: sendbuf
+!pgi$ ignore_tkr(c) sendbuf
+            type(*), dimension(..), asynchronous :: recvbuf
+!pgi$ ignore_tkr(c) recvbuf
+            integer(c_int), intent(in) :: sendcount, sendtype, dest, sendtag, recvcount, recvtype, source, recvtag, comm
+            integer(c_int), intent(out) :: request, ierror
+        end subroutine
+
+        subroutine VAPAA_MPI_Isendrecv_replace(buf, count, datatype, dest, sendtag, source, recvtag, comm, &
+                                               request, ierror)
+            use iso_c_binding, only: c_int
+            implicit none
+            type(*), dimension(..), intent(inout), asynchronous :: buf
+!pgi$ ignore_tkr(c) buf
+            integer(c_int), intent(in) :: count, datatype, dest, sendtag, source, recvtag, comm
+            integer(c_int), intent(out) :: request, ierror
+        end subroutine
+
+        subroutine VAPAA_MPI_Neighbor_allgather(sendbuf, sendcount, sendtype, recvbuf, recvcount, &
+                                                recvtype, comm, ierror)
+            use iso_c_binding, only: c_int
+            implicit none
+            type(*), dimension(..), intent(in) :: sendbuf
+!pgi$ ignore_tkr(c) sendbuf
+            type(*), dimension(..) :: recvbuf
+!pgi$ ignore_tkr(c) recvbuf
+            integer(c_int), intent(in) :: sendcount, sendtype, recvcount, recvtype, comm
+            integer(c_int), intent(out) :: ierror
+        end subroutine
+
+        subroutine VAPAA_MPI_Neighbor_alltoall(sendbuf, sendcount, sendtype, recvbuf, recvcount, recvtype, &
+                                               comm, ierror)
+            use iso_c_binding, only: c_int
+            implicit none
+            type(*), dimension(..), intent(in) :: sendbuf
+!pgi$ ignore_tkr(c) sendbuf
+            type(*), dimension(..) :: recvbuf
+!pgi$ ignore_tkr(c) recvbuf
+            integer(c_int), intent(in) :: sendcount, sendtype, recvcount, recvtype, comm
+            integer(c_int), intent(out) :: ierror
+        end subroutine
+
+        subroutine VAPAA_MPI_Ineighbor_allgather(sendbuf, sendcount, sendtype, recvbuf, recvcount, &
+                                                 recvtype, comm, request, ierror)
+            use iso_c_binding, only: c_int
+            implicit none
+            type(*), dimension(..), intent(in), asynchronous :: sendbuf
+!pgi$ ignore_tkr(c) sendbuf
+            type(*), dimension(..), asynchronous :: recvbuf
+!pgi$ ignore_tkr(c) recvbuf
+            integer(c_int), intent(in) :: sendcount, sendtype, recvcount, recvtype, comm
+            integer(c_int), intent(out) :: request, ierror
+        end subroutine
+
+        subroutine VAPAA_MPI_Ineighbor_alltoall(sendbuf, sendcount, sendtype, recvbuf, recvcount, recvtype, &
+                                                comm, request, ierror)
+            use iso_c_binding, only: c_int
+            implicit none
+            type(*), dimension(..), intent(in), asynchronous :: sendbuf
+!pgi$ ignore_tkr(c) sendbuf
+            type(*), dimension(..), asynchronous :: recvbuf
+!pgi$ ignore_tkr(c) recvbuf
+            integer(c_int), intent(in) :: sendcount, sendtype, recvcount, recvtype, comm
+            integer(c_int), intent(out) :: request, ierror
+        end subroutine
+
+        subroutine VAPAA_MPI_Neighbor_allgather_init(sendbuf, sendcount, sendtype, recvbuf, recvcount, &
+                                                     recvtype, comm, info, request, ierror)
+            use iso_c_binding, only: c_int
+            implicit none
+            type(*), dimension(..), intent(in), asynchronous :: sendbuf
+!pgi$ ignore_tkr(c) sendbuf
+            type(*), dimension(..), asynchronous :: recvbuf
+!pgi$ ignore_tkr(c) recvbuf
+            integer(c_int), intent(in) :: sendcount, sendtype, recvcount, recvtype, comm, info
+            integer(c_int), intent(out) :: request, ierror
+        end subroutine
+
+        subroutine VAPAA_MPI_Neighbor_alltoall_init(sendbuf, sendcount, sendtype, recvbuf, recvcount, &
+                                                    recvtype, comm, info, request, ierror)
+            use iso_c_binding, only: c_int
+            implicit none
+            type(*), dimension(..), intent(in), asynchronous :: sendbuf
+!pgi$ ignore_tkr(c) sendbuf
+            type(*), dimension(..), asynchronous :: recvbuf
+!pgi$ ignore_tkr(c) recvbuf
+            integer(c_int), intent(in) :: sendcount, sendtype, recvcount, recvtype, comm, info
+            integer(c_int), intent(out) :: request, ierror
+        end subroutine
+
+        subroutine VAPAA_MPI_Neighbor_allgatherv(sendbuf, sendcount, sendtype, recvbuf, recvcounts, &
+                                                 displs, recvtype, comm, ierror)
+            use iso_c_binding, only: c_int
+            implicit none
+            type(*), dimension(..), intent(in) :: sendbuf
+!pgi$ ignore_tkr(c) sendbuf
+            type(*), dimension(..) :: recvbuf
+!pgi$ ignore_tkr(c) recvbuf
+            integer(c_int), intent(in) :: sendcount, sendtype, recvcounts(*), displs(*), recvtype, comm
+            integer(c_int), intent(out) :: ierror
+        end subroutine
+
+        subroutine VAPAA_MPI_Ineighbor_allgatherv(sendbuf, sendcount, sendtype, recvbuf, recvcounts, &
+                                                  displs, recvtype, comm, request, ierror)
+            use iso_c_binding, only: c_int
+            implicit none
+            type(*), dimension(..), intent(in), asynchronous :: sendbuf
+!pgi$ ignore_tkr(c) sendbuf
+            type(*), dimension(..), asynchronous :: recvbuf
+!pgi$ ignore_tkr(c) recvbuf
+            integer(c_int), intent(in) :: sendcount, sendtype, recvcounts(*), displs(*), recvtype, comm
+            integer(c_int), intent(out) :: request, ierror
+        end subroutine
+
+        subroutine VAPAA_MPI_Neighbor_allgatherv_init(sendbuf, sendcount, sendtype, recvbuf, recvcounts, &
+                                                      displs, recvtype, comm, info, request, ierror)
+            use iso_c_binding, only: c_int
+            implicit none
+            type(*), dimension(..), intent(in), asynchronous :: sendbuf
+!pgi$ ignore_tkr(c) sendbuf
+            type(*), dimension(..), asynchronous :: recvbuf
+!pgi$ ignore_tkr(c) recvbuf
+            integer(c_int), intent(in) :: sendcount, sendtype, recvcounts(*), displs(*), recvtype, comm, info
+            integer(c_int), intent(out) :: request, ierror
+        end subroutine
+
+        subroutine VAPAA_MPI_Neighbor_alltoallv(sendbuf, sendcounts, sdispls, sendtype, recvbuf, &
+                                                recvcounts, rdispls, recvtype, comm, ierror)
+            use iso_c_binding, only: c_int
+            implicit none
+            type(*), dimension(..), intent(in) :: sendbuf
+!pgi$ ignore_tkr(c) sendbuf
+            type(*), dimension(..) :: recvbuf
+!pgi$ ignore_tkr(c) recvbuf
+            integer(c_int), intent(in) :: sendcounts(*), sdispls(*), sendtype
+            integer(c_int), intent(in) :: recvcounts(*), rdispls(*), recvtype, comm
+            integer(c_int), intent(out) :: ierror
+        end subroutine
+
+        subroutine VAPAA_MPI_Ineighbor_alltoallv(sendbuf, sendcounts, sdispls, sendtype, recvbuf, &
+                                                 recvcounts, rdispls, recvtype, comm, request, ierror)
+            use iso_c_binding, only: c_int
+            implicit none
+            type(*), dimension(..), intent(in), asynchronous :: sendbuf
+!pgi$ ignore_tkr(c) sendbuf
+            type(*), dimension(..), asynchronous :: recvbuf
+!pgi$ ignore_tkr(c) recvbuf
+            integer(c_int), intent(in) :: sendcounts(*), sdispls(*), sendtype
+            integer(c_int), intent(in) :: recvcounts(*), rdispls(*), recvtype, comm
+            integer(c_int), intent(out) :: request, ierror
+        end subroutine
+
+        subroutine VAPAA_MPI_Neighbor_alltoallv_init(sendbuf, sendcounts, sdispls, sendtype, recvbuf, &
+                                                     recvcounts, rdispls, recvtype, comm, info, request, &
+                                                     ierror)
+            use iso_c_binding, only: c_int
+            implicit none
+            type(*), dimension(..), intent(in), asynchronous :: sendbuf
+!pgi$ ignore_tkr(c) sendbuf
+            type(*), dimension(..), asynchronous :: recvbuf
+!pgi$ ignore_tkr(c) recvbuf
+            integer(c_int), intent(in) :: sendcounts(*), sdispls(*), sendtype
+            integer(c_int), intent(in) :: recvcounts(*), rdispls(*), recvtype, comm, info
+            integer(c_int), intent(out) :: request, ierror
+        end subroutine
+
+        subroutine VAPAA_MPI_Neighbor_alltoallw(sendbuf, sendcounts, sdispls, sendtypes, recvbuf, &
+                                                recvcounts, rdispls, recvtypes, comm, ierror)
+            use iso_c_binding, only: c_int, c_intptr_t
+            use mpi_handle_types, only: MPI_Datatype
+            implicit none
+            type(*), dimension(..), intent(in) :: sendbuf
+!pgi$ ignore_tkr(c) sendbuf
+            integer(c_int), intent(in) :: sendcounts(*), recvcounts(*)
+            integer(c_intptr_t), intent(in) :: sdispls(*), rdispls(*)
+            type(MPI_Datatype), intent(in) :: sendtypes(*), recvtypes(*)
+            type(*), dimension(..) :: recvbuf
+!pgi$ ignore_tkr(c) recvbuf
+            integer(c_int), intent(in) :: comm
+            integer(c_int), intent(out) :: ierror
+        end subroutine
+
+        subroutine VAPAA_MPI_Ineighbor_alltoallw(sendbuf, sendcounts, sdispls, sendtypes, recvbuf, &
+                                                 recvcounts, rdispls, recvtypes, comm, request, ierror)
+            use iso_c_binding, only: c_int, c_intptr_t
+            use mpi_handle_types, only: MPI_Datatype
+            implicit none
+            type(*), dimension(..), intent(in), asynchronous :: sendbuf
+!pgi$ ignore_tkr(c) sendbuf
+            integer(c_int), intent(in) :: sendcounts(*), recvcounts(*)
+            integer(c_intptr_t), intent(in) :: sdispls(*), rdispls(*)
+            type(MPI_Datatype), intent(in) :: sendtypes(*), recvtypes(*)
+            type(*), dimension(..), asynchronous :: recvbuf
+!pgi$ ignore_tkr(c) recvbuf
+            integer(c_int), intent(in) :: comm
+            integer(c_int), intent(out) :: request, ierror
+        end subroutine
+
+        subroutine VAPAA_MPI_Neighbor_alltoallw_init(sendbuf, sendcounts, sdispls, sendtypes, recvbuf, &
+                                                     recvcounts, rdispls, recvtypes, comm, info, request, &
+                                                     ierror)
+            use iso_c_binding, only: c_int, c_intptr_t
+            use mpi_handle_types, only: MPI_Datatype
+            implicit none
+            type(*), dimension(..), intent(in), asynchronous :: sendbuf
+!pgi$ ignore_tkr(c) sendbuf
+            integer(c_int), intent(in) :: sendcounts(*), recvcounts(*)
+            integer(c_intptr_t), intent(in) :: sdispls(*), rdispls(*)
+            type(MPI_Datatype), intent(in) :: sendtypes(*), recvtypes(*)
+            type(*), dimension(..), asynchronous :: recvbuf
+!pgi$ ignore_tkr(c) recvbuf
+            integer(c_int), intent(in) :: comm, info
+            integer(c_int), intent(out) :: request, ierror
+        end subroutine
+    end interface
+#endif
 #endif
 
     contains
@@ -746,13 +1483,15 @@ module mpi_direct_collective_f
             if (present(ierror)) ierror = ierror_c
         end subroutine finish_ierror
 
-#ifdef HAVE_CFI
+#if defined(HAVE_CFI) || defined(HAVE_PGIF)
         subroutine MPI_Alltoallw_f08ts(sendbuf, sendcounts, sdispls, sendtypes, recvbuf, recvcounts, &
                                        rdispls, recvtypes, comm, ierror)
             type(*), dimension(..), intent(in) :: sendbuf
+!pgi$ ignore_tkr(c) sendbuf
             integer, intent(in) :: sendcounts(*), sdispls(*), recvcounts(*), rdispls(*)
             type(MPI_Datatype), intent(in) :: sendtypes(*), recvtypes(*)
             type(*), dimension(..) :: recvbuf
+!pgi$ ignore_tkr(c) recvbuf
             type(MPI_Comm), intent(in) :: comm
             integer, optional, intent(out) :: ierror
             integer(c_int) :: ierror_c
@@ -782,6 +1521,7 @@ module mpi_direct_collective_f
 
         subroutine MPI_Ibcast_f08ts(buffer, count, datatype, root, comm, request, ierror)
             type(*), dimension(..), intent(inout), asynchronous :: buffer
+!pgi$ ignore_tkr(c) buffer
             integer, intent(in) :: count, root
             type(MPI_Datatype), intent(in) :: datatype
             type(MPI_Comm), intent(in) :: comm
@@ -795,6 +1535,7 @@ module mpi_direct_collective_f
 
         subroutine MPI_Bcast_init_f08ts(buffer, count, datatype, root, comm, info, request, ierror)
             type(*), dimension(..), intent(inout), asynchronous :: buffer
+!pgi$ ignore_tkr(c) buffer
             integer, intent(in) :: count, root
             type(MPI_Datatype), intent(in) :: datatype
             type(MPI_Comm), intent(in) :: comm
@@ -809,7 +1550,9 @@ module mpi_direct_collective_f
 
         subroutine MPI_Iallreduce_f08ts(sendbuf, recvbuf, count, datatype, op, comm, request, ierror)
             type(*), dimension(..), intent(in), asynchronous :: sendbuf
+!pgi$ ignore_tkr(c) sendbuf
             type(*), dimension(..), asynchronous :: recvbuf
+!pgi$ ignore_tkr(c) recvbuf
             integer, intent(in) :: count
             type(MPI_Datatype), intent(in) :: datatype
             type(MPI_Op), intent(in) :: op
@@ -824,7 +1567,9 @@ module mpi_direct_collective_f
 
         subroutine MPI_Iscan_f08ts(sendbuf, recvbuf, count, datatype, op, comm, request, ierror)
             type(*), dimension(..), intent(in), asynchronous :: sendbuf
+!pgi$ ignore_tkr(c) sendbuf
             type(*), dimension(..), asynchronous :: recvbuf
+!pgi$ ignore_tkr(c) recvbuf
             integer, intent(in) :: count
             type(MPI_Datatype), intent(in) :: datatype
             type(MPI_Op), intent(in) :: op
@@ -839,7 +1584,9 @@ module mpi_direct_collective_f
 
         subroutine MPI_Iexscan_f08ts(sendbuf, recvbuf, count, datatype, op, comm, request, ierror)
             type(*), dimension(..), intent(in), asynchronous :: sendbuf
+!pgi$ ignore_tkr(c) sendbuf
             type(*), dimension(..), asynchronous :: recvbuf
+!pgi$ ignore_tkr(c) recvbuf
             integer, intent(in) :: count
             type(MPI_Datatype), intent(in) :: datatype
             type(MPI_Op), intent(in) :: op
@@ -854,7 +1601,9 @@ module mpi_direct_collective_f
 
         subroutine MPI_Allreduce_init_f08ts(sendbuf, recvbuf, count, datatype, op, comm, info, request, ierror)
             type(*), dimension(..), intent(in), asynchronous :: sendbuf
+!pgi$ ignore_tkr(c) sendbuf
             type(*), dimension(..), asynchronous :: recvbuf
+!pgi$ ignore_tkr(c) recvbuf
             integer, intent(in) :: count
             type(MPI_Datatype), intent(in) :: datatype
             type(MPI_Op), intent(in) :: op
@@ -870,7 +1619,9 @@ module mpi_direct_collective_f
 
         subroutine MPI_Scan_init_f08ts(sendbuf, recvbuf, count, datatype, op, comm, info, request, ierror)
             type(*), dimension(..), intent(in), asynchronous :: sendbuf
+!pgi$ ignore_tkr(c) sendbuf
             type(*), dimension(..), asynchronous :: recvbuf
+!pgi$ ignore_tkr(c) recvbuf
             integer, intent(in) :: count
             type(MPI_Datatype), intent(in) :: datatype
             type(MPI_Op), intent(in) :: op
@@ -886,7 +1637,9 @@ module mpi_direct_collective_f
 
         subroutine MPI_Exscan_init_f08ts(sendbuf, recvbuf, count, datatype, op, comm, info, request, ierror)
             type(*), dimension(..), intent(in), asynchronous :: sendbuf
+!pgi$ ignore_tkr(c) sendbuf
             type(*), dimension(..), asynchronous :: recvbuf
+!pgi$ ignore_tkr(c) recvbuf
             integer, intent(in) :: count
             type(MPI_Datatype), intent(in) :: datatype
             type(MPI_Op), intent(in) :: op
@@ -902,7 +1655,9 @@ module mpi_direct_collective_f
 
         subroutine MPI_Ireduce_f08ts(sendbuf, recvbuf, count, datatype, op, root, comm, request, ierror)
             type(*), dimension(..), intent(in), asynchronous :: sendbuf
+!pgi$ ignore_tkr(c) sendbuf
             type(*), dimension(..), asynchronous :: recvbuf
+!pgi$ ignore_tkr(c) recvbuf
             integer, intent(in) :: count, root
             type(MPI_Datatype), intent(in) :: datatype
             type(MPI_Op), intent(in) :: op
@@ -917,7 +1672,9 @@ module mpi_direct_collective_f
 
         subroutine MPI_Reduce_init_f08ts(sendbuf, recvbuf, count, datatype, op, root, comm, info, request, ierror)
             type(*), dimension(..), intent(in), asynchronous :: sendbuf
+!pgi$ ignore_tkr(c) sendbuf
             type(*), dimension(..), asynchronous :: recvbuf
+!pgi$ ignore_tkr(c) recvbuf
             integer, intent(in) :: count, root
             type(MPI_Datatype), intent(in) :: datatype
             type(MPI_Op), intent(in) :: op
@@ -934,7 +1691,9 @@ module mpi_direct_collective_f
         subroutine MPI_Igather_f08ts(sendbuf, sendcount, sendtype, recvbuf, recvcount, recvtype, root, comm, &
                                      request, ierror)
             type(*), dimension(..), intent(in), asynchronous :: sendbuf
+!pgi$ ignore_tkr(c) sendbuf
             type(*), dimension(..), asynchronous :: recvbuf
+!pgi$ ignore_tkr(c) recvbuf
             integer, intent(in) :: sendcount, recvcount, root
             type(MPI_Datatype), intent(in) :: sendtype, recvtype
             type(MPI_Comm), intent(in) :: comm
@@ -950,7 +1709,9 @@ module mpi_direct_collective_f
         subroutine MPI_Iscatter_f08ts(sendbuf, sendcount, sendtype, recvbuf, recvcount, recvtype, root, comm, &
                                       request, ierror)
             type(*), dimension(..), intent(in), asynchronous :: sendbuf
+!pgi$ ignore_tkr(c) sendbuf
             type(*), dimension(..), asynchronous :: recvbuf
+!pgi$ ignore_tkr(c) recvbuf
             integer, intent(in) :: sendcount, recvcount, root
             type(MPI_Datatype), intent(in) :: sendtype, recvtype
             type(MPI_Comm), intent(in) :: comm
@@ -966,7 +1727,9 @@ module mpi_direct_collective_f
         subroutine MPI_Gather_init_f08ts(sendbuf, sendcount, sendtype, recvbuf, recvcount, recvtype, root, comm, &
                                          info, request, ierror)
             type(*), dimension(..), intent(in), asynchronous :: sendbuf
+!pgi$ ignore_tkr(c) sendbuf
             type(*), dimension(..), asynchronous :: recvbuf
+!pgi$ ignore_tkr(c) recvbuf
             integer, intent(in) :: sendcount, recvcount, root
             type(MPI_Datatype), intent(in) :: sendtype, recvtype
             type(MPI_Comm), intent(in) :: comm
@@ -983,7 +1746,9 @@ module mpi_direct_collective_f
         subroutine MPI_Scatter_init_f08ts(sendbuf, sendcount, sendtype, recvbuf, recvcount, recvtype, root, comm, &
                                           info, request, ierror)
             type(*), dimension(..), intent(in), asynchronous :: sendbuf
+!pgi$ ignore_tkr(c) sendbuf
             type(*), dimension(..), asynchronous :: recvbuf
+!pgi$ ignore_tkr(c) recvbuf
             integer, intent(in) :: sendcount, recvcount, root
             type(MPI_Datatype), intent(in) :: sendtype, recvtype
             type(MPI_Comm), intent(in) :: comm
@@ -1000,7 +1765,9 @@ module mpi_direct_collective_f
         subroutine MPI_Iallgather_f08ts(sendbuf, sendcount, sendtype, recvbuf, recvcount, recvtype, comm, &
                                         request, ierror)
             type(*), dimension(..), intent(in), asynchronous :: sendbuf
+!pgi$ ignore_tkr(c) sendbuf
             type(*), dimension(..), asynchronous :: recvbuf
+!pgi$ ignore_tkr(c) recvbuf
             integer, intent(in) :: sendcount, recvcount
             type(MPI_Datatype), intent(in) :: sendtype, recvtype
             type(MPI_Comm), intent(in) :: comm
@@ -1016,7 +1783,9 @@ module mpi_direct_collective_f
         subroutine MPI_Ialltoall_f08ts(sendbuf, sendcount, sendtype, recvbuf, recvcount, recvtype, comm, &
                                        request, ierror)
             type(*), dimension(..), intent(in), asynchronous :: sendbuf
+!pgi$ ignore_tkr(c) sendbuf
             type(*), dimension(..), asynchronous :: recvbuf
+!pgi$ ignore_tkr(c) recvbuf
             integer, intent(in) :: sendcount, recvcount
             type(MPI_Datatype), intent(in) :: sendtype, recvtype
             type(MPI_Comm), intent(in) :: comm
@@ -1032,7 +1801,9 @@ module mpi_direct_collective_f
         subroutine MPI_Allgather_init_f08ts(sendbuf, sendcount, sendtype, recvbuf, recvcount, recvtype, comm, &
                                             info, request, ierror)
             type(*), dimension(..), intent(in), asynchronous :: sendbuf
+!pgi$ ignore_tkr(c) sendbuf
             type(*), dimension(..), asynchronous :: recvbuf
+!pgi$ ignore_tkr(c) recvbuf
             integer, intent(in) :: sendcount, recvcount
             type(MPI_Datatype), intent(in) :: sendtype, recvtype
             type(MPI_Comm), intent(in) :: comm
@@ -1049,7 +1820,9 @@ module mpi_direct_collective_f
         subroutine MPI_Alltoall_init_f08ts(sendbuf, sendcount, sendtype, recvbuf, recvcount, recvtype, comm, &
                                            info, request, ierror)
             type(*), dimension(..), intent(in), asynchronous :: sendbuf
+!pgi$ ignore_tkr(c) sendbuf
             type(*), dimension(..), asynchronous :: recvbuf
+!pgi$ ignore_tkr(c) recvbuf
             integer, intent(in) :: sendcount, recvcount
             type(MPI_Datatype), intent(in) :: sendtype, recvtype
             type(MPI_Comm), intent(in) :: comm
@@ -1066,9 +1839,11 @@ module mpi_direct_collective_f
         subroutine MPI_Igatherv_f08ts(sendbuf, sendcount, sendtype, recvbuf, recvcounts, displs, recvtype, &
                                       root, comm, request, ierror)
             type(*), dimension(..), intent(in), asynchronous :: sendbuf
+!pgi$ ignore_tkr(c) sendbuf
             integer, intent(in) :: sendcount
             type(MPI_Datatype), intent(in) :: sendtype, recvtype
             type(*), dimension(..), asynchronous :: recvbuf
+!pgi$ ignore_tkr(c) recvbuf
             integer, intent(in), asynchronous :: recvcounts(*), displs(*)
             integer, intent(in) :: root
             type(MPI_Comm), intent(in) :: comm
@@ -1083,9 +1858,11 @@ module mpi_direct_collective_f
         subroutine MPI_Gatherv_init_f08ts(sendbuf, sendcount, sendtype, recvbuf, recvcounts, displs, recvtype, &
                                           root, comm, info, request, ierror)
             type(*), dimension(..), intent(in), asynchronous :: sendbuf
+!pgi$ ignore_tkr(c) sendbuf
             integer, intent(in) :: sendcount
             type(MPI_Datatype), intent(in) :: sendtype, recvtype
             type(*), dimension(..), asynchronous :: recvbuf
+!pgi$ ignore_tkr(c) recvbuf
             integer, intent(in), asynchronous :: recvcounts(*), displs(*)
             integer, intent(in) :: root
             type(MPI_Comm), intent(in) :: comm
@@ -1102,9 +1879,11 @@ module mpi_direct_collective_f
         subroutine MPI_Iscatterv_f08ts(sendbuf, sendcounts, displs, sendtype, recvbuf, recvcount, recvtype, &
                                        root, comm, request, ierror)
             type(*), dimension(..), intent(in), asynchronous :: sendbuf
+!pgi$ ignore_tkr(c) sendbuf
             integer, intent(in), asynchronous :: sendcounts(*), displs(*)
             type(MPI_Datatype), intent(in) :: sendtype, recvtype
             type(*), dimension(..), asynchronous :: recvbuf
+!pgi$ ignore_tkr(c) recvbuf
             integer, intent(in) :: recvcount, root
             type(MPI_Comm), intent(in) :: comm
             type(MPI_Request), intent(out) :: request
@@ -1118,9 +1897,11 @@ module mpi_direct_collective_f
         subroutine MPI_Scatterv_init_f08ts(sendbuf, sendcounts, displs, sendtype, recvbuf, recvcount, recvtype, &
                                            root, comm, info, request, ierror)
             type(*), dimension(..), intent(in), asynchronous :: sendbuf
+!pgi$ ignore_tkr(c) sendbuf
             integer, intent(in), asynchronous :: sendcounts(*), displs(*)
             type(MPI_Datatype), intent(in) :: sendtype, recvtype
             type(*), dimension(..), asynchronous :: recvbuf
+!pgi$ ignore_tkr(c) recvbuf
             integer, intent(in) :: recvcount, root
             type(MPI_Comm), intent(in) :: comm
             type(MPI_Info), intent(in) :: info
@@ -1136,9 +1917,11 @@ module mpi_direct_collective_f
         subroutine MPI_Iallgatherv_f08ts(sendbuf, sendcount, sendtype, recvbuf, recvcounts, displs, &
                                          recvtype, comm, request, ierror)
             type(*), dimension(..), intent(in), asynchronous :: sendbuf
+!pgi$ ignore_tkr(c) sendbuf
             integer, intent(in) :: sendcount
             type(MPI_Datatype), intent(in) :: sendtype, recvtype
             type(*), dimension(..), asynchronous :: recvbuf
+!pgi$ ignore_tkr(c) recvbuf
             integer, intent(in), asynchronous :: recvcounts(*), displs(*)
             type(MPI_Comm), intent(in) :: comm
             type(MPI_Request), intent(out) :: request
@@ -1152,9 +1935,11 @@ module mpi_direct_collective_f
         subroutine MPI_Allgatherv_init_f08ts(sendbuf, sendcount, sendtype, recvbuf, recvcounts, displs, &
                                              recvtype, comm, info, request, ierror)
             type(*), dimension(..), intent(in), asynchronous :: sendbuf
+!pgi$ ignore_tkr(c) sendbuf
             integer, intent(in) :: sendcount
             type(MPI_Datatype), intent(in) :: sendtype, recvtype
             type(*), dimension(..), asynchronous :: recvbuf
+!pgi$ ignore_tkr(c) recvbuf
             integer, intent(in), asynchronous :: recvcounts(*), displs(*)
             type(MPI_Comm), intent(in) :: comm
             type(MPI_Info), intent(in) :: info
@@ -1170,9 +1955,11 @@ module mpi_direct_collective_f
         subroutine MPI_Ialltoallv_f08ts(sendbuf, sendcounts, sdispls, sendtype, recvbuf, recvcounts, rdispls, &
                                         recvtype, comm, request, ierror)
             type(*), dimension(..), intent(in), asynchronous :: sendbuf
+!pgi$ ignore_tkr(c) sendbuf
             integer, intent(in), asynchronous :: sendcounts(*), sdispls(*), recvcounts(*), rdispls(*)
             type(MPI_Datatype), intent(in) :: sendtype, recvtype
             type(*), dimension(..), asynchronous :: recvbuf
+!pgi$ ignore_tkr(c) recvbuf
             type(MPI_Comm), intent(in) :: comm
             type(MPI_Request), intent(out) :: request
             integer, optional, intent(out) :: ierror
@@ -1185,9 +1972,11 @@ module mpi_direct_collective_f
         subroutine MPI_Alltoallv_init_f08ts(sendbuf, sendcounts, sdispls, sendtype, recvbuf, recvcounts, &
                                             rdispls, recvtype, comm, info, request, ierror)
             type(*), dimension(..), intent(in), asynchronous :: sendbuf
+!pgi$ ignore_tkr(c) sendbuf
             integer, intent(in), asynchronous :: sendcounts(*), sdispls(*), recvcounts(*), rdispls(*)
             type(MPI_Datatype), intent(in) :: sendtype, recvtype
             type(*), dimension(..), asynchronous :: recvbuf
+!pgi$ ignore_tkr(c) recvbuf
             type(MPI_Comm), intent(in) :: comm
             type(MPI_Info), intent(in) :: info
             type(MPI_Request), intent(out) :: request
@@ -1202,9 +1991,11 @@ module mpi_direct_collective_f
         subroutine MPI_Ialltoallw_f08ts(sendbuf, sendcounts, sdispls, sendtypes, recvbuf, recvcounts, &
                                         rdispls, recvtypes, comm, request, ierror)
             type(*), dimension(..), intent(in), asynchronous :: sendbuf
+!pgi$ ignore_tkr(c) sendbuf
             integer, intent(in), asynchronous :: sendcounts(*), sdispls(*), recvcounts(*), rdispls(*)
             type(MPI_Datatype), intent(in), asynchronous :: sendtypes(*), recvtypes(*)
             type(*), dimension(..), asynchronous :: recvbuf
+!pgi$ ignore_tkr(c) recvbuf
             type(MPI_Comm), intent(in) :: comm
             type(MPI_Request), intent(out) :: request
             integer, optional, intent(out) :: ierror
@@ -1217,9 +2008,11 @@ module mpi_direct_collective_f
         subroutine MPI_Alltoallw_init_f08ts(sendbuf, sendcounts, sdispls, sendtypes, recvbuf, recvcounts, &
                                             rdispls, recvtypes, comm, info, request, ierror)
             type(*), dimension(..), intent(in), asynchronous :: sendbuf
+!pgi$ ignore_tkr(c) sendbuf
             integer, intent(in), asynchronous :: sendcounts(*), sdispls(*), recvcounts(*), rdispls(*)
             type(MPI_Datatype), intent(in), asynchronous :: sendtypes(*), recvtypes(*)
             type(*), dimension(..), asynchronous :: recvbuf
+!pgi$ ignore_tkr(c) recvbuf
             type(MPI_Comm), intent(in) :: comm
             type(MPI_Info), intent(in) :: info
             type(MPI_Request), intent(out) :: request
@@ -1233,7 +2026,9 @@ module mpi_direct_collective_f
 
         subroutine MPI_Ireduce_scatter_f08ts(sendbuf, recvbuf, recvcounts, datatype, op, comm, request, ierror)
             type(*), dimension(..), intent(in), asynchronous :: sendbuf
+!pgi$ ignore_tkr(c) sendbuf
             type(*), dimension(..), asynchronous :: recvbuf
+!pgi$ ignore_tkr(c) recvbuf
             integer, intent(in), asynchronous :: recvcounts(*)
             type(MPI_Datatype), intent(in) :: datatype
             type(MPI_Op), intent(in) :: op
@@ -1249,7 +2044,9 @@ module mpi_direct_collective_f
         subroutine MPI_Reduce_scatter_init_f08ts(sendbuf, recvbuf, recvcounts, datatype, op, comm, info, &
                                                  request, ierror)
             type(*), dimension(..), intent(in), asynchronous :: sendbuf
+!pgi$ ignore_tkr(c) sendbuf
             type(*), dimension(..), asynchronous :: recvbuf
+!pgi$ ignore_tkr(c) recvbuf
             integer, intent(in), asynchronous :: recvcounts(*)
             type(MPI_Datatype), intent(in) :: datatype
             type(MPI_Op), intent(in) :: op
@@ -1265,7 +2062,9 @@ module mpi_direct_collective_f
 
         subroutine MPI_Ireduce_scatter_block_f08ts(sendbuf, recvbuf, recvcount, datatype, op, comm, request, ierror)
             type(*), dimension(..), intent(in), asynchronous :: sendbuf
+!pgi$ ignore_tkr(c) sendbuf
             type(*), dimension(..), asynchronous :: recvbuf
+!pgi$ ignore_tkr(c) recvbuf
             integer, intent(in) :: recvcount
             type(MPI_Datatype), intent(in) :: datatype
             type(MPI_Op), intent(in) :: op
@@ -1281,7 +2080,9 @@ module mpi_direct_collective_f
         subroutine MPI_Reduce_scatter_block_init_f08ts(sendbuf, recvbuf, recvcount, datatype, op, comm, &
                                                        info, request, ierror)
             type(*), dimension(..), intent(in), asynchronous :: sendbuf
+!pgi$ ignore_tkr(c) sendbuf
             type(*), dimension(..), asynchronous :: recvbuf
+!pgi$ ignore_tkr(c) recvbuf
             integer, intent(in) :: recvcount
             type(MPI_Datatype), intent(in) :: datatype
             type(MPI_Op), intent(in) :: op
@@ -1299,9 +2100,11 @@ module mpi_direct_collective_f
         subroutine MPI_Isendrecv_f08ts(sendbuf, sendcount, sendtype, dest, sendtag, recvbuf, recvcount, &
                                        recvtype, source, recvtag, comm, request, ierror)
             type(*), dimension(..), intent(in), asynchronous :: sendbuf
+!pgi$ ignore_tkr(c) sendbuf
             integer, intent(in) :: sendcount, dest, sendtag, recvcount, source, recvtag
             type(MPI_Datatype), intent(in) :: sendtype, recvtype
             type(*), dimension(..), asynchronous :: recvbuf
+!pgi$ ignore_tkr(c) recvbuf
             type(MPI_Comm), intent(in) :: comm
             type(MPI_Request), intent(out) :: request
             integer, optional, intent(out) :: ierror
@@ -1316,6 +2119,7 @@ module mpi_direct_collective_f
         subroutine MPI_Isendrecv_replace_f08ts(buf, count, datatype, dest, sendtag, source, recvtag, comm, &
                                                request, ierror)
             type(*), dimension(..), intent(inout), asynchronous :: buf
+!pgi$ ignore_tkr(c) buf
             integer, intent(in) :: count, dest, sendtag, source, recvtag
             type(MPI_Datatype), intent(in) :: datatype
             type(MPI_Comm), intent(in) :: comm
@@ -1331,9 +2135,11 @@ module mpi_direct_collective_f
         subroutine MPI_Neighbor_allgather_f08ts(sendbuf, sendcount, sendtype, recvbuf, recvcount, recvtype, comm, &
                                                 ierror)
             type(*), dimension(..), intent(in) :: sendbuf
+!pgi$ ignore_tkr(c) sendbuf
             integer, intent(in) :: sendcount, recvcount
             type(MPI_Datatype), intent(in) :: sendtype, recvtype
             type(*), dimension(..) :: recvbuf
+!pgi$ ignore_tkr(c) recvbuf
             type(MPI_Comm), intent(in) :: comm
             integer, optional, intent(out) :: ierror
             integer(c_int) :: ierror_c
@@ -1345,9 +2151,11 @@ module mpi_direct_collective_f
         subroutine MPI_Neighbor_alltoall_f08ts(sendbuf, sendcount, sendtype, recvbuf, recvcount, recvtype, comm, &
                                                ierror)
             type(*), dimension(..), intent(in) :: sendbuf
+!pgi$ ignore_tkr(c) sendbuf
             integer, intent(in) :: sendcount, recvcount
             type(MPI_Datatype), intent(in) :: sendtype, recvtype
             type(*), dimension(..) :: recvbuf
+!pgi$ ignore_tkr(c) recvbuf
             type(MPI_Comm), intent(in) :: comm
             integer, optional, intent(out) :: ierror
             integer(c_int) :: ierror_c
@@ -1359,9 +2167,11 @@ module mpi_direct_collective_f
         subroutine MPI_Ineighbor_allgather_f08ts(sendbuf, sendcount, sendtype, recvbuf, recvcount, recvtype, comm, &
                                                  request, ierror)
             type(*), dimension(..), intent(in), asynchronous :: sendbuf
+!pgi$ ignore_tkr(c) sendbuf
             integer, intent(in) :: sendcount, recvcount
             type(MPI_Datatype), intent(in) :: sendtype, recvtype
             type(*), dimension(..), asynchronous :: recvbuf
+!pgi$ ignore_tkr(c) recvbuf
             type(MPI_Comm), intent(in) :: comm
             type(MPI_Request), intent(out) :: request
             integer, optional, intent(out) :: ierror
@@ -1375,9 +2185,11 @@ module mpi_direct_collective_f
         subroutine MPI_Ineighbor_alltoall_f08ts(sendbuf, sendcount, sendtype, recvbuf, recvcount, recvtype, comm, &
                                                 request, ierror)
             type(*), dimension(..), intent(in), asynchronous :: sendbuf
+!pgi$ ignore_tkr(c) sendbuf
             integer, intent(in) :: sendcount, recvcount
             type(MPI_Datatype), intent(in) :: sendtype, recvtype
             type(*), dimension(..), asynchronous :: recvbuf
+!pgi$ ignore_tkr(c) recvbuf
             type(MPI_Comm), intent(in) :: comm
             type(MPI_Request), intent(out) :: request
             integer, optional, intent(out) :: ierror
@@ -1391,9 +2203,11 @@ module mpi_direct_collective_f
         subroutine MPI_Neighbor_allgather_init_f08ts(sendbuf, sendcount, sendtype, recvbuf, recvcount, recvtype, &
                                                      comm, info, request, ierror)
             type(*), dimension(..), intent(in), asynchronous :: sendbuf
+!pgi$ ignore_tkr(c) sendbuf
             integer, intent(in) :: sendcount, recvcount
             type(MPI_Datatype), intent(in) :: sendtype, recvtype
             type(*), dimension(..), asynchronous :: recvbuf
+!pgi$ ignore_tkr(c) recvbuf
             type(MPI_Comm), intent(in) :: comm
             type(MPI_Info), intent(in) :: info
             type(MPI_Request), intent(out) :: request
@@ -1408,9 +2222,11 @@ module mpi_direct_collective_f
         subroutine MPI_Neighbor_alltoall_init_f08ts(sendbuf, sendcount, sendtype, recvbuf, recvcount, recvtype, &
                                                     comm, info, request, ierror)
             type(*), dimension(..), intent(in), asynchronous :: sendbuf
+!pgi$ ignore_tkr(c) sendbuf
             integer, intent(in) :: sendcount, recvcount
             type(MPI_Datatype), intent(in) :: sendtype, recvtype
             type(*), dimension(..), asynchronous :: recvbuf
+!pgi$ ignore_tkr(c) recvbuf
             type(MPI_Comm), intent(in) :: comm
             type(MPI_Info), intent(in) :: info
             type(MPI_Request), intent(out) :: request
@@ -1425,9 +2241,11 @@ module mpi_direct_collective_f
         subroutine MPI_Neighbor_allgatherv_f08ts(sendbuf, sendcount, sendtype, recvbuf, recvcounts, &
                                                  displs, recvtype, comm, ierror)
             type(*), dimension(..), intent(in) :: sendbuf
+!pgi$ ignore_tkr(c) sendbuf
             integer, intent(in) :: sendcount
             type(MPI_Datatype), intent(in) :: sendtype, recvtype
             type(*), dimension(..) :: recvbuf
+!pgi$ ignore_tkr(c) recvbuf
             integer, intent(in) :: recvcounts(*), displs(*)
             type(MPI_Comm), intent(in) :: comm
             integer, optional, intent(out) :: ierror
@@ -1440,9 +2258,11 @@ module mpi_direct_collective_f
         subroutine MPI_Ineighbor_allgatherv_f08ts(sendbuf, sendcount, sendtype, recvbuf, recvcounts, &
                                                   displs, recvtype, comm, request, ierror)
             type(*), dimension(..), intent(in), asynchronous :: sendbuf
+!pgi$ ignore_tkr(c) sendbuf
             integer, intent(in) :: sendcount
             type(MPI_Datatype), intent(in) :: sendtype, recvtype
             type(*), dimension(..), asynchronous :: recvbuf
+!pgi$ ignore_tkr(c) recvbuf
             integer, intent(in), asynchronous :: recvcounts(*), displs(*)
             type(MPI_Comm), intent(in) :: comm
             type(MPI_Request), intent(out) :: request
@@ -1457,9 +2277,11 @@ module mpi_direct_collective_f
         subroutine MPI_Neighbor_allgatherv_init_f08ts(sendbuf, sendcount, sendtype, recvbuf, recvcounts, &
                                                       displs, recvtype, comm, info, request, ierror)
             type(*), dimension(..), intent(in), asynchronous :: sendbuf
+!pgi$ ignore_tkr(c) sendbuf
             integer, intent(in) :: sendcount
             type(MPI_Datatype), intent(in) :: sendtype, recvtype
             type(*), dimension(..), asynchronous :: recvbuf
+!pgi$ ignore_tkr(c) recvbuf
             integer, intent(in), asynchronous :: recvcounts(*), displs(*)
             type(MPI_Comm), intent(in) :: comm
             type(MPI_Info), intent(in) :: info
@@ -1475,9 +2297,11 @@ module mpi_direct_collective_f
         subroutine MPI_Neighbor_alltoallv_f08ts(sendbuf, sendcounts, sdispls, sendtype, recvbuf, &
                                                 recvcounts, rdispls, recvtype, comm, ierror)
             type(*), dimension(..), intent(in) :: sendbuf
+!pgi$ ignore_tkr(c) sendbuf
             integer, intent(in) :: sendcounts(*), sdispls(*), recvcounts(*), rdispls(*)
             type(MPI_Datatype), intent(in) :: sendtype, recvtype
             type(*), dimension(..) :: recvbuf
+!pgi$ ignore_tkr(c) recvbuf
             type(MPI_Comm), intent(in) :: comm
             integer, optional, intent(out) :: ierror
             integer(c_int) :: ierror_c
@@ -1489,9 +2313,11 @@ module mpi_direct_collective_f
         subroutine MPI_Ineighbor_alltoallv_f08ts(sendbuf, sendcounts, sdispls, sendtype, recvbuf, &
                                                  recvcounts, rdispls, recvtype, comm, request, ierror)
             type(*), dimension(..), intent(in), asynchronous :: sendbuf
+!pgi$ ignore_tkr(c) sendbuf
             integer, intent(in), asynchronous :: sendcounts(*), sdispls(*), recvcounts(*), rdispls(*)
             type(MPI_Datatype), intent(in) :: sendtype, recvtype
             type(*), dimension(..), asynchronous :: recvbuf
+!pgi$ ignore_tkr(c) recvbuf
             type(MPI_Comm), intent(in) :: comm
             type(MPI_Request), intent(out) :: request
             integer, optional, intent(out) :: ierror
@@ -1505,9 +2331,11 @@ module mpi_direct_collective_f
         subroutine MPI_Neighbor_alltoallv_init_f08ts(sendbuf, sendcounts, sdispls, sendtype, recvbuf, &
                                                      recvcounts, rdispls, recvtype, comm, info, request, ierror)
             type(*), dimension(..), intent(in), asynchronous :: sendbuf
+!pgi$ ignore_tkr(c) sendbuf
             integer, intent(in), asynchronous :: sendcounts(*), sdispls(*), recvcounts(*), rdispls(*)
             type(MPI_Datatype), intent(in) :: sendtype, recvtype
             type(*), dimension(..), asynchronous :: recvbuf
+!pgi$ ignore_tkr(c) recvbuf
             type(MPI_Comm), intent(in) :: comm
             type(MPI_Info), intent(in) :: info
             type(MPI_Request), intent(out) :: request
@@ -1522,10 +2350,12 @@ module mpi_direct_collective_f
         subroutine MPI_Neighbor_alltoallw_f08ts(sendbuf, sendcounts, sdispls, sendtypes, recvbuf, &
                                                 recvcounts, rdispls, recvtypes, comm, ierror)
             type(*), dimension(..), intent(in) :: sendbuf
+!pgi$ ignore_tkr(c) sendbuf
             integer, intent(in) :: sendcounts(*), recvcounts(*)
             integer(kind=MPI_ADDRESS_KIND), intent(in) :: sdispls(*), rdispls(*)
             type(MPI_Datatype), intent(in) :: sendtypes(*), recvtypes(*)
             type(*), dimension(..) :: recvbuf
+!pgi$ ignore_tkr(c) recvbuf
             type(MPI_Comm), intent(in) :: comm
             integer, optional, intent(out) :: ierror
             integer(c_int) :: ierror_c
@@ -1537,10 +2367,12 @@ module mpi_direct_collective_f
         subroutine MPI_Ineighbor_alltoallw_f08ts(sendbuf, sendcounts, sdispls, sendtypes, recvbuf, &
                                                  recvcounts, rdispls, recvtypes, comm, request, ierror)
             type(*), dimension(..), intent(in), asynchronous :: sendbuf
+!pgi$ ignore_tkr(c) sendbuf
             integer, intent(in), asynchronous :: sendcounts(*), recvcounts(*)
             integer(kind=MPI_ADDRESS_KIND), intent(in), asynchronous :: sdispls(*), rdispls(*)
             type(MPI_Datatype), intent(in), asynchronous :: sendtypes(*), recvtypes(*)
             type(*), dimension(..), asynchronous :: recvbuf
+!pgi$ ignore_tkr(c) recvbuf
             type(MPI_Comm), intent(in) :: comm
             type(MPI_Request), intent(out) :: request
             integer, optional, intent(out) :: ierror
@@ -1553,10 +2385,12 @@ module mpi_direct_collective_f
         subroutine MPI_Neighbor_alltoallw_init_f08ts(sendbuf, sendcounts, sdispls, sendtypes, recvbuf, &
                                                      recvcounts, rdispls, recvtypes, comm, info, request, ierror)
             type(*), dimension(..), intent(in), asynchronous :: sendbuf
+!pgi$ ignore_tkr(c) sendbuf
             integer, intent(in), asynchronous :: sendcounts(*), recvcounts(*)
             integer(kind=MPI_ADDRESS_KIND), intent(in), asynchronous :: sdispls(*), rdispls(*)
             type(MPI_Datatype), intent(in), asynchronous :: sendtypes(*), recvtypes(*)
             type(*), dimension(..), asynchronous :: recvbuf
+!pgi$ ignore_tkr(c) recvbuf
             type(MPI_Comm), intent(in) :: comm
             type(MPI_Info), intent(in) :: info
             type(MPI_Request), intent(out) :: request
