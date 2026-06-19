@@ -635,7 +635,7 @@ module mpi_missing_f
 
         subroutine MPI_Type_get_contents_f08(datatype, max_integers, max_addresses, max_datatypes, &
                                              array_of_integers, array_of_addresses, array_of_datatypes, ierror)
-            use mpi_global_constants, only: MPI_ADDRESS_KIND
+            use mpi_global_constants, only: MPI_ADDRESS_KIND, MPI_DATATYPE_NULL
             use mpi_handle_types, only: MPI_Datatype
             use mpi_missing_c, only: VAPAA_MPI_Type_get_contents
             type(MPI_Datatype), intent(in) :: datatype
@@ -645,20 +645,32 @@ module mpi_missing_f
             type(MPI_Datatype), intent(out) :: array_of_datatypes(max_datatypes)
             integer, optional, intent(out) :: ierror
             integer(c_int) :: ints_c(max_integers), types_c(max_datatypes), ierror_c
+            integer(kind=MPI_ADDRESS_KIND) :: addrs_c(max_addresses)
             integer :: i
-            call VAPAA_MPI_Type_get_contents(datatype % MPI_VAL, int(max_integers,c_int), int(max_addresses,c_int), &
-                                             int(max_datatypes,c_int), ints_c, array_of_addresses, types_c, ierror_c)
-            array_of_integers = ints_c
+            array_of_integers = 0
+            array_of_addresses = 0_MPI_ADDRESS_KIND
+            ints_c = 0_c_int
+            addrs_c = 0_MPI_ADDRESS_KIND
+            types_c = MPI_DATATYPE_NULL % MPI_VAL
             do i = 1, max_datatypes
-                array_of_datatypes(i) % MPI_VAL = types_c(i)
+                array_of_datatypes(i) % MPI_VAL = MPI_DATATYPE_NULL % MPI_VAL
             end do
+            call VAPAA_MPI_Type_get_contents(datatype % MPI_VAL, int(max_integers,c_int), int(max_addresses,c_int), &
+                                             int(max_datatypes,c_int), ints_c, addrs_c, types_c, ierror_c)
+            if (ierror_c == 0_c_int) then
+                array_of_integers = ints_c
+                array_of_addresses = addrs_c
+                do i = 1, max_datatypes
+                    array_of_datatypes(i) % MPI_VAL = types_c(i)
+                end do
+            end if
             if (present(ierror)) ierror = ierror_c
         end subroutine MPI_Type_get_contents_f08
 
         subroutine MPI_Type_get_contents_c_f08(datatype, max_integers, max_addresses, max_large_counts, &
                                                max_datatypes, array_of_integers, array_of_addresses, &
                                                array_of_large_counts, array_of_datatypes, ierror)
-            use mpi_global_constants, only: MPI_ADDRESS_KIND, MPI_COUNT_KIND
+            use mpi_global_constants, only: MPI_ADDRESS_KIND, MPI_COUNT_KIND, MPI_DATATYPE_NULL
             use mpi_handle_types, only: MPI_Datatype
             use mpi_missing_c, only: VAPAA_MPI_Type_get_contents_c
             type(MPI_Datatype), intent(in) :: datatype
@@ -669,13 +681,29 @@ module mpi_missing_f
             type(MPI_Datatype), intent(out) :: array_of_datatypes(max_datatypes)
             integer, optional, intent(out) :: ierror
             integer(c_int) :: ints_c(max_integers), types_c(max_datatypes), ierror_c
-            integer :: i
-            call VAPAA_MPI_Type_get_contents_c(datatype % MPI_VAL, max_integers, max_addresses, max_large_counts, max_datatypes, &
-                                               ints_c, array_of_addresses, array_of_large_counts, types_c, ierror_c)
-            array_of_integers = ints_c
-            do i = 1, int(max_datatypes)
-                array_of_datatypes(i) % MPI_VAL = types_c(i)
+            integer(kind=MPI_ADDRESS_KIND) :: addrs_c(max_addresses)
+            integer(kind=MPI_COUNT_KIND) :: counts_c(max_large_counts)
+            integer(kind=MPI_COUNT_KIND) :: i
+            array_of_integers = 0
+            array_of_addresses = 0_MPI_ADDRESS_KIND
+            array_of_large_counts = 0_MPI_COUNT_KIND
+            ints_c = 0_c_int
+            addrs_c = 0_MPI_ADDRESS_KIND
+            counts_c = 0_MPI_COUNT_KIND
+            types_c = MPI_DATATYPE_NULL % MPI_VAL
+            do i = 1_MPI_COUNT_KIND, max_datatypes
+                array_of_datatypes(i) % MPI_VAL = MPI_DATATYPE_NULL % MPI_VAL
             end do
+            call VAPAA_MPI_Type_get_contents_c(datatype % MPI_VAL, max_integers, max_addresses, max_large_counts, max_datatypes, &
+                                               ints_c, addrs_c, counts_c, types_c, ierror_c)
+            if (ierror_c == 0_c_int) then
+                array_of_integers = ints_c
+                array_of_addresses = addrs_c
+                array_of_large_counts = counts_c
+                do i = 1_MPI_COUNT_KIND, max_datatypes
+                    array_of_datatypes(i) % MPI_VAL = types_c(i)
+                end do
+            end if
             if (present(ierror)) ierror = ierror_c
         end subroutine MPI_Type_get_contents_c_f08
 
