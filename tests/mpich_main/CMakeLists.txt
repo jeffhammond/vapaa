@@ -6,12 +6,20 @@ find_package(Threads REQUIRED)
 
 set(vapaa_mpich_main_test_environment "")
 if(FLAG_MPI MATCHES "OPEN_MPI")
-  list(APPEND vapaa_mpich_main_test_environment "OMPI_MCA_osc=pt2pt")
+  list(APPEND vapaa_mpich_main_test_environment
+    "OMPI_MCA_osc=pt2pt"
+    "OMPI_MCA_coll_hcoll_enable=0"
+    "OMPI_MCA_coll_ucc_enable=0"
+    "OMPI_MCA_hwloc_base_binding_policy=none"
+    "UCX_WARN_UNUSED_ENV_VARS=n")
 endif()
 
 add_library(mpich_main_mtest_f08 OBJECT
   "${MPICH_MAIN_UTIL_ROOT}/mtest_f08.f90")
-target_compile_options(mpich_main_mtest_f08 PRIVATE -Wall -Wextra -g -std=f2018 -fPIE)
+target_compile_options(mpich_main_mtest_f08 PRIVATE
+  -Wall -Wextra -g
+  $<$<COMPILE_LANG_AND_ID:Fortran,GNU>:-std=f2018>
+  -fPIE)
 target_include_directories(mpich_main_mtest_f08
   PRIVATE "${CMAKE_BINARY_DIR}/modules" "${MPICH_MAIN_INCLUDE_ROOT}")
 target_link_libraries(mpich_main_mtest_f08 PRIVATE ${vapa_lib})
@@ -42,6 +50,10 @@ function(vapaa_add_mpich_main_f08_test category test_name np)
   endif()
   if(category STREQUAL "misc" AND test_name STREQUAL "statusconv" AND NOT FLAG_MPI STREQUAL "MPICH")
     message(STATUS "Skipping MPICH main f08/misc/statusconv: its C helper uses MPICH's MPI_F08_status type")
+    return()
+  endif()
+  if(NOT VAPAA_ENABLE_CFI AND category STREQUAL "profile" AND test_name STREQUAL "profile1f90")
+    message(STATUS "Skipping MPICH main f08/profile/profile1f90: it interposes CFI-specific f08ts procedures")
     return()
   endif()
 
@@ -100,8 +112,12 @@ function(vapaa_add_mpich_main_f08_test category test_name np)
       "${MPICH_MAIN_UTIL_ROOT}"
       "${test_dir}")
   target_link_libraries(${target_name} PRIVATE ${vapa_lib} MPI::MPI_C Threads::Threads)
-  if(c_main_test AND CMAKE_Fortran_COMPILER_ID MATCHES "Intel")
-    target_link_options(${target_name} PRIVATE -nofor-main)
+  if(c_main_test)
+    if(CMAKE_Fortran_COMPILER_ID MATCHES "Intel")
+      target_link_options(${target_name} PRIVATE -nofor-main)
+    elseif(CMAKE_Fortran_COMPILER_ID STREQUAL "NVHPC")
+      target_link_options(${target_name} PRIVATE -Mnomain)
+    endif()
   endif()
   set_target_properties(${target_name} PROPERTIES
     LINKER_LANGUAGE Fortran

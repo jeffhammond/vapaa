@@ -204,7 +204,9 @@ module mpi_p2p_f
 #ifdef HAVE_CFI
         module procedure MPI_Irecv_f08ts
 #else
+#ifndef __NVCOMPILER
         module procedure MPI_Irecv_scalar_f08
+#endif
         module procedure MPI_Irecv_f08
 #endif
     end interface MPI_Irecv

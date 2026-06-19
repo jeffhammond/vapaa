@@ -11,7 +11,12 @@ find_package(Threads REQUIRED)
 
 set(vapaa_mpich_main_f90_test_environment "")
 if(FLAG_MPI MATCHES "OPEN_MPI")
-  list(APPEND vapaa_mpich_main_f90_test_environment "OMPI_MCA_osc=pt2pt")
+  list(APPEND vapaa_mpich_main_f90_test_environment
+    "OMPI_MCA_osc=pt2pt"
+    "OMPI_MCA_coll_hcoll_enable=0"
+    "OMPI_MCA_coll_ucc_enable=0"
+    "OMPI_MCA_hwloc_base_binding_policy=none"
+    "UCX_WARN_UNUSED_ENV_VARS=n")
 endif()
 
 set(vapaa_mpich_main_f90_fortran_options
@@ -22,7 +27,7 @@ add_library(mpich_main_mtest_f90 OBJECT
   "${MPICH_MAIN_UTIL_ROOT}/mtest_f90.f90")
 target_compile_options(mpich_main_mtest_f90 PRIVATE
   ${vapaa_mpich_main_f90_fortran_options}
-  -std=f2018)
+  $<$<COMPILE_LANG_AND_ID:Fortran,GNU>:-std=f2018>)
 target_include_directories(mpich_main_mtest_f90
   PRIVATE "${CMAKE_BINARY_DIR}/modules" "${MPICH_MAIN_INCLUDE_ROOT}")
 target_link_libraries(mpich_main_mtest_f90 PRIVATE ${vapa_lib})

@@ -42,13 +42,26 @@ contains
 
     subroutine MPI_Get_address_f90(location, address, ierror)
         use mpi_f90_constants, only: MPI_ADDRESS_KIND
+#ifdef HAVE_CFI
         use mpi_missing_c, only: VAPAA_MPI_Get_address
+#else
+        use mpi_missing_c, only: VAPAA_MPI_Get_address_nocfi
+#endif
         use mpi_f90_util, only: f90_finish_ierror
+#ifdef HAVE_CFI
         type(*), dimension(..), asynchronous :: location
+#else
+!dir$ ignore_tkr location
+        integer, dimension(*), asynchronous :: location
+#endif
         integer(kind=MPI_ADDRESS_KIND), intent(out) :: address
         integer, optional, intent(out) :: ierror
         integer(c_int) :: ierror_c
+#ifdef HAVE_CFI
         call VAPAA_MPI_Get_address(location, address, ierror_c)
+#else
+        call VAPAA_MPI_Get_address_nocfi(location, address, ierror_c)
+#endif
         call f90_finish_ierror(ierror, ierror_c)
     end subroutine MPI_Get_address_f90
 
@@ -85,12 +98,25 @@ contains
     end subroutine MPI_Alloc_mem_f90
 
     subroutine MPI_Free_mem_f90(base, ierror)
+#ifdef HAVE_CFI
         use mpi_missing_c, only: VAPAA_MPI_Free_mem
+#else
+        use mpi_missing_c, only: VAPAA_MPI_Free_mem_nocfi
+#endif
         use mpi_f90_util, only: f90_finish_ierror
+#ifdef HAVE_CFI
         type(*), dimension(..), intent(in), asynchronous :: base
+#else
+!dir$ ignore_tkr base
+        integer, dimension(*), intent(in), asynchronous :: base
+#endif
         integer, optional, intent(out) :: ierror
         integer(c_int) :: ierror_c
+#ifdef HAVE_CFI
         call VAPAA_MPI_Free_mem(base, ierror_c)
+#else
+        call VAPAA_MPI_Free_mem_nocfi(base, ierror_c)
+#endif
         call f90_finish_ierror(ierror, ierror_c)
     end subroutine MPI_Free_mem_f90
 

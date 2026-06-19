@@ -11,7 +11,12 @@ find_package(Threads REQUIRED)
 
 set(vapaa_mpich_main_f77_test_environment "")
 if(FLAG_MPI MATCHES "OPEN_MPI")
-  list(APPEND vapaa_mpich_main_f77_test_environment "OMPI_MCA_osc=pt2pt")
+  list(APPEND vapaa_mpich_main_f77_test_environment
+    "OMPI_MCA_osc=pt2pt"
+    "OMPI_MCA_coll_hcoll_enable=0"
+    "OMPI_MCA_coll_ucc_enable=0"
+    "OMPI_MCA_hwloc_base_binding_policy=none"
+    "UCX_WARN_UNUSED_ENV_VARS=n")
 endif()
 set(vapaa_mpich_main_f77_mpi_library_dirs "")
 foreach(mpi_library IN LISTS MPI_C_LIBRARIES)
@@ -129,8 +134,12 @@ function(vapaa_add_mpich_main_f77_test category test_name np)
       "${MPICH_MAIN_UTIL_ROOT}"
       "${test_dir}")
   target_link_libraries(${target_name} PRIVATE ${vapa_lib} MPI::MPI_C Threads::Threads)
-  if(c_main_test AND CMAKE_Fortran_COMPILER_ID MATCHES "Intel")
-    target_link_options(${target_name} PRIVATE -nofor-main)
+  if(c_main_test)
+    if(CMAKE_Fortran_COMPILER_ID MATCHES "Intel")
+      target_link_options(${target_name} PRIVATE -nofor-main)
+    elseif(CMAKE_Fortran_COMPILER_ID STREQUAL "NVHPC")
+      target_link_options(${target_name} PRIVATE -Mnomain)
+    endif()
   endif()
   set_target_properties(${target_name} PROPERTIES
     LINKER_LANGUAGE Fortran

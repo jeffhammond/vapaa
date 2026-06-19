@@ -297,6 +297,17 @@ void VAPAA_MPI_Win_detach(int *win_f, CFI_cdesc_t *base, int *ierror)
 }
 #endif
 
+void VAPAA_MPI_Win_create_nocfi(void *base, intptr_t *size_f, int *disp_unit, int *info_f, int *comm_f, int *win_f, int *ierror)
+{
+    MPI_Win win = MPI_WIN_NULL;
+    MPI_Info info = C_MPI_INFO_FROMINT(*info_f);
+    MPI_Comm comm = C_MPI_COMM_FROMINT(*comm_f);
+    *ierror = MPI_Win_create(base, (MPI_Aint) *size_f, *disp_unit, info, comm, &win);
+    if (*ierror == MPI_SUCCESS) VAPAA_MPI_CLEAR_WIN_NAME(win);
+    *win_f = C_MPI_WIN_TOINT(win);
+    C_MPI_RC_FIX(*ierror);
+}
+
 void VAPAA_MPI_Win_create_dynamic(int *info_f, int *comm_f, int *win_f, int *ierror)
 {
     MPI_Win win = MPI_WIN_NULL;

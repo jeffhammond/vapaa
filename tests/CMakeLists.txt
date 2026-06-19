@@ -1,5 +1,10 @@
 set(TYPECHECK_WARNING_TEST_SOURCE "${CMAKE_CURRENT_SOURCE_DIR}/test_typecheck_warnings.F90")
 
+set(vapaa_cfi_element_type_warnings_available TRUE)
+if(NOT VAPAA_ENABLE_CFI OR CMAKE_Fortran_COMPILER_ID MATCHES "Intel|NVHPC")
+  set(vapaa_cfi_element_type_warnings_available FALSE)
+endif()
+
 # Find all Fortran files in the current directory
 file(GLOB TEST_SOURCES "*.F90")
 list(REMOVE_ITEM TEST_SOURCES "${TYPECHECK_WARNING_TEST_SOURCE}")
@@ -8,7 +13,12 @@ list(REMOVE_ITEM TEST_SOURCES "${TYPECHECK_WARNING_TEST_SOURCE}")
 set(MPI_NUM_PROCESSES 4)
 set(vapaa_test_environment "")
 if(FLAG_MPI MATCHES "OPEN_MPI")
-  list(APPEND vapaa_test_environment "OMPI_MCA_osc=pt2pt")
+  list(APPEND vapaa_test_environment
+    "OMPI_MCA_osc=pt2pt"
+    "OMPI_MCA_coll_hcoll_enable=0"
+    "OMPI_MCA_coll_ucc_enable=0"
+    "OMPI_MCA_hwloc_base_binding_policy=none"
+    "UCX_WARN_UNUSED_ENV_VARS=n")
 endif()
 set(vapaa_test_mpi_library_dirs "")
 foreach(mpi_library IN LISTS MPI_C_LIBRARIES)
@@ -55,7 +65,11 @@ foreach(TEST_SOURCE ${TEST_SOURCES})
   add_executable(${TEST_NAME} ${TEST_SOURCE})
   
   # Link the library to the test
-  target_compile_options(${TEST_NAME} PRIVATE -Wall -Wextra -g -std=f2018 -DHAVE_CFI -fPIE)
+  target_compile_options(${TEST_NAME} PRIVATE
+    -Wall -Wextra -g
+    $<$<COMPILE_LANG_AND_ID:Fortran,GNU>:-std=f2018>
+    $<$<BOOL:${VAPAA_ENABLE_CFI}>:-DHAVE_CFI>
+    -fPIE)
   target_include_directories(${TEST_NAME}
                              PRIVATE "${CMAKE_BINARY_DIR}/modules")
   target_link_libraries(${TEST_NAME} PRIVATE ${vapa_lib})
@@ -95,7 +109,11 @@ set_tests_properties(test_verbose_init PROPERTIES
 )
 
 add_executable(test_typecheck_warnings ${TYPECHECK_WARNING_TEST_SOURCE})
-target_compile_options(test_typecheck_warnings PRIVATE -Wall -Wextra -g -std=f2018 -DHAVE_CFI -fPIE)
+target_compile_options(test_typecheck_warnings PRIVATE
+  -Wall -Wextra -g
+  $<$<COMPILE_LANG_AND_ID:Fortran,GNU>:-std=f2018>
+  $<$<BOOL:${VAPAA_ENABLE_CFI}>:-DHAVE_CFI>
+  -fPIE)
 target_include_directories(test_typecheck_warnings
                            PRIVATE "${CMAKE_BINARY_DIR}/modules")
 target_link_libraries(test_typecheck_warnings PRIVATE ${vapa_lib})
@@ -119,8 +137,13 @@ function(vapaa_add_typecheck_warning_test TEST_NAME TEST_MODE WARNING_POLICY)
   endforeach()
 
   if(WARNING_POLICY STREQUAL "EXPECT_WARNING")
-    list(APPEND typecheck_test_properties
-      PASS_REGULAR_EXPRESSION "CFI element type.*does not match MPI datatype")
+    if(vapaa_cfi_element_type_warnings_available)
+      list(APPEND typecheck_test_properties
+        PASS_REGULAR_EXPRESSION "CFI element type.*does not match MPI datatype")
+    else()
+      list(APPEND typecheck_test_properties
+        SKIP_REGULAR_EXPRESSION "Test passed")
+    endif()
   elseif(WARNING_POLICY STREQUAL "NO_WARNING")
     list(APPEND typecheck_test_properties
       PASS_REGULAR_EXPRESSION "Test passed"

@@ -23,6 +23,9 @@ option(VAPAA_ENABLE_MPI_MODULE_TESTS
 option(VAPAA_ENABLE_MPIFH_TESTS
        "Build imported MPICH f77 tests for the mpif.h include binding"
        OFF)
+option(VAPAA_ENABLE_CFI
+       "Build CFI assumed-type/assumed-rank buffer bindings"
+       ON)
 set(CMAKE_C_STANDARD 11)
 set(CMAKE_C_STANDARD_REQUIRED ON)
 set(CMAKE_C_EXTENSIONS OFF) 
@@ -247,13 +250,23 @@ endif()
 
 message(STATUS "Final MPI compatibility flag: ${FLAG_MPI}")
 
+if(CMAKE_Fortran_COMPILER_ID STREQUAL "NVHPC" AND VAPAA_ENABLE_CFI)
+  message(WARNING
+    "Disabling VAPAA_ENABLE_CFI for NVHPC: this compiler currently forwards "
+    "assumed-type CFI buffer descriptors without reliable element metadata.")
+  set(VAPAA_ENABLE_CFI OFF CACHE BOOL
+      "Build CFI assumed-type/assumed-rank buffer bindings" FORCE)
+endif()
+
 target_compile_options(${vapa_lib} PRIVATE -Wall -Wextra -fPIE) 
 target_compile_definitions(${vapa_lib} PRIVATE
-  -DHAVE_CFI
   ${FLAG_MPI}
   VAPAA_MPI_VENDOR_LABEL="${VAPAA_MPI_VENDOR_LABEL}"
   VAPAA_GIT_HASH="${VAPAA_GIT_HASH}"
   VAPAA_GIT_DIRTY="${VAPAA_GIT_DIRTY}")
+if(VAPAA_ENABLE_CFI)
+  target_compile_definitions(${vapa_lib} PRIVATE HAVE_CFI)
+endif()
 target_link_libraries(${vapa_lib} PRIVATE MPI::MPI_C)
 
 # Set the library output and module directories

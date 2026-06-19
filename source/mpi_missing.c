@@ -325,6 +325,20 @@ void VAPAA_MPI_Free_mem(CFI_cdesc_t *base, int *ierror)
 }
 #endif
 
+void VAPAA_MPI_Get_address_nocfi(void *location, intptr_t *address_f, int *ierror)
+{
+    MPI_Aint address = 0;
+    *ierror = MPI_Get_address(location, &address);
+    *address_f = (intptr_t) address;
+    C_MPI_RC_FIX(*ierror);
+}
+
+void VAPAA_MPI_Free_mem_nocfi(void *base, int *ierror)
+{
+    *ierror = MPI_Free_mem(base);
+    C_MPI_RC_FIX(*ierror);
+}
+
 void VAPAA_MPI_Alloc_mem(intptr_t *size_f, int *info_f, void **baseptr, int *ierror)
 {
     MPI_Info info = C_MPI_INFO_FROMINT(*info_f);

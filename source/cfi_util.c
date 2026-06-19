@@ -22,6 +22,47 @@
 #define VAPAA_HAVE_MPIX_IOV 0
 #endif
 
+static bool VAPAA_CFI_IS_OPAQUE_STRUCT_DESC(const CFI_cdesc_t *desc)
+{
+#ifdef CFI_type_struct
+    return desc != NULL && desc->type == CFI_type_struct;
+#else
+    (void) desc;
+    return false;
+#endif
+}
+
+static bool VAPAA_CFI_HAS_ELEMENT_METADATA(const CFI_cdesc_t *desc)
+{
+    if (desc == NULL || desc->elem_len == 0 || desc->type == 0) {
+        return false;
+    }
+    if (VAPAA_CFI_IS_OPAQUE_STRUCT_DESC(desc)) {
+        return false;
+    }
+#ifdef CFI_type_other
+    if (desc->type == CFI_type_other) {
+        return false;
+    }
+#endif
+    return true;
+}
+
+static bool VAPAA_CFI_HAS_FORWARDED_ONE_LOWER_BOUNDS(const CFI_cdesc_t *desc)
+{
+    if (!VAPAA_CFI_IS_OPAQUE_STRUCT_DESC(desc) || desc->rank == 0) {
+        return false;
+    }
+
+    for (CFI_rank_t i = 0; i < desc->rank; i++) {
+        if (desc->dim[i].lower_bound != 1) {
+            return false;
+        }
+    }
+
+    return true;
+}
+
 static ssize_t VAPAA_CFI_GET_TOTAL_ELEMENTS(const CFI_cdesc_t * desc)
 {
     const int rank = desc->rank;
@@ -35,6 +76,10 @@ static ssize_t VAPAA_CFI_GET_TOTAL_ELEMENTS(const CFI_cdesc_t * desc)
 
 static int VAPAA_CFI_ASSERT_ZERO_LOWER_BOUNDS(const CFI_cdesc_t *desc)
 {
+    if (VAPAA_CFI_HAS_FORWARDED_ONE_LOWER_BOUNDS(desc)) {
+        return MPI_SUCCESS;
+    }
+
     for (CFI_rank_t i = 0; i < desc->rank; i++) {
         if (desc->dim[i].lower_bound != 0) {
             VAPAA_Warning("non-zero CFI lower bound (%zd) in dimension %d is not supported.\n",
@@ -248,6 +293,197 @@ static int VAPAA_CREATE_STANDARD_IOV(MPI_Datatype dt, VAPAA_Iov **iov,
 static int VAPAA_CREATE_DATATYPE_IOV(MPI_Datatype dt, VAPAA_Iov **iov,
                                      size_t *actual_iov_len, size_t *actual_iov_bytes);
 
+typedef enum {
+    VAPAA_CFI_CATEGORY_UNKNOWN = 0,
+    VAPAA_CFI_CATEGORY_INTEGER,
+    VAPAA_CFI_CATEGORY_LOGICAL,
+    VAPAA_CFI_CATEGORY_REAL,
+    VAPAA_CFI_CATEGORY_COMPLEX,
+    VAPAA_CFI_CATEGORY_CHARACTER,
+    VAPAA_CFI_CATEGORY_INTEGER_OR_LOGICAL
+} VAPAA_Cfi_category;
+
+static bool VAPAA_CFI_TYPE_IS_FLAT_INTEGER(CFI_type_t type)
+{
+#ifdef CFI_type_signed_char
+    if (type == CFI_type_signed_char) return true;
+#endif
+#ifdef CFI_type_short
+    if (type == CFI_type_short) return true;
+#endif
+#ifdef CFI_type_int
+    if (type == CFI_type_int) return true;
+#endif
+#ifdef CFI_type_long
+    if (type == CFI_type_long) return true;
+#endif
+#ifdef CFI_type_long_long
+    if (type == CFI_type_long_long) return true;
+#endif
+#ifdef CFI_type_size_t
+    if (type == CFI_type_size_t) return true;
+#endif
+#ifdef CFI_type_int8_t
+    if (type == CFI_type_int8_t) return true;
+#endif
+#ifdef CFI_type_int16_t
+    if (type == CFI_type_int16_t) return true;
+#endif
+#ifdef CFI_type_int32_t
+    if (type == CFI_type_int32_t) return true;
+#endif
+#ifdef CFI_type_int64_t
+    if (type == CFI_type_int64_t) return true;
+#endif
+#ifdef CFI_type_int128_t
+    if (type == CFI_type_int128_t) return true;
+#endif
+#ifdef CFI_type_int_least8_t
+    if (type == CFI_type_int_least8_t) return true;
+#endif
+#ifdef CFI_type_int_least16_t
+    if (type == CFI_type_int_least16_t) return true;
+#endif
+#ifdef CFI_type_int_least32_t
+    if (type == CFI_type_int_least32_t) return true;
+#endif
+#ifdef CFI_type_int_least64_t
+    if (type == CFI_type_int_least64_t) return true;
+#endif
+#ifdef CFI_type_int_least128_t
+    if (type == CFI_type_int_least128_t) return true;
+#endif
+#ifdef CFI_type_int_fast8_t
+    if (type == CFI_type_int_fast8_t) return true;
+#endif
+#ifdef CFI_type_int_fast16_t
+    if (type == CFI_type_int_fast16_t) return true;
+#endif
+#ifdef CFI_type_int_fast32_t
+    if (type == CFI_type_int_fast32_t) return true;
+#endif
+#ifdef CFI_type_int_fast64_t
+    if (type == CFI_type_int_fast64_t) return true;
+#endif
+#ifdef CFI_type_int_fast128_t
+    if (type == CFI_type_int_fast128_t) return true;
+#endif
+#ifdef CFI_type_intmax_t
+    if (type == CFI_type_intmax_t) return true;
+#endif
+#ifdef CFI_type_intptr_t
+    if (type == CFI_type_intptr_t) return true;
+#endif
+#ifdef CFI_type_ptrdiff_t
+    if (type == CFI_type_ptrdiff_t) return true;
+#endif
+    return false;
+}
+
+static bool VAPAA_CFI_TYPE_IS_FLAT_REAL(CFI_type_t type)
+{
+#ifdef CFI_type_half_float
+    if (type == CFI_type_half_float) return true;
+#endif
+#ifdef CFI_type_bfloat
+    if (type == CFI_type_bfloat) return true;
+#endif
+#ifdef CFI_type_float
+    if (type == CFI_type_float) return true;
+#endif
+#ifdef CFI_type_double
+    if (type == CFI_type_double) return true;
+#endif
+#ifdef CFI_type_extended_double
+    if (type == CFI_type_extended_double) return true;
+#endif
+#ifdef CFI_type_long_double
+    if (type == CFI_type_long_double) return true;
+#endif
+#ifdef CFI_type_float128
+    if (type == CFI_type_float128) return true;
+#endif
+    return false;
+}
+
+static bool VAPAA_CFI_TYPE_IS_FLAT_COMPLEX(CFI_type_t type)
+{
+#ifdef CFI_type_half_float_Complex
+    if (type == CFI_type_half_float_Complex) return true;
+#endif
+#ifdef CFI_type_bfloat_Complex
+    if (type == CFI_type_bfloat_Complex) return true;
+#endif
+#ifdef CFI_type_float_Complex
+    if (type == CFI_type_float_Complex) return true;
+#endif
+#ifdef CFI_type_double_Complex
+    if (type == CFI_type_double_Complex) return true;
+#endif
+#ifdef CFI_type_extended_double_Complex
+    if (type == CFI_type_extended_double_Complex) return true;
+#endif
+#ifdef CFI_type_long_double_Complex
+    if (type == CFI_type_long_double_Complex) return true;
+#endif
+#ifdef CFI_type_float128_Complex
+    if (type == CFI_type_float128_Complex) return true;
+#endif
+    return false;
+}
+
+static bool VAPAA_CFI_TYPE_IS_FLAT_CHARACTER(CFI_type_t type)
+{
+#ifdef CFI_type_char
+    if (type == CFI_type_char) return true;
+#endif
+#ifdef CFI_type_ucs4_char
+    if (type == CFI_type_ucs4_char) return true;
+#endif
+#ifdef CFI_type_char16_t
+    if (type == CFI_type_char16_t) return true;
+#endif
+#ifdef CFI_type_char32_t
+    if (type == CFI_type_char32_t) return true;
+#endif
+    return false;
+}
+
+static VAPAA_Cfi_category VAPAA_CFI_GET_CATEGORY(CFI_type_t type)
+{
+#if defined(CFI_type_mask) && defined(CFI_type_Integer) && \
+    defined(CFI_type_Logical) && defined(CFI_type_Real) && \
+    defined(CFI_type_Complex) && defined(CFI_type_Character)
+    int category = (int)(type & CFI_type_mask);
+    if (category == CFI_type_Integer) return VAPAA_CFI_CATEGORY_INTEGER;
+    if (category == CFI_type_Logical) return VAPAA_CFI_CATEGORY_LOGICAL;
+    if (category == CFI_type_Real) return VAPAA_CFI_CATEGORY_REAL;
+    if (category == CFI_type_Complex) return VAPAA_CFI_CATEGORY_COMPLEX;
+    if (category == CFI_type_Character) return VAPAA_CFI_CATEGORY_CHARACTER;
+#endif
+
+#ifdef CFI_type_Bool
+    if (type == CFI_type_Bool) return VAPAA_CFI_CATEGORY_LOGICAL;
+#endif
+    if (VAPAA_CFI_TYPE_IS_FLAT_CHARACTER(type)) return VAPAA_CFI_CATEGORY_CHARACTER;
+    if (VAPAA_CFI_TYPE_IS_FLAT_INTEGER(type)) return VAPAA_CFI_CATEGORY_INTEGER_OR_LOGICAL;
+    if (VAPAA_CFI_TYPE_IS_FLAT_REAL(type)) return VAPAA_CFI_CATEGORY_REAL;
+    if (VAPAA_CFI_TYPE_IS_FLAT_COMPLEX(type)) return VAPAA_CFI_CATEGORY_COMPLEX;
+    return VAPAA_CFI_CATEGORY_UNKNOWN;
+}
+
+static bool VAPAA_CFI_CATEGORY_CAN_BE_INTEGER(VAPAA_Cfi_category category)
+{
+    return category == VAPAA_CFI_CATEGORY_INTEGER ||
+           category == VAPAA_CFI_CATEGORY_INTEGER_OR_LOGICAL;
+}
+
+static bool VAPAA_CFI_CATEGORY_CAN_BE_LOGICAL(VAPAA_Cfi_category category)
+{
+    return category == VAPAA_CFI_CATEGORY_LOGICAL ||
+           category == VAPAA_CFI_CATEGORY_INTEGER_OR_LOGICAL;
+}
+
 static void VAPAA_CFI_GET_TYPE_NAME(CFI_type_t type, char * name)
 {
          if (type==CFI_type_signed_char)          snprintf(name,32,"%s", "signed char");
@@ -289,6 +525,10 @@ static void VAPAA_CFI_GET_TYPE_NAME(CFI_type_t type, char * name)
 #endif
     else if (type==CFI_type_struct)               snprintf(name,32,"%s", "struct");
     else if (type==CFI_type_other)                snprintf(name,32,"%s", "other");
+#if defined(CFI_type_mask) && defined(CFI_type_kind_shift) && \
+    defined(CFI_type_Integer) && defined(CFI_type_Logical) && \
+    defined(CFI_type_Real) && defined(CFI_type_Complex) && \
+    defined(CFI_type_Character)
     else if ((type & CFI_type_mask)==CFI_type_Integer)
                                                        snprintf(name,32,"integer(kind=%d)", (int)(type >> CFI_type_kind_shift));
     else if ((type & CFI_type_mask)==CFI_type_Logical)
@@ -299,6 +539,7 @@ static void VAPAA_CFI_GET_TYPE_NAME(CFI_type_t type, char * name)
                                                        snprintf(name,32,"complex(kind=%d)", (int)(type >> CFI_type_kind_shift));
     else if ((type & CFI_type_mask)==CFI_type_Character)
                                                        snprintf(name,32,"character(kind=%d)", (int)(type >> CFI_type_kind_shift));
+#endif
     else                                          snprintf(name,32,"unknown (%8d)", (int)type);
 }
 
@@ -706,8 +947,8 @@ static bool VAPAA_CFI_MATCH_COMPLEX_DATATYPE(MPI_Datatype datatype, size_t bytes
 
 static bool VAPAA_CFI_MATCH_CHARACTER_DATATYPE(const CFI_cdesc_t *desc, MPI_Datatype datatype, size_t bytes)
 {
-    int category = (desc->type & CFI_type_mask);
-    if (category == CFI_type_Character) {
+    VAPAA_Cfi_category category = VAPAA_CFI_GET_CATEGORY(desc->type);
+    if (category == VAPAA_CFI_CATEGORY_CHARACTER) {
         if (bytes >= 1 && (VAPAA_CFI_DT_IS(datatype, MPI_CHARACTER) ||
                            VAPAA_CFI_DT_IS(datatype, MPI_CHAR))) {
             return true;
@@ -724,8 +965,8 @@ static bool VAPAA_CFI_MATCH_CHARACTER_DATATYPE(const CFI_cdesc_t *desc, MPI_Data
 
 static bool VAPAA_CFI_MATCH_PAIR_DATATYPE(const CFI_cdesc_t *desc, MPI_Datatype datatype, size_t bytes)
 {
-    int category = (desc->type & CFI_type_mask);
-    if (category == CFI_type_Integer) {
+    VAPAA_Cfi_category category = VAPAA_CFI_GET_CATEGORY(desc->type);
+    if (VAPAA_CFI_CATEGORY_CAN_BE_INTEGER(category)) {
         if (bytes == (size_t) VAPAA_CFI_FORTRAN_INTEGER_SIZE &&
             VAPAA_CFI_DT_IS(datatype, MPI_2INTEGER)) {
             return true;
@@ -733,7 +974,7 @@ static bool VAPAA_CFI_MATCH_PAIR_DATATYPE(const CFI_cdesc_t *desc, MPI_Datatype 
         if (bytes == sizeof(int) && VAPAA_CFI_DT_IS(datatype, MPI_2INT)) {
             return true;
         }
-    } else if (category == CFI_type_Real) {
+    } else if (category == VAPAA_CFI_CATEGORY_REAL) {
         if (bytes == (size_t) VAPAA_CFI_FORTRAN_REAL_SIZE &&
             VAPAA_CFI_DT_IS(datatype, MPI_2REAL)) {
             return true;
@@ -749,27 +990,30 @@ static bool VAPAA_CFI_MATCH_PAIR_DATATYPE(const CFI_cdesc_t *desc, MPI_Datatype 
 static bool VAPAA_CFI_BUILTIN_DATATYPE_COMPATIBLE(const CFI_cdesc_t *desc, MPI_Datatype datatype)
 {
     size_t bytes = desc->elem_len;
-    int category = (desc->type & CFI_type_mask);
+    VAPAA_Cfi_category category = VAPAA_CFI_GET_CATEGORY(desc->type);
     if (VAPAA_CFI_DT_IS(datatype, MPI_PACKED)) {
         return true;
     }
     if (VAPAA_CFI_MATCH_PAIR_DATATYPE(desc, datatype, bytes)) {
         return true;
     }
-    if (category == CFI_type_Character) {
+    if (category == VAPAA_CFI_CATEGORY_CHARACTER) {
         return VAPAA_CFI_MATCH_CHARACTER_DATATYPE(desc, datatype, bytes);
     }
     if (!VAPAA_CFI_MPI_TYPE_SIZE_MATCHES(datatype, bytes)) {
         return false;
     }
 
-    if (category == CFI_type_Integer) {
+    if (category == VAPAA_CFI_CATEGORY_INTEGER_OR_LOGICAL) {
+        return VAPAA_CFI_MATCH_INTEGER_DATATYPE(datatype, bytes) ||
+               VAPAA_CFI_MATCH_LOGICAL_DATATYPE(desc, datatype, bytes);
+    } else if (category == VAPAA_CFI_CATEGORY_INTEGER) {
         return VAPAA_CFI_MATCH_INTEGER_DATATYPE(datatype, bytes);
-    } else if (category == CFI_type_Logical) {
+    } else if (VAPAA_CFI_CATEGORY_CAN_BE_LOGICAL(category)) {
         return VAPAA_CFI_MATCH_LOGICAL_DATATYPE(desc, datatype, bytes);
-    } else if (category == CFI_type_Real) {
+    } else if (category == VAPAA_CFI_CATEGORY_REAL) {
         return VAPAA_CFI_MATCH_REAL_DATATYPE(datatype, bytes);
-    } else if (category == CFI_type_Complex) {
+    } else if (category == VAPAA_CFI_CATEGORY_COMPLEX) {
         return VAPAA_CFI_MATCH_COMPLEX_DATATYPE(datatype, bytes);
     }
 
@@ -819,7 +1063,7 @@ void VAPAA_CFI_WARN_DATATYPE_MISMATCH(const CFI_cdesc_t *desc, MPI_Datatype data
     if (desc == NULL || datatype == MPI_DATATYPE_NULL) {
         return;
     }
-    if (desc->type == CFI_type_other) {
+    if (!VAPAA_CFI_HAS_ELEMENT_METADATA(desc)) {
         return;
     }
     if (C_IS_MPI_IN_PLACE(desc->base_addr) || C_IS_MPI_BOTTOM(desc->base_addr)) {
@@ -1620,7 +1864,7 @@ static int VAPAA_CFI_CREATE_DATATYPE_15D(const CFI_cdesc_t * desc, ssize_t count
        *    const MPI_Datatype element_datatype = VAPAA_CFI_TO_MPI_TYPE(desc->type);
        */ }
 
-    const MPI_Datatype element_datatype = VAPAA_CFI_TO_MPI_TYPE(desc->type);
+    const MPI_Datatype element_datatype = input_datatype;
     int rc = PMPI_Type_create_hindexed(count, array_of_blocklengths, array_of_displacements,
                                        element_datatype, array_datatype);
     VAPAA_Assert(rc == MPI_SUCCESS);
@@ -1772,6 +2016,12 @@ static int VAPAA_CFI_CREATE_INDEXED(const CFI_cdesc_t * desc, int count, MPI_Dat
     usleep(1000);
 #endif
 
+    const bool use_byte_elements = VAPAA_CFI_IS_OPAQUE_STRUCT_DESC(desc);
+    if (use_byte_elements && (size_t) elem_len > (size_t) INT_MAX) {
+        rc = MPI_ERR_COUNT;
+        goto fn_exit;
+    }
+
     size_t iov_elements = total_bytes / elem_len;
     if ((size_t) count > 0 && iov_elements > SIZE_MAX / (size_t) count) {
         rc = MPI_ERR_NO_MEM;
@@ -1811,7 +2061,7 @@ static int VAPAA_CFI_CREATE_INDEXED(const CFI_cdesc_t * desc, int count, MPI_Dat
             const MPI_Aint iov_displacement = iov[i].iov_base / elem_len;
             const MPI_Aint iov_length = iov[i].iov_len / elem_len;
             for (MPI_Aint k=0; k < iov_length; k++) {
-                array_of_blocklengths[index] = 1;
+                array_of_blocklengths[index] = use_byte_elements ? elem_len : 1;
                 const MPI_Aint offset = k + iov_displacement + type_displacement;
                 if (offset < 0 || offset >= (MPI_Aint) total_cfi_elements) {
                     rc = MPI_ERR_ARG;
@@ -1833,7 +2083,11 @@ static int VAPAA_CFI_CREATE_INDEXED(const CFI_cdesc_t * desc, int count, MPI_Dat
     }
 #endif
 
-    MPI_Datatype elem_dt = VAPAA_CFI_TO_MPI_TYPE(desc->type);
+    MPI_Datatype elem_dt = use_byte_elements ? MPI_BYTE : VAPAA_CFI_TO_MPI_TYPE(desc->type);
+    if (elem_dt == MPI_DATATYPE_NULL) {
+        rc = MPI_ERR_TYPE;
+        goto fn_exit;
+    }
     rc = PMPI_Type_create_hindexed((int)n, array_of_blocklengths, array_of_displacements,
                                    elem_dt, array_datatype);
     VAPAA_Assert(rc == MPI_SUCCESS);
@@ -1863,7 +2117,7 @@ int VAPAA_CFI_CREATE_DATATYPE(const CFI_cdesc_t * desc, int count, MPI_Datatype 
         const int rank     = desc->rank;
         const int elem_len = desc->elem_len;
 
-        const MPI_Datatype element_datatype = VAPAA_CFI_TO_MPI_TYPE(desc->type);
+        const MPI_Datatype element_datatype = input_datatype;
 
         // count up the total number of elements in the CFI array
         ssize_t total_elems = 1;

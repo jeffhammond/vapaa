@@ -53,6 +53,16 @@ module mpi_direct_win_c
             integer(kind=c_int), intent(out) :: win, ierror
         end subroutine VAPAA_MPI_Win_create_dynamic
 
+        subroutine VAPAA_MPI_Win_create_nocfi(base, size, disp_unit, info, comm, win, ierror) &
+                   bind(C,name="VAPAA_MPI_Win_create_nocfi")
+            use iso_c_binding, only: c_int, c_intptr_t
+            implicit none
+            integer(kind=c_int), dimension(*), asynchronous :: base
+            integer(kind=c_intptr_t), intent(in) :: size
+            integer(kind=c_int), intent(in) :: disp_unit, info, comm
+            integer(kind=c_int), intent(out) :: win, ierror
+        end subroutine VAPAA_MPI_Win_create_nocfi
+
         subroutine VAPAA_MPI_Win_free(win, ierror) bind(C,name="VAPAA_MPI_Win_free")
             use iso_c_binding, only: c_int
             implicit none

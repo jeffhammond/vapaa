@@ -31,16 +31,30 @@ contains
 
     subroutine MPI_Win_create_f90(base, size, disp_unit, info, comm, win, ierror)
         use mpi_f90_constants, only: MPI_ADDRESS_KIND
+#ifdef HAVE_CFI
         use mpi_direct_win_c, only: VAPAA_MPI_Win_create
+#else
+        use mpi_direct_win_c, only: VAPAA_MPI_Win_create_nocfi
+#endif
         use mpi_f90_util, only: f90_finish_ierror
+#ifdef HAVE_CFI
         type(*), dimension(..), asynchronous :: base
+#else
+!dir$ ignore_tkr base
+        integer, dimension(*), asynchronous :: base
+#endif
         integer(kind=MPI_ADDRESS_KIND), intent(in) :: size
         integer, intent(in) :: disp_unit, info, comm
         integer, intent(out) :: win
         integer, optional, intent(out) :: ierror
         integer(c_int) :: win_c, ierror_c
+#ifdef HAVE_CFI
         call VAPAA_MPI_Win_create(base, size, int(disp_unit,c_int), int(info,c_int), &
                                   int(comm,c_int), win_c, ierror_c)
+#else
+        call VAPAA_MPI_Win_create_nocfi(base, size, int(disp_unit,c_int), int(info,c_int), &
+                                        int(comm,c_int), win_c, ierror_c)
+#endif
         win = win_c
         call f90_finish_ierror(ierror, ierror_c)
     end subroutine MPI_Win_create_f90

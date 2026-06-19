@@ -30,14 +30,22 @@ contains
     end subroutine MPI_Error_class_f90
 
     subroutine MPI_Error_string_f90(errorcode, string, resultlen, ierror)
+#ifdef HAVE_CFI
         use mpi_error_c, only: CFI_MPI_Error_string
+#else
+        use mpi_error_c, only: C_MPI_Error_string
+#endif
         use mpi_f90_util, only: f90_finish_ierror
         integer, intent(in) :: errorcode
         character(len=*), intent(out) :: string
         integer, intent(out) :: resultlen
         integer, optional, intent(out) :: ierror
         integer(c_int) :: resultlen_c, ierror_c
+#ifdef HAVE_CFI
         call CFI_MPI_Error_string(int(errorcode,c_int), string, resultlen_c, ierror_c)
+#else
+        call C_MPI_Error_string(int(errorcode,c_int), string, resultlen_c, ierror_c)
+#endif
         resultlen = resultlen_c
         call f90_finish_ierror(ierror, ierror_c)
     end subroutine MPI_Error_string_f90

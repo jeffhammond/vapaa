@@ -21,6 +21,23 @@ module mpi_missing_c
             integer(kind=c_intptr_t), value :: addr1, addr2
             integer(kind=c_intptr_t) :: res
         end function VAPAA_MPI_Aint_diff
+
+        subroutine VAPAA_MPI_Get_address_nocfi(location, address, ierror) &
+                   bind(C,name="VAPAA_MPI_Get_address_nocfi")
+            use iso_c_binding, only: c_int, c_intptr_t
+            implicit none
+            integer(kind=c_int), dimension(*), asynchronous :: location
+            integer(kind=c_intptr_t), intent(out) :: address
+            integer(kind=c_int), intent(out) :: ierror
+        end subroutine VAPAA_MPI_Get_address_nocfi
+
+        subroutine VAPAA_MPI_Free_mem_nocfi(base, ierror) &
+                   bind(C,name="VAPAA_MPI_Free_mem_nocfi")
+            use iso_c_binding, only: c_int
+            implicit none
+            integer(kind=c_int), dimension(*), intent(in), asynchronous :: base
+            integer(kind=c_int), intent(out) :: ierror
+        end subroutine VAPAA_MPI_Free_mem_nocfi
     end interface
 
 #ifdef HAVE_CFI

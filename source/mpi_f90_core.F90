@@ -238,13 +238,21 @@ contains
     end subroutine MPI_Get_version_f90
 
     subroutine MPI_Get_library_version_f90(version, resultlen, ierror)
+#ifdef HAVE_CFI
         use mpi_core_c, only: CFI_MPI_Get_library_version
+#else
+        use mpi_core_c, only: C_MPI_Get_library_version
+#endif
         use mpi_f90_util, only: f90_finish_ierror
         character(len=*), intent(out) :: version
         integer, intent(out) :: resultlen
         integer, optional, intent(out) :: ierror
         integer(c_int) :: resultlen_c, ierror_c
+#ifdef HAVE_CFI
         call CFI_MPI_Get_library_version(version, resultlen_c, ierror_c)
+#else
+        call C_MPI_Get_library_version(version, resultlen_c, ierror_c)
+#endif
         resultlen = resultlen_c
         call f90_finish_ierror(ierror, ierror_c)
     end subroutine MPI_Get_library_version_f90
