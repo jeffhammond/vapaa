@@ -56,13 +56,14 @@ foreach(TEST_SOURCE ${TEST_SOURCES})
   
   # Link the library to the test
   target_compile_options(${TEST_NAME} PRIVATE -Wall -Wextra -g -std=f2018 -DHAVE_CFI -fPIE)
-target_include_directories(${TEST_NAME}
-                           PRIVATE "${CMAKE_BINARY_DIR}/modules")
+  target_include_directories(${TEST_NAME}
+                             PRIVATE "${CMAKE_BINARY_DIR}/modules")
   target_link_libraries(${TEST_NAME} PRIVATE ${vapa_lib})
   
   # Set the output directory for the executables
   set_target_properties(${TEST_NAME} PROPERTIES
     RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/tests"
+    Fortran_MODULE_DIRECTORY "${CMAKE_BINARY_DIR}/tests/modules/${TEST_NAME}"
   )
 
     add_test(NAME ${TEST_NAME}
@@ -89,6 +90,7 @@ target_include_directories(test_typecheck_warnings
 target_link_libraries(test_typecheck_warnings PRIVATE ${vapa_lib})
 set_target_properties(test_typecheck_warnings PROPERTIES
   RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/tests"
+  Fortran_MODULE_DIRECTORY "${CMAKE_BINARY_DIR}/tests/modules/test_typecheck_warnings"
 )
 
 function(vapaa_add_typecheck_warning_test TEST_NAME TEST_MODE WARNING_POLICY)

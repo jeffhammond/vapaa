@@ -30,7 +30,51 @@ set(CMAKE_C_EXTENSIONS OFF)
 set(CMAKE_Fortran_STANDARD 2018)
 set(CMAKE_Fortran_STANDARD_REQUIRED ON)
 
+set(VAPAA_MPIEXEC_EXPLICIT FALSE)
+if(DEFINED MPIEXEC_EXECUTABLE OR DEFINED CACHE{MPIEXEC_EXECUTABLE})
+  set(VAPAA_MPIEXEC_EXPLICIT TRUE)
+endif()
+
+function(vapaa_prefer_mpiexec_from_mpicc)
+  if(NOT MPI_C_COMPILER)
+    return()
+  endif()
+
+  set(vapaa_mpicc_path "${MPI_C_COMPILER}")
+  if(NOT IS_ABSOLUTE "${vapaa_mpicc_path}")
+    find_program(vapaa_mpicc_path NAMES "${MPI_C_COMPILER}")
+  endif()
+  if(NOT vapaa_mpicc_path)
+    return()
+  endif()
+
+  get_filename_component(vapaa_mpi_bin "${vapaa_mpicc_path}" DIRECTORY)
+  find_program(vapaa_mpiexec_path
+    NAMES mpiexec mpiexec.hydra mpirun
+    PATHS "${vapaa_mpi_bin}"
+    NO_DEFAULT_PATH)
+  if(NOT vapaa_mpiexec_path)
+    return()
+  endif()
+
+  if(NOT MPIEXEC_EXECUTABLE STREQUAL vapaa_mpiexec_path)
+    set(MPIEXEC_EXECUTABLE "${vapaa_mpiexec_path}"
+      CACHE FILEPATH "MPI launcher matching MPI_C_COMPILER" FORCE)
+    set(MPIEXEC_EXECUTABLE "${vapaa_mpiexec_path}" PARENT_SCOPE)
+    message(STATUS "Using MPI launcher from MPI_C_COMPILER path: ${vapaa_mpiexec_path}")
+  endif()
+endfunction()
+
+if(NOT VAPAA_MPIEXEC_EXPLICIT)
+  vapaa_prefer_mpiexec_from_mpicc()
+endif()
+
 find_package(MPI REQUIRED COMPONENTS C)
+
+if(NOT VAPAA_MPIEXEC_EXPLICIT)
+  vapaa_prefer_mpiexec_from_mpicc()
+endif()
+
 set(SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/source")
 
 # Create the static library
