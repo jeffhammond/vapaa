@@ -65,6 +65,47 @@ function(vapaa_prefer_mpiexec_from_mpicc)
   endif()
 endfunction()
 
+function(vapaa_seed_intel_mpi_root_from_mpicc)
+  if(NOT MPI_C_COMPILER OR DEFINED ENV{I_MPI_ROOT})
+    return()
+  endif()
+
+  set(vapaa_mpicc_path "${MPI_C_COMPILER}")
+  if(NOT IS_ABSOLUTE "${vapaa_mpicc_path}")
+    find_program(vapaa_mpicc_path NAMES "${MPI_C_COMPILER}")
+  endif()
+  if(NOT vapaa_mpicc_path)
+    return()
+  endif()
+
+  execute_process(
+    COMMAND "${vapaa_mpicc_path}" -show
+    OUTPUT_VARIABLE vapaa_mpicc_show
+    ERROR_VARIABLE vapaa_mpicc_show_error
+    RESULT_VARIABLE vapaa_mpicc_show_result
+    OUTPUT_STRIP_TRAILING_WHITESPACE
+    ERROR_STRIP_TRAILING_WHITESPACE)
+  if(vapaa_mpicc_show_result EQUAL 0)
+    set(vapaa_mpicc_probe "${vapaa_mpicc_show}")
+  else()
+    set(vapaa_mpicc_probe "${vapaa_mpicc_show_error}")
+  endif()
+
+  if(NOT vapaa_mpicc_probe MATCHES "I_MPI_SUBSTITUTE_INSTALLDIR")
+    return()
+  endif()
+
+  get_filename_component(vapaa_mpicc_realpath "${vapaa_mpicc_path}" REALPATH)
+  get_filename_component(vapaa_mpi_bin "${vapaa_mpicc_realpath}" DIRECTORY)
+  get_filename_component(vapaa_mpi_root "${vapaa_mpi_bin}" DIRECTORY)
+  if(EXISTS "${vapaa_mpi_root}/include/mpi.h" AND EXISTS "${vapaa_mpi_root}/lib")
+    set(ENV{I_MPI_ROOT} "${vapaa_mpi_root}")
+    message(STATUS "Using Intel MPI root from MPI_C_COMPILER path: ${vapaa_mpi_root}")
+  endif()
+endfunction()
+
+vapaa_seed_intel_mpi_root_from_mpicc()
+
 if(NOT VAPAA_MPIEXEC_EXPLICIT)
   vapaa_prefer_mpiexec_from_mpicc()
 endif()
@@ -110,30 +151,107 @@ if(GIT_FOUND)
   endif()
 endif()
 
-if(DEFINED MPI_VENDOR)
-  set(FLAG_MPI ${MPI_VENDOR})
-  message(STATUS "MPI Vendor explicitly set to: ${MPI_VENDOR}")
-else()
-  if(MPI_Fortran_COMPILER MATCHES "openmpi|ompi")
-    set(FLAG_MPI -DOPEN_MPI)
-  elseif(MPI_Fortran_COMPILER MATCHES "mpich")
-    set(FLAG_MPI -DMPICH)
-  elseif(MPI_Fortran_COMPILER MATCHES "intel")
-    set(FLAG_MPI -DMPICH)
-  elseif(MPI_Fortran_COMPILER MATCHES "cray")
-    set(FLAG_MPI -DMPICH)
+function(vapaa_set_mpi_compatibility vapaa_mpi_vendor)
+  string(TOUPPER "${vapaa_mpi_vendor}" vapaa_mpi_vendor_upper)
+  string(REGEX REPLACE "^-D" "" vapaa_mpi_vendor_upper "${vapaa_mpi_vendor_upper}")
+
+  if(vapaa_mpi_vendor_upper MATCHES "^(MPI_ABI|ABI)$")
+    set(FLAG_MPI MPI_ABI PARENT_SCOPE)
+    set(VAPAA_MPI_VENDOR_LABEL MPI_ABI PARENT_SCOPE)
+  elseif(vapaa_mpi_vendor_upper MATCHES "^(NVIDIA_HPCX|HPCX|NVHPC)$")
+    set(FLAG_MPI OPEN_MPI PARENT_SCOPE)
+    set(VAPAA_MPI_VENDOR_LABEL NVIDIA_HPCX PARENT_SCOPE)
+  elseif(vapaa_mpi_vendor_upper MATCHES "^(OPEN_MPI|OPENMPI|OMPI)$")
+    set(FLAG_MPI OPEN_MPI PARENT_SCOPE)
+    set(VAPAA_MPI_VENDOR_LABEL OPEN_MPI PARENT_SCOPE)
+  elseif(vapaa_mpi_vendor_upper MATCHES "^(INTEL_MPI|INTELMPI|INTEL|ONEAPI|IMPI)$")
+    set(FLAG_MPI MPICH PARENT_SCOPE)
+    set(VAPAA_MPI_VENDOR_LABEL INTEL_MPI PARENT_SCOPE)
+  elseif(vapaa_mpi_vendor_upper MATCHES "^(CRAY_HPE_MPI|CRAY_MPICH|CRAYMPI|CRAY|HPE_MPI|HPE-MPI|HPE|MPT)$")
+    set(FLAG_MPI MPICH PARENT_SCOPE)
+    set(VAPAA_MPI_VENDOR_LABEL CRAY_HPE_MPI PARENT_SCOPE)
+  elseif(vapaa_mpi_vendor_upper STREQUAL "MPICH")
+    set(FLAG_MPI MPICH PARENT_SCOPE)
+    set(VAPAA_MPI_VENDOR_LABEL MPICH PARENT_SCOPE)
   else()
-    set(FLAG_MPI "UnknownMPI")
+    message(FATAL_ERROR
+      "Unsupported MPI_VENDOR='${vapaa_mpi_vendor}'. "
+      "Use MPICH, OPEN_MPI, MPI_ABI, NVIDIA_HPCX, INTEL_MPI, or CRAY_HPE_MPI.")
   endif()
-  message(STATUS "Automatically detected MPI Vendor: ${FLAG_MPI}")
+endfunction()
+
+if(DEFINED MPI_VENDOR)
+  vapaa_set_mpi_compatibility("${MPI_VENDOR}")
+  message(STATUS
+    "MPI Vendor explicitly set to: ${VAPAA_MPI_VENDOR_LABEL} "
+    "(using ${FLAG_MPI} compatibility)")
+else()
+  set(vapaa_mpi_probe_text "")
+  foreach(vapaa_mpi_probe_var IN ITEMS
+      MPI_C_COMPILER
+      MPI_C_LIBRARIES
+      MPI_C_INCLUDE_DIRS
+      MPI_C_COMPILE_OPTIONS
+      MPI_C_LINK_FLAGS
+      MPI_C_HEADER_DIR
+      MPIEXEC_EXECUTABLE)
+    if(DEFINED ${vapaa_mpi_probe_var})
+      string(APPEND vapaa_mpi_probe_text " ${${vapaa_mpi_probe_var}}")
+    endif()
+  endforeach()
+
+  if(MPI_C_COMPILER)
+    execute_process(
+      COMMAND "${MPI_C_COMPILER}" -show
+      OUTPUT_VARIABLE vapaa_mpicc_show
+      ERROR_VARIABLE vapaa_mpicc_show_error
+      RESULT_VARIABLE vapaa_mpicc_show_result
+      OUTPUT_STRIP_TRAILING_WHITESPACE
+      ERROR_STRIP_TRAILING_WHITESPACE)
+    if(vapaa_mpicc_show_result EQUAL 0)
+      string(APPEND vapaa_mpi_probe_text " ${vapaa_mpicc_show}")
+    else()
+      string(APPEND vapaa_mpi_probe_text " ${vapaa_mpicc_show_error}")
+    endif()
+  endif()
+
+  string(TOLOWER "${vapaa_mpi_probe_text}" vapaa_mpi_probe_text_lower)
+  if(vapaa_mpi_probe_text_lower MATCHES "mpi[_-]abi|mpi-abi-stubs|libmpi_abi")
+    set(FLAG_MPI MPI_ABI)
+    set(VAPAA_MPI_VENDOR_LABEL MPI_ABI)
+  elseif(vapaa_mpi_probe_text_lower MATCHES "hpcx|nvhpc|nvidia.*/.*hpc_sdk")
+    set(FLAG_MPI OPEN_MPI)
+    set(VAPAA_MPI_VENDOR_LABEL NVIDIA_HPCX)
+  elseif(vapaa_mpi_probe_text_lower MATCHES "open[ -]?mpi|openmpi|/ompi/|/openmpi/|ompi")
+    set(FLAG_MPI OPEN_MPI)
+    set(VAPAA_MPI_VENDOR_LABEL OPEN_MPI)
+  elseif(vapaa_mpi_probe_text_lower MATCHES "intel|oneapi|impi")
+    set(FLAG_MPI MPICH)
+    set(VAPAA_MPI_VENDOR_LABEL INTEL_MPI)
+  elseif(vapaa_mpi_probe_text_lower MATCHES "cray|hpe|hpe-mpi|cray-mpich|mpt")
+    set(FLAG_MPI MPICH)
+    set(VAPAA_MPI_VENDOR_LABEL CRAY_HPE_MPI)
+  elseif(vapaa_mpi_probe_text_lower MATCHES "mpich|hydra")
+    set(FLAG_MPI MPICH)
+    set(VAPAA_MPI_VENDOR_LABEL MPICH)
+  else()
+    message(FATAL_ERROR
+      "Could not auto-detect MPI vendor from CMake MPI_C variables. "
+      "Set MPI_VENDOR to one of MPICH, OPEN_MPI, MPI_ABI, NVIDIA_HPCX, "
+      "INTEL_MPI, or CRAY_HPE_MPI.")
+  endif()
+  message(STATUS
+    "Automatically detected MPI Vendor: ${VAPAA_MPI_VENDOR_LABEL} "
+    "(using ${FLAG_MPI} compatibility)")
 endif()
 
-message(STATUS "Final MPI Vendor Flag: ${FLAG_MPI}")
+message(STATUS "Final MPI compatibility flag: ${FLAG_MPI}")
 
 target_compile_options(${vapa_lib} PRIVATE -Wall -Wextra -fPIE) 
 target_compile_definitions(${vapa_lib} PRIVATE
   -DHAVE_CFI
   ${FLAG_MPI}
+  VAPAA_MPI_VENDOR_LABEL="${VAPAA_MPI_VENDOR_LABEL}"
   VAPAA_GIT_HASH="${VAPAA_GIT_HASH}"
   VAPAA_GIT_DIRTY="${VAPAA_GIT_DIRTY}")
 target_link_libraries(${vapa_lib} PRIVATE MPI::MPI_C)

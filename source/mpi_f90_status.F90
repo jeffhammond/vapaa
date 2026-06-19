@@ -11,7 +11,9 @@ contains
     subroutine mpi_f90_status_from_f08(status_f08, status_f90)
         type(MPI_Status), intent(in) :: status_f08
         integer, intent(out) :: status_f90(MPI_STATUS_SIZE)
+#ifndef MPI_ABI
         integer(c_int) :: ucount_words(2)
+#endif
         status_f90 = 0
         status_f90(MPI_SOURCE) = status_f08 % MPI_SOURCE
         status_f90(MPI_TAG) = status_f08 % MPI_TAG
@@ -30,7 +32,9 @@ contains
     subroutine mpi_f90_status_to_f08(status_f90, status_f08)
         integer, intent(in) :: status_f90(MPI_STATUS_SIZE)
         type(MPI_Status), intent(out) :: status_f08
+#ifndef MPI_ABI
         integer(c_int) :: ucount_words(2)
+#endif
 #ifdef MPI_ABI
         status_f08 % MPI_SOURCE = status_f90(MPI_SOURCE)
         status_f08 % MPI_TAG = status_f90(MPI_TAG)

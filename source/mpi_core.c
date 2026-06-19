@@ -18,6 +18,10 @@
 #define VAPAA_GIT_DIRTY "unknown"
 #endif
 
+#ifndef VAPAA_MPI_VENDOR_LABEL
+#define VAPAA_MPI_VENDOR_LABEL "unknown"
+#endif
+
 #ifndef __VERSION__
 #define __VERSION__ "unknown"
 #endif
@@ -105,6 +109,7 @@ void C_MPI_Verbose_init(const char *binding, const char *compiler_version,
     fprintf(stderr, "  process: rank %d of %d\n", rank, size);
     fprintf(stderr, "  Vapaa git hash: %s\n", VAPAA_GIT_HASH);
     fprintf(stderr, "  Vapaa git state at configure: %s\n", VAPAA_GIT_DIRTY);
+    fprintf(stderr, "  Vapaa MPI vendor detection: %s\n", VAPAA_MPI_VENDOR_LABEL);
     fprintf(stderr, "  Vapaa C compile timestamp: %s %s\n", __DATE__, __TIME__);
     fprintf(stderr, "  C compiler: %s\n", __VERSION__);
     fprintf(stderr, "  Fortran compiler: %s\n", compiler_version);

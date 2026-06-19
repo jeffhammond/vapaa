@@ -1002,6 +1002,7 @@ void C_MPI_Pready(int * partition, const int * request_f, int * ierror)
 #if MPI_VERSION >= 4
     *ierror = MPI_Pready(*partition, request);
 #else
+    (void) partition;
     (void) request;
     *ierror = MPI_ERR_UNSUPPORTED_OPERATION;
 #endif
@@ -1014,6 +1015,7 @@ void C_MPI_Pready_list(int * length, const int partitions[], const int * request
 #if MPI_VERSION >= 4
     *ierror = MPI_Pready_list(*length, partitions, request);
 #else
+    (void) length;
     (void) partitions;
     (void) request;
     *ierror = MPI_ERR_UNSUPPORTED_OPERATION;
@@ -1027,6 +1029,8 @@ void C_MPI_Pready_range(int * partition_low, int * partition_high, const int * r
 #if MPI_VERSION >= 4
     *ierror = MPI_Pready_range(*partition_low, *partition_high, request);
 #else
+    (void) partition_low;
+    (void) partition_high;
     (void) request;
     *ierror = MPI_ERR_UNSUPPORTED_OPERATION;
 #endif
@@ -1040,6 +1044,7 @@ void C_MPI_Parrived(const int * request_f, int * partition, int * flag, int * ie
     *ierror = MPI_Parrived(request, *partition, flag);
 #else
     (void) request;
+    (void) partition;
     *flag = 0;
     *ierror = MPI_ERR_UNSUPPORTED_OPERATION;
 #endif
@@ -1057,6 +1062,14 @@ void C_MPI_Psend_init(void * buffer, int partitions, int count, int datatype_f, 
     *ierror = MPI_Psend_init(buffer, partitions, count, datatype, C_MPI_DEST_F2C(dest),
                              C_MPI_TAG_F2C(tag), comm, info, &request);
 #else
+    (void) buffer;
+    (void) partitions;
+    (void) count;
+    (void) datatype;
+    (void) dest;
+    (void) tag;
+    (void) comm;
+    (void) info;
     *ierror = MPI_ERR_UNSUPPORTED_OPERATION;
 #endif
     *request_f = C_MPI_REQUEST_TOINT(request);
@@ -1089,6 +1102,12 @@ void CFI_MPI_Psend_init(CFI_cdesc_t * desc, int partitions, int count, int datat
         VAPAA_Assert(rc == MPI_SUCCESS);
     }
 #else
+    (void) partitions;
+    (void) count;
+    (void) dest;
+    (void) tag;
+    (void) comm;
+    (void) info;
     *ierror = MPI_ERR_UNSUPPORTED_OPERATION;
 #endif
     *request_f = C_MPI_REQUEST_TOINT(request);
@@ -1107,6 +1126,14 @@ void C_MPI_Precv_init(void * buffer, int partitions, int count, int datatype_f, 
     *ierror = MPI_Precv_init(buffer, partitions, count, datatype, C_MPI_SOURCE_F2C(source),
                              C_MPI_TAG_F2C(tag), comm, info, &request);
 #else
+    (void) buffer;
+    (void) partitions;
+    (void) count;
+    (void) datatype;
+    (void) source;
+    (void) tag;
+    (void) comm;
+    (void) info;
     *ierror = MPI_ERR_UNSUPPORTED_OPERATION;
 #endif
     *request_f = C_MPI_REQUEST_TOINT(request);
@@ -1139,6 +1166,12 @@ void CFI_MPI_Precv_init(CFI_cdesc_t * desc, int partitions, int count, int datat
         VAPAA_Assert(rc == MPI_SUCCESS);
     }
 #else
+    (void) partitions;
+    (void) count;
+    (void) source;
+    (void) tag;
+    (void) comm;
+    (void) info;
     *ierror = MPI_ERR_UNSUPPORTED_OPERATION;
 #endif
     *request_f = C_MPI_REQUEST_TOINT(request);
