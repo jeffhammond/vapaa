@@ -13,9 +13,6 @@ module mpi_f90_attr
     public :: MPI_Type_create_keyval
     public :: MPI_Win_create_keyval
 
-    interface MPI_Keyval_create
-        module procedure MPI_Keyval_create_f90
-    end interface
     interface MPI_Keyval_free
         module procedure MPI_Keyval_free_f90
     end interface
@@ -25,22 +22,50 @@ module mpi_f90_attr
     interface MPI_Attr_put
         module procedure MPI_Attr_put_f90
     end interface
-    interface MPI_Comm_create_keyval
-        module procedure MPI_Comm_create_keyval_f90
-    end interface
-    interface MPI_Type_create_keyval
-        module procedure MPI_Type_create_keyval_f90
-    end interface
-    interface MPI_Win_create_keyval
-        module procedure MPI_Win_create_keyval_f90
+
+    abstract interface
+        subroutine MPI_Copy_function_f90(oldcomm, comm_keyval, extra_state, &
+                                         attribute_val_in, attribute_val_out, &
+                                         flag, ierror)
+            implicit none
+            integer :: oldcomm, comm_keyval, extra_state
+            integer :: attribute_val_in, attribute_val_out, ierror
+            logical :: flag
+        end subroutine MPI_Copy_function_f90
+
+        subroutine MPI_Delete_function_f90(comm, comm_keyval, attribute_val, &
+                                           extra_state, ierror)
+            implicit none
+            integer :: comm, comm_keyval, attribute_val, extra_state, ierror
+        end subroutine MPI_Delete_function_f90
+
+        subroutine MPI_Copy_attr_function_f90(handle, keyval, extra_state, &
+                                              attribute_val_in, &
+                                              attribute_val_out, flag, ierror)
+            use mpi_f90_constants, only: MPI_ADDRESS_KIND
+            implicit none
+            integer :: handle, keyval, ierror
+            integer(kind=MPI_ADDRESS_KIND) :: extra_state
+            integer(kind=MPI_ADDRESS_KIND) :: attribute_val_in, attribute_val_out
+            logical :: flag
+        end subroutine MPI_Copy_attr_function_f90
+
+        subroutine MPI_Delete_attr_function_f90(handle, keyval, attribute_val, &
+                                                extra_state, ierror)
+            use mpi_f90_constants, only: MPI_ADDRESS_KIND
+            implicit none
+            integer :: handle, keyval, ierror
+            integer(kind=MPI_ADDRESS_KIND) :: attribute_val, extra_state
+        end subroutine MPI_Delete_attr_function_f90
     end interface
 
 contains
 
-    subroutine MPI_Keyval_create_f90(copy_fn, delete_fn, keyval, extra_state, ierror)
+    subroutine MPI_Keyval_create(copy_fn, delete_fn, keyval, extra_state, ierror)
         use mpi_direct_callback_f, only: VAPAA_MPI_Keyval_create
         use mpi_f90_util, only: f90_finish_ierror
-        procedure() :: copy_fn, delete_fn
+        procedure(MPI_Copy_function_f90) :: copy_fn
+        procedure(MPI_Delete_function_f90) :: delete_fn
         integer, intent(out) :: keyval
         integer, intent(in) :: extra_state
         integer, optional, intent(out) :: ierror
@@ -49,13 +74,14 @@ contains
                                      int(extra_state,c_int), ierror_c)
         keyval = keyval_c
         call f90_finish_ierror(ierror, ierror_c)
-    end subroutine MPI_Keyval_create_f90
+    end subroutine MPI_Keyval_create
 
-    subroutine MPI_Comm_create_keyval_f90(copy_fn, delete_fn, keyval, extra_state, ierror)
+    subroutine MPI_Comm_create_keyval(copy_fn, delete_fn, keyval, extra_state, ierror)
         use mpi_f90_constants, only: MPI_ADDRESS_KIND
         use mpi_direct_callback_f, only: VAPAA_MPI_Comm_create_keyval
         use mpi_f90_util, only: f90_finish_ierror
-        procedure() :: copy_fn, delete_fn
+        procedure(MPI_Copy_attr_function_f90) :: copy_fn
+        procedure(MPI_Delete_attr_function_f90) :: delete_fn
         integer, intent(out) :: keyval
         integer(kind=MPI_ADDRESS_KIND), intent(in) :: extra_state
         integer, optional, intent(out) :: ierror
@@ -64,13 +90,14 @@ contains
                                           int(extra_state,c_intptr_t), ierror_c)
         keyval = keyval_c
         call f90_finish_ierror(ierror, ierror_c)
-    end subroutine MPI_Comm_create_keyval_f90
+    end subroutine MPI_Comm_create_keyval
 
-    subroutine MPI_Type_create_keyval_f90(copy_fn, delete_fn, keyval, extra_state, ierror)
+    subroutine MPI_Type_create_keyval(copy_fn, delete_fn, keyval, extra_state, ierror)
         use mpi_f90_constants, only: MPI_ADDRESS_KIND
         use mpi_direct_callback_f, only: VAPAA_MPI_Type_create_keyval
         use mpi_f90_util, only: f90_finish_ierror
-        procedure() :: copy_fn, delete_fn
+        procedure(MPI_Copy_attr_function_f90) :: copy_fn
+        procedure(MPI_Delete_attr_function_f90) :: delete_fn
         integer, intent(out) :: keyval
         integer(kind=MPI_ADDRESS_KIND), intent(in) :: extra_state
         integer, optional, intent(out) :: ierror
@@ -79,13 +106,14 @@ contains
                                           int(extra_state,c_intptr_t), ierror_c)
         keyval = keyval_c
         call f90_finish_ierror(ierror, ierror_c)
-    end subroutine MPI_Type_create_keyval_f90
+    end subroutine MPI_Type_create_keyval
 
-    subroutine MPI_Win_create_keyval_f90(copy_fn, delete_fn, keyval, extra_state, ierror)
+    subroutine MPI_Win_create_keyval(copy_fn, delete_fn, keyval, extra_state, ierror)
         use mpi_f90_constants, only: MPI_ADDRESS_KIND
         use mpi_direct_callback_f, only: VAPAA_MPI_Win_create_keyval
         use mpi_f90_util, only: f90_finish_ierror
-        procedure() :: copy_fn, delete_fn
+        procedure(MPI_Copy_attr_function_f90) :: copy_fn
+        procedure(MPI_Delete_attr_function_f90) :: delete_fn
         integer, intent(out) :: keyval
         integer(kind=MPI_ADDRESS_KIND), intent(in) :: extra_state
         integer, optional, intent(out) :: ierror
@@ -94,7 +122,7 @@ contains
                                          int(extra_state,c_intptr_t), ierror_c)
         keyval = keyval_c
         call f90_finish_ierror(ierror, ierror_c)
-    end subroutine MPI_Win_create_keyval_f90
+    end subroutine MPI_Win_create_keyval
 
     subroutine MPI_Keyval_free_f90(keyval, ierror)
         use mpi_attr_c, only: VAPAA_MPI_Keyval_free

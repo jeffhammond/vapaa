@@ -110,7 +110,7 @@ module mpi_op_f
             type(c_funptr) :: fn
             fn = c_null_funptr
             select case(slot)
-#if defined(HAVE_PGIF) || defined(__flang__)
+#if defined(HAVE_PGIF) || defined(__flang__) || defined(__INTEL_COMPILER) || defined(__INTEL_LLVM_COMPILER)
 #define VAPAA_F08_OP_TRAMPOLINE_CASE(N) case(N); fn = c_funloc(f08_op_t_##N)
 #else
 #define VAPAA_F08_OP_TRAMPOLINE_CASE(N) case(N); fn = c_funloc(f08_op_t_/**/N)

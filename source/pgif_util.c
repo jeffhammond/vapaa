@@ -228,6 +228,11 @@ int VAPAA_PGIF_CREATE_DATATYPE(const VAPAA_PGIF_Desc *desc, int count,
     int *blocklengths = NULL;
     MPI_Aint *displacements = NULL;
     int capacity = 0;
+    int total = 0;
+    MPI_Aint datatype_lb = 0;
+    MPI_Aint datatype_extent = 0;
+    int elem_len = 0;
+    int blocks = 0;
 
     int rc = VAPAA_PGIF_VALIDATE(desc);
     if (rc != MPI_SUCCESS) {
@@ -237,7 +242,6 @@ int VAPAA_PGIF_CREATE_DATATYPE(const VAPAA_PGIF_Desc *desc, int count,
         return MPI_ERR_COUNT;
     }
 
-    int total = 0;
     rc = VAPAA_PGIF_TOTAL_ELEMENTS(desc, &total);
     if (rc != MPI_SUCCESS) {
         return rc;
@@ -249,21 +253,18 @@ int VAPAA_PGIF_CREATE_DATATYPE(const VAPAA_PGIF_Desc *desc, int count,
         goto fn_exit;
     }
 
-    MPI_Aint datatype_lb = 0;
-    MPI_Aint datatype_extent = 0;
     rc = PMPI_Type_get_extent(input_datatype, &datatype_lb, &datatype_extent);
     if (rc != MPI_SUCCESS) {
         goto fn_exit;
     }
     (void) datatype_lb;
 
-    const int elem_len = (int) desc->len;
+    elem_len = (int) desc->len;
     if (elem_len <= 0 || elem_len > INT_MAX) {
         rc = MPI_ERR_COUNT;
         goto fn_exit;
     }
 
-    int blocks = 0;
     for (int j = 0; j < count; j++) {
         const MPI_Aint type_displacement = (MPI_Aint) j * datatype_extent;
         for (size_t i = 0; i < actual_iov_len; i++) {

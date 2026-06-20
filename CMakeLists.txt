@@ -40,10 +40,30 @@ set(VAPAA_C_WARNING_OPTIONS
   $<$<COMPILE_LANGUAGE:C>:-Wall>
   $<$<COMPILE_LANGUAGE:C>:-Wextra>)
 set(VAPAA_FORTRAN_WARNING_OPTIONS)
-if(NOT CMAKE_Fortran_COMPILER_ID STREQUAL "LLVMFlang")
+if(CMAKE_Fortran_COMPILER_ID STREQUAL "GNU")
   list(APPEND VAPAA_FORTRAN_WARNING_OPTIONS
     $<$<COMPILE_LANGUAGE:Fortran>:-Wall>
     $<$<COMPILE_LANGUAGE:Fortran>:-Wextra>)
+elseif(CMAKE_Fortran_COMPILER_ID MATCHES "Intel")
+  list(APPEND VAPAA_FORTRAN_WARNING_OPTIONS
+    $<$<COMPILE_LANGUAGE:Fortran>:-diag-disable:5140>
+    $<$<COMPILE_LANGUAGE:Fortran>:-diag-disable:8100>)
+endif()
+
+set(VAPAA_COMPILER_RUNTIME_LIBRARY_DIRS)
+if(CMAKE_Fortran_COMPILER_ID MATCHES "Intel")
+  get_filename_component(vapaa_fortran_compiler_bin
+    "${CMAKE_Fortran_COMPILER}" DIRECTORY)
+  get_filename_component(vapaa_fortran_compiler_root
+    "${vapaa_fortran_compiler_bin}" DIRECTORY)
+  set(vapaa_intel_runtime_dir "${vapaa_fortran_compiler_root}/lib")
+  if(EXISTS "${vapaa_intel_runtime_dir}")
+    list(APPEND VAPAA_COMPILER_RUNTIME_LIBRARY_DIRS
+      "${vapaa_intel_runtime_dir}")
+    string(APPEND CMAKE_EXE_LINKER_FLAGS
+      " -Wl,-rpath,${vapaa_intel_runtime_dir}"
+      " -Wl,-rpath-link,${vapaa_intel_runtime_dir}")
+  endif()
 endif()
 
 set(VAPAA_FORTRAN_CFI_INCLUDE_DIR "" CACHE PATH
@@ -317,6 +337,19 @@ else()
 endif()
 
 message(STATUS "Final MPI compatibility flag: ${FLAG_MPI}")
+
+if(CMAKE_Fortran_COMPILER_ID STREQUAL "NVHPC")
+  foreach(vapaa_nvhpc_flag_var
+      CMAKE_Fortran_FLAGS_DEBUG
+      CMAKE_Fortran_FLAGS_RELWITHDEBINFO)
+    string(REPLACE "-Mbounds" "" ${vapaa_nvhpc_flag_var}
+      "${${vapaa_nvhpc_flag_var}}")
+    string(STRIP "${${vapaa_nvhpc_flag_var}}" ${vapaa_nvhpc_flag_var})
+    set(${vapaa_nvhpc_flag_var} "${${vapaa_nvhpc_flag_var}}" CACHE STRING
+      "NVHPC Fortran flags with bounds checking disabled for MPI descriptor tests"
+      FORCE)
+  endforeach()
+endif()
 
 if(CMAKE_Fortran_COMPILER_ID STREQUAL "NVHPC" AND VAPAA_ENABLE_CFI)
   message(WARNING

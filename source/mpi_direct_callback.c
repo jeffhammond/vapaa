@@ -23,6 +23,11 @@ typedef void (*vapaa_type_delete_fn)(int *, int *, intptr_t *, intptr_t *, int *
 typedef void (*vapaa_win_copy_fn)(int *, int *, intptr_t *, intptr_t *, intptr_t *, int *, int *);
 typedef void (*vapaa_win_delete_fn)(int *, int *, intptr_t *, intptr_t *, int *);
 
+typedef void (*vapaa_comm_errhandler_fn)(int *, int *);
+typedef void (*vapaa_file_errhandler_fn)(int *, int *);
+typedef void (*vapaa_win_errhandler_fn)(int *, int *);
+typedef void (*vapaa_session_errhandler_fn)(int *, int *);
+
 typedef void (*vapaa_greq_query_fn)(intptr_t *, struct F_MPI_Status *, int *);
 typedef void (*vapaa_greq_free_fn)(intptr_t *, int *);
 typedef void (*vapaa_greq_cancel_fn)(intptr_t *, int *, int *);
@@ -36,6 +41,7 @@ struct vapaa_keyval_state { vapaa_keyval_copy_fn copy; vapaa_keyval_delete_fn de
 struct vapaa_type_keyval_state { vapaa_type_copy_fn copy; vapaa_type_delete_fn del; intptr_t extra; };
 struct vapaa_win_keyval_state { vapaa_win_copy_fn copy; vapaa_win_delete_fn del; intptr_t extra; };
 struct vapaa_greq_state { vapaa_greq_query_fn query; vapaa_greq_free_fn free_fn; vapaa_greq_cancel_fn cancel; intptr_t *extra; };
+struct vapaa_errhandler_slot { vapaa_c_funptr fn; int errhandler_f; };
 struct vapaa_datarep_state {
     vapaa_c_funptr read_fn;
     vapaa_c_funptr write_fn;
@@ -43,6 +49,120 @@ struct vapaa_datarep_state {
     intptr_t extra;
     int use_count;
 };
+
+#define VAPAA_ERRHANDLER_SLOT_COUNT 64
+#define VAPAA_ERRHANDLER_SLOT_LIST(X) \
+    X(0) X(1) X(2) X(3) X(4) X(5) X(6) X(7) \
+    X(8) X(9) X(10) X(11) X(12) X(13) X(14) X(15) \
+    X(16) X(17) X(18) X(19) X(20) X(21) X(22) X(23) \
+    X(24) X(25) X(26) X(27) X(28) X(29) X(30) X(31) \
+    X(32) X(33) X(34) X(35) X(36) X(37) X(38) X(39) \
+    X(40) X(41) X(42) X(43) X(44) X(45) X(46) X(47) \
+    X(48) X(49) X(50) X(51) X(52) X(53) X(54) X(55) \
+    X(56) X(57) X(58) X(59) X(60) X(61) X(62) X(63)
+
+static struct vapaa_errhandler_slot comm_errhandler_slots[VAPAA_ERRHANDLER_SLOT_COUNT];
+static struct vapaa_errhandler_slot file_errhandler_slots[VAPAA_ERRHANDLER_SLOT_COUNT];
+static struct vapaa_errhandler_slot win_errhandler_slots[VAPAA_ERRHANDLER_SLOT_COUNT];
+#if MPI_VERSION >= 4
+static struct vapaa_errhandler_slot session_errhandler_slots[VAPAA_ERRHANDLER_SLOT_COUNT];
+#endif
+
+static int reserve_errhandler_slot(struct vapaa_errhandler_slot slots[],
+                                   vapaa_c_funptr fn)
+{
+    for (int i = 0; i < VAPAA_ERRHANDLER_SLOT_COUNT; ++i) {
+        if (slots[i].fn == NULL) {
+            slots[i].fn = fn;
+            slots[i].errhandler_f = 0;
+            return i;
+        }
+    }
+    return -1;
+}
+
+static void clear_errhandler_slot(struct vapaa_errhandler_slot slots[], int slot)
+{
+    if (slot >= 0 && slot < VAPAA_ERRHANDLER_SLOT_COUNT) {
+        slots[slot].fn = NULL;
+        slots[slot].errhandler_f = 0;
+    }
+}
+
+#define DEFINE_COMM_ERRHANDLER_TRAMPOLINE(n) \
+    static void comm_errhandler_trampoline_##n(MPI_Comm *comm, int *error_code, ...) \
+    { \
+        if (comm_errhandler_slots[n].fn != NULL) { \
+            int comm_f = C_MPI_COMM_TOINT(*comm); \
+            int error_f = C_MPI_ERROR_CODE_C2F(*error_code); \
+            ((vapaa_comm_errhandler_fn) comm_errhandler_slots[n].fn)(&comm_f, &error_f); \
+        } \
+    }
+VAPAA_ERRHANDLER_SLOT_LIST(DEFINE_COMM_ERRHANDLER_TRAMPOLINE)
+#undef DEFINE_COMM_ERRHANDLER_TRAMPOLINE
+
+#define DEFINE_FILE_ERRHANDLER_TRAMPOLINE(n) \
+    static void file_errhandler_trampoline_##n(MPI_File *file, int *error_code, ...) \
+    { \
+        if (file_errhandler_slots[n].fn != NULL) { \
+            int file_f = C_MPI_FILE_TOINT(*file); \
+            int error_f = C_MPI_ERROR_CODE_C2F(*error_code); \
+            ((vapaa_file_errhandler_fn) file_errhandler_slots[n].fn)(&file_f, &error_f); \
+        } \
+    }
+VAPAA_ERRHANDLER_SLOT_LIST(DEFINE_FILE_ERRHANDLER_TRAMPOLINE)
+#undef DEFINE_FILE_ERRHANDLER_TRAMPOLINE
+
+#define DEFINE_WIN_ERRHANDLER_TRAMPOLINE(n) \
+    static void win_errhandler_trampoline_##n(MPI_Win *win, int *error_code, ...) \
+    { \
+        if (win_errhandler_slots[n].fn != NULL) { \
+            int win_f = C_MPI_WIN_TOINT(*win); \
+            int error_f = C_MPI_ERROR_CODE_C2F(*error_code); \
+            ((vapaa_win_errhandler_fn) win_errhandler_slots[n].fn)(&win_f, &error_f); \
+        } \
+    }
+VAPAA_ERRHANDLER_SLOT_LIST(DEFINE_WIN_ERRHANDLER_TRAMPOLINE)
+#undef DEFINE_WIN_ERRHANDLER_TRAMPOLINE
+
+#if MPI_VERSION >= 4
+#define DEFINE_SESSION_ERRHANDLER_TRAMPOLINE(n) \
+    static void session_errhandler_trampoline_##n(MPI_Session *session, int *error_code, ...) \
+    { \
+        if (session_errhandler_slots[n].fn != NULL) { \
+            int session_f = C_MPI_SESSION_TOINT(*session); \
+            int error_f = C_MPI_ERROR_CODE_C2F(*error_code); \
+            ((vapaa_session_errhandler_fn) session_errhandler_slots[n].fn)(&session_f, &error_f); \
+        } \
+    }
+VAPAA_ERRHANDLER_SLOT_LIST(DEFINE_SESSION_ERRHANDLER_TRAMPOLINE)
+#undef DEFINE_SESSION_ERRHANDLER_TRAMPOLINE
+#endif
+
+#define ERRHANDLER_TRAMPOLINE_ENTRY(prefix, n) prefix##_errhandler_trampoline_##n,
+static MPI_Comm_errhandler_function *comm_errhandler_trampolines[] = {
+#define COMM_ERRHANDLER_ENTRY(n) ERRHANDLER_TRAMPOLINE_ENTRY(comm, n)
+    VAPAA_ERRHANDLER_SLOT_LIST(COMM_ERRHANDLER_ENTRY)
+#undef COMM_ERRHANDLER_ENTRY
+};
+static MPI_File_errhandler_function *file_errhandler_trampolines[] = {
+#define FILE_ERRHANDLER_ENTRY(n) ERRHANDLER_TRAMPOLINE_ENTRY(file, n)
+    VAPAA_ERRHANDLER_SLOT_LIST(FILE_ERRHANDLER_ENTRY)
+#undef FILE_ERRHANDLER_ENTRY
+};
+static MPI_Win_errhandler_function *win_errhandler_trampolines[] = {
+#define WIN_ERRHANDLER_ENTRY(n) ERRHANDLER_TRAMPOLINE_ENTRY(win, n)
+    VAPAA_ERRHANDLER_SLOT_LIST(WIN_ERRHANDLER_ENTRY)
+#undef WIN_ERRHANDLER_ENTRY
+};
+#if MPI_VERSION >= 4
+static MPI_Session_errhandler_function *session_errhandler_trampolines[] = {
+#define SESSION_ERRHANDLER_ENTRY(n) ERRHANDLER_TRAMPOLINE_ENTRY(session, n)
+    VAPAA_ERRHANDLER_SLOT_LIST(SESSION_ERRHANDLER_ENTRY)
+#undef SESSION_ERRHANDLER_ENTRY
+};
+#endif
+#undef ERRHANDLER_TRAMPOLINE_ENTRY
 
 static int comm_copy_trampoline(MPI_Comm comm, int keyval, void *extra_state, void *attr_in, void *attr_out, int *flag)
 {
@@ -236,24 +356,60 @@ static int datarep_extent_trampoline(MPI_Datatype datatype, MPI_Aint *extent, vo
 void VAPAA_MPI_Comm_create_errhandler(vapaa_c_funptr fn, int *errhandler_f, int *ierror)
 {
     MPI_Errhandler errhandler = MPI_ERRHANDLER_NULL;
-    *ierror = MPI_Comm_create_errhandler((MPI_Comm_errhandler_function *)fn, &errhandler);
+    int slot = reserve_errhandler_slot(comm_errhandler_slots, fn);
+    if (slot < 0) {
+        *errhandler_f = C_MPI_ERRHANDLER_TOINT(MPI_ERRHANDLER_NULL);
+        *ierror = MPI_ERR_INTERN;
+        C_MPI_RC_FIX(*ierror);
+        return;
+    }
+    *ierror = MPI_Comm_create_errhandler(comm_errhandler_trampolines[slot], &errhandler);
     *errhandler_f = C_MPI_ERRHANDLER_TOINT(errhandler);
+    if (*ierror == MPI_SUCCESS) {
+        comm_errhandler_slots[slot].errhandler_f = *errhandler_f;
+    } else {
+        clear_errhandler_slot(comm_errhandler_slots, slot);
+    }
     C_MPI_RC_FIX(*ierror);
 }
 
 void VAPAA_MPI_File_create_errhandler(vapaa_c_funptr fn, int *errhandler_f, int *ierror)
 {
     MPI_Errhandler errhandler = MPI_ERRHANDLER_NULL;
-    *ierror = MPI_File_create_errhandler((MPI_File_errhandler_function *)fn, &errhandler);
+    int slot = reserve_errhandler_slot(file_errhandler_slots, fn);
+    if (slot < 0) {
+        *errhandler_f = C_MPI_ERRHANDLER_TOINT(MPI_ERRHANDLER_NULL);
+        *ierror = MPI_ERR_INTERN;
+        C_MPI_RC_FIX(*ierror);
+        return;
+    }
+    *ierror = MPI_File_create_errhandler(file_errhandler_trampolines[slot], &errhandler);
     *errhandler_f = C_MPI_ERRHANDLER_TOINT(errhandler);
+    if (*ierror == MPI_SUCCESS) {
+        file_errhandler_slots[slot].errhandler_f = *errhandler_f;
+    } else {
+        clear_errhandler_slot(file_errhandler_slots, slot);
+    }
     C_MPI_RC_FIX(*ierror);
 }
 
 void VAPAA_MPI_Win_create_errhandler(vapaa_c_funptr fn, int *errhandler_f, int *ierror)
 {
     MPI_Errhandler errhandler = MPI_ERRHANDLER_NULL;
-    *ierror = MPI_Win_create_errhandler((MPI_Win_errhandler_function *)fn, &errhandler);
+    int slot = reserve_errhandler_slot(win_errhandler_slots, fn);
+    if (slot < 0) {
+        *errhandler_f = C_MPI_ERRHANDLER_TOINT(MPI_ERRHANDLER_NULL);
+        *ierror = MPI_ERR_INTERN;
+        C_MPI_RC_FIX(*ierror);
+        return;
+    }
+    *ierror = MPI_Win_create_errhandler(win_errhandler_trampolines[slot], &errhandler);
     *errhandler_f = C_MPI_ERRHANDLER_TOINT(errhandler);
+    if (*ierror == MPI_SUCCESS) {
+        win_errhandler_slots[slot].errhandler_f = *errhandler_f;
+    } else {
+        clear_errhandler_slot(win_errhandler_slots, slot);
+    }
     C_MPI_RC_FIX(*ierror);
 }
 
@@ -261,13 +417,27 @@ void VAPAA_MPI_Session_create_errhandler(vapaa_c_funptr fn, int *errhandler_f, i
 {
     MPI_Errhandler errhandler = MPI_ERRHANDLER_NULL;
 #if MPI_VERSION >= 4
-    *ierror = MPI_Session_create_errhandler((MPI_Session_errhandler_function *)fn, &errhandler);
+    int slot = reserve_errhandler_slot(session_errhandler_slots, fn);
+    if (slot < 0) {
+        *errhandler_f = C_MPI_ERRHANDLER_TOINT(MPI_ERRHANDLER_NULL);
+        *ierror = MPI_ERR_INTERN;
+        C_MPI_RC_FIX(*ierror);
+        return;
+    }
+    *ierror = MPI_Session_create_errhandler(session_errhandler_trampolines[slot], &errhandler);
+    if (*ierror == MPI_SUCCESS) {
+        *errhandler_f = C_MPI_ERRHANDLER_TOINT(errhandler);
+        session_errhandler_slots[slot].errhandler_f = *errhandler_f;
+    } else {
+        *errhandler_f = C_MPI_ERRHANDLER_TOINT(MPI_ERRHANDLER_NULL);
+        clear_errhandler_slot(session_errhandler_slots, slot);
+    }
 #else
     (void) fn;
     *ierror = MPI_ERR_UNSUPPORTED_OPERATION;
     VAPAA_MPI_handle_synthetic_error_no_object(ierror);
-#endif
     *errhandler_f = C_MPI_ERRHANDLER_TOINT(errhandler);
+#endif
     C_MPI_RC_FIX(*ierror);
 }
 
