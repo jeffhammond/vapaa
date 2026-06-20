@@ -36,6 +36,66 @@ set(CMAKE_C_EXTENSIONS OFF)
 set(CMAKE_Fortran_STANDARD 2018)
 set(CMAKE_Fortran_STANDARD_REQUIRED ON)
 
+set(VAPAA_C_WARNING_OPTIONS
+  $<$<COMPILE_LANGUAGE:C>:-Wall>
+  $<$<COMPILE_LANGUAGE:C>:-Wextra>)
+set(VAPAA_FORTRAN_WARNING_OPTIONS)
+if(NOT CMAKE_Fortran_COMPILER_ID STREQUAL "LLVMFlang")
+  list(APPEND VAPAA_FORTRAN_WARNING_OPTIONS
+    $<$<COMPILE_LANGUAGE:Fortran>:-Wall>
+    $<$<COMPILE_LANGUAGE:Fortran>:-Wextra>)
+endif()
+
+set(VAPAA_FORTRAN_CFI_INCLUDE_DIR "" CACHE PATH
+  "Directory containing ISO_Fortran_binding.h for the active Fortran compiler")
+if(VAPAA_ENABLE_CFI AND NOT VAPAA_FORTRAN_CFI_INCLUDE_DIR)
+  set(vapaa_cfi_include_candidates "")
+  if(CMAKE_Fortran_COMPILER_ID STREQUAL "LLVMFlang")
+    execute_process(
+      COMMAND "${CMAKE_Fortran_COMPILER}" -print-resource-dir
+      OUTPUT_VARIABLE vapaa_flang_resource_dir
+      ERROR_QUIET
+      RESULT_VARIABLE vapaa_flang_resource_result
+      OUTPUT_STRIP_TRAILING_WHITESPACE)
+    if(vapaa_flang_resource_result EQUAL 0 AND
+       NOT vapaa_flang_resource_dir STREQUAL "")
+      get_filename_component(vapaa_flang_resource_parent
+        "${vapaa_flang_resource_dir}" DIRECTORY)
+      get_filename_component(vapaa_flang_lib_dir
+        "${vapaa_flang_resource_parent}" DIRECTORY)
+      get_filename_component(vapaa_flang_root
+        "${vapaa_flang_lib_dir}" DIRECTORY)
+      list(APPEND vapaa_cfi_include_candidates
+        "${vapaa_flang_root}/include/flang")
+    endif()
+  endif()
+
+  get_filename_component(vapaa_fortran_compiler_realpath
+    "${CMAKE_Fortran_COMPILER}" REALPATH)
+  get_filename_component(vapaa_fortran_compiler_bindir
+    "${vapaa_fortran_compiler_realpath}" DIRECTORY)
+  get_filename_component(vapaa_fortran_compiler_root
+    "${vapaa_fortran_compiler_bindir}" DIRECTORY)
+  list(APPEND vapaa_cfi_include_candidates
+    "${vapaa_fortran_compiler_root}/include"
+    "${vapaa_fortran_compiler_root}/include/flang")
+
+  find_path(vapaa_detected_fortran_cfi_include_dir
+    NAMES ISO_Fortran_binding.h
+    HINTS ${vapaa_cfi_include_candidates}
+    NO_DEFAULT_PATH)
+  if(vapaa_detected_fortran_cfi_include_dir)
+    set(VAPAA_FORTRAN_CFI_INCLUDE_DIR
+      "${vapaa_detected_fortran_cfi_include_dir}" CACHE PATH
+      "Directory containing ISO_Fortran_binding.h for the active Fortran compiler"
+      FORCE)
+  endif()
+endif()
+if(VAPAA_ENABLE_CFI AND VAPAA_FORTRAN_CFI_INCLUDE_DIR)
+  message(STATUS
+    "Using Fortran compiler CFI header: ${VAPAA_FORTRAN_CFI_INCLUDE_DIR}")
+endif()
+
 set(VAPAA_MPIEXEC_EXPLICIT FALSE)
 if(DEFINED MPIEXEC_EXECUTABLE OR DEFINED CACHE{MPIEXEC_EXECUTABLE})
   set(VAPAA_MPIEXEC_EXPLICIT TRUE)
@@ -128,6 +188,11 @@ set(SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/source")
 set(vapa_lib vapa)
 
 add_library(${vapa_lib} STATIC)
+if(VAPAA_FORTRAN_CFI_INCLUDE_DIR)
+  target_include_directories(${vapa_lib}
+    BEFORE PRIVATE
+      $<$<COMPILE_LANGUAGE:C>:${VAPAA_FORTRAN_CFI_INCLUDE_DIR}>)
+endif()
 
 set(VAPAA_GIT_HASH "unknown")
 set(VAPAA_GIT_DIRTY "unknown")
@@ -267,7 +332,10 @@ if(CMAKE_Fortran_COMPILER_ID STREQUAL "NVHPC" AND VAPAA_ENABLE_PGIF)
   message(STATUS "Enabling NVHPC PGI descriptor buffer bindings")
 endif()
 
-target_compile_options(${vapa_lib} PRIVATE -Wall -Wextra -fPIE) 
+target_compile_options(${vapa_lib} PRIVATE
+  ${VAPAA_C_WARNING_OPTIONS}
+  ${VAPAA_FORTRAN_WARNING_OPTIONS}
+  -fPIE)
 target_compile_definitions(${vapa_lib} PRIVATE
   ${FLAG_MPI}
   VAPAA_MPI_VENDOR_LABEL="${VAPAA_MPI_VENDOR_LABEL}"

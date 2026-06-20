@@ -102,7 +102,7 @@ module mpi_op_f
             call f08_op_slots(slot) % fn(invec, inoutvec, len, datatype)
         end subroutine f08_op_dispatch
 
-#ifdef HAVE_PGIF
+#if defined(HAVE_PGIF) || defined(__flang__)
 #define VAPAA_F08_OP_TRAMPOLINE(N) \
         subroutine f08_op_trampoline_##N(invec, inoutvec, len, datatype_f) bind(C); \
             type(c_ptr), value :: invec, inoutvec; \
@@ -190,7 +190,7 @@ module mpi_op_f
             type(c_funptr) :: fn
             fn = c_null_funptr
             select case(slot)
-#ifdef HAVE_PGIF
+#if defined(HAVE_PGIF) || defined(__flang__)
 #define VAPAA_F08_OP_TRAMPOLINE_CASE(N) case(N); fn = c_funloc(f08_op_trampoline_##N)
 #else
 #define VAPAA_F08_OP_TRAMPOLINE_CASE(N) case(N); fn = c_funloc(f08_op_trampoline_/**/N)

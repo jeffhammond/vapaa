@@ -57,7 +57,8 @@ if(vapaa_mpich_main_f77_mpi_library_dirs)
 endif()
 
 set(vapaa_mpich_main_f77_fortran_options
-  -Wall -Wextra -g -fPIE
+  ${VAPAA_FORTRAN_WARNING_OPTIONS}
+  -g -fPIE
   $<$<COMPILE_LANG_AND_ID:Fortran,GNU>:-std=legacy>
   $<$<COMPILE_LANG_AND_ID:Fortran,GNU>:-ffixed-line-length-none>
   $<$<COMPILE_LANG_AND_ID:Fortran,GNU>:-fallow-argument-mismatch>

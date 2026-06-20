@@ -17,7 +17,8 @@ endif()
 add_library(mpich_main_mtest_f08 OBJECT
   "${MPICH_MAIN_UTIL_ROOT}/mtest_f08.f90")
 target_compile_options(mpich_main_mtest_f08 PRIVATE
-  -Wall -Wextra -g
+  ${VAPAA_FORTRAN_WARNING_OPTIONS}
+  -g
   $<$<COMPILE_LANG_AND_ID:Fortran,GNU>:-std=f2018>
   -fPIE)
 target_include_directories(mpich_main_mtest_f08
@@ -99,7 +100,9 @@ function(vapaa_add_mpich_main_f08_test category test_name np)
     $<TARGET_OBJECTS:mpich_main_mtest_f08>
     $<TARGET_OBJECTS:mpich_main_mtest_c>)
   target_compile_options(${target_name} PRIVATE
-    -Wall -Wextra -g -fPIE
+    ${VAPAA_C_WARNING_OPTIONS}
+    ${VAPAA_FORTRAN_WARNING_OPTIONS}
+    -g -fPIE
     $<$<COMPILE_LANGUAGE:C>:-include>
     $<$<COMPILE_LANGUAGE:C>:${MPICH_MAIN_INCLUDE_ROOT}/vapaa_test_handle_compat.h>)
   target_compile_definitions(${target_name} PRIVATE _GNU_SOURCE)

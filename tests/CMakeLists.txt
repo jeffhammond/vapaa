@@ -73,7 +73,9 @@ foreach(TEST_SOURCE ${TEST_SOURCES})
   
   # Link the library to the test
   target_compile_options(${TEST_NAME} PRIVATE
-    -Wall -Wextra -g
+    ${VAPAA_C_WARNING_OPTIONS}
+    ${VAPAA_FORTRAN_WARNING_OPTIONS}
+    -g
     $<$<COMPILE_LANG_AND_ID:Fortran,GNU>:-std=f2018>
     $<$<BOOL:${VAPAA_ENABLE_CFI}>:-DHAVE_CFI>
     -fPIE)
@@ -122,7 +124,9 @@ set_tests_properties(test_verbose_init PROPERTIES
 
 add_executable(test_typecheck_warnings ${TYPECHECK_WARNING_TEST_SOURCE})
 target_compile_options(test_typecheck_warnings PRIVATE
-  -Wall -Wextra -g
+  ${VAPAA_C_WARNING_OPTIONS}
+  ${VAPAA_FORTRAN_WARNING_OPTIONS}
+  -g
   $<$<COMPILE_LANG_AND_ID:Fortran,GNU>:-std=f2018>
   $<$<BOOL:${VAPAA_ENABLE_CFI}>:-DHAVE_CFI>
   -fPIE)

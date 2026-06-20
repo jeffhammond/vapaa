@@ -20,7 +20,8 @@ if(FLAG_MPI MATCHES "OPEN_MPI")
 endif()
 
 set(vapaa_mpich_main_f90_fortran_options
-  -Wall -Wextra -g -fPIE
+  ${VAPAA_FORTRAN_WARNING_OPTIONS}
+  -g -fPIE
   $<$<COMPILE_LANG_AND_ID:Fortran,GNU>:-fallow-argument-mismatch>)
 
 add_library(mpich_main_mtest_f90 OBJECT
@@ -62,6 +63,7 @@ function(vapaa_add_mpich_main_f90_test category test_name np)
     $<TARGET_OBJECTS:mpich_main_mtest_c>)
   target_compile_options(${target_name} PRIVATE
     ${vapaa_mpich_main_f90_fortran_options}
+    ${VAPAA_C_WARNING_OPTIONS}
     $<$<COMPILE_LANGUAGE:C>:-include>
     $<$<COMPILE_LANGUAGE:C>:${MPICH_MAIN_INCLUDE_ROOT}/vapaa_test_handle_compat.h>)
   target_compile_definitions(${target_name} PRIVATE _GNU_SOURCE)

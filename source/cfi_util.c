@@ -560,16 +560,23 @@ static int VAPAA_MPIDT_PRINT_INFO(MPI_Datatype dt)
 
 static MPI_Datatype VAPAA_CFI_TO_MPI_TYPE(CFI_type_t type)
 {
-         if (type==CFI_type_signed_char)          return MPI_CHAR;
-    else if (type==CFI_type_char)                 return MPI_CHAR;
+         if (type==CFI_type_char)                 return MPI_CHAR;
+    else if (type==CFI_type_signed_char)          return MPI_SIGNED_CHAR;
     else if (type==CFI_type_int8_t)               return MPI_INT8_T;
     else if (type==CFI_type_int16_t)              return MPI_INT16_T;
     else if (type==CFI_type_int32_t)              return MPI_INT32_T;
     else if (type==CFI_type_int64_t)              return MPI_INT64_T;
+    else if (type==CFI_type_short)                return MPI_SHORT;
+    else if (type==CFI_type_int)                  return MPI_INT;
+    else if (type==CFI_type_long)                 return MPI_LONG;
+    else if (type==CFI_type_long_long)            return MPI_LONG_LONG_INT;
+    else if (type==CFI_type_Bool)                 return MPI_C_BOOL;
     else if (type==CFI_type_float)                return MPI_FLOAT;
     else if (type==CFI_type_double)               return MPI_DOUBLE;
+    else if (type==CFI_type_long_double)          return MPI_LONG_DOUBLE;
     else if (type==CFI_type_float_Complex)        return MPI_C_FLOAT_COMPLEX;
     else if (type==CFI_type_double_Complex)       return MPI_C_DOUBLE_COMPLEX;
+    else if (type==CFI_type_long_double_Complex)  return MPI_C_LONG_DOUBLE_COMPLEX;
     else {
         char name[33] = {0};
         VAPAA_CFI_GET_TYPE_NAME(type, name);
