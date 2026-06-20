@@ -1,6 +1,7 @@
 ! SPDX-License-Identifier: MIT
 
 module mpi_request_f
+    use mpi_ierror_f, only: F_MPI_FINISH_IERROR
     use iso_c_binding, only: c_int
     implicit none
 
@@ -48,7 +49,7 @@ module mpi_request_f
             integer(kind=c_int) :: flag_c, ierror_c
             call C_MPI_Request_get_status(request % MPI_VAL, flag_c, status, ierror_c)
             flag = (flag_c .ne. 0)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_Request_get_status_f08
 
         subroutine MPI_Request_get_status_all_f08(count, requests, flag, statuses, ierror)
@@ -63,7 +64,7 @@ module mpi_request_f
             count_c = count
             call C_MPI_Request_get_status_all(count_c, requests, flag_c, statuses, ierror_c)
             flag = (flag_c .ne. 0)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_Request_get_status_all_f08
 
         subroutine MPI_Request_get_status_any_f08(count, requests, index, flag, status, ierror)
@@ -84,7 +85,7 @@ module mpi_request_f
                 index = index_c
             end if
             flag = (flag_c .ne. 0)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_Request_get_status_any_f08
 
         subroutine MPI_Request_get_status_some_f08(incount, requests, outcount, indices, statuses, ierror)
@@ -100,7 +101,7 @@ module mpi_request_f
             call C_MPI_Request_get_status_some(incount_c, requests, outcount_c, indices, statuses, ierror_c)
             outcount = outcount_c
             if (outcount_c > 0) indices(1:outcount_c) = indices(1:outcount_c) + 1
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_Request_get_status_some_f08
 
         subroutine MPI_Request_free_f08(request, ierror)
@@ -110,7 +111,7 @@ module mpi_request_f
             integer, optional, intent(out) :: ierror
             integer(kind=c_int) :: ierror_c
             call C_MPI_Request_free(request % MPI_VAL, ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_Request_free_f08
 
         subroutine MPI_Cancel_f08(request, ierror)
@@ -120,7 +121,7 @@ module mpi_request_f
             integer, optional, intent(out) :: ierror
             integer(kind=c_int) :: ierror_c
             call C_MPI_Cancel(request % MPI_VAL, ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_Cancel_f08
 
         subroutine MPI_Start_f08(request, ierror)
@@ -130,7 +131,7 @@ module mpi_request_f
             integer, optional, intent(out) :: ierror
             integer(kind=c_int) :: ierror_c
             call C_MPI_Start(request % MPI_VAL, ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_Start_f08
 
         subroutine MPI_Startall_f08(count, requests, ierror)
@@ -142,7 +143,7 @@ module mpi_request_f
             integer(kind=c_int) :: count_c, ierror_c
             count_c = count
             call C_MPI_Startall(count_c, requests, ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_Startall_f08
 
 end module mpi_request_f

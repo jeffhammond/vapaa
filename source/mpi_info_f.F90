@@ -1,6 +1,7 @@
 ! SPDX-License-Identifier: MIT
 
 module mpi_info_f
+    use mpi_ierror_f, only: F_MPI_FINISH_IERROR
     use iso_c_binding, only: c_int
     implicit none
 
@@ -135,7 +136,7 @@ module mpi_info_f
             integer, optional, intent(out) :: ierror
             integer(kind=c_int) :: ierror_c
             call C_MPI_Info_create(info % MPI_VAL, ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine  MPI_Info_create_f08
 
         subroutine MPI_Info_create_env_f08(info, ierror)
@@ -146,7 +147,7 @@ module mpi_info_f
             integer, optional, intent(out) :: ierror
             integer(kind=c_int) :: ierror_c
             call C_MPI_Info_create_env(info % MPI_VAL, ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine  MPI_Info_create_env_f08
 
         subroutine MPI_Info_delete_f08(info, key, ierror)
@@ -160,7 +161,7 @@ module mpi_info_f
             character(kind=c_char), dimension(:), allocatable :: key_c
             call make_info_c_string(key, key_c)
             call C_MPI_Info_delete(info % MPI_VAL, key_c, ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
             deallocate( key_c )
         end subroutine  MPI_Info_delete_f08
 
@@ -176,7 +177,7 @@ module mpi_info_f
             character(kind=c_char), dimension(:), allocatable :: key_c
             call make_info_c_string(key, key_c)
             call CFI_MPI_Info_delete(info % MPI_VAL, key_c, ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
             deallocate( key_c )
         end subroutine  MPI_Info_delete_f08ts
 #endif
@@ -190,7 +191,7 @@ module mpi_info_f
             integer, optional, intent(out) :: ierror
             integer(kind=c_int) :: ierror_c
             call C_MPI_Info_dup(info % MPI_VAL, newinfo % MPI_VAL, ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine  MPI_Info_dup_f08
 
         subroutine MPI_Info_free_f08(info, ierror)
@@ -201,7 +202,7 @@ module mpi_info_f
             integer, optional, intent(out) :: ierror
             integer(kind=c_int) :: ierror_c
             call C_MPI_Info_free(info % MPI_VAL, ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine  MPI_Info_free_f08
 
         subroutine MPI_Info_get_nkeys_f08(info, nkeys, ierror)
@@ -214,7 +215,7 @@ module mpi_info_f
             integer(kind=c_int) :: nkeys_c, ierror_c
             call C_MPI_Info_get_nkeys(info % MPI_VAL, nkeys_c, ierror_c)
             nkeys = nkeys_c
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine  MPI_Info_get_nkeys_f08
 
         subroutine MPI_Info_get_nthkey_f08(info, n, key, ierror)
@@ -232,7 +233,7 @@ module mpi_info_f
             n_c = n
             call C_MPI_Info_get_nthkey(info % MPI_VAL, n_c, key_c, ierror_c)
             call copy_info_c_string(key_c, key)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
             deallocate(key_c)
         end subroutine  MPI_Info_get_nthkey_f08
 
@@ -252,7 +253,7 @@ module mpi_info_f
             n_c = n
             call CFI_MPI_Info_get_nthkey(info % MPI_VAL, n_c, key_c, ierror_c)
             call copy_info_c_string(key_c, key)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
             deallocate( key_c )
         end subroutine  MPI_Info_get_nthkey_f08ts
 #endif
@@ -283,7 +284,7 @@ module mpi_info_f
                 copy_len = min(buflen_in, len(value))
                 call copy_info_c_string(value_c, value, copy_len)
             endif
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
             deallocate(key_c, value_c)
         end subroutine  MPI_Info_get_string_f08
 
@@ -314,7 +315,7 @@ module mpi_info_f
                 copy_len = min(buflen_in, len(value))
                 call copy_info_c_string(value_c, value, copy_len)
             endif
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
             deallocate( key_c, value_c )
         end subroutine  MPI_Info_get_string_f08ts
 #endif
@@ -345,7 +346,7 @@ module mpi_info_f
             call C_MPI_Info_get_string(info % MPI_VAL, key_c, buflen_c, value_c, flag_c, ierror_c)
             flag = (flag_c .ne. 0)
             if (flag .and. copy_len > 0) call copy_info_c_string(value_c, value, copy_len)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
             deallocate(key_c, value_c)
         end subroutine MPI_Info_get_f08
 
@@ -376,7 +377,7 @@ module mpi_info_f
             call CFI_MPI_Info_get_string(info % MPI_VAL, key_c, buflen_c, value_c, flag_c, ierror_c)
             flag = (flag_c .ne. 0)
             if (flag .and. copy_len > 0) call copy_info_c_string(value_c, value, copy_len)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
             deallocate( key_c, value_c )
         end subroutine MPI_Info_get_f08ts
 #endif
@@ -396,7 +397,7 @@ module mpi_info_f
             call C_MPI_Info_get_valuelen(info % MPI_VAL, key_c, valuelen_c, flag_c, ierror_c)
             valuelen = valuelen_c
             flag = (flag_c .ne. 0)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
             deallocate( key_c )
         end subroutine MPI_Info_get_valuelen_f08
 
@@ -416,7 +417,7 @@ module mpi_info_f
             call CFI_MPI_Info_get_valuelen(info % MPI_VAL, key_c, valuelen_c, flag_c, ierror_c)
             valuelen = valuelen_c
             flag = (flag_c .ne. 0)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
             deallocate( key_c )
         end subroutine MPI_Info_get_valuelen_f08ts
 #endif
@@ -433,7 +434,7 @@ module mpi_info_f
             call make_info_c_string(key, key_c)
             call make_info_c_string(value, value_c)
             call C_MPI_Info_set(info % MPI_VAL, key_c, value_c, ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
             deallocate(key_c, value_c)
         end subroutine  MPI_Info_set_f08
 
@@ -450,7 +451,7 @@ module mpi_info_f
             call make_info_c_string(key, key_c)
             call make_info_c_string(value, value_c)
             call CFI_MPI_Info_set(info % MPI_VAL, key_c, value_c, ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
             deallocate( key_c, value_c )
         end subroutine  MPI_Info_set_f08ts
 #endif

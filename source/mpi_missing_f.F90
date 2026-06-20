@@ -1,6 +1,7 @@
 ! SPDX-License-Identifier: MIT
 
 module mpi_missing_f
+    use mpi_ierror_f, only: F_MPI_FINISH_IERROR
     use iso_c_binding, only: c_int, c_int64_t, c_intptr_t, c_ptr
     implicit none
 
@@ -172,7 +173,7 @@ module mpi_missing_f
             integer, optional, intent(out) :: ierror
             integer(c_int) :: ierror_c
             call VAPAA_MPI_Get_address(location, address, ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_Get_address_f08ts
 #endif
 
@@ -186,7 +187,7 @@ module mpi_missing_f
             integer, optional, intent(out) :: ierror
             integer(c_int) :: ierror_c
             call VAPAA_MPI_Alloc_mem(size, info % MPI_VAL, baseptr, ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_Alloc_mem_f08
 
 #ifdef HAVE_CFI
@@ -196,7 +197,7 @@ module mpi_missing_f
             integer, optional, intent(out) :: ierror
             integer(c_int) :: ierror_c
             call VAPAA_MPI_Free_mem(base, ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_Free_mem_f08ts
 #endif
 
@@ -210,7 +211,7 @@ module mpi_missing_f
             integer(c_int) :: count_c, ierror_c
             call VAPAA_MPI_Get_count(status, datatype % MPI_VAL, count_c, ierror_c)
             count = count_c
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_Get_count_f08
 
         subroutine MPI_Get_count_c_f08(status, datatype, count, ierror)
@@ -223,7 +224,7 @@ module mpi_missing_f
             integer, optional, intent(out) :: ierror
             integer(c_int) :: ierror_c
             call VAPAA_MPI_Get_count_c(status, datatype % MPI_VAL, count, ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_Get_count_c_f08
 
         subroutine MPI_Get_elements_f08(status, datatype, count, ierror)
@@ -236,7 +237,7 @@ module mpi_missing_f
             integer(c_int) :: count_c, ierror_c
             call VAPAA_MPI_Get_elements(status, datatype % MPI_VAL, count_c, ierror_c)
             count = count_c
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_Get_elements_f08
 
         subroutine MPI_Get_elements_c_f08(status, datatype, count, ierror)
@@ -249,7 +250,7 @@ module mpi_missing_f
             integer, optional, intent(out) :: ierror
             integer(c_int) :: ierror_c
             call VAPAA_MPI_Get_elements_c(status, datatype % MPI_VAL, count, ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_Get_elements_c_f08
 
         subroutine MPI_Get_elements_x_f08(status, datatype, count, ierror)
@@ -262,7 +263,7 @@ module mpi_missing_f
             integer, optional, intent(out) :: ierror
             integer(c_int) :: ierror_c
             call VAPAA_MPI_Get_elements_x(status, datatype % MPI_VAL, count, ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_Get_elements_x_f08
 
         subroutine MPI_Type_size_x_f08(datatype, size, ierror)
@@ -274,7 +275,7 @@ module mpi_missing_f
             integer, optional, intent(out) :: ierror
             integer(c_int) :: ierror_c
             call VAPAA_MPI_Type_size_x(datatype % MPI_VAL, size, ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_Type_size_x_f08
 
         subroutine MPI_Type_get_extent_f08(datatype, lb, extent, ierror)
@@ -286,7 +287,7 @@ module mpi_missing_f
             integer, optional, intent(out) :: ierror
             integer(c_int) :: ierror_c
             call VAPAA_MPI_Type_get_extent(datatype % MPI_VAL, lb, extent, ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_Type_get_extent_f08
 
         subroutine MPI_Type_get_extent_x_f08(datatype, lb, extent, ierror)
@@ -298,7 +299,7 @@ module mpi_missing_f
             integer, optional, intent(out) :: ierror
             integer(c_int) :: ierror_c
             call VAPAA_MPI_Type_get_extent_x(datatype % MPI_VAL, lb, extent, ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_Type_get_extent_x_f08
 
         subroutine MPI_Type_get_true_extent_f08(datatype, true_lb, true_extent, ierror)
@@ -310,7 +311,7 @@ module mpi_missing_f
             integer, optional, intent(out) :: ierror
             integer(c_int) :: ierror_c
             call VAPAA_MPI_Type_get_true_extent(datatype % MPI_VAL, true_lb, true_extent, ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_Type_get_true_extent_f08
 
         subroutine MPI_Type_get_true_extent_x_f08(datatype, true_lb, true_extent, ierror)
@@ -322,7 +323,7 @@ module mpi_missing_f
             integer, optional, intent(out) :: ierror
             integer(c_int) :: ierror_c
             call VAPAA_MPI_Type_get_true_extent_x(datatype % MPI_VAL, true_lb, true_extent, ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_Type_get_true_extent_x_f08
 
         subroutine MPI_Type_create_resized_f08(oldtype, lb, extent, newtype, ierror)
@@ -335,7 +336,7 @@ module mpi_missing_f
             integer, optional, intent(out) :: ierror
             integer(c_int) :: ierror_c
             call VAPAA_MPI_Type_create_resized(oldtype % MPI_VAL, lb, extent, newtype % MPI_VAL, ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_Type_create_resized_f08
 
         subroutine MPI_Type_create_hvector_f08(count, blocklength, stride, oldtype, newtype, ierror)
@@ -350,7 +351,7 @@ module mpi_missing_f
             integer(c_int) :: ierror_c
             call VAPAA_MPI_Type_create_hvector(int(count,c_int), int(blocklength,c_int), stride, &
                                                oldtype % MPI_VAL, newtype % MPI_VAL, ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_Type_create_hvector_f08
 
         subroutine MPI_Type_create_hvector_c_f08(count, blocklength, stride, oldtype, newtype, ierror)
@@ -363,7 +364,7 @@ module mpi_missing_f
             integer, optional, intent(out) :: ierror
             integer(c_int) :: ierror_c
             call VAPAA_MPI_Type_create_hvector_c(count, blocklength, stride, oldtype % MPI_VAL, newtype % MPI_VAL, ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_Type_create_hvector_c_f08
 
         subroutine MPI_Type_create_hindexed_f08(count, array_of_blocklengths, array_of_displacements, oldtype, newtype, ierror)
@@ -380,7 +381,7 @@ module mpi_missing_f
             blocklengths_c = array_of_blocklengths
             call VAPAA_MPI_Type_create_hindexed(int(count,c_int), blocklengths_c, array_of_displacements, &
                                                 oldtype % MPI_VAL, newtype % MPI_VAL, ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_Type_create_hindexed_f08
 
         subroutine MPI_Type_create_hindexed_c_f08(count, array_of_blocklengths, array_of_displacements, oldtype, newtype, ierror)
@@ -395,7 +396,7 @@ module mpi_missing_f
             integer(c_int) :: ierror_c
             call VAPAA_MPI_Type_create_hindexed_c(count, array_of_blocklengths, array_of_displacements, &
                                                   oldtype % MPI_VAL, newtype % MPI_VAL, ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_Type_create_hindexed_c_f08
 
         subroutine MPI_Type_create_hindexed_block_f08(count, blocklength, array_of_displacements, oldtype, newtype, ierror)
@@ -410,7 +411,7 @@ module mpi_missing_f
             integer(c_int) :: ierror_c
             call VAPAA_MPI_Type_create_hindexed_block(int(count,c_int), int(blocklength,c_int), array_of_displacements, &
                                                       oldtype % MPI_VAL, newtype % MPI_VAL, ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_Type_create_hindexed_block_f08
 
         subroutine MPI_Type_create_hindexed_block_c_f08(count, blocklength, array_of_displacements, oldtype, newtype, ierror)
@@ -425,7 +426,7 @@ module mpi_missing_f
             integer(c_int) :: ierror_c
             call VAPAA_MPI_Type_create_hindexed_block_c(count, blocklength, array_of_displacements, &
                                                         oldtype % MPI_VAL, newtype % MPI_VAL, ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_Type_create_hindexed_block_c_f08
 
         subroutine MPI_Type_create_indexed_block_f08(count, blocklength, array_of_displacements, oldtype, newtype, ierror)
@@ -440,7 +441,7 @@ module mpi_missing_f
             displacements_c = array_of_displacements
             call VAPAA_MPI_Type_create_indexed_block(int(count,c_int), int(blocklength,c_int), displacements_c, &
                                                      oldtype % MPI_VAL, newtype % MPI_VAL, ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_Type_create_indexed_block_f08
 
         subroutine MPI_Type_create_indexed_block_c_f08(count, blocklength, array_of_displacements, oldtype, newtype, ierror)
@@ -455,7 +456,7 @@ module mpi_missing_f
             integer(c_int) :: ierror_c
             call VAPAA_MPI_Type_create_indexed_block_c(count, blocklength, array_of_displacements, &
                                                        oldtype % MPI_VAL, newtype % MPI_VAL, ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_Type_create_indexed_block_c_f08
 
         subroutine MPI_Type_indexed_f08(count, array_of_blocklengths, array_of_displacements, oldtype, newtype, ierror)
@@ -471,7 +472,7 @@ module mpi_missing_f
             displacements_c = array_of_displacements
             call VAPAA_MPI_Type_indexed(int(count,c_int), blocklengths_c, displacements_c, &
                                         oldtype % MPI_VAL, newtype % MPI_VAL, ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_Type_indexed_f08
 
         subroutine MPI_Type_indexed_c_f08(count, array_of_blocklengths, array_of_displacements, oldtype, newtype, ierror)
@@ -486,7 +487,7 @@ module mpi_missing_f
             integer(c_int) :: ierror_c
             call VAPAA_MPI_Type_indexed_c(count, array_of_blocklengths, array_of_displacements, &
                                           oldtype % MPI_VAL, newtype % MPI_VAL, ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_Type_indexed_c_f08
 
         subroutine MPI_Type_create_struct_f08(count, array_of_blocklengths, array_of_displacements, array_of_types, newtype, ierror)
@@ -507,7 +508,7 @@ module mpi_missing_f
             end do
             call VAPAA_MPI_Type_create_struct(int(count,c_int), blocklengths_c, array_of_displacements, &
                                               types_c, newtype % MPI_VAL, ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_Type_create_struct_f08
 
         subroutine MPI_Type_create_struct_c_f08(count, array_of_blocklengths, array_of_displacements, &
@@ -527,7 +528,7 @@ module mpi_missing_f
             end do
             call VAPAA_MPI_Type_create_struct_c(count, array_of_blocklengths, array_of_displacements, &
                                                 types_c, newtype % MPI_VAL, ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_Type_create_struct_c_f08
 
         subroutine MPI_Type_create_darray_f08(size, rank, ndims, array_of_gsizes, array_of_distribs, &
@@ -546,7 +547,7 @@ module mpi_missing_f
             psizes_c = array_of_psizes
             call VAPAA_MPI_Type_create_darray(int(size,c_int), int(rank,c_int), int(ndims,c_int), gsizes_c, distribs_c, &
                                               dargs_c, psizes_c, int(order,c_int), oldtype % MPI_VAL, newtype % MPI_VAL, ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_Type_create_darray_f08
 
         subroutine MPI_Type_create_darray_c_f08(size, rank, ndims, array_of_gsizes, array_of_distribs, &
@@ -567,7 +568,7 @@ module mpi_missing_f
             call VAPAA_MPI_Type_create_darray_c(int(size,c_int), int(rank,c_int), int(ndims,c_int), array_of_gsizes, &
                                                 distribs_c, dargs_c, psizes_c, int(order,c_int), &
                                                 oldtype % MPI_VAL, newtype % MPI_VAL, ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_Type_create_darray_c_f08
 
         subroutine MPI_Type_create_f90_integer_f08(r, newtype, ierror)
@@ -578,7 +579,7 @@ module mpi_missing_f
             integer, optional, intent(out) :: ierror
             integer(c_int) :: ierror_c
             call VAPAA_MPI_Type_create_f90_integer(int(r,c_int), newtype % MPI_VAL, ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_Type_create_f90_integer_f08
 
         subroutine MPI_Type_create_f90_real_f08(p, r, newtype, ierror)
@@ -589,7 +590,7 @@ module mpi_missing_f
             integer, optional, intent(out) :: ierror
             integer(c_int) :: ierror_c
             call VAPAA_MPI_Type_create_f90_real(int(p,c_int), int(r,c_int), newtype % MPI_VAL, ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_Type_create_f90_real_f08
 
         subroutine MPI_Type_create_f90_complex_f08(p, r, newtype, ierror)
@@ -600,7 +601,7 @@ module mpi_missing_f
             integer, optional, intent(out) :: ierror
             integer(c_int) :: ierror_c
             call VAPAA_MPI_Type_create_f90_complex(int(p,c_int), int(r,c_int), newtype % MPI_VAL, ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_Type_create_f90_complex_f08
 
         subroutine MPI_Type_get_envelope_f08(datatype, num_integers, num_addresses, num_datatypes, combiner, ierror)
@@ -615,7 +616,7 @@ module mpi_missing_f
             num_addresses = na_c
             num_datatypes = nd_c
             combiner = combiner_c
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_Type_get_envelope_f08
 
         subroutine MPI_Type_get_envelope_c_f08(datatype, num_integers, num_addresses, num_large_counts, &
@@ -631,7 +632,7 @@ module mpi_missing_f
             call VAPAA_MPI_Type_get_envelope_c(datatype % MPI_VAL, num_integers, num_addresses, num_large_counts, &
                                                num_datatypes, combiner_c, ierror_c)
             combiner = combiner_c
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_Type_get_envelope_c_f08
 
         subroutine MPI_Type_get_contents_f08(datatype, max_integers, max_addresses, max_datatypes, &
@@ -665,7 +666,7 @@ module mpi_missing_f
                     array_of_datatypes(i) % MPI_VAL = types_c(i)
                 end do
             end if
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_Type_get_contents_f08
 
         subroutine MPI_Type_get_contents_c_f08(datatype, max_integers, max_addresses, max_large_counts, &
@@ -705,7 +706,7 @@ module mpi_missing_f
                     array_of_datatypes(i) % MPI_VAL = types_c(i)
                 end do
             end if
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_Type_get_contents_c_f08
 
         subroutine MPI_Type_match_size_f08(typeclass, size, datatype, ierror)
@@ -716,7 +717,7 @@ module mpi_missing_f
             integer, optional, intent(out) :: ierror
             integer(c_int) :: ierror_c
             call VAPAA_MPI_Type_match_size(int(typeclass,c_int), int(size,c_int), datatype % MPI_VAL, ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_Type_match_size_f08
 
         subroutine MPI_Type_get_value_index_f08(value_type, index_type, pair_type, ierror)
@@ -727,7 +728,7 @@ module mpi_missing_f
             integer, optional, intent(out) :: ierror
             integer(c_int) :: ierror_c
             call VAPAA_MPI_Type_get_value_index(value_type % MPI_VAL, index_type % MPI_VAL, pair_type % MPI_VAL, ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_Type_get_value_index_f08
 
         subroutine MPI_Type_delete_attr_f08(datatype, type_keyval, ierror)
@@ -738,7 +739,7 @@ module mpi_missing_f
             integer, optional, intent(out) :: ierror
             integer(c_int) :: ierror_c
             call VAPAA_MPI_Type_delete_attr(datatype % MPI_VAL, int(type_keyval,c_int), ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_Type_delete_attr_f08
 
         subroutine MPI_Type_free_keyval_f08(type_keyval, ierror)
@@ -756,7 +757,7 @@ module mpi_missing_f
             if (ierror_c == 0_c_int) call VAPAA_PGIF_Type_keyval_release(int(old_keyval_c))
 #endif
             type_keyval = keyval_c
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_Type_free_keyval_f08
 
         subroutine MPI_Type_get_attr_f08(datatype, type_keyval, attribute_val, flag, ierror)
@@ -771,7 +772,7 @@ module mpi_missing_f
             integer(c_int) :: flag_c, ierror_c
             call VAPAA_MPI_Type_get_attr(datatype % MPI_VAL, int(type_keyval,c_int), attribute_val, flag_c, ierror_c)
             flag = flag_c /= 0
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_Type_get_attr_f08
 
         subroutine MPI_Type_set_attr_f08(datatype, type_keyval, attribute_val, ierror)
@@ -784,7 +785,7 @@ module mpi_missing_f
             integer, optional, intent(out) :: ierror
             integer(c_int) :: ierror_c
             call VAPAA_MPI_Type_set_attr(datatype % MPI_VAL, int(type_keyval,c_int), attribute_val, ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_Type_set_attr_f08
 
 end module mpi_missing_f

@@ -3,6 +3,7 @@
 #include "vapaa_constants.h"
 
 module mpi_attr_f
+    use mpi_ierror_f, only: F_MPI_FINISH_IERROR
     implicit none
 
     interface MPI_Type_get_name
@@ -48,7 +49,7 @@ module mpi_attr_f
             integer, optional, intent(out) :: ierror
             integer(c_int) :: ierror_c
             call VAPAA_MPI_Attr_delete(comm % MPI_VAL, int(keyval,c_int), ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_Attr_delete_f08
 
         subroutine MPI_Attr_get_f08(comm, keyval, attribute_val, flag, ierror)
@@ -64,7 +65,7 @@ module mpi_attr_f
             call VAPAA_MPI_Attr_get(comm % MPI_VAL, int(keyval,c_int), attribute_val_c, flag_c, ierror_c)
             attribute_val = attribute_val_c
             flag = flag_c /= 0
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_Attr_get_f08
 
         subroutine MPI_Attr_put_f08(comm, keyval, attribute_val, ierror)
@@ -76,7 +77,7 @@ module mpi_attr_f
             integer, optional, intent(out) :: ierror
             integer(c_int) :: ierror_c
             call VAPAA_MPI_Attr_put(comm % MPI_VAL, int(keyval,c_int), int(attribute_val,c_int), ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_Attr_put_f08
 
         subroutine MPI_Keyval_free_f08(keyval, ierror)
@@ -95,7 +96,7 @@ module mpi_attr_f
             if (ierror_c == 0_c_int) call VAPAA_PGIF_Keyval_release(int(old_keyval_c))
 #endif
             keyval = keyval_c
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_Keyval_free_f08
 
         subroutine MPI_Type_get_name_f08(datatype, name, resultlen, ierror)
@@ -109,7 +110,7 @@ module mpi_attr_f
             integer(c_int) :: resultlen_c, ierror_c
             call C_MPI_Type_get_name(datatype % MPI_VAL, name, resultlen_c, ierror_c)
             resultlen = resultlen_c
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_Type_get_name_f08
 
 #if defined(HAVE_CFI) || defined(HAVE_PGIF)
@@ -138,7 +139,7 @@ module mpi_attr_f
                 name(i:i) = name_c(i)
             end do
             resultlen = resultlen_c
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_Type_get_name_f08ts
 #endif
 
@@ -151,7 +152,7 @@ module mpi_attr_f
             integer, optional, intent(out) :: ierror
             integer(c_int) :: ierror_c
             call C_MPI_Type_set_name(datatype % MPI_VAL, name, ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_Type_set_name_f08
 
 #if defined(HAVE_CFI) || defined(HAVE_PGIF)
@@ -176,7 +177,7 @@ module mpi_attr_f
                 name_c(i) = name(i:i)
             end do
             call VAPAA_MPI_Type_set_name(datatype % MPI_VAL, name_c, ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_Type_set_name_f08ts
 #endif
 

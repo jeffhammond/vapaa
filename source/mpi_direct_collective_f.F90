@@ -1,6 +1,7 @@
 ! SPDX-License-Identifier: MIT
 
 module mpi_direct_collective_f
+    use mpi_ierror_f, only: F_MPI_FINISH_IERROR
     use iso_c_binding, only: c_int, c_intptr_t
     use mpi_global_constants, only: MPI_ADDRESS_KIND
     use mpi_handle_types, only: MPI_Comm, MPI_Datatype, MPI_Info, MPI_Op, MPI_Request
@@ -1480,7 +1481,7 @@ module mpi_direct_collective_f
         subroutine finish_ierror(ierror, ierror_c)
             integer, optional, intent(out) :: ierror
             integer(c_int), intent(in) :: ierror_c
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine finish_ierror
 
 #if defined(HAVE_CFI) || defined(HAVE_PGIF)

@@ -1,6 +1,7 @@
 ! SPDX-License-Identifier: MIT
 
 module mpi_direct_misc_f
+    use mpi_ierror_f, only: F_MPI_FINISH_IERROR
     use iso_c_binding, only: c_char, c_int, c_intptr_t, c_null_char
     implicit none
 
@@ -70,7 +71,7 @@ module mpi_direct_misc_f
             call VAPAA_MPI_Sendrecv_replace(buf, int(count,c_int), datatype % MPI_VAL, int(dest,c_int), &
                                             int(sendtag,c_int), int(source,c_int), int(recvtag,c_int), &
                                             comm % MPI_VAL, status, ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_Sendrecv_replace_f08ts
 
         subroutine MPI_Scan_f08ts(sendbuf, recvbuf, count, datatype, op, comm, ierror)
@@ -88,7 +89,7 @@ module mpi_direct_misc_f
             integer(c_int) :: ierror_c
             call VAPAA_MPI_Scan(sendbuf, recvbuf, int(count,c_int), datatype % MPI_VAL, op % MPI_VAL, &
                                 comm % MPI_VAL, ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_Scan_f08ts
 
         subroutine MPI_Exscan_f08ts(sendbuf, recvbuf, count, datatype, op, comm, ierror)
@@ -106,7 +107,7 @@ module mpi_direct_misc_f
             integer(c_int) :: ierror_c
             call VAPAA_MPI_Exscan(sendbuf, recvbuf, int(count,c_int), datatype % MPI_VAL, op % MPI_VAL, &
                                   comm % MPI_VAL, ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_Exscan_f08ts
 
         subroutine MPI_Reduce_scatter_f08ts(sendbuf, recvbuf, recvcounts, datatype, op, comm, ierror)
@@ -124,7 +125,7 @@ module mpi_direct_misc_f
             integer(c_int) :: ierror_c
             call VAPAA_MPI_Reduce_scatter(sendbuf, recvbuf, recvcounts, datatype % MPI_VAL, op % MPI_VAL, &
                                           comm % MPI_VAL, ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_Reduce_scatter_f08ts
 
         subroutine MPI_Reduce_scatter_block_f08ts(sendbuf, recvbuf, recvcount, datatype, op, comm, ierror)
@@ -142,7 +143,7 @@ module mpi_direct_misc_f
             integer(c_int) :: ierror_c
             call VAPAA_MPI_Reduce_scatter_block(sendbuf, recvbuf, int(recvcount,c_int), datatype % MPI_VAL, &
                                                 op % MPI_VAL, comm % MPI_VAL, ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_Reduce_scatter_block_f08ts
 
         subroutine MPI_Reduce_local_f08ts(inbuf, inoutbuf, count, datatype, op, ierror)
@@ -158,7 +159,7 @@ module mpi_direct_misc_f
             integer, optional, intent(out) :: ierror
             integer(c_int) :: ierror_c
             call VAPAA_MPI_Reduce_local(inbuf, inoutbuf, int(count,c_int), datatype % MPI_VAL, op % MPI_VAL, ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_Reduce_local_f08ts
 
         subroutine MPI_Pack_external_f08ts(datarep, inbuf, incount, datatype, outbuf, outsize, position, ierror)
@@ -180,7 +181,7 @@ module mpi_direct_misc_f
             call make_c_string(datarep, datarep_c)
             call VAPAA_MPI_Pack_external(datarep_c, inbuf, int(incount,c_int), datatype % MPI_VAL, outbuf, &
                                          int(outsize,c_intptr_t), position, ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
             deallocate(datarep_c)
         end subroutine MPI_Pack_external_f08ts
 
@@ -203,7 +204,7 @@ module mpi_direct_misc_f
             call make_c_string(datarep, datarep_c)
             call VAPAA_MPI_Unpack_external(datarep_c, inbuf, int(insize,c_intptr_t), position, outbuf, &
                                            int(outcount,c_int), datatype % MPI_VAL, ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
             deallocate(datarep_c)
         end subroutine MPI_Unpack_external_f08ts
 #endif
@@ -219,7 +220,7 @@ module mpi_direct_misc_f
             integer(c_int) :: size_c, ierror_c
             call VAPAA_MPI_Pack_size(int(incount,c_int), datatype % MPI_VAL, comm % MPI_VAL, size_c, ierror_c)
             size = size_c
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_Pack_size_f08
 
         subroutine MPI_Pack_external_size_f08(datarep, incount, datatype, size, ierror)
@@ -235,7 +236,7 @@ module mpi_direct_misc_f
             integer(c_int) :: ierror_c
             call make_c_string(datarep, datarep_c)
             call VAPAA_MPI_Pack_external_size(datarep_c, int(incount,c_int), datatype % MPI_VAL, size, ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
             deallocate(datarep_c)
         end subroutine MPI_Pack_external_size_f08
 
@@ -248,7 +249,7 @@ module mpi_direct_misc_f
             integer(c_int) :: commute_c, ierror_c
             call VAPAA_MPI_Op_commutative(op % MPI_VAL, commute_c, ierror_c)
             commute = commute_c /= 0
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_Op_commutative_f08
 
 end module mpi_direct_misc_f

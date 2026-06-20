@@ -2,6 +2,7 @@
 
 module mpi_f90_util
     use iso_c_binding, only: c_int
+    use mpi_ierror_f, only: F_MPI_FINISH_IERROR
     implicit none
     private
 
@@ -13,7 +14,7 @@ contains
     subroutine f90_finish_ierror(ierror, ierror_c)
         integer, optional, intent(out) :: ierror
         integer(c_int), intent(in) :: ierror_c
-        if (present(ierror)) ierror = ierror_c
+        call F_MPI_FINISH_IERROR(ierror, ierror_c)
     end subroutine f90_finish_ierror
 
     logical function f90_logical_from_c(flag_c)

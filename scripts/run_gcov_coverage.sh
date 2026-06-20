@@ -8,6 +8,8 @@ cmake_args=(
   -S "${root_dir}"
   -B "${build_dir}"
   -DCMAKE_BUILD_TYPE=Debug
+  "-DCMAKE_C_COMPILER=${CC:-gcc}"
+  "-DCMAKE_Fortran_COMPILER=${FC:-gfortran}"
   "-DCMAKE_C_FLAGS=-O0 -g --coverage"
   "-DCMAKE_Fortran_FLAGS=-O0 -g --coverage"
   "-DCMAKE_EXE_LINKER_FLAGS=--coverage"

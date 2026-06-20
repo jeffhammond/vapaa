@@ -3,6 +3,7 @@
 #include "vapaa_constants.h"
 
 module mpi_datatype_f
+    use mpi_ierror_f, only: F_MPI_FINISH_IERROR
     use iso_c_binding, only: c_int
     use mpi_global_constants, only: MPI_Datatype
     implicit none
@@ -135,7 +136,7 @@ module mpi_datatype_f
             integer, optional, intent(out) :: ierror
             integer(kind=c_int) :: ierror_c
             call C_MPI_Type_commit(datatype % MPI_VAL, ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_Type_commit_f08
 
         subroutine MPI_Type_size_f08(datatype, size, ierror) 
@@ -147,7 +148,7 @@ module mpi_datatype_f
             integer(kind=c_int) :: size_c, ierror_c
             call C_MPI_Type_size(datatype % MPI_VAL, size_c, ierror_c)
             size = size_c
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_Type_size_f08
 
         subroutine MPI_Type_dup_f08(oldtype, newtype, ierror) 
@@ -158,7 +159,7 @@ module mpi_datatype_f
             integer, optional, intent(out) :: ierror
             integer(kind=c_int) :: ierror_c
             call C_MPI_Type_dup(oldtype % MPI_VAL, newtype % MPI_VAL, ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_Type_dup_f08
 
         subroutine MPI_Type_free_f08(datatype, ierror) 
@@ -168,7 +169,7 @@ module mpi_datatype_f
             integer, optional, intent(out) :: ierror
             integer(kind=c_int) :: ierror_c
             call C_MPI_Type_free(datatype % MPI_VAL, ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_Type_free_f08
 
         subroutine MPI_Type_contiguous_f08(count, oldtype, newtype, ierror) 
@@ -181,7 +182,7 @@ module mpi_datatype_f
             integer(kind=c_int) :: count_c, ierror_c
             count_c = count
             call C_MPI_Type_contiguous(count_c, oldtype % MPI_VAL, newtype % MPI_VAL, ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_Type_contiguous_f08
 
         subroutine MPI_Type_vector_f08(count, blocklength, stride, oldtype, newtype, ierror) 
@@ -196,7 +197,7 @@ module mpi_datatype_f
             blocklength_c = blocklength
             stride_c = stride
             call C_MPI_Type_vector(count_c, blocklength_c, stride_c,  oldtype % MPI_VAL, newtype % MPI_VAL, ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_Type_vector_f08
 
         subroutine MPI_Type_create_subarray_f08(ndims, array_of_sizes, array_of_subsizes, array_of_starts, &
@@ -217,7 +218,7 @@ module mpi_datatype_f
             order_c = order
             call C_MPI_Type_create_subarray(ndims_c, array_of_sizes_c, array_of_subsizes_c, array_of_starts_c, &
                                             order_c, oldtype % MPI_VAL, newtype % MPI_VAL, ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_Type_create_subarray_f08
 
 end module mpi_datatype_f

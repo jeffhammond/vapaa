@@ -1,6 +1,7 @@
 ! SPDX-License-Identifier: MIT
 
 module mpi_p2p_f
+    use mpi_ierror_f, only: F_MPI_FINISH_IERROR
     use iso_c_binding, only: c_int
     implicit none
 
@@ -352,7 +353,7 @@ module mpi_p2p_f
             source_c = source
             tag_c    = tag
             call C_MPI_Probe(source_c, tag_c, comm % MPI_VAL, stat, ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_Probe_f08
 
         subroutine MPI_Mprobe_f08(source, tag, comm, message, stat, ierror) 
@@ -367,7 +368,7 @@ module mpi_p2p_f
             source_c  = source
             tag_c     = tag
             call C_MPI_Mprobe(source_c, tag_c, comm % MPI_VAL, message % MPI_VAL, stat, ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_Mprobe_f08
 
         subroutine MPI_Iprobe_f08(source, tag, comm, flag, stat, ierror)
@@ -383,7 +384,7 @@ module mpi_p2p_f
             tag_c     = tag
             call C_MPI_Iprobe(source_c, tag_c, comm % MPI_VAL, flag_c, stat, ierror_c)
             flag = (flag_c .ne. 0)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_Iprobe_f08
 
         subroutine MPI_Improbe_f08(source, tag, comm, flag, message, stat, ierror)
@@ -400,7 +401,7 @@ module mpi_p2p_f
             tag_c = tag
             call C_MPI_Improbe(source_c, tag_c, comm % MPI_VAL, flag_c, message % MPI_VAL, stat, ierror_c)
             flag = (flag_c .ne. 0)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_Improbe_f08
 
         subroutine MPI_Test_f08(request, flag, stat, ierror) 
@@ -413,7 +414,7 @@ module mpi_p2p_f
             integer(kind=c_int) :: flag_c, ierror_c
             call C_MPI_Test(request % MPI_VAL, flag_c, stat, ierror_c)
             flag = (flag_c .ne. 0)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_Test_f08
 
         subroutine MPI_Testall_f08(count, requests, flag, statuses, ierror) 
@@ -440,7 +441,7 @@ module mpi_p2p_f
             !  requests(i) % MPI_VAL = requests_c(i)
             !end do
             !deallocate( requests_c )
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_Testall_f08
 
         subroutine MPI_Testsome_f08(incount, requests, outcount, indices, statuses, ierror) 
@@ -467,7 +468,7 @@ module mpi_p2p_f
             !  requests(i) % MPI_VAL = requests_c(i)
             !end do
             !deallocate( indices_c, requests_c )
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_Testsome_f08
 
         subroutine MPI_Testany_f08(count, requests, index, flag, status, ierror) 
@@ -497,7 +498,7 @@ module mpi_p2p_f
             !  requests(i) % MPI_VAL = requests_c(i)
             !end do
             !deallocate( requests_c )
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_Testany_f08
 
         subroutine MPI_Wait_f08(request, stat, ierror) 
@@ -508,7 +509,7 @@ module mpi_p2p_f
             integer, optional, intent(out) :: ierror
             integer(kind=c_int) :: ierror_c
             call C_MPI_Wait(request % MPI_VAL, stat, ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_Wait_f08
 
         subroutine MPI_Waitall_f08(count, requests, statuses, ierror) 
@@ -532,7 +533,7 @@ module mpi_p2p_f
             !  requests(i) % MPI_VAL = requests_c(i)
             !end do
             !deallocate( requests_c )
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_Waitall_f08
 
         subroutine MPI_Waitsome_f08(incount, requests, outcount, indices, statuses, ierror) 
@@ -559,7 +560,7 @@ module mpi_p2p_f
             !  requests(i) % MPI_VAL = requests_c(i)
             !end do
             !deallocate( indices_c, requests_c )
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_Waitsome_f08
 
         subroutine MPI_Waitany_f08(count, requests, index, status, ierror) 
@@ -587,7 +588,7 @@ module mpi_p2p_f
             !  requests(i) % MPI_VAL = requests_c(i)
             !end do
             !deallocate( requests_c )
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_Waitany_f08
 
         subroutine MPI_Send_f08(buffer, count, datatype, dest, tag, comm, ierror) 
@@ -605,7 +606,7 @@ module mpi_p2p_f
             dest_c = dest 
             tag_c = tag
             call C_MPI_Send(buffer, count_c, datatype % MPI_VAL, dest_c, tag_c, comm % MPI_VAL, ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_Send_f08
 
         subroutine MPI_Send_c_f08(buffer, count, datatype, dest, tag, comm, ierror)
@@ -623,7 +624,7 @@ module mpi_p2p_f
             dest_c = dest
             tag_c = tag
             call C_MPI_Send_c(buffer, count, datatype % MPI_VAL, dest_c, tag_c, comm % MPI_VAL, ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_Send_c_f08
 
 #ifdef HAVE_CFI
@@ -641,7 +642,7 @@ module mpi_p2p_f
             dest_c = dest 
             tag_c = tag
             call CFI_MPI_Send(buffer, count_c, datatype % MPI_VAL, dest_c, tag_c, comm % MPI_VAL, ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine PMPI_Send_f08ts
 
         subroutine PMPI_Send_c_f08ts(buffer, count, datatype, dest, tag, comm, ierror)
@@ -658,7 +659,7 @@ module mpi_p2p_f
             dest_c = dest
             tag_c = tag
             call CFI_MPI_Send_c(buffer, count, datatype % MPI_VAL, dest_c, tag_c, comm % MPI_VAL, ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine PMPI_Send_c_f08ts
 #endif
 
@@ -678,7 +679,7 @@ module mpi_p2p_f
             tag_c = tag
             call PGIF_MPI_Send(buffer, count_c, datatype % MPI_VAL, dest_c, tag_c, &
                                comm % MPI_VAL, ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_Send_pgif_f08ts
 
         subroutine MPI_Send_c_pgif_f08ts(buffer, count, datatype, dest, tag, comm, ierror)
@@ -697,7 +698,7 @@ module mpi_p2p_f
             tag_c = tag
             call PGIF_MPI_Send_c(buffer, count, datatype % MPI_VAL, dest_c, tag_c, &
                                  comm % MPI_VAL, ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_Send_c_pgif_f08ts
 #endif
 
@@ -715,7 +716,7 @@ module mpi_p2p_f
             dest_c = dest
             tag_c = tag
             call C_MPI_Bsend(buffer, count_c, datatype % MPI_VAL, dest_c, tag_c, comm % MPI_VAL, ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_Bsend_f08
 
 #ifdef HAVE_CFI
@@ -732,7 +733,7 @@ module mpi_p2p_f
             dest_c = dest
             tag_c = tag
             call CFI_MPI_Bsend(buffer, count_c, datatype % MPI_VAL, dest_c, tag_c, comm % MPI_VAL, ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_Bsend_f08ts
 #endif
 
@@ -750,7 +751,7 @@ module mpi_p2p_f
             dest_c = dest
             tag_c = tag
             call C_MPI_Ssend(buffer, count_c, datatype % MPI_VAL, dest_c, tag_c, comm % MPI_VAL, ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_Ssend_f08
 
 #ifdef HAVE_CFI
@@ -767,7 +768,7 @@ module mpi_p2p_f
             dest_c = dest
             tag_c = tag
             call CFI_MPI_Ssend(buffer, count_c, datatype % MPI_VAL, dest_c, tag_c, comm % MPI_VAL, ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_Ssend_f08ts
 #endif
 
@@ -785,7 +786,7 @@ module mpi_p2p_f
             dest_c = dest
             tag_c = tag
             call C_MPI_Rsend(buffer, count_c, datatype % MPI_VAL, dest_c, tag_c, comm % MPI_VAL, ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_Rsend_f08
 
 #ifdef HAVE_CFI
@@ -802,7 +803,7 @@ module mpi_p2p_f
             dest_c = dest
             tag_c = tag
             call CFI_MPI_Rsend(buffer, count_c, datatype % MPI_VAL, dest_c, tag_c, comm % MPI_VAL, ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_Rsend_f08ts
 #endif
 
@@ -815,7 +816,7 @@ module mpi_p2p_f
             integer(kind=c_int) :: size_c, ierror_c
             size_c = size
             call CFI_MPI_Buffer_attach(buffer, size_c, ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_Buffer_attach_f08ts
 #endif
 
@@ -828,7 +829,7 @@ module mpi_p2p_f
             integer(kind=c_int) :: size_c, ierror_c
             call C_MPI_Buffer_detach(buffer_addr, size_c, ierror_c)
             size = size_c
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_Buffer_detach_f08
 
         subroutine MPI_Buffer_flush_f08(ierror)
@@ -836,7 +837,7 @@ module mpi_p2p_f
             integer, optional, intent(out) :: ierror
             integer(kind=c_int) :: ierror_c
             call C_MPI_Buffer_flush(ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_Buffer_flush_f08
 
         subroutine MPI_Buffer_iflush_f08(request, ierror)
@@ -846,7 +847,7 @@ module mpi_p2p_f
             integer, optional, intent(out) :: ierror
             integer(kind=c_int) :: ierror_c
             call C_MPI_Buffer_iflush(request % MPI_VAL, ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_Buffer_iflush_f08
 
         subroutine MPI_Isend_f08(buffer, count, datatype, dest, tag, comm, request, ierror) 
@@ -864,7 +865,7 @@ module mpi_p2p_f
             dest_c  = dest 
             tag_c   = tag
             call C_MPI_Isend(buffer, count_c, datatype % MPI_VAL, dest_c, tag_c, comm % MPI_VAL, request % MPI_VAL, ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_Isend_f08
 
 #ifdef HAVE_CFI
@@ -882,7 +883,7 @@ module mpi_p2p_f
             dest_c  = dest 
             tag_c   = tag
             call CFI_MPI_Isend(buffer, count_c, datatype % MPI_VAL, dest_c, tag_c, comm % MPI_VAL, request % MPI_VAL, ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_Isend_f08ts
 #endif
 
@@ -903,7 +904,7 @@ module mpi_p2p_f
             tag_c = tag
             call PGIF_MPI_Isend(buffer, count_c, datatype % MPI_VAL, dest_c, tag_c, &
                                 comm % MPI_VAL, request % MPI_VAL, ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_Isend_pgif_f08ts
 #endif
 
@@ -923,7 +924,7 @@ module mpi_p2p_f
             tag_c = tag
             call C_MPI_Ibsend(buffer, count_c, datatype % MPI_VAL, dest_c, tag_c, &
                               comm % MPI_VAL, request % MPI_VAL, ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_Ibsend_f08
 
 #ifdef HAVE_CFI
@@ -942,7 +943,7 @@ module mpi_p2p_f
             tag_c = tag
             call CFI_MPI_Ibsend(buffer, count_c, datatype % MPI_VAL, dest_c, tag_c, &
                                 comm % MPI_VAL, request % MPI_VAL, ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_Ibsend_f08ts
 #endif
 
@@ -962,7 +963,7 @@ module mpi_p2p_f
             tag_c = tag
             call C_MPI_Issend(buffer, count_c, datatype % MPI_VAL, dest_c, tag_c, &
                               comm % MPI_VAL, request % MPI_VAL, ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_Issend_f08
 
 #ifdef HAVE_CFI
@@ -981,7 +982,7 @@ module mpi_p2p_f
             tag_c = tag
             call CFI_MPI_Issend(buffer, count_c, datatype % MPI_VAL, dest_c, tag_c, &
                                 comm % MPI_VAL, request % MPI_VAL, ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_Issend_f08ts
 #endif
 
@@ -1001,7 +1002,7 @@ module mpi_p2p_f
             tag_c = tag
             call C_MPI_Irsend(buffer, count_c, datatype % MPI_VAL, dest_c, tag_c, &
                               comm % MPI_VAL, request % MPI_VAL, ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_Irsend_f08
 
 #ifdef HAVE_CFI
@@ -1020,7 +1021,7 @@ module mpi_p2p_f
             tag_c = tag
             call CFI_MPI_Irsend(buffer, count_c, datatype % MPI_VAL, dest_c, tag_c, &
                                 comm % MPI_VAL, request % MPI_VAL, ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_Irsend_f08ts
 #endif
 
@@ -1040,7 +1041,7 @@ module mpi_p2p_f
             tag_c = tag
             call C_MPI_Send_init(buffer, count_c, datatype % MPI_VAL, dest_c, tag_c, &
                                  comm % MPI_VAL, request % MPI_VAL, ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_Send_init_f08
 
 #ifdef HAVE_CFI
@@ -1059,7 +1060,7 @@ module mpi_p2p_f
             tag_c = tag
             call CFI_MPI_Send_init(buffer, count_c, datatype % MPI_VAL, dest_c, tag_c, &
                                    comm % MPI_VAL, request % MPI_VAL, ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_Send_init_f08ts
 #endif
 
@@ -1079,7 +1080,7 @@ module mpi_p2p_f
             tag_c = tag
             call C_MPI_Bsend_init(buffer, count_c, datatype % MPI_VAL, dest_c, tag_c, &
                                   comm % MPI_VAL, request % MPI_VAL, ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_Bsend_init_f08
 
 #ifdef HAVE_CFI
@@ -1098,7 +1099,7 @@ module mpi_p2p_f
             tag_c = tag
             call CFI_MPI_Bsend_init(buffer, count_c, datatype % MPI_VAL, dest_c, tag_c, &
                                     comm % MPI_VAL, request % MPI_VAL, ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_Bsend_init_f08ts
 #endif
 
@@ -1118,7 +1119,7 @@ module mpi_p2p_f
             tag_c = tag
             call C_MPI_Ssend_init(buffer, count_c, datatype % MPI_VAL, dest_c, tag_c, &
                                   comm % MPI_VAL, request % MPI_VAL, ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_Ssend_init_f08
 
 #ifdef HAVE_CFI
@@ -1137,7 +1138,7 @@ module mpi_p2p_f
             tag_c = tag
             call CFI_MPI_Ssend_init(buffer, count_c, datatype % MPI_VAL, dest_c, tag_c, &
                                     comm % MPI_VAL, request % MPI_VAL, ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_Ssend_init_f08ts
 #endif
 
@@ -1157,7 +1158,7 @@ module mpi_p2p_f
             tag_c = tag
             call C_MPI_Rsend_init(buffer, count_c, datatype % MPI_VAL, dest_c, tag_c, &
                                   comm % MPI_VAL, request % MPI_VAL, ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_Rsend_init_f08
 
 #ifdef HAVE_CFI
@@ -1176,7 +1177,7 @@ module mpi_p2p_f
             tag_c = tag
             call CFI_MPI_Rsend_init(buffer, count_c, datatype % MPI_VAL, dest_c, tag_c, &
                                     comm % MPI_VAL, request % MPI_VAL, ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_Rsend_init_f08ts
 #endif
 
@@ -1195,7 +1196,7 @@ module mpi_p2p_f
             source_c = source 
             tag_c = tag
             call C_MPI_Recv(buffer, count_c, datatype % MPI_VAL, source_c, tag_c, comm % MPI_VAL, stat, ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_Recv_f08
 
         subroutine MPI_Recv_c_f08(buffer, count, datatype, source, tag, comm, stat, ierror)
@@ -1214,7 +1215,7 @@ module mpi_p2p_f
             source_c = source
             tag_c = tag
             call C_MPI_Recv_c(buffer, count, datatype % MPI_VAL, source_c, tag_c, comm % MPI_VAL, stat, ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_Recv_c_f08
 
 #ifdef HAVE_CFI
@@ -1232,7 +1233,7 @@ module mpi_p2p_f
             source_c = source 
             tag_c = tag
             call CFI_MPI_Recv(buffer, count_c, datatype % MPI_VAL, source_c, tag_c, comm % MPI_VAL, stat, ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine PMPI_Recv_f08ts
 
         subroutine PMPI_Recv_c_f08ts(buffer, count, datatype, source, tag, comm, stat, ierror)
@@ -1250,7 +1251,7 @@ module mpi_p2p_f
             source_c = source
             tag_c = tag
             call CFI_MPI_Recv_c(buffer, count, datatype % MPI_VAL, source_c, tag_c, comm % MPI_VAL, stat, ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine PMPI_Recv_c_f08ts
 #endif
 
@@ -1271,7 +1272,7 @@ module mpi_p2p_f
             tag_c = tag
             call PGIF_MPI_Recv(buffer, count_c, datatype % MPI_VAL, source_c, tag_c, &
                                comm % MPI_VAL, stat, ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_Recv_pgif_f08ts
 
         subroutine MPI_Recv_c_pgif_f08ts(buffer, count, datatype, source, tag, comm, stat, ierror)
@@ -1291,7 +1292,7 @@ module mpi_p2p_f
             tag_c = tag
             call PGIF_MPI_Recv_c(buffer, count, datatype % MPI_VAL, source_c, tag_c, &
                                  comm % MPI_VAL, stat, ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_Recv_c_pgif_f08ts
 #endif
 
@@ -1310,7 +1311,7 @@ module mpi_p2p_f
             source_c = source 
             tag_c = tag
             call C_MPI_Irecv(buffer, count_c, datatype % MPI_VAL, source_c, tag_c, comm % MPI_VAL, request % MPI_VAL, ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_Irecv_f08
 
         subroutine MPI_Irecv_scalar_f08(buffer, count, datatype, source, tag, comm, request, ierror)
@@ -1337,7 +1338,7 @@ module mpi_p2p_f
             tag_c = tag
             call C_MPI_Irecv(buffer_c, count_c, datatype % MPI_VAL, source_c, tag_c, comm % MPI_VAL, &
                              request % MPI_VAL, ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_Irecv_scalar_f08
 
 #ifdef HAVE_CFI
@@ -1355,7 +1356,7 @@ module mpi_p2p_f
             source_c = source 
             tag_c = tag
             call CFI_MPI_Irecv(buffer, count_c, datatype % MPI_VAL, source_c, tag_c, comm % MPI_VAL, request % MPI_VAL, ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_Irecv_f08ts
 #endif
 
@@ -1376,7 +1377,7 @@ module mpi_p2p_f
             tag_c = tag
             call PGIF_MPI_Irecv(buffer, count_c, datatype % MPI_VAL, source_c, tag_c, &
                                 comm % MPI_VAL, request % MPI_VAL, ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_Irecv_pgif_f08ts
 #endif
 
@@ -1396,7 +1397,7 @@ module mpi_p2p_f
             tag_c = tag
             call C_MPI_Recv_init(buffer, count_c, datatype % MPI_VAL, source_c, tag_c, &
                                  comm % MPI_VAL, request % MPI_VAL, ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_Recv_init_f08
 
 #ifdef HAVE_CFI
@@ -1415,7 +1416,7 @@ module mpi_p2p_f
             tag_c = tag
             call CFI_MPI_Recv_init(buffer, count_c, datatype % MPI_VAL, source_c, tag_c, &
                                    comm % MPI_VAL, request % MPI_VAL, ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_Recv_init_f08ts
 #endif
 
@@ -1437,7 +1438,7 @@ module mpi_p2p_f
             tag_c = tag
             call C_MPI_Psend_init(buffer, partitions_c, count_c, datatype % MPI_VAL, dest_c, tag_c, &
                                   comm % MPI_VAL, info % MPI_VAL, request % MPI_VAL, ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_Psend_init_f08
 
 #ifdef HAVE_CFI
@@ -1458,7 +1459,7 @@ module mpi_p2p_f
             tag_c = tag
             call CFI_MPI_Psend_init(buffer, partitions_c, count_c, datatype % MPI_VAL, dest_c, tag_c, &
                                     comm % MPI_VAL, info % MPI_VAL, request % MPI_VAL, ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_Psend_init_f08ts
 #endif
 
@@ -1480,7 +1481,7 @@ module mpi_p2p_f
             tag_c = tag
             call C_MPI_Precv_init(buffer, partitions_c, count_c, datatype % MPI_VAL, source_c, tag_c, &
                                   comm % MPI_VAL, info % MPI_VAL, request % MPI_VAL, ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_Precv_init_f08
 
 #ifdef HAVE_CFI
@@ -1501,7 +1502,7 @@ module mpi_p2p_f
             tag_c = tag
             call CFI_MPI_Precv_init(buffer, partitions_c, count_c, datatype % MPI_VAL, source_c, tag_c, &
                                     comm % MPI_VAL, info % MPI_VAL, request % MPI_VAL, ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_Precv_init_f08ts
 #endif
 
@@ -1514,7 +1515,7 @@ module mpi_p2p_f
             integer(kind=c_int) :: partition_c, ierror_c
             partition_c = partition
             call C_MPI_Pready(partition_c, request % MPI_VAL, ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_Pready_f08
 
         subroutine MPI_Pready_list_f08(length, partitions, request, ierror)
@@ -1528,7 +1529,7 @@ module mpi_p2p_f
             length_c = length
             partitions_c = partitions
             call C_MPI_Pready_list(length_c, partitions_c, request % MPI_VAL, ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_Pready_list_f08
 
         subroutine MPI_Pready_range_f08(partition_low, partition_high, request, ierror)
@@ -1541,7 +1542,7 @@ module mpi_p2p_f
             partition_low_c = partition_low
             partition_high_c = partition_high
             call C_MPI_Pready_range(partition_low_c, partition_high_c, request % MPI_VAL, ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_Pready_range_f08
 
         subroutine MPI_Parrived_f08(request, partition, flag, ierror)
@@ -1555,7 +1556,7 @@ module mpi_p2p_f
             partition_c = partition
             call C_MPI_Parrived(request % MPI_VAL, partition_c, flag_c, ierror_c)
             flag = (flag_c .ne. 0)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_Parrived_f08
 
         subroutine MPI_Mrecv_f08(buffer, count, datatype, message, stat, ierror)
@@ -1571,7 +1572,7 @@ module mpi_p2p_f
             integer(kind=c_int) :: count_c, ierror_c
             count_c = count
             call C_MPI_Mrecv(buffer, count_c, datatype % MPI_VAL, message % MPI_VAL, stat, ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_Mrecv_f08
 
 #ifdef HAVE_CFI
@@ -1587,7 +1588,7 @@ module mpi_p2p_f
             integer(kind=c_int) :: count_c, ierror_c
             count_c = count
             call CFI_MPI_Mrecv(buffer, count_c, datatype % MPI_VAL, message % MPI_VAL, stat, ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_Mrecv_f08ts
 #endif
 
@@ -1604,7 +1605,7 @@ module mpi_p2p_f
             integer(kind=c_int) :: count_c, ierror_c
             count_c = count
             call C_MPI_Imrecv(buffer, count_c, datatype % MPI_VAL, message % MPI_VAL, request % MPI_VAL, ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_Imrecv_f08
 
 #ifdef HAVE_CFI
@@ -1620,7 +1621,7 @@ module mpi_p2p_f
             integer(kind=c_int) :: count_c, ierror_c
             count_c = count
             call CFI_MPI_Imrecv(buffer, count_c, datatype % MPI_VAL, message % MPI_VAL, request % MPI_VAL, ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_Imrecv_f08ts
 #endif
 
@@ -1648,7 +1649,7 @@ module mpi_p2p_f
             call C_MPI_Sendrecv(sbuffer, scount_c, sdatatype % MPI_VAL, dest_c, stag_c, &
                                 rbuffer, rcount_c, rdatatype % MPI_VAL, src_c,  rtag_c, &
                                 comm % MPI_VAL, stat, ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_Sendrecv_f08
 
 #ifdef HAVE_CFI
@@ -1675,7 +1676,7 @@ module mpi_p2p_f
             call CFI_MPI_Sendrecv(sbuffer, scount_c, sdatatype % MPI_VAL, dest_c, stag_c, &
                                   rbuffer, rcount_c, rdatatype % MPI_VAL, src_c,  rtag_c, &
                                   comm % MPI_VAL, stat, ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_Sendrecv_f08ts
 #endif
 
@@ -1697,7 +1698,7 @@ module mpi_p2p_f
             position_c = position
             call C_MPI_Pack(inbuf, incount_c, datatype % MPI_VAL, outbuf, outsize_c, position_c, comm % MPI_VAL, ierror_c)
             position  = position_c
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_Pack_f08
 
 #ifdef HAVE_CFI
@@ -1717,7 +1718,7 @@ module mpi_p2p_f
             position_c = position
             call CFI_MPI_Pack(inbuf, incount_c, datatype % MPI_VAL, outbuf, outsize_c, position_c, comm % MPI_VAL, ierror_c)
             position  = position_c
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_Pack_f08ts
 #endif
 
@@ -1739,7 +1740,7 @@ module mpi_p2p_f
             outcount_c = outcount
             call C_MPI_Unpack(inbuf, insize_c, position_c, outbuf, outcount_c, datatype % MPI_VAL, comm % MPI_VAL, ierror_c)
             position = position_c
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_Unpack_f08
 
 #ifdef HAVE_CFI
@@ -1759,7 +1760,7 @@ module mpi_p2p_f
             outcount_c = outcount
             call CFI_MPI_Unpack(inbuf, insize_c, position_c, outbuf, outcount_c, datatype % MPI_VAL, comm % MPI_VAL, ierror_c)
             position = position_c
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_Unpack_f08ts
 #endif
 

@@ -11,6 +11,7 @@
 #include "convert_handles.h"
 #include "convert_constants.h"
 #include "cfi_util.h"
+#include "vapaa_error_handling.h"
 #include "debug.h"
 #ifdef HAVE_PGIF
 #include "pgif_util.h"
@@ -776,6 +777,7 @@ void C_MPI_Buffer_flush(int * ierror)
     *ierror = MPI_Buffer_flush();
 #else
     *ierror = MPI_ERR_UNSUPPORTED_OPERATION;
+    VAPAA_MPI_handle_synthetic_error_no_object(ierror);
 #endif
     C_MPI_RC_FIX(*ierror);
 }
@@ -787,6 +789,7 @@ void C_MPI_Buffer_iflush(int * request_f, int * ierror)
     *ierror = MPI_Buffer_iflush(&request);
 #else
     *ierror = MPI_ERR_UNSUPPORTED_OPERATION;
+    VAPAA_MPI_handle_synthetic_error_no_object(ierror);
 #endif
     *request_f = C_MPI_REQUEST_TOINT(request);
     C_MPI_RC_FIX(*ierror);
@@ -1186,6 +1189,7 @@ void C_MPI_Pready(int * partition, const int * request_f, int * ierror)
     (void) partition;
     (void) request;
     *ierror = MPI_ERR_UNSUPPORTED_OPERATION;
+    VAPAA_MPI_handle_synthetic_error_no_object(ierror);
 #endif
     C_MPI_RC_FIX(*ierror);
 }
@@ -1200,6 +1204,7 @@ void C_MPI_Pready_list(int * length, const int partitions[], const int * request
     (void) partitions;
     (void) request;
     *ierror = MPI_ERR_UNSUPPORTED_OPERATION;
+    VAPAA_MPI_handle_synthetic_error_no_object(ierror);
 #endif
     C_MPI_RC_FIX(*ierror);
 }
@@ -1214,6 +1219,7 @@ void C_MPI_Pready_range(int * partition_low, int * partition_high, const int * r
     (void) partition_high;
     (void) request;
     *ierror = MPI_ERR_UNSUPPORTED_OPERATION;
+    VAPAA_MPI_handle_synthetic_error_no_object(ierror);
 #endif
     C_MPI_RC_FIX(*ierror);
 }
@@ -1228,6 +1234,7 @@ void C_MPI_Parrived(const int * request_f, int * partition, int * flag, int * ie
     (void) partition;
     *flag = 0;
     *ierror = MPI_ERR_UNSUPPORTED_OPERATION;
+    VAPAA_MPI_handle_synthetic_error_no_object(ierror);
 #endif
     C_MPI_RC_FIX(*ierror);
 }
@@ -1249,9 +1256,9 @@ void C_MPI_Psend_init(void * buffer, int partitions, int count, int datatype_f, 
     (void) datatype;
     (void) dest;
     (void) tag;
-    (void) comm;
     (void) info;
     *ierror = MPI_ERR_UNSUPPORTED_OPERATION;
+    VAPAA_MPI_handle_synthetic_error_comm(comm, ierror);
 #endif
     *request_f = C_MPI_REQUEST_TOINT(request);
     C_MPI_RC_FIX(*ierror);
@@ -1287,9 +1294,9 @@ void CFI_MPI_Psend_init(CFI_cdesc_t * desc, int partitions, int count, int datat
     (void) count;
     (void) dest;
     (void) tag;
-    (void) comm;
     (void) info;
     *ierror = MPI_ERR_UNSUPPORTED_OPERATION;
+    VAPAA_MPI_handle_synthetic_error_comm(comm, ierror);
 #endif
     *request_f = C_MPI_REQUEST_TOINT(request);
     C_MPI_RC_FIX(*ierror);
@@ -1313,9 +1320,9 @@ void C_MPI_Precv_init(void * buffer, int partitions, int count, int datatype_f, 
     (void) datatype;
     (void) source;
     (void) tag;
-    (void) comm;
     (void) info;
     *ierror = MPI_ERR_UNSUPPORTED_OPERATION;
+    VAPAA_MPI_handle_synthetic_error_comm(comm, ierror);
 #endif
     *request_f = C_MPI_REQUEST_TOINT(request);
     C_MPI_RC_FIX(*ierror);
@@ -1351,9 +1358,9 @@ void CFI_MPI_Precv_init(CFI_cdesc_t * desc, int partitions, int count, int datat
     (void) count;
     (void) source;
     (void) tag;
-    (void) comm;
     (void) info;
     *ierror = MPI_ERR_UNSUPPORTED_OPERATION;
+    VAPAA_MPI_handle_synthetic_error_comm(comm, ierror);
 #endif
     *request_f = C_MPI_REQUEST_TOINT(request);
     C_MPI_RC_FIX(*ierror);

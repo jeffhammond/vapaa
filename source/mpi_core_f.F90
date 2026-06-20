@@ -1,6 +1,7 @@
 ! SPDX-License-Identifier: MIT
 
 module mpi_core_f
+    use mpi_ierror_f, only: F_MPI_FINISH_IERROR
     use iso_c_binding, only: c_int
     implicit none
 
@@ -184,7 +185,7 @@ module mpi_core_f
             call F_MPI_INIT_ADDRESS_SENTINELS()
             call F_Check_design_assumptions()
             if (ierror_c == 0_c_int) call VAPAA_VERBOSE_INIT('mpi_f08')
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_Init_f08
 
         subroutine MPI_Init_thread_f08(required, provided, ierror) 
@@ -201,7 +202,7 @@ module mpi_core_f
             call F_MPI_INIT_ADDRESS_SENTINELS()
             call F_Check_design_assumptions()
             if (ierror_c == 0_c_int) call VAPAA_VERBOSE_INIT('mpi_f08')
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_Init_thread_f08
 
         subroutine MPI_Finalize_f08(ierror) 
@@ -209,7 +210,7 @@ module mpi_core_f
             integer, optional, intent(out) :: ierror
             integer(kind=c_int) :: ierror_c
             call C_MPI_Finalize(ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_Finalize_f08
 
         ! MPI 4.0 2.6.3
@@ -222,7 +223,7 @@ module mpi_core_f
             integer(kind=c_int) :: flag_c, ierror_c
             call C_MPI_Initialized(flag_c, ierror_c)
             flag = (flag_c .ne. 0)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_Initialized_f08
 
         subroutine MPI_Finalized_f08(flag, ierror) 
@@ -232,7 +233,7 @@ module mpi_core_f
             integer(kind=c_int) :: flag_c, ierror_c
             call C_MPI_Finalized(flag_c, ierror_c)
             flag = (flag_c .ne. 0)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_Finalized_f08
 
         subroutine MPI_Query_thread_f08(provided, ierror) 
@@ -242,7 +243,7 @@ module mpi_core_f
             integer(kind=c_int) :: provided_c, ierror_c
             call C_MPI_Query_thread(provided_c, ierror_c)
             provided = provided_c
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_Query_thread_f08
 
         subroutine MPI_Is_thread_main_f08(flag, ierror)
@@ -252,7 +253,7 @@ module mpi_core_f
             integer(kind=c_int) :: flag_c, ierror_c
             call C_MPI_Is_thread_main(flag_c, ierror_c)
             flag = (flag_c .ne. 0)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_Is_thread_main_f08
 
         subroutine MPI_Abort_f08(comm, errorcode, ierror) 
@@ -264,7 +265,7 @@ module mpi_core_f
             integer(kind=c_int) :: errorcode_c, ierror_c
             errorcode_c = errorcode
             call C_MPI_Abort(comm % MPI_VAL, errorcode_c, ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_Abort_f08
 
         subroutine MPI_Get_version_f08(version, subversion, ierror) 
@@ -275,7 +276,7 @@ module mpi_core_f
             call C_MPI_Get_version(version_c, subversion_c, ierror_c)
             version = version_c
             subversion = subversion_c
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_Get_version_f08
 
         subroutine MPI_Get_library_version_f08(version, resultlen, ierror) 
@@ -287,7 +288,7 @@ module mpi_core_f
             integer(kind=c_int) :: resultlen_c, ierror_c
             call C_MPI_Get_library_version(version, resultlen_c, ierror_c)
             resultlen = resultlen_c
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_Get_library_version_f08
 
         subroutine MPI_Get_processor_name_f08(name, resultlen, ierror)
@@ -299,7 +300,7 @@ module mpi_core_f
             integer(kind=c_int) :: resultlen_c, ierror_c
             call C_MPI_Get_processor_name(name, resultlen_c, ierror_c)
             resultlen = resultlen_c
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_Get_processor_name_f08
 
 #ifdef HAVE_CFI
@@ -312,7 +313,7 @@ module mpi_core_f
             integer(kind=c_int) :: resultlen_c, ierror_c
             call CFI_MPI_Get_library_version(version, resultlen_c, ierror_c)
             resultlen = resultlen_c
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_Get_library_version_f08ts
 #endif
 
@@ -345,7 +346,7 @@ module mpi_core_f
             integer(kind=c_int) :: level_c, ierror_c
             level_c = level
             call C_MPI_Pcontrol(level_c, ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_Pcontrol_f08
 
 end module mpi_core_f

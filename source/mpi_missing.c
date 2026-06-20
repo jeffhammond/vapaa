@@ -9,6 +9,7 @@
 #include "convert_constants.h"
 #include "mpi_attr_storage.h"
 #include "vapaa_constants.h"
+#include "vapaa_error_handling.h"
 
 static int VAPAA_MPI_ORDER_F2C(int f)
 {
@@ -1082,6 +1083,7 @@ void VAPAA_MPI_Type_get_value_index(int *value_type_f, int *index_type_f, int *p
     (void) value_type;
     (void) index_type;
     *ierror = MPI_ERR_UNSUPPORTED_OPERATION;
+    VAPAA_MPI_handle_synthetic_error_no_object(ierror);
 #endif
     *pair_type_f = C_MPI_TYPE_TOINT(pair_type);
     C_MPI_RC_FIX(*ierror);

@@ -5,6 +5,7 @@
 #include "convert_constants.h"
 #include "vapaa_constants.h"
 #include "detect_sentinels.h"
+#include "vapaa_error_handling.h"
 
 static int C_MPI_TRANSLATE_SPLIT_TYPE(int f)
 {
@@ -111,11 +112,11 @@ void C_MPI_Comm_idup_with_info(int * comm_f, int * info_f, int * newcomm_f, int 
 #else
 void C_MPI_Comm_idup_with_info(int * comm_f, int * info_f, int * newcomm_f, int * request_f, int * ierror)
 {
-    (void) comm_f;
     (void) info_f;
     *newcomm_f = VAPAA_MPI_COMM_NULL;
     *request_f = VAPAA_MPI_REQUEST_NULL;
     *ierror = MPI_ERR_UNSUPPORTED_OPERATION;
+    VAPAA_MPI_handle_synthetic_error_comm(C_MPI_COMM_FROMINT(*comm_f), ierror);
     C_MPI_RC_FIX(*ierror);
 }
 #endif
@@ -370,6 +371,7 @@ void C_MPI_Get_hw_resource_info(int * hw_info_f, int * ierror)
     *ierror = MPI_Get_hw_resource_info(&hw_info);
 #else
     *ierror = MPI_ERR_UNSUPPORTED_OPERATION;
+    VAPAA_MPI_handle_synthetic_error_no_object(ierror);
 #endif
     *hw_info_f = C_MPI_INFO_TOINT(hw_info);
     C_MPI_RC_FIX(*ierror);

@@ -8,6 +8,7 @@
 #include "convert_handles.h"
 #include "convert_constants.h"
 #include "vapaa_constants.h"
+#include "vapaa_error_handling.h"
 #include "debug.h"
 
 // see mpi_error_f.F90 for the source of these values
@@ -404,6 +405,7 @@ void C_MPI_Remove_error_class(int * errorclass, int * ierror)
 {
     (void) errorclass;
     *ierror = MPI_ERR_UNSUPPORTED_OPERATION;
+    VAPAA_MPI_handle_synthetic_error_no_object(ierror);
     C_MPI_RC_FIX(*ierror);
 }
 
@@ -411,6 +413,7 @@ void C_MPI_Remove_error_code(int * errorcode, int * ierror)
 {
     (void) errorcode;
     *ierror = MPI_ERR_UNSUPPORTED_OPERATION;
+    VAPAA_MPI_handle_synthetic_error_no_object(ierror);
     C_MPI_RC_FIX(*ierror);
 }
 
@@ -418,6 +421,7 @@ void C_MPI_Remove_error_string(int * errorcode, int * ierror)
 {
     (void) errorcode;
     *ierror = MPI_ERR_UNSUPPORTED_OPERATION;
+    VAPAA_MPI_handle_synthetic_error_no_object(ierror);
     C_MPI_RC_FIX(*ierror);
 }
 #endif
@@ -452,6 +456,7 @@ void C_MPI_Comm_set_errhandler(int * comm_f, int * errhandler_f, int * ierror)
     MPI_Comm comm = C_MPI_COMM_FROMINT(*comm_f);
     MPI_Errhandler errhandler = C_MPI_ERRHANDLER_FROMINT(*errhandler_f);
     *ierror = MPI_Comm_set_errhandler(comm, errhandler);
+    if (*ierror == MPI_SUCCESS) VAPAA_MPI_note_comm_errhandler_set();
     C_MPI_RC_FIX(*ierror);
 }
 
@@ -477,6 +482,7 @@ void C_MPI_File_set_errhandler(int * file_f, int * errhandler_f, int * ierror)
     MPI_File file = C_MPI_FILE_FROMINT(*file_f);
     MPI_Errhandler errhandler = C_MPI_ERRHANDLER_FROMINT(*errhandler_f);
     *ierror = MPI_File_set_errhandler(file, errhandler);
+    if (*ierror == MPI_SUCCESS) VAPAA_MPI_note_file_errhandler_set();
     C_MPI_RC_FIX(*ierror);
 }
 
@@ -502,6 +508,7 @@ void C_MPI_Win_set_errhandler(int * win_f, int * errhandler_f, int * ierror)
     MPI_Win win = C_MPI_WIN_FROMINT(*win_f);
     MPI_Errhandler errhandler = C_MPI_ERRHANDLER_FROMINT(*errhandler_f);
     *ierror = MPI_Win_set_errhandler(win, errhandler);
+    if (*ierror == MPI_SUCCESS) VAPAA_MPI_note_win_errhandler_set();
     C_MPI_RC_FIX(*ierror);
 }
 
@@ -528,6 +535,7 @@ void C_MPI_Session_set_errhandler(int * session_f, int * errhandler_f, int * ier
     MPI_Session session = C_MPI_SESSION_FROMINT(*session_f);
     MPI_Errhandler errhandler = C_MPI_ERRHANDLER_FROMINT(*errhandler_f);
     *ierror = MPI_Session_set_errhandler(session, errhandler);
+    if (*ierror == MPI_SUCCESS) VAPAA_MPI_note_session_errhandler_set();
     C_MPI_RC_FIX(*ierror);
 }
 #else
@@ -536,6 +544,7 @@ void C_MPI_Session_call_errhandler(int * session_f, int * errorcode_f, int * ier
     (void) session_f;
     (void) errorcode_f;
     *ierror = MPI_ERR_UNSUPPORTED_OPERATION;
+    VAPAA_MPI_handle_synthetic_error_no_object(ierror);
     C_MPI_RC_FIX(*ierror);
 }
 
@@ -544,6 +553,7 @@ void C_MPI_Session_get_errhandler(int * session_f, int * errhandler_f, int * ier
     (void) session_f;
     *errhandler_f = VAPAA_MPI_ERRHANDLER_NULL;
     *ierror = MPI_ERR_UNSUPPORTED_OPERATION;
+    VAPAA_MPI_handle_synthetic_error_no_object(ierror);
     C_MPI_RC_FIX(*ierror);
 }
 
@@ -552,6 +562,7 @@ void C_MPI_Session_set_errhandler(int * session_f, int * errhandler_f, int * ier
     (void) session_f;
     (void) errhandler_f;
     *ierror = MPI_ERR_UNSUPPORTED_OPERATION;
+    VAPAA_MPI_handle_synthetic_error_no_object(ierror);
     C_MPI_RC_FIX(*ierror);
 }
 #endif

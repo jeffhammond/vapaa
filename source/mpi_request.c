@@ -5,6 +5,7 @@
 #include "convert_handles.h"
 #include "convert_constants.h"
 #include "detect_sentinels.h"
+#include "vapaa_error_handling.h"
 
 void C_MPI_Request_get_status(const int * request_f, int * flag_f, struct F_MPI_Status * status_f, int * ierror)
 {
@@ -63,6 +64,7 @@ void C_MPI_Request_get_status_all(int * count, int requests_f[], int * flag_f,
     (void) statuses_f;
     *flag_f = 0;
     *ierror = MPI_ERR_UNSUPPORTED_OPERATION;
+    VAPAA_MPI_handle_synthetic_error_no_object(ierror);
 #endif
 
     free(requests);
@@ -100,6 +102,7 @@ void C_MPI_Request_get_status_any(int * count, int requests_f[], int * index_f, 
     *index_f = VAPAA_MPI_UNDEFINED;
     *flag_f = 0;
     *ierror = MPI_ERR_UNSUPPORTED_OPERATION;
+    VAPAA_MPI_handle_synthetic_error_no_object(ierror);
 #endif
 
     free(requests);
@@ -146,6 +149,7 @@ void C_MPI_Request_get_status_some(int * incount, int requests_f[], int * outcou
     (void) statuses_f;
     *outcount_f = VAPAA_MPI_UNDEFINED;
     *ierror = MPI_ERR_UNSUPPORTED_OPERATION;
+    VAPAA_MPI_handle_synthetic_error_no_object(ierror);
 #endif
 
     free(requests);

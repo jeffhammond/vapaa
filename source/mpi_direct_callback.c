@@ -9,6 +9,7 @@
 #include "convert_constants.h"
 #include "mpi_attr_storage.h"
 #include "detect_sentinels.h"
+#include "vapaa_error_handling.h"
 #include "debug.h"
 
 typedef void (*vapaa_c_funptr)(void);
@@ -22,7 +23,7 @@ typedef void (*vapaa_type_delete_fn)(int *, int *, intptr_t *, intptr_t *, int *
 typedef void (*vapaa_win_copy_fn)(int *, int *, intptr_t *, intptr_t *, intptr_t *, int *, int *);
 typedef void (*vapaa_win_delete_fn)(int *, int *, intptr_t *, intptr_t *, int *);
 
-typedef void (*vapaa_greq_query_fn)(intptr_t *, MPI_Status *, int *);
+typedef void (*vapaa_greq_query_fn)(intptr_t *, struct F_MPI_Status *, int *);
 typedef void (*vapaa_greq_free_fn)(intptr_t *, int *);
 typedef void (*vapaa_greq_cancel_fn)(intptr_t *, int *, int *);
 
@@ -155,26 +156,29 @@ static int win_delete_trampoline(MPI_Win win, int keyval, void *attr, void *extr
 static int greq_query_trampoline(void *extra_state, MPI_Status *status)
 {
     struct vapaa_greq_state *s = extra_state;
-    int ierror = MPI_SUCCESS;
-    s->query(s->extra, status, &ierror);
-    return ierror;
+    struct F_MPI_Status status_f;
+    int ierror = VAPAA_MPI_SUCCESS;
+    C_MPI_STATUS_FROM_C(status, &status_f);
+    s->query(s->extra, &status_f, &ierror);
+    C_MPI_STATUS_TO_C(&status_f, status);
+    return C_MPI_ERROR_CODE_F2C(ierror);
 }
 
 static int greq_free_trampoline(void *extra_state)
 {
     struct vapaa_greq_state *s = extra_state;
-    int ierror = MPI_SUCCESS;
+    int ierror = VAPAA_MPI_SUCCESS;
     s->free_fn(s->extra, &ierror);
     free(s);
-    return ierror;
+    return C_MPI_ERROR_CODE_F2C(ierror);
 }
 
 static int greq_cancel_trampoline(void *extra_state, int complete)
 {
     struct vapaa_greq_state *s = extra_state;
-    int ierror = MPI_SUCCESS, complete_f = complete;
+    int ierror = VAPAA_MPI_SUCCESS, complete_f = complete;
     s->cancel(s->extra, &complete_f, &ierror);
-    return ierror;
+    return C_MPI_ERROR_CODE_F2C(ierror);
 }
 
 static int datarep_read_trampoline(void *userbuf, MPI_Datatype datatype, int count, void *filebuf, MPI_Offset position, void *extra_state)
@@ -261,6 +265,7 @@ void VAPAA_MPI_Session_create_errhandler(vapaa_c_funptr fn, int *errhandler_f, i
 #else
     (void) fn;
     *ierror = MPI_ERR_UNSUPPORTED_OPERATION;
+    VAPAA_MPI_handle_synthetic_error_no_object(ierror);
 #endif
     *errhandler_f = C_MPI_ERRHANDLER_TOINT(errhandler);
     C_MPI_RC_FIX(*ierror);
@@ -333,6 +338,7 @@ void VAPAA_MPI_Op_create_c(vapaa_c_funptr fn, int *commute, int *op_f, int *ierr
     (void) fn;
     (void) commute;
     *ierror = MPI_ERR_UNSUPPORTED_OPERATION;
+    VAPAA_MPI_handle_synthetic_error_no_object(ierror);
 #endif
     *op_f = C_MPI_OP_TOINT(op);
     C_MPI_RC_FIX(*ierror);
@@ -369,6 +375,7 @@ void VAPAA_MPI_Register_datarep_c(const char datarep[], vapaa_c_funptr read_fn, 
     (void) extent_fn;
     (void) extra;
     *ierror = MPI_ERR_UNSUPPORTED_OPERATION;
+    VAPAA_MPI_handle_synthetic_error_no_object(ierror);
 #endif
     C_MPI_RC_FIX(*ierror);
 }

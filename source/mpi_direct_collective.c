@@ -10,6 +10,7 @@
 #include "detect_builtins.h"
 #include "detect_sentinels.h"
 #include "cfi_util.h"
+#include "vapaa_error_handling.h"
 #include "debug.h"
 
 static bool VAPAA_COLL_REJECT_USER_OP_WITH_BUILTIN_TYPE(MPI_Op op, MPI_Datatype datatype)
@@ -165,10 +166,11 @@ static void VAPAA_COLL_FINISH_REQUEST(MPI_Request request, int *request_f, int *
     C_MPI_RC_FIX(*ierror);
 }
 
-MAYBE_UNUSED static void VAPAA_COLL_UNSUPPORTED_REQUEST(int *request_f, int *ierror)
+MAYBE_UNUSED static void VAPAA_COLL_UNSUPPORTED_REQUEST(int *comm_f, int *request_f, int *ierror)
 {
     MPI_Request request = MPI_REQUEST_NULL;
     *ierror = MPI_ERR_UNSUPPORTED_OPERATION;
+    VAPAA_MPI_handle_synthetic_error_comm(C_MPI_COMM_FROMINT(*comm_f), ierror);
     VAPAA_COLL_FINISH_REQUEST(request, request_f, ierror);
 }
 
@@ -217,7 +219,7 @@ void VAPAA_MPI_Barrier_init(int *comm_f, int *info_f, int *request_f, int *ierro
 #else
     (void) comm_f;
     (void) info_f;
-    VAPAA_COLL_UNSUPPORTED_REQUEST(request_f, ierror);
+    VAPAA_COLL_UNSUPPORTED_REQUEST(comm_f, request_f, ierror);
 #endif
 }
 
@@ -254,7 +256,7 @@ void VAPAA_MPI_Bcast_init(CFI_cdesc_t *buffer, int *count, int *datatype_f, int 
     (void) root;
     (void) comm_f;
     (void) info_f;
-    VAPAA_COLL_UNSUPPORTED_REQUEST(request_f, ierror);
+    VAPAA_COLL_UNSUPPORTED_REQUEST(comm_f, request_f, ierror);
 #endif
 }
 
@@ -301,7 +303,7 @@ void name(CFI_cdesc_t *sendbuf, CFI_cdesc_t *recvbuf, int *count, int *datatype_
           int *request_f, int *ierror) \
 { \
     (void) sendbuf; (void) recvbuf; (void) count; (void) datatype_f; (void) op_f; (void) comm_f; (void) info_f; \
-    VAPAA_COLL_UNSUPPORTED_REQUEST(request_f, ierror); \
+    VAPAA_COLL_UNSUPPORTED_REQUEST(comm_f, request_f, ierror); \
 }
 #endif
 
@@ -351,7 +353,7 @@ void VAPAA_MPI_Reduce_init(CFI_cdesc_t *sendbuf, CFI_cdesc_t *recvbuf, int *coun
 #else
     (void) sendbuf; (void) recvbuf; (void) count; (void) datatype_f; (void) op_f;
     (void) root; (void) comm_f; (void) info_f;
-    VAPAA_COLL_UNSUPPORTED_REQUEST(request_f, ierror);
+    VAPAA_COLL_UNSUPPORTED_REQUEST(comm_f, request_f, ierror);
 #endif
 }
 
@@ -397,7 +399,7 @@ void name(CFI_cdesc_t *sendbuf, int *sendcount, int *sendtype_f, CFI_cdesc_t *re
 { \
     (void) sendbuf; (void) sendcount; (void) sendtype_f; (void) recvbuf; (void) recvcount; (void) recvtype_f; \
     (void) root; (void) comm_f; (void) info_f; \
-    VAPAA_COLL_UNSUPPORTED_REQUEST(request_f, ierror); \
+    VAPAA_COLL_UNSUPPORTED_REQUEST(comm_f, request_f, ierror); \
 }
 #endif
 
@@ -448,7 +450,7 @@ void name(CFI_cdesc_t *sendbuf, int *sendcount, int *sendtype_f, CFI_cdesc_t *re
 { \
     (void) sendbuf; (void) sendcount; (void) sendtype_f; (void) recvbuf; (void) recvcount; (void) recvtype_f; \
     (void) comm_f; (void) info_f; \
-    VAPAA_COLL_UNSUPPORTED_REQUEST(request_f, ierror); \
+    VAPAA_COLL_UNSUPPORTED_REQUEST(comm_f, request_f, ierror); \
 }
 #endif
 
@@ -494,7 +496,7 @@ void VAPAA_MPI_Gatherv_init(CFI_cdesc_t *sendbuf, int *sendcount, int *sendtype_
 #else
     (void) sendbuf; (void) sendcount; (void) sendtype_f; (void) recvbuf; (void) recvcounts; (void) displs;
     (void) recvtype_f; (void) root; (void) comm_f; (void) info_f;
-    VAPAA_COLL_UNSUPPORTED_REQUEST(request_f, ierror);
+    VAPAA_COLL_UNSUPPORTED_REQUEST(comm_f, request_f, ierror);
 #endif
 }
 
@@ -535,7 +537,7 @@ void VAPAA_MPI_Scatterv_init(CFI_cdesc_t *sendbuf, const int sendcounts[], const
 #else
     (void) sendbuf; (void) sendcounts; (void) displs; (void) sendtype_f; (void) recvbuf; (void) recvcount;
     (void) recvtype_f; (void) root; (void) comm_f; (void) info_f;
-    VAPAA_COLL_UNSUPPORTED_REQUEST(request_f, ierror);
+    VAPAA_COLL_UNSUPPORTED_REQUEST(comm_f, request_f, ierror);
 #endif
 }
 
@@ -576,7 +578,7 @@ void VAPAA_MPI_Allgatherv_init(CFI_cdesc_t *sendbuf, int *sendcount, int *sendty
 #else
     (void) sendbuf; (void) sendcount; (void) sendtype_f; (void) recvbuf; (void) recvcounts; (void) displs;
     (void) recvtype_f; (void) comm_f; (void) info_f;
-    VAPAA_COLL_UNSUPPORTED_REQUEST(request_f, ierror);
+    VAPAA_COLL_UNSUPPORTED_REQUEST(comm_f, request_f, ierror);
 #endif
 }
 
@@ -617,7 +619,7 @@ void VAPAA_MPI_Alltoallv_init(CFI_cdesc_t *sendbuf, const int sendcounts[], cons
 #else
     (void) sendbuf; (void) sendcounts; (void) sdispls; (void) sendtype_f; (void) recvbuf; (void) recvcounts;
     (void) rdispls; (void) recvtype_f; (void) comm_f; (void) info_f;
-    VAPAA_COLL_UNSUPPORTED_REQUEST(request_f, ierror);
+    VAPAA_COLL_UNSUPPORTED_REQUEST(comm_f, request_f, ierror);
 #endif
 }
 
@@ -693,7 +695,7 @@ void VAPAA_MPI_Alltoallw_init(CFI_cdesc_t *sendbuf, const int sendcounts[], cons
 #else
     (void) sendbuf; (void) sendcounts; (void) sdispls; (void) sendtypes_f; (void) recvbuf; (void) recvcounts;
     (void) rdispls; (void) recvtypes_f; (void) comm_f; (void) info_f;
-    VAPAA_COLL_UNSUPPORTED_REQUEST(request_f, ierror);
+    VAPAA_COLL_UNSUPPORTED_REQUEST(comm_f, request_f, ierror);
 #endif
 }
 
@@ -736,7 +738,7 @@ void VAPAA_MPI_Reduce_scatter_init(CFI_cdesc_t *sendbuf, CFI_cdesc_t *recvbuf, c
     VAPAA_COLL_FINISH_REQUEST(request, request_f, ierror);
 #else
     (void) sendbuf; (void) recvbuf; (void) recvcounts; (void) datatype_f; (void) op_f; (void) comm_f; (void) info_f;
-    VAPAA_COLL_UNSUPPORTED_REQUEST(request_f, ierror);
+    VAPAA_COLL_UNSUPPORTED_REQUEST(comm_f, request_f, ierror);
 #endif
 }
 
@@ -779,7 +781,7 @@ void VAPAA_MPI_Reduce_scatter_block_init(CFI_cdesc_t *sendbuf, CFI_cdesc_t *recv
     VAPAA_COLL_FINISH_REQUEST(request, request_f, ierror);
 #else
     (void) sendbuf; (void) recvbuf; (void) recvcount; (void) datatype_f; (void) op_f; (void) comm_f; (void) info_f;
-    VAPAA_COLL_UNSUPPORTED_REQUEST(request_f, ierror);
+    VAPAA_COLL_UNSUPPORTED_REQUEST(comm_f, request_f, ierror);
 #endif
 }
 
@@ -803,7 +805,7 @@ void VAPAA_MPI_Isendrecv(CFI_cdesc_t *sendbuf, int *sendcount, int *sendtype_f, 
 #else
     (void) sendbuf; (void) sendcount; (void) sendtype_f; (void) dest; (void) sendtag;
     (void) recvbuf; (void) recvcount; (void) recvtype_f; (void) source; (void) recvtag; (void) comm_f;
-    VAPAA_COLL_UNSUPPORTED_REQUEST(request_f, ierror);
+    VAPAA_COLL_UNSUPPORTED_REQUEST(comm_f, request_f, ierror);
 #endif
 }
 
@@ -823,7 +825,7 @@ void VAPAA_MPI_Isendrecv_replace(CFI_cdesc_t *buf, int *count, int *datatype_f, 
     VAPAA_COLL_FINISH_REQUEST(request, request_f, ierror);
 #else
     (void) buf; (void) count; (void) datatype_f; (void) dest; (void) sendtag; (void) source; (void) recvtag; (void) comm_f;
-    VAPAA_COLL_UNSUPPORTED_REQUEST(request_f, ierror);
+    VAPAA_COLL_UNSUPPORTED_REQUEST(comm_f, request_f, ierror);
 #endif
 }
 
@@ -882,7 +884,7 @@ void name(CFI_cdesc_t *sendbuf, int *sendcount, int *sendtype_f, CFI_cdesc_t *re
 { \
     (void) sendbuf; (void) sendcount; (void) sendtype_f; (void) recvbuf; (void) recvcount; (void) recvtype_f; \
     (void) comm_f; (void) info_f; \
-    VAPAA_COLL_UNSUPPORTED_REQUEST(request_f, ierror); \
+    VAPAA_COLL_UNSUPPORTED_REQUEST(comm_f, request_f, ierror); \
 }
 #endif
 
@@ -946,7 +948,7 @@ void VAPAA_MPI_Neighbor_allgatherv_init(CFI_cdesc_t *sendbuf, int *sendcount, in
 #else
     (void) sendbuf; (void) sendcount; (void) sendtype_f; (void) recvbuf; (void) recvcounts; (void) displs;
     (void) recvtype_f; (void) comm_f; (void) info_f;
-    VAPAA_COLL_UNSUPPORTED_REQUEST(request_f, ierror);
+    VAPAA_COLL_UNSUPPORTED_REQUEST(comm_f, request_f, ierror);
 #endif
 }
 
@@ -1004,7 +1006,7 @@ void VAPAA_MPI_Neighbor_alltoallv_init(CFI_cdesc_t *sendbuf, const int sendcount
 #else
     (void) sendbuf; (void) sendcounts; (void) sdispls; (void) sendtype_f; (void) recvbuf; (void) recvcounts;
     (void) rdispls; (void) recvtype_f; (void) comm_f; (void) info_f;
-    VAPAA_COLL_UNSUPPORTED_REQUEST(request_f, ierror);
+    VAPAA_COLL_UNSUPPORTED_REQUEST(comm_f, request_f, ierror);
 #endif
 }
 
@@ -1085,6 +1087,6 @@ void VAPAA_MPI_Neighbor_alltoallw_init(CFI_cdesc_t *sendbuf, const int sendcount
 #else
     (void) sendbuf; (void) sendcounts; (void) sdispls_f; (void) sendtypes_f; (void) recvbuf; (void) recvcounts;
     (void) rdispls_f; (void) recvtypes_f; (void) comm_f; (void) info_f;
-    VAPAA_COLL_UNSUPPORTED_REQUEST(request_f, ierror);
+    VAPAA_COLL_UNSUPPORTED_REQUEST(comm_f, request_f, ierror);
 #endif
 }

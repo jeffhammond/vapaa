@@ -5,6 +5,7 @@
 #include "ISO_Fortran_binding.h"
 #include "convert_handles.h"
 #include "convert_constants.h"
+#include "vapaa_error_handling.h"
 
 void C_MPI_Info_create(int * info_f, int * ierror)
 {
@@ -21,6 +22,7 @@ void C_MPI_Info_create_env(int * info_f, int * ierror)
     *ierror = MPI_Info_create_env(0, NULL, &info);
 #else
     *ierror = MPI_ERR_UNSUPPORTED_OPERATION;
+    VAPAA_MPI_handle_synthetic_error_no_object(ierror);
 #endif
     *info_f = C_MPI_INFO_TOINT(info);
     C_MPI_RC_FIX(*ierror);

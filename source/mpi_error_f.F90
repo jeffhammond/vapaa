@@ -3,6 +3,7 @@
 #include "vapaa_constants.h"
 
 module mpi_error_f
+    use mpi_ierror_f, only: F_MPI_FINISH_IERROR
     implicit none
 
     ! error codes
@@ -191,7 +192,7 @@ module mpi_error_f
             errorcode_c = errorcode
             call C_MPI_Error_string(errorcode_c, string, resultlen_c, ierror_c)
             resultlen = resultlen_c
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_Error_string_f08
 
 #ifdef HAVE_CFI
@@ -207,7 +208,7 @@ module mpi_error_f
             errorcode_c = errorcode
             call CFI_MPI_Error_string(errorcode_c, string, resultlen_c, ierror_c)
             resultlen = resultlen_c
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_Error_string_f08ts
 #endif
 
@@ -221,7 +222,7 @@ module mpi_error_f
             errorcode_c = errorcode
             call C_MPI_Error_class(errorcode_c, errorclass_c, ierror_c)
             errorclass = errorclass_c
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_Error_class_f08
 
         subroutine MPI_Add_error_class_f08(errorclass, ierror)
@@ -232,7 +233,7 @@ module mpi_error_f
             integer(c_int) :: errorclass_c, ierror_c
             call C_MPI_Add_error_class(errorclass_c, ierror_c)
             errorclass = errorclass_c
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_Add_error_class_f08
 
         subroutine MPI_Add_error_code_f08(errorclass, errorcode, ierror)
@@ -245,7 +246,7 @@ module mpi_error_f
             errorclass_c = errorclass
             call C_MPI_Add_error_code(errorclass_c, errorcode_c, ierror_c)
             errorcode = errorcode_c
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_Add_error_code_f08
 
         subroutine MPI_Add_error_string_f08(errorcode, string, ierror)
@@ -265,7 +266,7 @@ module mpi_error_f
             end do
             errorcode_c = errorcode
             call C_MPI_Add_error_string(errorcode_c, string_c, ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
             deallocate(string_c)
         end subroutine MPI_Add_error_string_f08
 
@@ -277,7 +278,7 @@ module mpi_error_f
             integer(c_int) :: errorclass_c, ierror_c
             errorclass_c = errorclass
             call C_MPI_Remove_error_class(errorclass_c, ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_Remove_error_class_f08
 
         subroutine MPI_Remove_error_code_f08(errorcode, ierror)
@@ -288,7 +289,7 @@ module mpi_error_f
             integer(c_int) :: errorcode_c, ierror_c
             errorcode_c = errorcode
             call C_MPI_Remove_error_code(errorcode_c, ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_Remove_error_code_f08
 
         subroutine MPI_Remove_error_string_f08(errorcode, ierror)
@@ -299,7 +300,7 @@ module mpi_error_f
             integer(c_int) :: errorcode_c, ierror_c
             errorcode_c = errorcode
             call C_MPI_Remove_error_string(errorcode_c, ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_Remove_error_string_f08
 
         subroutine MPI_Errhandler_free_f08(errhandler, ierror)
@@ -310,7 +311,7 @@ module mpi_error_f
             integer, optional, intent(out) :: ierror
             integer(c_int) :: ierror_c
             call C_MPI_Errhandler_free(errhandler % MPI_VAL, ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_Errhandler_free_f08
 
         subroutine MPI_Comm_call_errhandler_f08(comm, errorcode, ierror)
@@ -323,7 +324,7 @@ module mpi_error_f
             integer(c_int) :: errorcode_c, ierror_c
             errorcode_c = errorcode
             call C_MPI_Comm_call_errhandler(comm % MPI_VAL, errorcode_c, ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_Comm_call_errhandler_f08
 
         subroutine MPI_Comm_get_errhandler_f08(comm, errhandler, ierror)
@@ -335,7 +336,7 @@ module mpi_error_f
             integer, optional, intent(out) :: ierror
             integer(c_int) :: ierror_c
             call C_MPI_Comm_get_errhandler(comm % MPI_VAL, errhandler % MPI_VAL, ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_Comm_get_errhandler_f08
 
         subroutine MPI_Comm_set_errhandler_f08(comm, errhandler, ierror)
@@ -347,7 +348,7 @@ module mpi_error_f
             integer, optional, intent(out) :: ierror
             integer(c_int) :: ierror_c
             call C_MPI_Comm_set_errhandler(comm % MPI_VAL, errhandler % MPI_VAL, ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_Comm_set_errhandler_f08
 
         subroutine MPI_File_call_errhandler_f08(file, errorcode, ierror)
@@ -360,7 +361,7 @@ module mpi_error_f
             integer(c_int) :: errorcode_c, ierror_c
             errorcode_c = errorcode
             call C_MPI_File_call_errhandler(file % MPI_VAL, errorcode_c, ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_File_call_errhandler_f08
 
         subroutine MPI_File_get_errhandler_f08(file, errhandler, ierror)
@@ -372,7 +373,7 @@ module mpi_error_f
             integer, optional, intent(out) :: ierror
             integer(c_int) :: ierror_c
             call C_MPI_File_get_errhandler(file % MPI_VAL, errhandler % MPI_VAL, ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_File_get_errhandler_f08
 
         subroutine MPI_File_set_errhandler_f08(file, errhandler, ierror)
@@ -384,7 +385,7 @@ module mpi_error_f
             integer, optional, intent(out) :: ierror
             integer(c_int) :: ierror_c
             call C_MPI_File_set_errhandler(file % MPI_VAL, errhandler % MPI_VAL, ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_File_set_errhandler_f08
 
         subroutine MPI_Win_call_errhandler_f08(win, errorcode, ierror)
@@ -397,7 +398,7 @@ module mpi_error_f
             integer(c_int) :: errorcode_c, ierror_c
             errorcode_c = errorcode
             call C_MPI_Win_call_errhandler(win % MPI_VAL, errorcode_c, ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_Win_call_errhandler_f08
 
         subroutine MPI_Win_get_errhandler_f08(win, errhandler, ierror)
@@ -409,7 +410,7 @@ module mpi_error_f
             integer, optional, intent(out) :: ierror
             integer(c_int) :: ierror_c
             call C_MPI_Win_get_errhandler(win % MPI_VAL, errhandler % MPI_VAL, ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_Win_get_errhandler_f08
 
         subroutine MPI_Win_set_errhandler_f08(win, errhandler, ierror)
@@ -421,7 +422,7 @@ module mpi_error_f
             integer, optional, intent(out) :: ierror
             integer(c_int) :: ierror_c
             call C_MPI_Win_set_errhandler(win % MPI_VAL, errhandler % MPI_VAL, ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_Win_set_errhandler_f08
 
         subroutine MPI_Session_call_errhandler_f08(session, errorcode, ierror)
@@ -434,7 +435,7 @@ module mpi_error_f
             integer(c_int) :: errorcode_c, ierror_c
             errorcode_c = errorcode
             call C_MPI_Session_call_errhandler(session % MPI_VAL, errorcode_c, ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_Session_call_errhandler_f08
 
         subroutine MPI_Session_get_errhandler_f08(session, errhandler, ierror)
@@ -446,7 +447,7 @@ module mpi_error_f
             integer, optional, intent(out) :: ierror
             integer(c_int) :: ierror_c
             call C_MPI_Session_get_errhandler(session % MPI_VAL, errhandler % MPI_VAL, ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_Session_get_errhandler_f08
 
         subroutine MPI_Session_set_errhandler_f08(session, errhandler, ierror)
@@ -458,7 +459,7 @@ module mpi_error_f
             integer, optional, intent(out) :: ierror
             integer(c_int) :: ierror_c
             call C_MPI_Session_set_errhandler(session % MPI_VAL, errhandler % MPI_VAL, ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_Session_set_errhandler_f08
 
 end module mpi_error_f

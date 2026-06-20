@@ -1,6 +1,7 @@
 ! SPDX-License-Identifier: MIT
 
 module mpi_group_f
+    use mpi_ierror_f, only: F_MPI_FINISH_IERROR
     use iso_c_binding, only: c_int
     implicit none
 
@@ -67,7 +68,7 @@ module mpi_group_f
             integer(kind=c_int) :: rank_c, ierror_c
             call C_MPI_Group_rank(group % MPI_VAL, rank_c, ierror_c)
             rank = rank_c
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_Group_rank_f08
 
         subroutine MPI_Group_size_f08(group, size, ierror)
@@ -79,7 +80,7 @@ module mpi_group_f
             integer(kind=c_int) :: size_c, ierror_c
             call C_MPI_Group_size(group % MPI_VAL, size_c, ierror_c)
             size = size_c
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_Group_size_f08
 
         subroutine MPI_Group_translate_ranks_f08(group1, n, ranks1, group2, ranks2, ierror)
@@ -102,7 +103,7 @@ module mpi_group_f
             ranks1_c = ranks1
             call C_MPI_Group_translate_ranks(group1 % MPI_VAL, n_c, ranks1_c, group2 % MPI_VAL, ranks2_c, ierror_c)
             ranks2 = ranks2_c
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_Group_translate_ranks_f08
 
         subroutine MPI_Group_compare_f08(group1, group2, result, ierror)
@@ -114,7 +115,7 @@ module mpi_group_f
             integer(kind=c_int) :: result_c, ierror_c
             call C_MPI_Group_compare(group1 % MPI_VAL, group2 % MPI_VAL, result_c, ierror_c)
             result = result_c
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_Group_compare_f08
 
         subroutine MPI_Group_union_f08(group1, group2, newgroup, ierror)
@@ -125,7 +126,7 @@ module mpi_group_f
             integer, optional, intent(out) :: ierror
             integer(kind=c_int) :: ierror_c
             call C_MPI_Group_union(group1 % MPI_VAL, group2 % MPI_VAL, newgroup % MPI_VAL, ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_Group_union_f08
 
         subroutine MPI_Group_intersection_f08(group1, group2, newgroup, ierror)
@@ -136,7 +137,7 @@ module mpi_group_f
             integer, optional, intent(out) :: ierror
             integer(kind=c_int) :: ierror_c
             call C_MPI_Group_intersection(group1 % MPI_VAL, group2 % MPI_VAL, newgroup % MPI_VAL, ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_Group_intersection_f08
 
         subroutine MPI_Group_difference_f08(group1, group2, newgroup, ierror)
@@ -147,7 +148,7 @@ module mpi_group_f
             integer, optional, intent(out) :: ierror
             integer(kind=c_int) :: ierror_c
             call C_MPI_Group_difference(group1 % MPI_VAL, group2 % MPI_VAL, newgroup % MPI_VAL, ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_Group_difference_f08
 
         subroutine MPI_Group_incl_f08(group, n, ranks, newgroup, ierror)
@@ -169,7 +170,7 @@ module mpi_group_f
             n_c = n
             ranks_c = ranks
             call C_MPI_Group_incl(group % MPI_VAL, n_c, ranks_c, newgroup % MPI_VAL, ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_Group_incl_f08
 
         subroutine MPI_Group_excl_f08(group, n, ranks, newgroup, ierror)
@@ -191,7 +192,7 @@ module mpi_group_f
             n_c = n
             ranks_c = ranks
             call C_MPI_Group_excl(group % MPI_VAL, n_c, ranks_c, newgroup % MPI_VAL, ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_Group_excl_f08
 
         subroutine MPI_Group_range_incl_f08(group, n, ranges, newgroup, ierror)
@@ -205,7 +206,7 @@ module mpi_group_f
             n_c = n
             ranges_c = ranges
             call C_MPI_Group_range_incl(group % MPI_VAL, n_c, ranges_c, newgroup % MPI_VAL, ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_Group_range_incl_f08
 
         subroutine MPI_Group_range_excl_f08(group, n, ranges, newgroup, ierror)
@@ -219,7 +220,7 @@ module mpi_group_f
             n_c = n
             ranges_c = ranges
             call C_MPI_Group_range_excl(group % MPI_VAL, n_c, ranges_c, newgroup % MPI_VAL, ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_Group_range_excl_f08
 
         subroutine MPI_Group_from_session_pset_f08(session, pset_name, newgroup, ierror)
@@ -240,7 +241,7 @@ module mpi_group_f
                 pset_name_c(i) = pset_name(i:i)
             end do
             call C_MPI_Group_from_session_pset(session % MPI_VAL, pset_name_c, newgroup % MPI_VAL, ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
             deallocate(pset_name_c)
         end subroutine MPI_Group_from_session_pset_f08
 
@@ -251,7 +252,7 @@ module mpi_group_f
             integer, optional, intent(out) :: ierror
             integer(kind=c_int) :: ierror_c
             call C_MPI_Group_free(group % MPI_VAL, ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_Group_free_f08
 
 end module mpi_group_f

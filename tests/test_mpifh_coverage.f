@@ -22,6 +22,9 @@
       call check_success(ierr, errors)
       call MPI_Comm_size(MPI_COMM_WORLD, nproc, ierr)
       call check_success(ierr, errors)
+      call MPI_Comm_set_errhandler(MPI_COMM_SELF, MPI_ERRORS_RETURN,
+     &     ierr)
+      call check_success(ierr, errors)
 
       base = 10
       disp = 5

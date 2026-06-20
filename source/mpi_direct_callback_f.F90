@@ -1,6 +1,7 @@
 ! SPDX-License-Identifier: MIT
 
 module mpi_direct_callback_f
+    use mpi_ierror_f, only: F_MPI_FINISH_IERROR
     use iso_c_binding, only: c_char, c_funloc, c_funptr, c_int, c_intptr_t, c_null_char
     use mpi_f08_callbacks
     implicit none
@@ -658,7 +659,7 @@ module mpi_direct_callback_f
         subroutine finish_ierror(ierror, ierror_c)
             integer, optional, intent(out) :: ierror
             integer(c_int), intent(in) :: ierror_c
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine finish_ierror
 
         subroutine MPI_Comm_create_errhandler_f08(fn, errhandler, ierror)

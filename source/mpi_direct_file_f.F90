@@ -1,6 +1,7 @@
 ! SPDX-License-Identifier: MIT
 
 module mpi_direct_file_f
+    use mpi_ierror_f, only: F_MPI_FINISH_IERROR
     use iso_c_binding, only: c_char, c_int, c_int64_t, c_intptr_t, c_null_char
     implicit none
 
@@ -73,7 +74,7 @@ module mpi_direct_file_f
             integer(c_int) :: amode_c, ierror_c
             call VAPAA_MPI_File_get_amode(fh % MPI_VAL, amode_c, ierror_c)
             amode = amode_c
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_File_get_amode_f08
 
         subroutine MPI_File_get_atomicity_f08(fh, flag, ierror)
@@ -85,7 +86,7 @@ module mpi_direct_file_f
             integer(c_int) :: flag_c, ierror_c
             call VAPAA_MPI_File_get_atomicity(fh % MPI_VAL, flag_c, ierror_c)
             flag = flag_c /= 0
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_File_get_atomicity_f08
 
         subroutine MPI_File_set_atomicity_f08(fh, flag, ierror)
@@ -97,7 +98,7 @@ module mpi_direct_file_f
             integer(c_int) :: flag_c, ierror_c
             flag_c = merge(1_c_int, 0_c_int, flag)
             call VAPAA_MPI_File_set_atomicity(fh % MPI_VAL, flag_c, ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_File_set_atomicity_f08
 
         subroutine MPI_File_get_byte_offset_f08(fh, offset, disp, ierror)
@@ -110,7 +111,7 @@ module mpi_direct_file_f
             integer, optional, intent(out) :: ierror
             integer(c_int) :: ierror_c
             call VAPAA_MPI_File_get_byte_offset(fh % MPI_VAL, offset, disp, ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_File_get_byte_offset_f08
 
         subroutine MPI_File_get_group_f08(fh, group, ierror)
@@ -121,7 +122,7 @@ module mpi_direct_file_f
             integer, optional, intent(out) :: ierror
             integer(c_int) :: ierror_c
             call VAPAA_MPI_File_get_group(fh % MPI_VAL, group % MPI_VAL, ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_File_get_group_f08
 
         subroutine MPI_File_get_info_f08(fh, info_used, ierror)
@@ -132,7 +133,7 @@ module mpi_direct_file_f
             integer, optional, intent(out) :: ierror
             integer(c_int) :: ierror_c
             call VAPAA_MPI_File_get_info(fh % MPI_VAL, info_used % MPI_VAL, ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_File_get_info_f08
 
         subroutine MPI_File_set_info_f08(fh, info, ierror)
@@ -143,7 +144,7 @@ module mpi_direct_file_f
             integer, optional, intent(out) :: ierror
             integer(c_int) :: ierror_c
             call VAPAA_MPI_File_set_info(fh % MPI_VAL, info % MPI_VAL, ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_File_set_info_f08
 
         subroutine MPI_File_get_position_f08(fh, offset, ierror)
@@ -155,7 +156,7 @@ module mpi_direct_file_f
             integer, optional, intent(out) :: ierror
             integer(c_int) :: ierror_c
             call VAPAA_MPI_File_get_position(fh % MPI_VAL, offset, ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_File_get_position_f08
 
         subroutine MPI_File_get_position_shared_f08(fh, offset, ierror)
@@ -167,7 +168,7 @@ module mpi_direct_file_f
             integer, optional, intent(out) :: ierror
             integer(c_int) :: ierror_c
             call VAPAA_MPI_File_get_position_shared(fh % MPI_VAL, offset, ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_File_get_position_shared_f08
 
         subroutine MPI_File_get_type_extent_f08(fh, datatype, extent, ierror)
@@ -180,7 +181,7 @@ module mpi_direct_file_f
             integer, optional, intent(out) :: ierror
             integer(c_int) :: ierror_c
             call VAPAA_MPI_File_get_type_extent(fh % MPI_VAL, datatype % MPI_VAL, extent, ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_File_get_type_extent_f08
 
 #ifdef HAVE_CFI
@@ -199,7 +200,7 @@ module mpi_direct_file_f
             datarep_c = c_null_char
             call VAPAA_MPI_File_get_view(fh % MPI_VAL, disp, etype % MPI_VAL, filetype % MPI_VAL, datarep_c, ierror_c)
             call copy_c_string(datarep_c, datarep)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_File_get_view_f08
 #endif
 
@@ -213,7 +214,7 @@ module mpi_direct_file_f
             integer, optional, intent(out) :: ierror
             integer(c_int) :: ierror_c
             call VAPAA_MPI_File_seek(fh % MPI_VAL, offset, int(whence,c_int), ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_File_seek_f08
 
         subroutine MPI_File_seek_shared_f08(fh, offset, whence, ierror)
@@ -226,7 +227,7 @@ module mpi_direct_file_f
             integer, optional, intent(out) :: ierror
             integer(c_int) :: ierror_c
             call VAPAA_MPI_File_seek_shared(fh % MPI_VAL, offset, int(whence,c_int), ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_File_seek_shared_f08
 
         subroutine MPI_File_sync_f08(fh, ierror)
@@ -236,7 +237,7 @@ module mpi_direct_file_f
             integer, optional, intent(out) :: ierror
             integer(c_int) :: ierror_c
             call VAPAA_MPI_File_sync(fh % MPI_VAL, ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_File_sync_f08
 
 end module mpi_direct_file_f

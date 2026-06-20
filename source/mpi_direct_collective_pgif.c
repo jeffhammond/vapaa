@@ -9,6 +9,7 @@
 #include "debug.h"
 #include "detect_builtins.h"
 #include "pgif_util.h"
+#include "vapaa_error_handling.h"
 
 #ifdef HAVE_PGIF
 
@@ -29,10 +30,11 @@ static void finish_request(MPI_Request request, int *request_f, int *ierror)
     C_MPI_RC_FIX(*ierror);
 }
 
-static void unsupported_request(int *request_f, int *ierror)
+static void unsupported_request(int *comm_f, int *request_f, int *ierror)
 {
     MPI_Request request = MPI_REQUEST_NULL;
     *ierror = MPI_ERR_UNSUPPORTED_OPERATION;
+    VAPAA_MPI_handle_synthetic_error_comm(C_MPI_COMM_FROMINT(*comm_f), ierror);
     finish_request(request, request_f, ierror);
 }
 
@@ -171,7 +173,7 @@ void vapaa_mpi_barrier_init_(int *comm_f, int *info_f, int *request_f,
 #else
     (void) comm_f;
     (void) info_f;
-    unsupported_request(request_f, ierror);
+    unsupported_request(comm_f, request_f, ierror);
 #endif
 }
 
@@ -220,7 +222,7 @@ void vapaa_mpi_bcast_init_(void *buffer, int *count, int *datatype_f,
     (void) comm_f;
     (void) info_f;
     (void) buffer_desc;
-    unsupported_request(request_f, ierror);
+    unsupported_request(comm_f, request_f, ierror);
 #endif
 }
 
@@ -270,7 +272,7 @@ void name(void *sendbuf, void *recvbuf, int *count, int *datatype_f,           \
     (void) sendbuf; (void) recvbuf; (void) count; (void) datatype_f;           \
     (void) op_f; (void) comm_f; (void) info_f; (void) send_desc;               \
     (void) recv_desc;                                                          \
-    unsupported_request(request_f, ierror);                                    \
+    unsupported_request(comm_f, request_f, ierror);                                    \
 }
 #endif
 
@@ -384,7 +386,7 @@ void name(void *sendbuf, int *sendcount, int *sendtype_f, void *recvbuf,       \
     (void) sendbuf; (void) sendcount; (void) sendtype_f; (void) recvbuf;       \
     (void) recvcount; (void) recvtype_f; (void) root; (void) comm_f;           \
     (void) info_f; (void) send_desc; (void) recv_desc;                         \
-    unsupported_request(request_f, ierror);                                    \
+    unsupported_request(comm_f, request_f, ierror);                                    \
 }
 #define GATHER_INIT(name, mpi_fn)                                               \
 void name(void *sendbuf, int *sendcount, int *sendtype_f, void *recvbuf,       \
@@ -395,7 +397,7 @@ void name(void *sendbuf, int *sendcount, int *sendtype_f, void *recvbuf,       \
     (void) sendbuf; (void) sendcount; (void) sendtype_f; (void) recvbuf;       \
     (void) recvcount; (void) recvtype_f; (void) comm_f; (void) info_f;         \
     (void) send_desc; (void) recv_desc;                                        \
-    unsupported_request(request_f, ierror);                                    \
+    unsupported_request(comm_f, request_f, ierror);                                    \
 }
 #endif
 
@@ -453,7 +455,7 @@ void vapaa_mpi_reduce_init_(void *sendbuf, void *recvbuf, int *count,
     (void) sendbuf; (void) recvbuf; (void) count; (void) datatype_f;
     (void) op_f; (void) root; (void) comm_f; (void) info_f;
     (void) send_desc; (void) recv_desc;
-    unsupported_request(request_f, ierror);
+    unsupported_request(comm_f, request_f, ierror);
 #endif
 }
 
@@ -622,7 +624,7 @@ void vapaa_mpi_gatherv_init_(void *sendbuf, int *sendcount,
     (void) sendbuf; (void) sendcount; (void) sendtype_f; (void) recvbuf;
     (void) recvcounts; (void) displs; (void) recvtype_f; (void) root;
     (void) comm_f; (void) info_f; (void) send_desc; (void) recv_desc;
-    unsupported_request(request_f, ierror);
+    unsupported_request(comm_f, request_f, ierror);
 }
 
 void vapaa_mpi_allgatherv_init_(void *sendbuf, int *sendcount,
@@ -636,7 +638,7 @@ void vapaa_mpi_allgatherv_init_(void *sendbuf, int *sendcount,
     (void) sendbuf; (void) sendcount; (void) sendtype_f; (void) recvbuf;
     (void) recvcounts; (void) displs; (void) recvtype_f; (void) comm_f;
     (void) info_f; (void) send_desc; (void) recv_desc;
-    unsupported_request(request_f, ierror);
+    unsupported_request(comm_f, request_f, ierror);
 }
 #endif
 
@@ -671,7 +673,7 @@ void vapaa_mpi_scatterv_init_(void *sendbuf, const int sendcounts[],
     (void) sendbuf; (void) sendcounts; (void) displs; (void) sendtype_f;
     (void) recvbuf; (void) recvcount; (void) recvtype_f; (void) root;
     (void) comm_f; (void) info_f; (void) send_desc; (void) recv_desc;
-    unsupported_request(request_f, ierror);
+    unsupported_request(comm_f, request_f, ierror);
 #endif
 }
 
@@ -700,7 +702,7 @@ void vapaa_mpi_alltoallv_init_(void *sendbuf, const int sendcounts[],
     (void) sendbuf; (void) sendcounts; (void) sdispls; (void) sendtype_f;
     (void) recvbuf; (void) recvcounts; (void) rdispls; (void) recvtype_f;
     (void) comm_f; (void) info_f; (void) send_desc; (void) recv_desc;
-    unsupported_request(request_f, ierror);
+    unsupported_request(comm_f, request_f, ierror);
 #endif
 }
 
@@ -823,7 +825,7 @@ void vapaa_mpi_alltoallw_init_(void *sendbuf, const int sendcounts[],
     (void) sendbuf; (void) sendcounts; (void) sdispls; (void) sendtypes_f;
     (void) recvbuf; (void) recvcounts; (void) rdispls; (void) recvtypes_f;
     (void) comm_f; (void) info_f; (void) send_desc; (void) recv_desc;
-    unsupported_request(request_f, ierror);
+    unsupported_request(comm_f, request_f, ierror);
 #endif
 }
 
@@ -900,7 +902,7 @@ void vapaa_mpi_isendrecv_(void *sendbuf, int *sendcount, int *sendtype_f,
     (void) sendtag; (void) recvbuf; (void) recvcount; (void) recvtype_f;
     (void) source; (void) recvtag; (void) comm_f; (void) send_desc;
     (void) recv_desc;
-    unsupported_request(request_f, ierror);
+    unsupported_request(comm_f, request_f, ierror);
 #endif
 }
 
@@ -928,7 +930,7 @@ void vapaa_mpi_isendrecv_replace_(void *buf, int *count, int *datatype_f,
 #else
     (void) buf; (void) count; (void) datatype_f; (void) dest; (void) sendtag;
     (void) source; (void) recvtag; (void) comm_f; (void) buf_desc;
-    unsupported_request(request_f, ierror);
+    unsupported_request(comm_f, request_f, ierror);
 #endif
 }
 
@@ -1191,7 +1193,7 @@ void vapaa_mpi_reduce_scatter_init_(void *sendbuf, void *recvbuf,
     (void) sendbuf; (void) recvbuf; (void) recvcounts; (void) datatype_f;
     (void) op_f; (void) comm_f; (void) info_f; (void) send_desc;
     (void) recv_desc;
-    unsupported_request(request_f, ierror);
+    unsupported_request(comm_f, request_f, ierror);
 #endif
 }
 
@@ -1221,7 +1223,7 @@ void vapaa_mpi_reduce_scatter_block_init_(void *sendbuf, void *recvbuf,
     (void) sendbuf; (void) recvbuf; (void) recvcount; (void) datatype_f;
     (void) op_f; (void) comm_f; (void) info_f; (void) send_desc;
     (void) recv_desc;
-    unsupported_request(request_f, ierror);
+    unsupported_request(comm_f, request_f, ierror);
 #endif
 }
 
@@ -1243,7 +1245,7 @@ void vapaa_mpi_neighbor_allgather_init_(void *sendbuf, int *sendcount,
     (void) sendbuf; (void) sendcount; (void) sendtype_f; (void) recvbuf;
     (void) recvcount; (void) recvtype_f; (void) comm_f; (void) info_f;
     (void) send_desc; (void) recv_desc;
-    unsupported_request(request_f, ierror);
+    unsupported_request(comm_f, request_f, ierror);
 }
 
 void vapaa_mpi_neighbor_alltoall_init_(void *sendbuf, int *sendcount,
@@ -1257,7 +1259,7 @@ void vapaa_mpi_neighbor_alltoall_init_(void *sendbuf, int *sendcount,
     (void) sendbuf; (void) sendcount; (void) sendtype_f; (void) recvbuf;
     (void) recvcount; (void) recvtype_f; (void) comm_f; (void) info_f;
     (void) send_desc; (void) recv_desc;
-    unsupported_request(request_f, ierror);
+    unsupported_request(comm_f, request_f, ierror);
 }
 #endif
 
@@ -1293,7 +1295,7 @@ void vapaa_mpi_neighbor_allgatherv_init_(void *sendbuf, int *sendcount,
     (void) sendbuf; (void) sendcount; (void) sendtype_f; (void) recvbuf;
     (void) recvcounts; (void) displs; (void) recvtype_f; (void) comm_f;
     (void) info_f; (void) send_desc; (void) recv_desc;
-    unsupported_request(request_f, ierror);
+    unsupported_request(comm_f, request_f, ierror);
 #endif
 }
 
@@ -1324,7 +1326,7 @@ void vapaa_mpi_neighbor_alltoallv_init_(void *sendbuf, const int sendcounts[],
     (void) sendbuf; (void) sendcounts; (void) sdispls; (void) sendtype_f;
     (void) recvbuf; (void) recvcounts; (void) rdispls; (void) recvtype_f;
     (void) comm_f; (void) info_f; (void) send_desc; (void) recv_desc;
-    unsupported_request(request_f, ierror);
+    unsupported_request(comm_f, request_f, ierror);
 #endif
 }
 
@@ -1361,7 +1363,7 @@ void vapaa_mpi_neighbor_alltoallw_init_(void *sendbuf, const int sendcounts[],
     (void) sendbuf; (void) sendcounts; (void) sdispls_f; (void) sendtypes_f;
     (void) recvbuf; (void) recvcounts; (void) rdispls_f; (void) recvtypes_f;
     (void) comm_f; (void) info_f; (void) send_desc; (void) recv_desc;
-    unsupported_request(request_f, ierror);
+    unsupported_request(comm_f, request_f, ierror);
 #endif
 }
 

@@ -3,6 +3,8 @@ set(PGIF_DESCRIPTOR_TEST_SOURCE "${CMAKE_CURRENT_SOURCE_DIR}/test_pgif_descripto
 set(PGIF_DESCRIPTOR_TEST_C_SOURCE "${CMAKE_CURRENT_SOURCE_DIR}/test_pgif_descriptor.c")
 set(PGIF_MPI_BYTE_TEST_SOURCE "${CMAKE_CURRENT_SOURCE_DIR}/test_pgif_mpi_byte_noncontig.F90")
 set(MPIFH_COVERAGE_TEST_SOURCE "${CMAKE_CURRENT_SOURCE_DIR}/test_mpifh_coverage.f")
+set(F08_MISSING_IERROR_FATAL_TEST_SOURCE
+    "${CMAKE_CURRENT_SOURCE_DIR}/test_f08_missing_ierror_fatal.F90")
 
 set(vapaa_cfi_element_type_warnings_available TRUE)
 if(NOT VAPAA_ENABLE_CFI OR CMAKE_Fortran_COMPILER_ID MATCHES "Intel|NVHPC")
@@ -12,6 +14,7 @@ endif()
 # Find all Fortran files in the current directory
 file(GLOB TEST_SOURCES "*.F90")
 list(REMOVE_ITEM TEST_SOURCES "${TYPECHECK_WARNING_TEST_SOURCE}")
+list(REMOVE_ITEM TEST_SOURCES "${F08_MISSING_IERROR_FATAL_TEST_SOURCE}")
 if(NOT VAPAA_HAVE_PGIF)
   list(REMOVE_ITEM TEST_SOURCES "${PGIF_DESCRIPTOR_TEST_SOURCE}")
   list(REMOVE_ITEM TEST_SOURCES "${PGIF_MPI_BYTE_TEST_SOURCE}")
@@ -145,6 +148,36 @@ set_tests_properties(test_verbose_init PROPERTIES
   PASS_REGULAR_EXPRESSION "Vapaa verbose init begin"
   ENVIRONMENT "${verbose_test_environment}"
 )
+
+if(DEFINED MPI_C_VERSION AND MPI_C_VERSION VERSION_LESS "5")
+  add_executable(test_f08_missing_ierror_fatal
+    ${F08_MISSING_IERROR_FATAL_TEST_SOURCE})
+  target_compile_options(test_f08_missing_ierror_fatal PRIVATE
+    ${VAPAA_C_WARNING_OPTIONS}
+    ${VAPAA_FORTRAN_WARNING_OPTIONS}
+    -g
+    $<$<COMPILE_LANG_AND_ID:Fortran,GNU>:-std=f2018>
+    -fPIE)
+  target_include_directories(test_f08_missing_ierror_fatal
+                             PRIVATE "${CMAKE_BINARY_DIR}/modules")
+  target_link_libraries(test_f08_missing_ierror_fatal PRIVATE ${vapa_lib})
+  set_target_properties(test_f08_missing_ierror_fatal PROPERTIES
+    RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/tests"
+    Fortran_MODULE_DIRECTORY
+      "${CMAKE_BINARY_DIR}/tests/modules/test_f08_missing_ierror_fatal"
+  )
+  add_test(NAME test_f08_missing_ierror_fatal
+           COMMAND ${MPIEXEC_EXECUTABLE} ${MPIEXEC_NUMPROC_FLAG} 1
+                   $<TARGET_FILE:test_f08_missing_ierror_fatal>)
+  set_tests_properties(test_f08_missing_ierror_fatal PROPERTIES
+    WORKING_DIRECTORY "${CMAKE_BINARY_DIR}/tests"
+    WILL_FAIL TRUE
+    TIMEOUT 30)
+  if(vapaa_test_environment)
+    set_property(TEST test_f08_missing_ierror_fatal PROPERTY
+      ENVIRONMENT "${vapaa_test_environment}")
+  endif()
+endif()
 
 add_executable(test_typecheck_warnings ${TYPECHECK_WARNING_TEST_SOURCE})
 target_compile_options(test_typecheck_warnings PRIVATE

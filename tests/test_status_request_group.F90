@@ -13,6 +13,8 @@ program main
     call record(ierr == MPI_SUCCESS, 'MPI_Comm_rank')
     call MPI_Comm_size(MPI_COMM_WORLD, nproc, ierr)
     call record(ierr == MPI_SUCCESS, 'MPI_Comm_size')
+    call MPI_Comm_set_errhandler(MPI_COMM_SELF, MPI_ERRORS_RETURN, ierr)
+    call record(ierr == MPI_SUCCESS, 'MPI_Comm_set_errhandler self return')
 
     call exercise_status()
     call exercise_request_status()

@@ -11,6 +11,7 @@
 #include "convert_constants.h"
 #include "detect_sentinels.h"
 #include "vapaa_constants.h"
+#include "vapaa_error_handling.h"
 
 typedef void (*vapaa_c_funptr)(void);
 
@@ -212,6 +213,7 @@ MAYBE_UNUSED static void f77_unsupported_request(int *request_f, int *ierror)
 {
     *request_f = VAPAA_MPI_REQUEST_NULL;
     *ierror = MPI_ERR_UNSUPPORTED_OPERATION;
+    VAPAA_MPI_handle_synthetic_error_no_object(ierror);
     C_MPI_RC_FIX(*ierror);
 }
 
@@ -561,7 +563,8 @@ void mpi_comm_attach_buffer_(int *comm_f, void *buffer, int *size, int *ierror)
     MPI_Comm comm = C_MPI_COMM_FROMINT(*comm_f);
     *ierror = MPI_Comm_attach_buffer(comm, f77_addr(buffer), *size);
 #else
-    (void)comm_f; (void)buffer; (void)size; *ierror = MPI_ERR_UNSUPPORTED_OPERATION;
+    (void)buffer; (void)size; *ierror = MPI_ERR_UNSUPPORTED_OPERATION;
+    VAPAA_MPI_handle_synthetic_error_comm(C_MPI_COMM_FROMINT(*comm_f), ierror);
 #endif
     C_MPI_RC_FIX(*ierror);
 }
@@ -597,7 +600,7 @@ void mpi_comm_create_from_group_(int *group_f, char *stringtag, int *info_f, int
     *ierror = MPI_Comm_create_from_group(group, tag_c, info, errhandler, &newcomm);
     *newcomm_f = C_MPI_COMM_TOINT(newcomm); free(tag_c); C_MPI_RC_FIX(*ierror);
 #else
-    (void)group_f; (void)stringtag; (void)info_f; (void)errhandler_f; (void)stringtag_len; *newcomm_f = VAPAA_MPI_COMM_NULL; *ierror = MPI_ERR_UNSUPPORTED_OPERATION; C_MPI_RC_FIX(*ierror);
+    (void)group_f; (void)stringtag; (void)info_f; (void)errhandler_f; (void)stringtag_len; *newcomm_f = VAPAA_MPI_COMM_NULL; *ierror = MPI_ERR_UNSUPPORTED_OPERATION; VAPAA_MPI_handle_synthetic_error_no_object(ierror); C_MPI_RC_FIX(*ierror);
 #endif
 }
 
@@ -684,6 +687,7 @@ void mpi_comm_spawn_(char *command, void *argv, int *maxprocs, int *info_f, int 
     (void)command; (void)argv; (void)maxprocs; (void)info_f; (void)root; (void)comm_f; (void)errcodes_f; (void)command_len;
     *intercomm_f = VAPAA_MPI_COMM_NULL;
     *ierror = MPI_ERR_UNSUPPORTED_OPERATION;
+    VAPAA_MPI_handle_synthetic_error_comm(C_MPI_COMM_FROMINT(*comm_f), ierror);
     C_MPI_RC_FIX(*ierror);
 }
 
@@ -692,6 +696,7 @@ void mpi_comm_spawn_multiple_(int *count, void *commands, void *argvs, int maxpr
     (void)count; (void)commands; (void)argvs; (void)maxprocs; (void)infos; (void)root; (void)comm_f; (void)errcodes_f;
     *intercomm_f = VAPAA_MPI_COMM_NULL;
     *ierror = MPI_ERR_UNSUPPORTED_OPERATION;
+    VAPAA_MPI_handle_synthetic_error_comm(C_MPI_COMM_FROMINT(*comm_f), ierror);
     C_MPI_RC_FIX(*ierror);
 }
 
@@ -1515,7 +1520,7 @@ void mpi_intercomm_create_from_groups_(int *local_group_f, int *local_leader, in
     *ierror = MPI_Intercomm_create_from_groups(local_group, *local_leader, remote_group, *remote_leader, tag_c, info, errhandler, &newintercomm);
     *newintercomm_f = C_MPI_COMM_TOINT(newintercomm); free(tag_c); C_MPI_RC_FIX(*ierror);
 #else
-    (void)local_group_f; (void)local_leader; (void)remote_group_f; (void)remote_leader; (void)stringtag; (void)info_f; (void)errhandler_f; (void)stringtag_len; *newintercomm_f = VAPAA_MPI_COMM_NULL; *ierror = MPI_ERR_UNSUPPORTED_OPERATION; C_MPI_RC_FIX(*ierror);
+    (void)local_group_f; (void)local_leader; (void)remote_group_f; (void)remote_leader; (void)stringtag; (void)info_f; (void)errhandler_f; (void)stringtag_len; *newintercomm_f = VAPAA_MPI_COMM_NULL; *ierror = MPI_ERR_UNSUPPORTED_OPERATION; VAPAA_MPI_handle_synthetic_error_no_object(ierror); C_MPI_RC_FIX(*ierror);
 #endif
 }
 
@@ -2011,6 +2016,7 @@ void mpi_session_attach_buffer_(int *session_f, void *buffer, int *size, int *ie
     *ierror = MPI_Session_attach_buffer(session, f77_addr(buffer), *size);
 #else
     (void)session_f; (void)buffer; (void)size; *ierror = MPI_ERR_UNSUPPORTED_OPERATION;
+    VAPAA_MPI_handle_synthetic_error_no_object(ierror);
 #endif
     C_MPI_RC_FIX(*ierror);
 }
@@ -2067,6 +2073,7 @@ void mpi_session_get_nth_pset_(int *session_f, int *info_f, int *n, int *pset_le
     free(tmp);
 #else
     (void)session_f; (void)info_f; (void)n; (void)pset_name; (void)pset_name_len; *pset_len = 0; *ierror = MPI_ERR_UNSUPPORTED_OPERATION;
+    VAPAA_MPI_handle_synthetic_error_no_object(ierror);
 #endif
     C_MPI_RC_FIX(*ierror);
 }
@@ -2086,6 +2093,7 @@ void mpi_session_get_pset_info_(int *session_f, char *pset_name, int *info_f, in
     free(pset_c);
 #else
     (void)session_f; (void)pset_name; (void)pset_name_len; *info_f = VAPAA_MPI_INFO_NULL; *ierror = MPI_ERR_UNSUPPORTED_OPERATION;
+    VAPAA_MPI_handle_synthetic_error_no_object(ierror);
 #endif
     C_MPI_RC_FIX(*ierror);
 }
@@ -2111,18 +2119,21 @@ void mpi_session_set_errhandler_(int * session_f, int * errhandler_f, int * ierr
 void mpi_sizeof_(int *ierror)
 {
     *ierror = MPI_ERR_UNSUPPORTED_OPERATION;
+    VAPAA_MPI_handle_synthetic_error_no_object(ierror);
     C_MPI_RC_FIX(*ierror);
 }
 
 void mpi_status_f082f_(int *ierror)
 {
     *ierror = MPI_ERR_UNSUPPORTED_OPERATION;
+    VAPAA_MPI_handle_synthetic_error_no_object(ierror);
     C_MPI_RC_FIX(*ierror);
 }
 
 void mpi_status_f2f08_(int *ierror)
 {
     *ierror = MPI_ERR_UNSUPPORTED_OPERATION;
+    VAPAA_MPI_handle_synthetic_error_no_object(ierror);
     C_MPI_RC_FIX(*ierror);
 }
 

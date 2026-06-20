@@ -1,6 +1,7 @@
 ! SPDX-License-Identifier: MIT
 
 module mpi_direct_comm_f
+    use mpi_ierror_f, only: F_MPI_FINISH_IERROR
     use iso_c_binding, only: c_char, c_int, c_int64_t, c_intptr_t, c_null_char, c_ptr
     implicit none
 
@@ -166,7 +167,7 @@ module mpi_direct_comm_f
             integer, optional, intent(out) :: ierror
             integer(c_int) :: ierror_c
             call VAPAA_MPI_Comm_group(comm % MPI_VAL, group % MPI_VAL, ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_Comm_group_f08
 
         subroutine MPI_Comm_remote_group_f08(comm, group, ierror)
@@ -177,7 +178,7 @@ module mpi_direct_comm_f
             integer, optional, intent(out) :: ierror
             integer(c_int) :: ierror_c
             call VAPAA_MPI_Comm_remote_group(comm % MPI_VAL, group % MPI_VAL, ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_Comm_remote_group_f08
 
         subroutine MPI_Comm_remote_size_f08(comm, size, ierror)
@@ -189,7 +190,7 @@ module mpi_direct_comm_f
             integer(c_int) :: size_c, ierror_c
             call VAPAA_MPI_Comm_remote_size(comm % MPI_VAL, size_c, ierror_c)
             size = size_c
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_Comm_remote_size_f08
 
         subroutine MPI_Comm_test_inter_f08(comm, flag, ierror)
@@ -201,7 +202,7 @@ module mpi_direct_comm_f
             integer(c_int) :: flag_c, ierror_c
             call VAPAA_MPI_Comm_test_inter(comm % MPI_VAL, flag_c, ierror_c)
             flag = flag_c /= 0
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_Comm_test_inter_f08
 
         subroutine MPI_Comm_get_info_f08(comm, info_used, ierror)
@@ -212,7 +213,7 @@ module mpi_direct_comm_f
             integer, optional, intent(out) :: ierror
             integer(c_int) :: ierror_c
             call VAPAA_MPI_Comm_get_info(comm % MPI_VAL, info_used % MPI_VAL, ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_Comm_get_info_f08
 
         subroutine MPI_Comm_set_info_f08(comm, info, ierror)
@@ -223,7 +224,7 @@ module mpi_direct_comm_f
             integer, optional, intent(out) :: ierror
             integer(c_int) :: ierror_c
             call VAPAA_MPI_Comm_set_info(comm % MPI_VAL, info % MPI_VAL, ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_Comm_set_info_f08
 
         subroutine MPI_Comm_get_parent_f08(parent, ierror)
@@ -233,7 +234,7 @@ module mpi_direct_comm_f
             integer, optional, intent(out) :: ierror
             integer(c_int) :: ierror_c
             call VAPAA_MPI_Comm_get_parent(parent % MPI_VAL, ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_Comm_get_parent_f08
 
         subroutine MPI_Comm_disconnect_f08(comm, ierror)
@@ -243,7 +244,7 @@ module mpi_direct_comm_f
             integer, optional, intent(out) :: ierror
             integer(c_int) :: ierror_c
             call VAPAA_MPI_Comm_disconnect(comm % MPI_VAL, ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_Comm_disconnect_f08
 
         subroutine MPI_Intercomm_create_f08(local_comm, local_leader, peer_comm, remote_leader, tag, newintercomm, ierror)
@@ -256,7 +257,7 @@ module mpi_direct_comm_f
             integer(c_int) :: ierror_c
             call VAPAA_MPI_Intercomm_create(local_comm % MPI_VAL, int(local_leader,c_int), peer_comm % MPI_VAL, &
                                             int(remote_leader,c_int), int(tag,c_int), newintercomm % MPI_VAL, ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_Intercomm_create_f08
 
         subroutine MPI_Intercomm_merge_f08(intercomm, high, newintracomm, ierror)
@@ -269,7 +270,7 @@ module mpi_direct_comm_f
             integer(c_int) :: high_c, ierror_c
             high_c = merge(1_c_int, 0_c_int, high)
             call VAPAA_MPI_Intercomm_merge(intercomm % MPI_VAL, high_c, newintracomm % MPI_VAL, ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_Intercomm_merge_f08
 
         subroutine MPI_Comm_join_f08(fd, intercomm, ierror)
@@ -280,7 +281,7 @@ module mpi_direct_comm_f
             integer, optional, intent(out) :: ierror
             integer(c_int) :: ierror_c
             call VAPAA_MPI_Comm_join(int(fd,c_int), intercomm % MPI_VAL, ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_Comm_join_f08
 
 #ifdef HAVE_CFI
@@ -299,7 +300,7 @@ module mpi_direct_comm_f
             call VAPAA_MPI_Comm_get_name(comm % MPI_VAL, comm_name_c, resultlen_c, ierror_c)
             call copy_c_string(comm_name_c, comm_name)
             resultlen = resultlen_c
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_Comm_get_name_f08
 
         subroutine MPI_Comm_set_name_f08(comm, comm_name, ierror)
@@ -312,7 +313,7 @@ module mpi_direct_comm_f
             integer(c_int) :: ierror_c
             call make_c_string(comm_name, comm_name_c)
             call VAPAA_MPI_Comm_set_name(comm % MPI_VAL, comm_name_c, ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_Comm_set_name_f08
 
         subroutine MPI_Comm_create_from_group_f08(group, stringtag, info, errhandler, newcomm, ierror)
@@ -329,7 +330,7 @@ module mpi_direct_comm_f
             call make_c_string(stringtag, stringtag_c)
             call VAPAA_MPI_Comm_create_from_group(group % MPI_VAL, stringtag_c, info % MPI_VAL, &
                                                   errhandler % MPI_VAL, newcomm % MPI_VAL, ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_Comm_create_from_group_f08
 
         subroutine MPI_Intercomm_create_from_groups_f08(local_group, local_leader, remote_group, remote_leader, &
@@ -350,7 +351,7 @@ module mpi_direct_comm_f
                                                         remote_group % MPI_VAL, int(remote_leader,c_int), &
                                                         stringtag_c, info % MPI_VAL, errhandler % MPI_VAL, &
                                                         newintercomm % MPI_VAL, ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_Intercomm_create_from_groups_f08
 #endif
 
@@ -362,7 +363,7 @@ module mpi_direct_comm_f
             integer, optional, intent(out) :: ierror
             integer(c_int) :: ierror_c
             call VAPAA_MPI_Comm_delete_attr(comm % MPI_VAL, int(comm_keyval,c_int), ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_Comm_delete_attr_f08
 
         subroutine MPI_Comm_free_keyval_f08(comm_keyval, ierror)
@@ -380,7 +381,7 @@ module mpi_direct_comm_f
             if (ierror_c == 0_c_int) call VAPAA_PGIF_Comm_keyval_release(int(old_keyval_c))
 #endif
             comm_keyval = keyval_c
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_Comm_free_keyval_f08
 
         subroutine MPI_Comm_get_attr_f08(comm, comm_keyval, attribute_val, flag, ierror)
@@ -395,7 +396,7 @@ module mpi_direct_comm_f
             integer(c_int) :: flag_c, ierror_c
             call VAPAA_MPI_Comm_get_attr(comm % MPI_VAL, int(comm_keyval,c_int), attribute_val, flag_c, ierror_c)
             flag = flag_c /= 0
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_Comm_get_attr_f08
 
         subroutine MPI_Comm_set_attr_f08(comm, comm_keyval, attribute_val, ierror)
@@ -408,7 +409,7 @@ module mpi_direct_comm_f
             integer, optional, intent(out) :: ierror
             integer(c_int) :: ierror_c
             call VAPAA_MPI_Comm_set_attr(comm % MPI_VAL, int(comm_keyval,c_int), attribute_val, ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_Comm_set_attr_f08
 
 #ifdef HAVE_CFI
@@ -421,7 +422,7 @@ module mpi_direct_comm_f
             integer, optional, intent(out) :: ierror
             integer(c_int) :: ierror_c
             call VAPAA_MPI_Comm_attach_buffer(comm % MPI_VAL, buffer, int(size,c_int), ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_Comm_attach_buffer_f08ts
 
         subroutine MPI_Comm_attach_buffer_c_f08ts(comm, buffer, size, ierror)
@@ -434,7 +435,7 @@ module mpi_direct_comm_f
             integer, optional, intent(out) :: ierror
             integer(c_int) :: ierror_c
             call VAPAA_MPI_Comm_attach_buffer_c(comm % MPI_VAL, buffer, size, ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_Comm_attach_buffer_c_f08ts
 #endif
 
@@ -448,7 +449,7 @@ module mpi_direct_comm_f
             integer(c_int) :: size_c, ierror_c
             call VAPAA_MPI_Comm_detach_buffer(comm % MPI_VAL, buffer_addr, size_c, ierror_c)
             size = size_c
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_Comm_detach_buffer_f08
 
         subroutine MPI_Comm_detach_buffer_c_f08(comm, buffer_addr, size, ierror)
@@ -461,7 +462,7 @@ module mpi_direct_comm_f
             integer, optional, intent(out) :: ierror
             integer(c_int) :: ierror_c
             call VAPAA_MPI_Comm_detach_buffer_c(comm % MPI_VAL, buffer_addr, size, ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_Comm_detach_buffer_c_f08
 
         subroutine MPI_Comm_flush_buffer_f08(comm, ierror)
@@ -471,7 +472,7 @@ module mpi_direct_comm_f
             integer, optional, intent(out) :: ierror
             integer(c_int) :: ierror_c
             call VAPAA_MPI_Comm_flush_buffer(comm % MPI_VAL, ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_Comm_flush_buffer_f08
 
         subroutine MPI_Comm_iflush_buffer_f08(comm, request, ierror)
@@ -482,7 +483,7 @@ module mpi_direct_comm_f
             integer, optional, intent(out) :: ierror
             integer(c_int) :: ierror_c
             call VAPAA_MPI_Comm_iflush_buffer(comm % MPI_VAL, request % MPI_VAL, ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_Comm_iflush_buffer_f08
 
 #ifdef HAVE_CFI
@@ -499,7 +500,7 @@ module mpi_direct_comm_f
             port_name_c = c_null_char
             call VAPAA_MPI_Open_port(info % MPI_VAL, port_name_c, ierror_c)
             call copy_c_string(port_name_c, port_name)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_Open_port_f08
 
         subroutine MPI_Close_port_f08(port_name, ierror)
@@ -510,7 +511,7 @@ module mpi_direct_comm_f
             integer(c_int) :: ierror_c
             call make_c_string(port_name, port_name_c)
             call VAPAA_MPI_Close_port(port_name_c, ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_Close_port_f08
 
         subroutine MPI_Comm_accept_f08(port_name, info, root, comm, newcomm, ierror)
@@ -526,7 +527,7 @@ module mpi_direct_comm_f
             integer(c_int) :: ierror_c
             call make_c_string(port_name, port_name_c)
             call VAPAA_MPI_Comm_accept(port_name_c, info % MPI_VAL, int(root,c_int), comm % MPI_VAL, newcomm % MPI_VAL, ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_Comm_accept_f08
 
         subroutine MPI_Comm_connect_f08(port_name, info, root, comm, newcomm, ierror)
@@ -542,7 +543,7 @@ module mpi_direct_comm_f
             integer(c_int) :: ierror_c
             call make_c_string(port_name, port_name_c)
             call VAPAA_MPI_Comm_connect(port_name_c, info % MPI_VAL, int(root,c_int), comm % MPI_VAL, newcomm % MPI_VAL, ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_Comm_connect_f08
 
         subroutine MPI_Lookup_name_f08(service_name, info, port_name, ierror)
@@ -560,7 +561,7 @@ module mpi_direct_comm_f
             port_name_c = c_null_char
             call VAPAA_MPI_Lookup_name(service_name_c, info % MPI_VAL, port_name_c, ierror_c)
             call copy_c_string(port_name_c, port_name)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_Lookup_name_f08
 
         subroutine MPI_Publish_name_f08(service_name, info, port_name, ierror)
@@ -574,7 +575,7 @@ module mpi_direct_comm_f
             call make_c_string(service_name, service_name_c)
             call make_c_string(port_name, port_name_c)
             call VAPAA_MPI_Publish_name(service_name_c, info % MPI_VAL, port_name_c, ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_Publish_name_f08
 
         subroutine MPI_Unpublish_name_f08(service_name, info, port_name, ierror)
@@ -588,7 +589,7 @@ module mpi_direct_comm_f
             call make_c_string(service_name, service_name_c)
             call make_c_string(port_name, port_name_c)
             call VAPAA_MPI_Unpublish_name(service_name_c, info % MPI_VAL, port_name_c, ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_Unpublish_name_f08
 #endif
 
@@ -601,7 +602,7 @@ module mpi_direct_comm_f
             integer, optional, intent(out) :: ierror
             integer(c_int) :: ierror_c
             call VAPAA_MPI_Session_init(info % MPI_VAL, errhandler % MPI_VAL, session % MPI_VAL, ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_Session_init_f08
 
         subroutine MPI_Session_finalize_f08(session, ierror)
@@ -611,7 +612,7 @@ module mpi_direct_comm_f
             integer, optional, intent(out) :: ierror
             integer(c_int) :: ierror_c
             call VAPAA_MPI_Session_finalize(session % MPI_VAL, ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_Session_finalize_f08
 
         subroutine MPI_Session_get_info_f08(session, info_used, ierror)
@@ -622,7 +623,7 @@ module mpi_direct_comm_f
             integer, optional, intent(out) :: ierror
             integer(c_int) :: ierror_c
             call VAPAA_MPI_Session_get_info(session % MPI_VAL, info_used % MPI_VAL, ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_Session_get_info_f08
 
         subroutine MPI_Session_get_num_psets_f08(session, info, npset_names, ierror)
@@ -635,7 +636,7 @@ module mpi_direct_comm_f
             integer(c_int) :: npset_names_c, ierror_c
             call VAPAA_MPI_Session_get_num_psets(session % MPI_VAL, info % MPI_VAL, npset_names_c, ierror_c)
             npset_names = npset_names_c
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_Session_get_num_psets_f08
 
 #ifdef HAVE_CFI
@@ -656,7 +657,7 @@ module mpi_direct_comm_f
             call VAPAA_MPI_Session_get_nth_pset(session % MPI_VAL, info % MPI_VAL, int(n,c_int), pset_len_c, pset_name_c, ierror_c)
             call copy_c_string(pset_name_c, pset_name)
             pset_len = pset_len_c
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_Session_get_nth_pset_f08
 
         subroutine MPI_Session_get_pset_info_f08(session, pset_name, info, ierror)
@@ -670,7 +671,7 @@ module mpi_direct_comm_f
             integer(c_int) :: ierror_c
             call make_c_string(pset_name, pset_name_c)
             call VAPAA_MPI_Session_get_pset_info(session % MPI_VAL, pset_name_c, info % MPI_VAL, ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_Session_get_pset_info_f08
 #endif
 
@@ -684,7 +685,7 @@ module mpi_direct_comm_f
             integer, optional, intent(out) :: ierror
             integer(c_int) :: ierror_c
             call VAPAA_MPI_Session_attach_buffer(session % MPI_VAL, buffer, int(size,c_int), ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_Session_attach_buffer_f08ts
 
         subroutine MPI_Session_attach_buffer_c_f08ts(session, buffer, size, ierror)
@@ -697,7 +698,7 @@ module mpi_direct_comm_f
             integer, optional, intent(out) :: ierror
             integer(c_int) :: ierror_c
             call VAPAA_MPI_Session_attach_buffer_c(session % MPI_VAL, buffer, size, ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_Session_attach_buffer_c_f08ts
 #endif
 
@@ -711,7 +712,7 @@ module mpi_direct_comm_f
             integer(c_int) :: size_c, ierror_c
             call VAPAA_MPI_Session_detach_buffer(session % MPI_VAL, buffer_addr, size_c, ierror_c)
             size = size_c
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_Session_detach_buffer_f08
 
         subroutine MPI_Session_detach_buffer_c_f08(session, buffer_addr, size, ierror)
@@ -724,7 +725,7 @@ module mpi_direct_comm_f
             integer, optional, intent(out) :: ierror
             integer(c_int) :: ierror_c
             call VAPAA_MPI_Session_detach_buffer_c(session % MPI_VAL, buffer_addr, size, ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_Session_detach_buffer_c_f08
 
         subroutine MPI_Session_flush_buffer_f08(session, ierror)
@@ -734,7 +735,7 @@ module mpi_direct_comm_f
             integer, optional, intent(out) :: ierror
             integer(c_int) :: ierror_c
             call VAPAA_MPI_Session_flush_buffer(session % MPI_VAL, ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_Session_flush_buffer_f08
 
         subroutine MPI_Session_iflush_buffer_f08(session, request, ierror)
@@ -745,7 +746,7 @@ module mpi_direct_comm_f
             integer, optional, intent(out) :: ierror
             integer(c_int) :: ierror_c
             call VAPAA_MPI_Session_iflush_buffer(session % MPI_VAL, request % MPI_VAL, ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_Session_iflush_buffer_f08
 
 end module mpi_direct_comm_f

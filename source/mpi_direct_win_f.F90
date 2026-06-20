@@ -1,6 +1,7 @@
 ! SPDX-License-Identifier: MIT
 
 module mpi_direct_win_f
+    use mpi_ierror_f, only: F_MPI_FINISH_IERROR
     use iso_c_binding, only: c_char, c_int, c_intptr_t, c_null_char, c_ptr
     implicit none
 
@@ -178,7 +179,7 @@ module mpi_direct_win_f
             integer(c_int) :: ierror_c
             call VAPAA_MPI_Win_allocate(size, int(disp_unit,c_int), info % MPI_VAL, comm % MPI_VAL, &
                                         baseptr, win % MPI_VAL, ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine
 
         subroutine MPI_Win_allocate_c_f08(size, disp_unit, info, comm, baseptr, win, ierror)
@@ -193,7 +194,7 @@ module mpi_direct_win_f
             integer, optional, intent(out) :: ierror
             integer(c_int) :: ierror_c
             call VAPAA_MPI_Win_allocate_c(size, disp_unit, info % MPI_VAL, comm % MPI_VAL, baseptr, win % MPI_VAL, ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine
 
         subroutine MPI_Win_allocate_shared_f08(size, disp_unit, info, comm, baseptr, win, ierror)
@@ -210,7 +211,7 @@ module mpi_direct_win_f
             integer(c_int) :: ierror_c
             call VAPAA_MPI_Win_allocate_shared(size, int(disp_unit,c_int), info % MPI_VAL, comm % MPI_VAL, &
                                                baseptr, win % MPI_VAL, ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine
 
         subroutine MPI_Win_allocate_shared_c_f08(size, disp_unit, info, comm, baseptr, win, ierror)
@@ -225,7 +226,7 @@ module mpi_direct_win_f
             integer, optional, intent(out) :: ierror
             integer(c_int) :: ierror_c
             call VAPAA_MPI_Win_allocate_shared_c(size, disp_unit, info % MPI_VAL, comm % MPI_VAL, baseptr, win % MPI_VAL, ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine
 
 #ifdef HAVE_CFI
@@ -242,7 +243,7 @@ module mpi_direct_win_f
             integer, optional, intent(out) :: ierror
             integer(c_int) :: ierror_c
             call VAPAA_MPI_Win_create(base, size, int(disp_unit,c_int), info % MPI_VAL, comm % MPI_VAL, win % MPI_VAL, ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine
 
         subroutine MPI_Win_attach_f08ts(win, base, size, ierror)
@@ -255,7 +256,7 @@ module mpi_direct_win_f
             integer, optional, intent(out) :: ierror
             integer(c_int) :: ierror_c
             call VAPAA_MPI_Win_attach(win % MPI_VAL, base, size, ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine
 
         subroutine MPI_Win_detach_f08ts(win, base, ierror)
@@ -266,7 +267,7 @@ module mpi_direct_win_f
             integer, optional, intent(out) :: ierror
             integer(c_int) :: ierror_c
             call VAPAA_MPI_Win_detach(win % MPI_VAL, base, ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine
 
         subroutine MPI_Put_f08ts(origin_addr, origin_count, origin_datatype, target_rank, target_disp, &
@@ -283,7 +284,7 @@ module mpi_direct_win_f
             integer(c_int) :: ierror_c
             call VAPAA_MPI_Put(origin_addr, int(origin_count,c_int), origin_datatype % MPI_VAL, int(target_rank,c_int), &
                                target_disp, int(target_count,c_int), target_datatype % MPI_VAL, win % MPI_VAL, ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine
 
         subroutine MPI_Get_f08ts(origin_addr, origin_count, origin_datatype, target_rank, target_disp, &
@@ -300,7 +301,7 @@ module mpi_direct_win_f
             integer(c_int) :: ierror_c
             call VAPAA_MPI_Get(origin_addr, int(origin_count,c_int), origin_datatype % MPI_VAL, int(target_rank,c_int), &
                                target_disp, int(target_count,c_int), target_datatype % MPI_VAL, win % MPI_VAL, ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine
 
         subroutine MPI_Accumulate_f08ts(origin_addr, origin_count, origin_datatype, target_rank, target_disp, &
@@ -319,7 +320,7 @@ module mpi_direct_win_f
             call VAPAA_MPI_Accumulate(origin_addr, int(origin_count,c_int), origin_datatype % MPI_VAL, int(target_rank,c_int), &
                                       target_disp, int(target_count,c_int), target_datatype % MPI_VAL, op % MPI_VAL, &
                                       win % MPI_VAL, ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine
 
         subroutine MPI_Get_accumulate_f08ts(origin_addr, origin_count, origin_datatype, result_addr, &
@@ -341,7 +342,7 @@ module mpi_direct_win_f
                                           result_addr, int(result_count,c_int), result_datatype % MPI_VAL, &
                                           int(target_rank,c_int), target_disp, int(target_count,c_int), &
                                           target_datatype % MPI_VAL, op % MPI_VAL, win % MPI_VAL, ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine
 
         subroutine MPI_Rput_f08ts(origin_addr, origin_count, origin_datatype, target_rank, target_disp, &
@@ -360,7 +361,7 @@ module mpi_direct_win_f
             call VAPAA_MPI_Rput(origin_addr, int(origin_count,c_int), origin_datatype % MPI_VAL, int(target_rank,c_int), &
                                 target_disp, int(target_count,c_int), target_datatype % MPI_VAL, win % MPI_VAL, &
                                 request % MPI_VAL, ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine
 
         subroutine MPI_Rget_f08ts(origin_addr, origin_count, origin_datatype, target_rank, target_disp, &
@@ -379,7 +380,7 @@ module mpi_direct_win_f
             call VAPAA_MPI_Rget(origin_addr, int(origin_count,c_int), origin_datatype % MPI_VAL, int(target_rank,c_int), &
                                 target_disp, int(target_count,c_int), target_datatype % MPI_VAL, win % MPI_VAL, &
                                 request % MPI_VAL, ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine
 
         subroutine MPI_Raccumulate_f08ts(origin_addr, origin_count, origin_datatype, target_rank, target_disp, &
@@ -399,7 +400,7 @@ module mpi_direct_win_f
             call VAPAA_MPI_Raccumulate(origin_addr, int(origin_count,c_int), origin_datatype % MPI_VAL, int(target_rank,c_int), &
                                        target_disp, int(target_count,c_int), target_datatype % MPI_VAL, op % MPI_VAL, &
                                        win % MPI_VAL, request % MPI_VAL, ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine
 
         subroutine MPI_Rget_accumulate_f08ts(origin_addr, origin_count, origin_datatype, result_addr, &
@@ -423,7 +424,7 @@ module mpi_direct_win_f
                                            int(target_rank,c_int), target_disp, int(target_count,c_int), &
                                            target_datatype % MPI_VAL, op % MPI_VAL, win % MPI_VAL, &
                                            request % MPI_VAL, ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine
 
         subroutine MPI_Compare_and_swap_f08ts(origin_addr, compare_addr, result_addr, datatype, target_rank, &
@@ -441,7 +442,7 @@ module mpi_direct_win_f
             integer(c_int) :: ierror_c
             call VAPAA_MPI_Compare_and_swap(origin_addr, compare_addr, result_addr, datatype % MPI_VAL, &
                                             int(target_rank,c_int), target_disp, win % MPI_VAL, ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine
 
         subroutine MPI_Fetch_and_op_f08ts(origin_addr, result_addr, datatype, target_rank, target_disp, op, win, ierror)
@@ -459,7 +460,7 @@ module mpi_direct_win_f
             integer(c_int) :: ierror_c
             call VAPAA_MPI_Fetch_and_op(origin_addr, result_addr, datatype % MPI_VAL, int(target_rank,c_int), &
                                         target_disp, op % MPI_VAL, win % MPI_VAL, ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine
 #endif
 
@@ -472,7 +473,7 @@ module mpi_direct_win_f
             integer, optional, intent(out) :: ierror
             integer(c_int) :: ierror_c
             call VAPAA_MPI_Win_create_dynamic(info % MPI_VAL, comm % MPI_VAL, win % MPI_VAL, ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine
 
         subroutine MPI_Win_free_f08(win, ierror)
@@ -482,7 +483,7 @@ module mpi_direct_win_f
             integer, optional, intent(out) :: ierror
             integer(c_int) :: ierror_c
             call VAPAA_MPI_Win_free(win % MPI_VAL, ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine
 
         subroutine MPI_Win_shared_query_f08(win, rank, size, disp_unit, baseptr, ierror)
@@ -498,7 +499,7 @@ module mpi_direct_win_f
             integer(c_int) :: disp_unit_c, ierror_c
             call VAPAA_MPI_Win_shared_query(win % MPI_VAL, int(rank,c_int), size, disp_unit_c, baseptr, ierror_c)
             disp_unit = disp_unit_c
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine
 
         subroutine MPI_Win_shared_query_c_f08(win, rank, size, disp_unit, baseptr, ierror)
@@ -512,7 +513,7 @@ module mpi_direct_win_f
             integer, optional, intent(out) :: ierror
             integer(c_int) :: ierror_c
             call VAPAA_MPI_Win_shared_query_c(win % MPI_VAL, int(rank,c_int), size, disp_unit, baseptr, ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine
 
         subroutine MPI_Win_get_group_f08(win, group, ierror)
@@ -523,7 +524,7 @@ module mpi_direct_win_f
             integer, optional, intent(out) :: ierror
             integer(c_int) :: ierror_c
             call VAPAA_MPI_Win_get_group(win % MPI_VAL, group % MPI_VAL, ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine
 
         subroutine MPI_Win_get_info_f08(win, info_used, ierror)
@@ -534,7 +535,7 @@ module mpi_direct_win_f
             integer, optional, intent(out) :: ierror
             integer(c_int) :: ierror_c
             call VAPAA_MPI_Win_get_info(win % MPI_VAL, info_used % MPI_VAL, ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine
 
         subroutine MPI_Win_set_info_f08(win, info, ierror)
@@ -545,7 +546,7 @@ module mpi_direct_win_f
             integer, optional, intent(out) :: ierror
             integer(c_int) :: ierror_c
             call VAPAA_MPI_Win_set_info(win % MPI_VAL, info % MPI_VAL, ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine
 
 #ifdef HAVE_CFI
@@ -564,7 +565,7 @@ module mpi_direct_win_f
             call VAPAA_MPI_Win_get_name(win % MPI_VAL, win_name_c, resultlen_c, ierror_c)
             call copy_c_string(win_name_c, win_name)
             resultlen = resultlen_c
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine
 
         subroutine MPI_Win_set_name_f08(win, win_name, ierror)
@@ -577,7 +578,7 @@ module mpi_direct_win_f
             integer(c_int) :: ierror_c
             call make_c_string(win_name, win_name_c)
             call VAPAA_MPI_Win_set_name(win % MPI_VAL, win_name_c, ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine
 #endif
 
@@ -589,7 +590,7 @@ module mpi_direct_win_f
             integer, optional, intent(out) :: ierror
             integer(c_int) :: ierror_c
             call VAPAA_MPI_Win_delete_attr(win % MPI_VAL, int(win_keyval,c_int), ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine
 
         subroutine MPI_Win_free_keyval_f08(win_keyval, ierror)
@@ -607,7 +608,7 @@ module mpi_direct_win_f
             if (ierror_c == 0_c_int) call VAPAA_PGIF_Win_keyval_release(int(old_keyval_c))
 #endif
             win_keyval = keyval_c
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine
 
         subroutine MPI_Win_get_attr_f08(win, win_keyval, attribute_val, flag, ierror)
@@ -622,7 +623,7 @@ module mpi_direct_win_f
             integer(c_int) :: flag_c, ierror_c
             call VAPAA_MPI_Win_get_attr(win % MPI_VAL, int(win_keyval,c_int), attribute_val, flag_c, ierror_c)
             flag = flag_c /= 0
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine
 
         subroutine MPI_Win_set_attr_f08(win, win_keyval, attribute_val, ierror)
@@ -635,7 +636,7 @@ module mpi_direct_win_f
             integer, optional, intent(out) :: ierror
             integer(c_int) :: ierror_c
             call VAPAA_MPI_Win_set_attr(win % MPI_VAL, int(win_keyval,c_int), attribute_val, ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine
 
         subroutine MPI_Win_fence_f08(assert, win, ierror)
@@ -646,7 +647,7 @@ module mpi_direct_win_f
             integer, optional, intent(out) :: ierror
             integer(c_int) :: ierror_c
             call VAPAA_MPI_Win_fence(int(assert,c_int), win % MPI_VAL, ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine
 
         subroutine MPI_Win_start_f08(group, assert, win, ierror)
@@ -658,7 +659,7 @@ module mpi_direct_win_f
             integer, optional, intent(out) :: ierror
             integer(c_int) :: ierror_c
             call VAPAA_MPI_Win_start(group % MPI_VAL, int(assert,c_int), win % MPI_VAL, ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine
 
         subroutine MPI_Win_complete_f08(win, ierror)
@@ -668,7 +669,7 @@ module mpi_direct_win_f
             integer, optional, intent(out) :: ierror
             integer(c_int) :: ierror_c
             call VAPAA_MPI_Win_complete(win % MPI_VAL, ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine
 
         subroutine MPI_Win_post_f08(group, assert, win, ierror)
@@ -680,7 +681,7 @@ module mpi_direct_win_f
             integer, optional, intent(out) :: ierror
             integer(c_int) :: ierror_c
             call VAPAA_MPI_Win_post(group % MPI_VAL, int(assert,c_int), win % MPI_VAL, ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine
 
         subroutine MPI_Win_wait_f08(win, ierror)
@@ -690,7 +691,7 @@ module mpi_direct_win_f
             integer, optional, intent(out) :: ierror
             integer(c_int) :: ierror_c
             call VAPAA_MPI_Win_wait(win % MPI_VAL, ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine
 
         subroutine MPI_Win_test_f08(win, flag, ierror)
@@ -702,7 +703,7 @@ module mpi_direct_win_f
             integer(c_int) :: flag_c, ierror_c
             call VAPAA_MPI_Win_test(win % MPI_VAL, flag_c, ierror_c)
             flag = flag_c /= 0
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine
 
         subroutine MPI_Win_lock_f08(lock_type, rank, assert, win, ierror)
@@ -713,7 +714,7 @@ module mpi_direct_win_f
             integer, optional, intent(out) :: ierror
             integer(c_int) :: ierror_c
             call VAPAA_MPI_Win_lock(int(lock_type,c_int), int(rank,c_int), int(assert,c_int), win % MPI_VAL, ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine
 
         subroutine MPI_Win_unlock_f08(rank, win, ierror)
@@ -724,7 +725,7 @@ module mpi_direct_win_f
             integer, optional, intent(out) :: ierror
             integer(c_int) :: ierror_c
             call VAPAA_MPI_Win_unlock(int(rank,c_int), win % MPI_VAL, ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine
 
         subroutine MPI_Win_lock_all_f08(assert, win, ierror)
@@ -735,7 +736,7 @@ module mpi_direct_win_f
             integer, optional, intent(out) :: ierror
             integer(c_int) :: ierror_c
             call VAPAA_MPI_Win_lock_all(int(assert,c_int), win % MPI_VAL, ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine
 
         subroutine MPI_Win_unlock_all_f08(win, ierror)
@@ -745,7 +746,7 @@ module mpi_direct_win_f
             integer, optional, intent(out) :: ierror
             integer(c_int) :: ierror_c
             call VAPAA_MPI_Win_unlock_all(win % MPI_VAL, ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine
 
         subroutine MPI_Win_flush_f08(rank, win, ierror)
@@ -756,7 +757,7 @@ module mpi_direct_win_f
             integer, optional, intent(out) :: ierror
             integer(c_int) :: ierror_c
             call VAPAA_MPI_Win_flush(int(rank,c_int), win % MPI_VAL, ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine
 
         subroutine MPI_Win_flush_all_f08(win, ierror)
@@ -766,7 +767,7 @@ module mpi_direct_win_f
             integer, optional, intent(out) :: ierror
             integer(c_int) :: ierror_c
             call VAPAA_MPI_Win_flush_all(win % MPI_VAL, ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine
 
         subroutine MPI_Win_flush_local_f08(rank, win, ierror)
@@ -777,7 +778,7 @@ module mpi_direct_win_f
             integer, optional, intent(out) :: ierror
             integer(c_int) :: ierror_c
             call VAPAA_MPI_Win_flush_local(int(rank,c_int), win % MPI_VAL, ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine
 
         subroutine MPI_Win_flush_local_all_f08(win, ierror)
@@ -787,7 +788,7 @@ module mpi_direct_win_f
             integer, optional, intent(out) :: ierror
             integer(c_int) :: ierror_c
             call VAPAA_MPI_Win_flush_local_all(win % MPI_VAL, ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine
 
         subroutine MPI_Win_sync_f08(win, ierror)
@@ -797,7 +798,7 @@ module mpi_direct_win_f
             integer, optional, intent(out) :: ierror
             integer(c_int) :: ierror_c
             call VAPAA_MPI_Win_sync(win % MPI_VAL, ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine
 
 end module mpi_direct_win_f

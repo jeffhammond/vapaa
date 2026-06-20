@@ -1,6 +1,7 @@
 ! SPDX-License-Identifier: MIT
 
 module mpi_comm_f
+    use mpi_ierror_f, only: F_MPI_FINISH_IERROR
     use iso_c_binding, only: c_int
     implicit none
 
@@ -150,7 +151,7 @@ module mpi_comm_f
             integer(kind=c_int) :: rank_c, ierror_c
             call C_MPI_Comm_rank(comm % MPI_VAL, rank_c, ierror_c)
             rank = rank_c
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_Comm_rank_f08
 
         subroutine MPI_Comm_size_f08(comm, size, ierror)
@@ -162,7 +163,7 @@ module mpi_comm_f
             integer(kind=c_int) :: size_c, ierror_c
             call C_MPI_Comm_size(comm % MPI_VAL, size_c, ierror_c)
             size = size_c
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_Comm_size_f08
 
         subroutine MPI_Comm_compare_f08(comm1, comm2, result, ierror)
@@ -174,7 +175,7 @@ module mpi_comm_f
             integer(kind=c_int) :: result_c, ierror_c
             call C_MPI_Comm_compare(comm1 % MPI_VAL, comm2 % MPI_VAL, result_c, ierror_c)
             result = result_c
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_Comm_compare_f08
 
         subroutine MPI_Comm_dup_f08(comm, newcomm, ierror)
@@ -185,7 +186,7 @@ module mpi_comm_f
             integer, optional, intent(out) :: ierror
             integer(kind=c_int) :: ierror_c
             call C_MPI_Comm_dup(comm % MPI_VAL, newcomm % MPI_VAL, ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_Comm_dup_f08
 
         subroutine MPI_Comm_dup_with_info_f08(comm, info, newcomm, ierror)
@@ -197,7 +198,7 @@ module mpi_comm_f
             integer, optional, intent(out) :: ierror
             integer(kind=c_int) :: ierror_c
             call C_MPI_Comm_dup_with_info(comm % MPI_VAL, info % MPI_VAL, newcomm % MPI_VAL, ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_Comm_dup_with_info_f08
 
         subroutine MPI_Comm_idup_f08(comm, newcomm, request, ierror)
@@ -209,7 +210,7 @@ module mpi_comm_f
             integer, optional, intent(out) :: ierror
             integer(kind=c_int) :: ierror_c
             call C_MPI_Comm_idup(comm % MPI_VAL, newcomm % MPI_VAL, request % MPI_VAL, ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_Comm_idup_f08
 
         subroutine MPI_Comm_idup_with_info_f08(comm, info, newcomm, request, ierror)
@@ -222,7 +223,7 @@ module mpi_comm_f
             integer, optional, intent(out) :: ierror
             integer(kind=c_int) :: ierror_c
             call C_MPI_Comm_idup_with_info(comm % MPI_VAL, info % MPI_VAL, newcomm % MPI_VAL, request % MPI_VAL, ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_Comm_idup_with_info_f08
 
         subroutine MPI_Comm_create_f08(comm, group, newcomm, ierror)
@@ -234,7 +235,7 @@ module mpi_comm_f
             integer, optional, intent(out) :: ierror
             integer(kind=c_int) :: ierror_c
             call C_MPI_Comm_create(comm % MPI_VAL, group % MPI_VAL, newcomm % MPI_VAL, ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_Comm_create_f08
 
         subroutine MPI_Comm_create_group_f08(comm, group, tag, newcomm, ierror)
@@ -248,7 +249,7 @@ module mpi_comm_f
             integer(kind=c_int) :: tag_c, ierror_c
             tag_c = tag
             call C_MPI_Comm_create_group(comm % MPI_VAL, group % MPI_VAL, tag_c, newcomm % MPI_VAL, ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_Comm_create_group_f08
 
         subroutine MPI_Comm_split_f08(comm, color, key, newcomm, ierror)
@@ -262,7 +263,7 @@ module mpi_comm_f
             color_c = color
             key_c = key
             call C_MPI_Comm_split(comm % MPI_VAL, color_c, key_c, newcomm % MPI_VAL, ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_Comm_split_f08
 
         subroutine MPI_Comm_split_type_f08(comm, type, key, info, newcomm, ierror)
@@ -277,7 +278,7 @@ module mpi_comm_f
             type_c = type
             key_c = key
             call C_MPI_Comm_split_type(comm % MPI_VAL, type_c, key_c, info % MPI_VAL, newcomm % MPI_VAL, ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_Comm_split_type_f08
 
         subroutine MPI_Comm_free_f08(comm, ierror)
@@ -287,7 +288,7 @@ module mpi_comm_f
             integer, optional, intent(out) :: ierror
             integer(kind=c_int) :: ierror_c
             call C_MPI_Comm_free(comm % MPI_VAL, ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_Comm_free_f08
 
         subroutine MPI_Cart_create_f08(comm, ndims, dims, periods, reorder, newcomm, ierror)
@@ -312,7 +313,7 @@ module mpi_comm_f
                 periods_c = 0
             end where
             call C_MPI_Cart_create(comm % MPI_VAL, ndims_c, dims_c, periods_c, reorder_c, newcomm % MPI_VAL, ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_Cart_create_f08
 
         subroutine MPI_Dims_create_f08(nnodes, ndims, dims, ierror)
@@ -326,7 +327,7 @@ module mpi_comm_f
             dims_c = dims
             call C_MPI_Dims_create(nnodes_c, ndims_c, dims_c, ierror_c)
             dims = dims_c
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_Dims_create_f08
 
         subroutine MPI_Cart_coords_f08(comm, rank, maxdims, coords, ierror)
@@ -341,7 +342,7 @@ module mpi_comm_f
             maxdims_c = maxdims
             call C_MPI_Cart_coords(comm % MPI_VAL, rank_c, maxdims_c, coords_c, ierror_c)
             coords = coords_c
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_Cart_coords_f08
 
         subroutine MPI_Cart_get_f08(comm, maxdims, dims, periods, coords, ierror)
@@ -359,7 +360,7 @@ module mpi_comm_f
             dims = dims_c
             periods = (periods_c /= 0)
             coords = coords_c
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_Cart_get_f08
 
         subroutine MPI_Cart_map_f08(comm, ndims, dims, periods, newrank, ierror)
@@ -381,7 +382,7 @@ module mpi_comm_f
             end where
             call C_MPI_Cart_map(comm % MPI_VAL, ndims_c, dims_c, periods_c, newrank_c, ierror_c)
             newrank = newrank_c
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_Cart_map_f08
 
         subroutine MPI_Cart_rank_f08(comm, coords, rank, ierror)
@@ -394,7 +395,7 @@ module mpi_comm_f
             integer(kind=c_int) :: rank_c, ierror_c
             call C_MPI_Cart_rank(comm % MPI_VAL, coords, rank_c, ierror_c)
             rank = rank_c
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_Cart_rank_f08
 
         subroutine MPI_Cart_shift_f08(comm, direction, disp, rank_source, rank_dest, ierror)
@@ -410,7 +411,7 @@ module mpi_comm_f
             call C_MPI_Cart_shift(comm % MPI_VAL, direction_c, disp_c, rank_source_c, rank_dest_c, ierror_c)
             rank_source = rank_source_c
             rank_dest = rank_dest_c
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_Cart_shift_f08
 
         subroutine MPI_Cart_sub_f08(comm, remain_dims, newcomm, ierror)
@@ -432,7 +433,7 @@ module mpi_comm_f
                 end where
                 call C_MPI_Cart_sub(comm % MPI_VAL, remain_dims_c, newcomm % MPI_VAL, ierror_c)
             end if
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_Cart_sub_f08
 
         subroutine MPI_Cartdim_get_f08(comm, ndims, ierror)
@@ -444,7 +445,7 @@ module mpi_comm_f
             integer(kind=c_int) :: ndims_c, ierror_c
             call C_MPI_Cartdim_get(comm % MPI_VAL, ndims_c, ierror_c)
             ndims = ndims_c
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_Cartdim_get_f08
 
         subroutine MPI_Dist_graph_create_f08(comm_old, n, sources, degrees, destinations, weights, info, &
@@ -468,7 +469,7 @@ module mpi_comm_f
             end if
             call C_MPI_Dist_graph_create(comm_old % MPI_VAL, n_c, sources, degrees, destinations, weights, &
                                          info % MPI_VAL, reorder_c, comm_dist_graph % MPI_VAL, ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_Dist_graph_create_f08
 
         subroutine MPI_Dist_graph_create_sentinel_f08(comm_old, n, sources, degrees, destinations, weights, info, &
@@ -492,7 +493,7 @@ module mpi_comm_f
             end if
             call C_MPI_Dist_graph_create_sentinel(comm_old % MPI_VAL, n_c, sources, degrees, destinations, weights, &
                                                   info % MPI_VAL, reorder_c, comm_dist_graph % MPI_VAL, ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_Dist_graph_create_sentinel_f08
 
         subroutine MPI_Dist_graph_create_adjacent_f08(comm_old, indegree, sources, sourceweights, outdegree, &
@@ -522,7 +523,7 @@ module mpi_comm_f
             call C_MPI_Dist_graph_create_adjacent(comm_old % MPI_VAL, indegree_c, sources, sourceweights, &
                                                   outdegree_c, destinations, destweights, info % MPI_VAL, &
                                                   reorder_c, comm_dist_graph % MPI_VAL, ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_Dist_graph_create_adjacent_f08
 
         subroutine MPI_Dist_graph_create_adjacent_sentinel_f08(comm_old, indegree, sources, sourceweights, &
@@ -552,7 +553,7 @@ module mpi_comm_f
             call C_MPI_Dist_graph_create_adjacent_sentinel(comm_old % MPI_VAL, indegree_c, sources, sourceweights, &
                                                            outdegree_c, destinations, destweights, info % MPI_VAL, &
                                                            reorder_c, comm_dist_graph % MPI_VAL, ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_Dist_graph_create_adjacent_sentinel_f08
 
         subroutine MPI_Dist_graph_neighbors_f08(comm, maxindegree, sources, sourceweights, maxoutdegree, &
@@ -572,7 +573,7 @@ module mpi_comm_f
             maxoutdegree_c = maxoutdegree
             call C_MPI_Dist_graph_neighbors(comm % MPI_VAL, maxindegree_c, sources, sourceweights, &
                                             maxoutdegree_c, destinations, destweights, ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_Dist_graph_neighbors_f08
 
         subroutine MPI_Dist_graph_neighbors_sentinel_f08(comm, maxindegree, sources, sourceweights, maxoutdegree, &
@@ -592,7 +593,7 @@ module mpi_comm_f
             maxoutdegree_c = maxoutdegree
             call C_MPI_Dist_graph_neighbors_sentinel(comm % MPI_VAL, maxindegree_c, sources, sourceweights, &
                                                      maxoutdegree_c, destinations, destweights, ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_Dist_graph_neighbors_sentinel_f08
 
         subroutine MPI_Dist_graph_neighbors_count_f08(comm, indegree, outdegree, weighted, ierror)
@@ -607,7 +608,7 @@ module mpi_comm_f
             indegree = indegree_c
             outdegree = outdegree_c
             weighted = (weighted_c /= 0)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_Dist_graph_neighbors_count_f08
 
         subroutine MPI_Graph_create_f08(comm_old, nnodes, indx, edges, reorder, comm_graph, ierror)
@@ -628,7 +629,7 @@ module mpi_comm_f
             end if
             call C_MPI_Graph_create(comm_old % MPI_VAL, nnodes_c, indx, edges, reorder_c, &
                                     comm_graph % MPI_VAL, ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_Graph_create_f08
 
         subroutine MPI_Graph_get_f08(comm, maxindex, maxedges, indx, edges, ierror)
@@ -642,7 +643,7 @@ module mpi_comm_f
             maxindex_c = maxindex
             maxedges_c = maxedges
             call C_MPI_Graph_get(comm % MPI_VAL, maxindex_c, maxedges_c, indx, edges, ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_Graph_get_f08
 
         subroutine MPI_Graph_map_f08(comm, nnodes, indx, edges, newrank, ierror)
@@ -657,7 +658,7 @@ module mpi_comm_f
             nnodes_c = nnodes
             call C_MPI_Graph_map(comm % MPI_VAL, nnodes_c, indx, edges, newrank_c, ierror_c)
             newrank = newrank_c
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_Graph_map_f08
 
         subroutine MPI_Graph_neighbors_f08(comm, rank, maxneighbors, neighbors, ierror)
@@ -671,7 +672,7 @@ module mpi_comm_f
             rank_c = rank
             maxneighbors_c = maxneighbors
             call C_MPI_Graph_neighbors(comm % MPI_VAL, rank_c, maxneighbors_c, neighbors, ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_Graph_neighbors_f08
 
         subroutine MPI_Graph_neighbors_count_f08(comm, rank, nneighbors, ierror)
@@ -685,7 +686,7 @@ module mpi_comm_f
             rank_c = rank
             call C_MPI_Graph_neighbors_count(comm % MPI_VAL, rank_c, nneighbors_c, ierror_c)
             nneighbors = nneighbors_c
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_Graph_neighbors_count_f08
 
         subroutine MPI_Graphdims_get_f08(comm, nnodes, nedges, ierror)
@@ -698,7 +699,7 @@ module mpi_comm_f
             call C_MPI_Graphdims_get(comm % MPI_VAL, nnodes_c, nedges_c, ierror_c)
             nnodes = nnodes_c
             nedges = nedges_c
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_Graphdims_get_f08
 
         subroutine MPI_Topo_test_f08(comm, status, ierror)
@@ -710,7 +711,7 @@ module mpi_comm_f
             integer(kind=c_int) :: status_c, ierror_c
             call C_MPI_Topo_test(comm % MPI_VAL, status_c, ierror_c)
             status = status_c
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_Topo_test_f08
 
         subroutine MPI_Get_hw_resource_info_f08(hw_info, ierror)
@@ -720,7 +721,7 @@ module mpi_comm_f
             integer, optional, intent(out) :: ierror
             integer(kind=c_int) :: ierror_c
             call C_MPI_Get_hw_resource_info(hw_info % MPI_VAL, ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_Get_hw_resource_info_f08
 
 end module mpi_comm_f

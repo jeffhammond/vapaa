@@ -257,10 +257,6 @@ void C_MPI_Init(int * ierror)
     }
 #endif
     C_MPI_RC_FIX(*ierror);
-
-    // DEBUG
-    MPI_Comm_set_errhandler(MPI_COMM_WORLD, MPI_ERRORS_RETURN);
-    MPI_Comm_set_errhandler(MPI_COMM_SELF, MPI_ERRORS_RETURN);
 }
 
 void C_MPI_Set_fortran_type_sizes(int * logical_size, int * integer_size,

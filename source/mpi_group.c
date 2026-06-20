@@ -3,6 +3,7 @@
 #include <mpi.h>
 #include "convert_handles.h"
 #include "convert_constants.h"
+#include "vapaa_error_handling.h"
 
 // STANDARD STUFF
 
@@ -129,6 +130,7 @@ void C_MPI_Group_from_session_pset(int * session_f, char * pset_name, int * newg
     (void) pset_name;
     *newgroup_f = VAPAA_MPI_GROUP_NULL;
     *ierror = MPI_ERR_UNSUPPORTED_OPERATION;
+    VAPAA_MPI_handle_synthetic_error_no_object(ierror);
     C_MPI_RC_FIX(*ierror);
 }
 #endif

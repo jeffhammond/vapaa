@@ -1,6 +1,7 @@
 ! SPDX-License-Identifier: MIT
 
 module mpi_coll_f
+    use mpi_ierror_f, only: F_MPI_FINISH_IERROR
     use iso_c_binding, only: c_int
     implicit none
 
@@ -105,7 +106,7 @@ module mpi_coll_f
             integer, optional, intent(out) :: ierror
             integer(kind=c_int) :: ierror_c
             call C_MPI_Barrier(comm % MPI_VAL, ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_Barrier_f08
 
         subroutine MPI_Bcast_f08(buffer, count, datatype, root, comm, ierror) 
@@ -121,7 +122,7 @@ module mpi_coll_f
             count_c = count
             root_c = root
             call C_MPI_Bcast(buffer, count_c, datatype % MPI_VAL, root_c, comm % MPI_VAL, ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_Bcast_f08
 
 #if defined(HAVE_CFI) || defined(HAVE_PGIF)
@@ -138,7 +139,7 @@ module mpi_coll_f
             count_c = count
             root_c = root
             call CFI_MPI_Bcast(buffer, count_c, datatype % MPI_VAL, root_c, comm % MPI_VAL, ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_Bcast_f08ts
 #endif
 
@@ -157,7 +158,7 @@ module mpi_coll_f
             count_c = count
             root_c = root
             call C_MPI_Reduce(input, output, count_c, datatype % MPI_VAL, op % MPI_VAL, root_c, comm % MPI_VAL, ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_Reduce_f08
 
 #if defined(HAVE_CFI) || defined(HAVE_PGIF)
@@ -177,7 +178,7 @@ module mpi_coll_f
             count_c = count
             root_c = root
             call CFI_MPI_Reduce(input, output, count_c, datatype % MPI_VAL, op % MPI_VAL, root_c, comm % MPI_VAL, ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_Reduce_f08ts
 #endif
 
@@ -195,7 +196,7 @@ module mpi_coll_f
             integer(kind=c_int) :: count_c, ierror_c
             count_c = count
             call C_MPI_Allreduce(input, output, count_c, datatype % MPI_VAL, op % MPI_VAL, comm % MPI_VAL, ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_Allreduce_f08
 
 #if defined(HAVE_CFI) || defined(HAVE_PGIF)
@@ -214,7 +215,7 @@ module mpi_coll_f
             integer(kind=c_int) :: count_c, ierror_c
             count_c = count
             call CFI_MPI_Allreduce(input, output, count_c, datatype % MPI_VAL, op % MPI_VAL, comm % MPI_VAL, ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_Allreduce_f08ts
 #endif
 
@@ -233,7 +234,7 @@ module mpi_coll_f
             rcount_c = rcount
             root_c = root
             call C_MPI_Gather(input, scount_c, stype % MPI_VAL, output, rcount_c, rtype % MPI_VAL, root_c, comm % MPI_VAL, ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_Gather_f08
 
 #if defined(HAVE_CFI) || defined(HAVE_PGIF)
@@ -254,7 +255,7 @@ module mpi_coll_f
             root_c = root
             call CFI_MPI_Gather(input, scount_c, stype % MPI_VAL, output, rcount_c, rtype % MPI_VAL, &
                                 root_c, comm % MPI_VAL, ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_Gather_f08ts
 #endif
 
@@ -274,7 +275,7 @@ module mpi_coll_f
             root_c = root
             call C_MPI_Gatherv(input, scount_c, stype % MPI_VAL, output, rcounts, rdisps, rtype % MPI_VAL, &
                                root_c, comm % MPI_VAL, ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_Gatherv_f08
 
 #if defined(HAVE_CFI) || defined(HAVE_PGIF)
@@ -295,7 +296,7 @@ module mpi_coll_f
             root_c = root
             call CFI_MPI_Gatherv(input, scount_c, stype % MPI_VAL, output, rcounts, rdisps, rtype % MPI_VAL, &
                                  root_c, comm % MPI_VAL, ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_Gatherv_f08ts
 #endif
 
@@ -313,7 +314,7 @@ module mpi_coll_f
             scount_c = scount
             rcount_c = rcount
             call C_MPI_Allgather(input, scount_c, stype % MPI_VAL, output, rcount_c, rtype % MPI_VAL, comm % MPI_VAL, ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_Allgather_f08
 
 #if defined(HAVE_CFI) || defined(HAVE_PGIF)
@@ -332,7 +333,7 @@ module mpi_coll_f
             scount_c = scount
             rcount_c = rcount
             call CFI_MPI_Allgather(input, scount_c, stype % MPI_VAL, output, rcount_c, rtype % MPI_VAL, comm % MPI_VAL, ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_Allgather_f08ts
 #endif
 
@@ -351,7 +352,7 @@ module mpi_coll_f
             scount_c = scount
             call C_MPI_Allgatherv(input, scount_c, stype % MPI_VAL, output, rcounts, rdisps, rtype % MPI_VAL, &
                                   comm % MPI_VAL, ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_Allgatherv_f08
 
 #if defined(HAVE_CFI) || defined(HAVE_PGIF)
@@ -371,7 +372,7 @@ module mpi_coll_f
             scount_c = scount
             call CFI_MPI_Allgatherv(input, scount_c, stype % MPI_VAL, output, rcounts, rdisps, rtype % MPI_VAL, &
                                     comm % MPI_VAL, ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_Allgatherv_f08ts
 #endif
 
@@ -391,7 +392,7 @@ module mpi_coll_f
             root_c = root
             call C_MPI_Scatter(input, scount_c, stype % MPI_VAL, output, rcount_c, rtype % MPI_VAL, &
                                root_c, comm % MPI_VAL, ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_Scatter_f08
 
 #if defined(HAVE_CFI) || defined(HAVE_PGIF)
@@ -412,7 +413,7 @@ module mpi_coll_f
             root_c = root
             call CFI_MPI_Scatter(input, scount_c, stype % MPI_VAL, output, rcount_c, rtype % MPI_VAL, &
                                  root_c, comm % MPI_VAL, ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_Scatter_f08ts
 #endif
 
@@ -432,7 +433,7 @@ module mpi_coll_f
             root_c = root
             call C_MPI_Scatterv(input, scounts, sdisps, stype % MPI_VAL, output, rcount_c, rtype % MPI_VAL, &
                                 root_c, comm % MPI_VAL, ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_Scatterv_f08
 
 #if defined(HAVE_CFI) || defined(HAVE_PGIF)
@@ -453,7 +454,7 @@ module mpi_coll_f
             root_c = root
             call CFI_MPI_Scatterv(input, scounts, sdisps, stype % MPI_VAL, output, rcount_c, rtype % MPI_VAL, &
                                   root_c, comm % MPI_VAL, ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_Scatterv_f08ts
 #endif
 
@@ -472,7 +473,7 @@ module mpi_coll_f
             rcount_c = rcount
             call C_MPI_Alltoall(input, scount_c, stype % MPI_VAL, output, rcount_c, rtype % MPI_VAL, &
                                 comm % MPI_VAL, ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_Alltoall_f08
 
 #if defined(HAVE_CFI) || defined(HAVE_PGIF)
@@ -492,7 +493,7 @@ module mpi_coll_f
             rcount_c = rcount
             call CFI_MPI_Alltoall(input, scount_c, stype % MPI_VAL, output, rcount_c, rtype % MPI_VAL, &
                                   comm % MPI_VAL, ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_Alltoall_f08ts
 #endif
 
@@ -510,7 +511,7 @@ module mpi_coll_f
             ! assume Fortran INTEGER and C int are equivalent
             call C_MPI_Alltoallv(input, scounts, sdisps, stype % MPI_VAL, output, rcounts, rdisps, rtype % MPI_VAL, &
                                  comm % MPI_VAL, ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_Alltoallv_f08
 
 #if defined(HAVE_CFI) || defined(HAVE_PGIF)
@@ -529,7 +530,7 @@ module mpi_coll_f
             ! assume Fortran INTEGER and C int are equivalent
             call CFI_MPI_Alltoallv(input, scounts, sdisps, stype % MPI_VAL, output, rcounts, rdisps, rtype % MPI_VAL, &
                                    comm % MPI_VAL, ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_Alltoallv_f08ts
 #endif
 

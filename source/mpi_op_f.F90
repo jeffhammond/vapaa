@@ -3,6 +3,7 @@
 #include "vapaa_constants.h"
 
 module mpi_op_f
+    use mpi_ierror_f, only: F_MPI_FINISH_IERROR
     use iso_c_binding, only: c_int, c_ptr, c_funptr, c_funloc, c_null_funptr
     use mpi_handle_types, only: MPI_Datatype, MPI_Op
     implicit none
@@ -291,7 +292,7 @@ module mpi_op_f
                     call f08_op_release(slot)
                 end if
             end if
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_Op_create_f08
 
         subroutine MPI_Op_free_f08(op, ierror)
@@ -304,7 +305,7 @@ module mpi_op_f
             old_op = op % MPI_VAL
             call C_MPI_Op_free(op % MPI_VAL, ierror_c)
             if (ierror_c == VAPAA_MPI_SUCCESS) call f08_op_clear(old_op)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_Op_free_f08
 
 end module mpi_op_f

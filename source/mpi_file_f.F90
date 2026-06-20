@@ -3,6 +3,7 @@
 #include "vapaa_constants.h"
 
 module mpi_file_f
+    use mpi_ierror_f, only: F_MPI_FINISH_IERROR
     use iso_c_binding, only: c_int
     implicit none
 
@@ -141,7 +142,7 @@ module mpi_file_f
             integer(kind=c_int) :: amode_c, ierror_c
             amode_c = amode
             call C_MPI_File_open(comm % MPI_VAL, filename, amode_c, info % MPI_VAL, file % MPI_VAL, ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_File_open_f08
 
 #if defined(HAVE_CFI) || defined(HAVE_PGIF)
@@ -171,7 +172,7 @@ module mpi_file_f
             end do
             call VAPAA_MPI_File_open(comm % MPI_VAL, filename_c, amode_c, info % MPI_VAL, &
                                      file % MPI_VAL, ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
             deallocate( filename_c )
         end subroutine MPI_File_open_f08ts
 #endif
@@ -183,7 +184,7 @@ module mpi_file_f
             integer, optional, intent(out) :: ierror
             integer(kind=c_int) :: ierror_c
             call C_MPI_File_close(file % MPI_VAL, ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_File_close_f08
 
         subroutine MPI_File_delete_f08(filename, info, ierror)
@@ -195,7 +196,7 @@ module mpi_file_f
             integer, optional, intent(out) :: ierror
             integer(kind=c_int) :: ierror_c
             call C_MPI_File_delete(filename, info % MPI_VAL, ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_File_delete_f08
 
 #if defined(HAVE_CFI) || defined(HAVE_PGIF)
@@ -220,7 +221,7 @@ module mpi_file_f
                 filename_c(i) = filename(i:i)
             end do
             call VAPAA_MPI_File_delete(filename_c, info % MPI_VAL, ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
             deallocate( filename_c )
         end subroutine MPI_File_delete_f08ts
 #endif
@@ -235,7 +236,7 @@ module mpi_file_f
             integer, optional, intent(out) :: ierror
             integer(c_int) :: ierror_c
             call C_MPI_File_set_size(file % MPI_VAL, size, ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_File_set_size_f08
 
         subroutine MPI_File_preallocate_f08(file, size, ierror)
@@ -248,7 +249,7 @@ module mpi_file_f
             integer, optional, intent(out) :: ierror
             integer(c_int) :: ierror_c
             call C_MPI_File_preallocate(file % MPI_VAL, size, ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_File_preallocate_f08
 
         subroutine MPI_File_get_size_f08(file, size, ierror)
@@ -263,7 +264,7 @@ module mpi_file_f
             integer(c_int) :: ierror_c
             call C_MPI_File_get_size(file % MPI_VAL, size_c, ierror_c)
             size = size_c
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_File_get_size_f08
 
         subroutine MPI_File_set_view_f08(file, disp, etype, filetype, datarep, info, ierror)
@@ -282,7 +283,7 @@ module mpi_file_f
             disp_c = disp
             call C_MPI_File_set_view(file % MPI_VAL, disp_c, etype % MPI_VAL, filetype % MPI_VAL, &
                                      datarep, info % MPI_VAL, ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_File_set_view_f08
 
 #if defined(HAVE_CFI) || defined(HAVE_PGIF)
@@ -314,7 +315,7 @@ module mpi_file_f
             disp_c = disp
             call VAPAA_MPI_File_set_view(file % MPI_VAL, disp_c, etype % MPI_VAL, &
                                          filetype % MPI_VAL, datarep_c, info % MPI_VAL, ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
             deallocate( datarep_c )
         end subroutine MPI_File_set_view_f08ts
 #endif
@@ -337,7 +338,7 @@ module mpi_file_f
             offset_c = offset
             count_c = count
             call C_MPI_File_read_at(file % MPI_VAL, offset_c, buf, count_c, datatype % MPI_VAL, status, ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_File_read_at_f08
 
 #ifdef HAVE_CFI
@@ -358,7 +359,7 @@ module mpi_file_f
             offset_c = offset
             count_c = count
             call CFI_MPI_File_read_at(file % MPI_VAL, offset_c, buf, count_c, datatype % MPI_VAL, status, ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_File_read_at_f08ts
 #endif
 
@@ -380,7 +381,7 @@ module mpi_file_f
             offset_c = offset
             count_c = count
             call C_MPI_File_read_at_all(file % MPI_VAL, offset_c, buf, count_c, datatype % MPI_VAL, status, ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_File_read_at_all_f08
 
 #ifdef HAVE_CFI
@@ -401,7 +402,7 @@ module mpi_file_f
             offset_c = offset
             count_c = count
             call CFI_MPI_File_read_at_all(file % MPI_VAL, offset_c, buf, count_c, datatype % MPI_VAL, status, ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_File_read_at_all_f08ts
 #endif
 
@@ -419,7 +420,7 @@ module mpi_file_f
             integer(c_int) :: count_c, ierror_c
             count_c = count
             call C_MPI_File_read(file % MPI_VAL, buf, count_c, datatype % MPI_VAL, status, ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_File_read_f08
 
 #ifdef HAVE_CFI
@@ -436,7 +437,7 @@ module mpi_file_f
             integer(c_int) :: count_c, ierror_c
             count_c = count
             call CFI_MPI_File_read(file % MPI_VAL, buf, count_c, datatype % MPI_VAL, status, ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_File_read_f08ts
 #endif
 
@@ -454,7 +455,7 @@ module mpi_file_f
             integer(c_int) :: count_c, ierror_c
             count_c = count
             call C_MPI_File_read_all(file % MPI_VAL, buf, count_c, datatype % MPI_VAL, status, ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_File_read_all_f08
 
 #ifdef HAVE_CFI
@@ -471,7 +472,7 @@ module mpi_file_f
             integer(c_int) :: count_c, ierror_c
             count_c = count
             call CFI_MPI_File_read_all(file % MPI_VAL, buf, count_c, datatype % MPI_VAL, status, ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_File_read_all_f08ts
 #endif
 
@@ -493,7 +494,7 @@ module mpi_file_f
             offset_c = offset
             count_c = count
             call C_MPI_File_write_at(file % MPI_VAL, offset_c, buf, count_c, datatype % MPI_VAL, status, ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_File_write_at_f08
 
 #ifdef HAVE_CFI
@@ -514,7 +515,7 @@ module mpi_file_f
             offset_c = offset
             count_c = count
             call CFI_MPI_File_write_at(file % MPI_VAL, offset_c, buf, count_c, datatype % MPI_VAL, status, ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_File_write_at_f08ts
 #endif
 
@@ -536,7 +537,7 @@ module mpi_file_f
             offset_c = offset
             count_c = count
             call C_MPI_File_write_at_all(file % MPI_VAL, offset_c, buf, count_c, datatype % MPI_VAL, status, ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_File_write_at_all_f08
 
 #ifdef HAVE_CFI
@@ -557,7 +558,7 @@ module mpi_file_f
             offset_c = offset
             count_c = count
             call CFI_MPI_File_write_at_all(file % MPI_VAL, offset_c, buf, count_c, datatype % MPI_VAL, status, ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_File_write_at_all_f08ts
 #endif
 
@@ -575,7 +576,7 @@ module mpi_file_f
             integer(c_int) :: count_c, ierror_c
             count_c = count
             call C_MPI_File_write(file % MPI_VAL, buf, count_c, datatype % MPI_VAL, status, ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_File_write_f08
 
 #ifdef HAVE_CFI
@@ -592,7 +593,7 @@ module mpi_file_f
             integer(c_int) :: count_c, ierror_c
             count_c = count
             call CFI_MPI_File_write(file % MPI_VAL, buf, count_c, datatype % MPI_VAL, status, ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_File_write_f08ts
 #endif
 
@@ -610,7 +611,7 @@ module mpi_file_f
             integer(c_int) :: count_c, ierror_c
             count_c = count
             call C_MPI_File_write_all(file % MPI_VAL, buf, count_c, datatype % MPI_VAL, status, ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_File_write_all_f08
 
 #ifdef HAVE_CFI
@@ -627,7 +628,7 @@ module mpi_file_f
             integer(c_int) :: count_c, ierror_c
             count_c = count
             call CFI_MPI_File_write_all(file % MPI_VAL, buf, count_c, datatype % MPI_VAL, status, ierror_c)
-            if (present(ierror)) ierror = ierror_c
+            call F_MPI_FINISH_IERROR(ierror, ierror_c)
         end subroutine MPI_File_write_all_f08ts
 #endif
 

@@ -7,6 +7,7 @@
 #include "convert_constants.h"
 #include "mpi_attr_storage.h"
 #include "vapaa_constants.h"
+#include "vapaa_error_handling.h"
 
 void VAPAA_MPI_Comm_group(int *comm_f, int *group_f, int *ierror)
 {
@@ -151,10 +152,10 @@ void VAPAA_MPI_Comm_detach_buffer(int *comm_f, void **buffer_addr, int *size, in
     MPI_Comm comm = C_MPI_COMM_FROMINT(*comm_f);
     *ierror = MPI_Comm_detach_buffer(comm, buffer_addr, size);
 #else
-    (void) comm_f;
     *buffer_addr = NULL;
     *size = 0;
     *ierror = MPI_ERR_UNSUPPORTED_OPERATION;
+    VAPAA_MPI_handle_synthetic_error_comm(C_MPI_COMM_FROMINT(*comm_f), ierror);
 #endif
     C_MPI_RC_FIX(*ierror);
 }
@@ -167,10 +168,10 @@ void VAPAA_MPI_Comm_detach_buffer_c(int *comm_f, void **buffer_addr, int64_t *si
     *ierror = MPI_Comm_detach_buffer_c(comm, buffer_addr, &size);
     *size_f = (int64_t) size;
 #else
-    (void) comm_f;
     *buffer_addr = NULL;
     *size_f = 0;
     *ierror = MPI_ERR_UNSUPPORTED_OPERATION;
+    VAPAA_MPI_handle_synthetic_error_comm(C_MPI_COMM_FROMINT(*comm_f), ierror);
 #endif
     C_MPI_RC_FIX(*ierror);
 }
@@ -181,8 +182,8 @@ void VAPAA_MPI_Comm_flush_buffer(int *comm_f, int *ierror)
     MPI_Comm comm = C_MPI_COMM_FROMINT(*comm_f);
     *ierror = MPI_Comm_flush_buffer(comm);
 #else
-    (void) comm_f;
     *ierror = MPI_ERR_UNSUPPORTED_OPERATION;
+    VAPAA_MPI_handle_synthetic_error_comm(C_MPI_COMM_FROMINT(*comm_f), ierror);
 #endif
     C_MPI_RC_FIX(*ierror);
 }
@@ -194,8 +195,8 @@ void VAPAA_MPI_Comm_iflush_buffer(int *comm_f, int *request_f, int *ierror)
     MPI_Comm comm = C_MPI_COMM_FROMINT(*comm_f);
     *ierror = MPI_Comm_iflush_buffer(comm, &request);
 #else
-    (void) comm_f;
     *ierror = MPI_ERR_UNSUPPORTED_OPERATION;
+    VAPAA_MPI_handle_synthetic_error_comm(C_MPI_COMM_FROMINT(*comm_f), ierror);
 #endif
     *request_f = C_MPI_REQUEST_TOINT(request);
     C_MPI_RC_FIX(*ierror);
@@ -230,12 +231,14 @@ void VAPAA_MPI_Comm_create_from_group(int *group_f, CFI_cdesc_t *stringtag_d, in
     MPI_Info info = C_MPI_INFO_FROMINT(*info_f);
     MPI_Errhandler errhandler = C_MPI_ERRHANDLER_FROMINT(*errhandler_f);
     *ierror = MPI_Comm_create_from_group(group, VAPAA_CFI_CHAR(stringtag_d), info, errhandler, &newcomm);
+    if (*ierror == MPI_SUCCESS) VAPAA_MPI_note_comm_errhandler_set();
 #else
     (void) group_f;
     (void) stringtag_d;
     (void) info_f;
     (void) errhandler_f;
     *ierror = MPI_ERR_UNSUPPORTED_OPERATION;
+    VAPAA_MPI_handle_synthetic_error_no_object(ierror);
 #endif
     *newcomm_f = C_MPI_COMM_TOINT(newcomm);
     C_MPI_RC_FIX(*ierror);
@@ -253,6 +256,7 @@ void VAPAA_MPI_Intercomm_create_from_groups(int *local_group_f, int *local_leade
     MPI_Errhandler errhandler = C_MPI_ERRHANDLER_FROMINT(*errhandler_f);
     *ierror = MPI_Intercomm_create_from_groups(local_group, *local_leader, remote_group, *remote_leader,
                                                VAPAA_CFI_CHAR(stringtag_d), info, errhandler, &newintercomm);
+    if (*ierror == MPI_SUCCESS) VAPAA_MPI_note_comm_errhandler_set();
 #else
     (void) local_group_f;
     (void) local_leader;
@@ -262,6 +266,7 @@ void VAPAA_MPI_Intercomm_create_from_groups(int *local_group_f, int *local_leade
     (void) info_f;
     (void) errhandler_f;
     *ierror = MPI_ERR_UNSUPPORTED_OPERATION;
+    VAPAA_MPI_handle_synthetic_error_no_object(ierror);
 #endif
     *newintercomm_f = C_MPI_COMM_TOINT(newintercomm);
     C_MPI_RC_FIX(*ierror);
@@ -273,10 +278,10 @@ void VAPAA_MPI_Comm_attach_buffer(int *comm_f, CFI_cdesc_t *buffer, int *size, i
     MPI_Comm comm = C_MPI_COMM_FROMINT(*comm_f);
     *ierror = MPI_Comm_attach_buffer(comm, buffer->base_addr, *size);
 #else
-    (void) comm_f;
     (void) buffer;
     (void) size;
     *ierror = MPI_ERR_UNSUPPORTED_OPERATION;
+    VAPAA_MPI_handle_synthetic_error_comm(C_MPI_COMM_FROMINT(*comm_f), ierror);
 #endif
     C_MPI_RC_FIX(*ierror);
 }
@@ -287,10 +292,10 @@ void VAPAA_MPI_Comm_attach_buffer_c(int *comm_f, CFI_cdesc_t *buffer, int64_t *s
     MPI_Comm comm = C_MPI_COMM_FROMINT(*comm_f);
     *ierror = MPI_Comm_attach_buffer_c(comm, buffer->base_addr, (MPI_Count) *size);
 #else
-    (void) comm_f;
     (void) buffer;
     (void) size;
     *ierror = MPI_ERR_UNSUPPORTED_OPERATION;
+    VAPAA_MPI_handle_synthetic_error_comm(C_MPI_COMM_FROMINT(*comm_f), ierror);
 #endif
     C_MPI_RC_FIX(*ierror);
 }
@@ -357,12 +362,14 @@ void VAPAA_MPI_Session_init(int *info_f, int *errhandler_f, int *session_f, int 
     MPI_Info info = C_MPI_INFO_FROMINT(*info_f);
     MPI_Errhandler errhandler = C_MPI_ERRHANDLER_FROMINT(*errhandler_f);
     *ierror = MPI_Session_init(info, errhandler, &session);
+    if (*ierror == MPI_SUCCESS) VAPAA_MPI_note_session_errhandler_set();
     *session_f = C_MPI_SESSION_TOINT(session);
 #else
     (void) info_f;
     (void) errhandler_f;
     *session_f = VAPAA_MPI_SESSION_NULL;
     *ierror = MPI_ERR_UNSUPPORTED_OPERATION;
+    VAPAA_MPI_handle_synthetic_error_no_object(ierror);
 #endif
     C_MPI_RC_FIX(*ierror);
 }
@@ -376,6 +383,7 @@ void VAPAA_MPI_Session_finalize(int *session_f, int *ierror)
 #else
     *session_f = VAPAA_MPI_SESSION_NULL;
     *ierror = MPI_ERR_UNSUPPORTED_OPERATION;
+    VAPAA_MPI_handle_synthetic_error_no_object(ierror);
 #endif
     C_MPI_RC_FIX(*ierror);
 }
@@ -389,6 +397,7 @@ void VAPAA_MPI_Session_get_info(int *session_f, int *info_f, int *ierror)
 #else
     (void) session_f;
     *ierror = MPI_ERR_UNSUPPORTED_OPERATION;
+    VAPAA_MPI_handle_synthetic_error_no_object(ierror);
 #endif
     *info_f = C_MPI_INFO_TOINT(info);
     C_MPI_RC_FIX(*ierror);
@@ -405,6 +414,7 @@ void VAPAA_MPI_Session_get_num_psets(int *session_f, int *info_f, int *npset_nam
     (void) info_f;
     *npset_names = 0;
     *ierror = MPI_ERR_UNSUPPORTED_OPERATION;
+    VAPAA_MPI_handle_synthetic_error_no_object(ierror);
 #endif
     C_MPI_RC_FIX(*ierror);
 }
@@ -423,6 +433,7 @@ void VAPAA_MPI_Session_get_nth_pset(int *session_f, int *info_f, int *n, int *ps
     (void) pset_name_d;
     *pset_len = 0;
     *ierror = MPI_ERR_UNSUPPORTED_OPERATION;
+    VAPAA_MPI_handle_synthetic_error_no_object(ierror);
 #endif
     C_MPI_RC_FIX(*ierror);
 }
@@ -437,6 +448,7 @@ void VAPAA_MPI_Session_get_pset_info(int *session_f, CFI_cdesc_t *pset_name_d, i
     (void) session_f;
     (void) pset_name_d;
     *ierror = MPI_ERR_UNSUPPORTED_OPERATION;
+    VAPAA_MPI_handle_synthetic_error_no_object(ierror);
 #endif
     *info_f = C_MPI_INFO_TOINT(info);
     C_MPI_RC_FIX(*ierror);
@@ -452,6 +464,7 @@ void VAPAA_MPI_Session_attach_buffer(int *session_f, CFI_cdesc_t *buffer, int *s
     (void) buffer;
     (void) size;
     *ierror = MPI_ERR_UNSUPPORTED_OPERATION;
+    VAPAA_MPI_handle_synthetic_error_no_object(ierror);
 #endif
     C_MPI_RC_FIX(*ierror);
 }
@@ -466,6 +479,7 @@ void VAPAA_MPI_Session_attach_buffer_c(int *session_f, CFI_cdesc_t *buffer, int6
     (void) buffer;
     (void) size;
     *ierror = MPI_ERR_UNSUPPORTED_OPERATION;
+    VAPAA_MPI_handle_synthetic_error_no_object(ierror);
 #endif
     C_MPI_RC_FIX(*ierror);
 }
@@ -481,6 +495,7 @@ void VAPAA_MPI_Session_detach_buffer(int *session_f, void **buffer_addr, int *si
     *buffer_addr = NULL;
     *size = 0;
     *ierror = MPI_ERR_UNSUPPORTED_OPERATION;
+    VAPAA_MPI_handle_synthetic_error_no_object(ierror);
 #endif
     C_MPI_RC_FIX(*ierror);
 }
@@ -497,6 +512,7 @@ void VAPAA_MPI_Session_detach_buffer_c(int *session_f, void **buffer_addr, int64
     *buffer_addr = NULL;
     *size_f = 0;
     *ierror = MPI_ERR_UNSUPPORTED_OPERATION;
+    VAPAA_MPI_handle_synthetic_error_no_object(ierror);
 #endif
     C_MPI_RC_FIX(*ierror);
 }
@@ -509,6 +525,7 @@ void VAPAA_MPI_Session_flush_buffer(int *session_f, int *ierror)
 #else
     (void) session_f;
     *ierror = MPI_ERR_UNSUPPORTED_OPERATION;
+    VAPAA_MPI_handle_synthetic_error_no_object(ierror);
 #endif
     C_MPI_RC_FIX(*ierror);
 }
@@ -522,6 +539,7 @@ void VAPAA_MPI_Session_iflush_buffer(int *session_f, int *request_f, int *ierror
 #else
     (void) session_f;
     *ierror = MPI_ERR_UNSUPPORTED_OPERATION;
+    VAPAA_MPI_handle_synthetic_error_no_object(ierror);
 #endif
     *request_f = C_MPI_REQUEST_TOINT(request);
     C_MPI_RC_FIX(*ierror);
