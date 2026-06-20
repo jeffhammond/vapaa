@@ -2,6 +2,7 @@ set(TYPECHECK_WARNING_TEST_SOURCE "${CMAKE_CURRENT_SOURCE_DIR}/test_typecheck_wa
 set(PGIF_DESCRIPTOR_TEST_SOURCE "${CMAKE_CURRENT_SOURCE_DIR}/test_pgif_descriptor.F90")
 set(PGIF_DESCRIPTOR_TEST_C_SOURCE "${CMAKE_CURRENT_SOURCE_DIR}/test_pgif_descriptor.c")
 set(PGIF_MPI_BYTE_TEST_SOURCE "${CMAKE_CURRENT_SOURCE_DIR}/test_pgif_mpi_byte_noncontig.F90")
+set(MPIFH_COVERAGE_TEST_SOURCE "${CMAKE_CURRENT_SOURCE_DIR}/test_mpifh_coverage.f")
 
 set(vapaa_cfi_element_type_warnings_available TRUE)
 if(NOT VAPAA_ENABLE_CFI OR CMAKE_Fortran_COMPILER_ID MATCHES "Intel|NVHPC")
@@ -80,7 +81,7 @@ foreach(TEST_SOURCE ${TEST_SOURCES})
     $<$<BOOL:${VAPAA_ENABLE_CFI}>:-DHAVE_CFI>
     -fPIE)
   target_include_directories(${TEST_NAME}
-                             PRIVATE "${CMAKE_BINARY_DIR}/modules")
+                             PRIVATE "${CMAKE_BINARY_DIR}/modules" "${SOURCE_DIR}")
   target_link_libraries(${TEST_NAME} PRIVATE ${vapa_lib})
   if(TEST_NAME STREQUAL "test_pgif_descriptor")
     target_sources(${TEST_NAME} PRIVATE "${PGIF_DESCRIPTOR_TEST_C_SOURCE}")
@@ -110,6 +111,29 @@ foreach(TEST_SOURCE ${TEST_SOURCES})
     set_property(TEST ${TEST_NAME} PROPERTY ENVIRONMENT "${vapaa_test_environment}")
   endif()
 endforeach()
+
+add_executable(test_mpifh_coverage ${MPIFH_COVERAGE_TEST_SOURCE})
+target_compile_options(test_mpifh_coverage PRIVATE
+  ${VAPAA_FORTRAN_WARNING_OPTIONS}
+  -g -fPIE
+  $<$<COMPILE_LANG_AND_ID:Fortran,GNU>:-std=legacy>
+  $<$<COMPILE_LANG_AND_ID:Fortran,GNU>:-ffixed-line-length-none>
+  $<$<COMPILE_LANG_AND_ID:Fortran,GNU>:-fallow-argument-mismatch>
+  $<$<COMPILE_LANG_AND_ID:Fortran,GNU>:-Wno-unused-parameter>)
+target_include_directories(test_mpifh_coverage PRIVATE "${SOURCE_DIR}")
+target_link_libraries(test_mpifh_coverage PRIVATE ${vapa_lib})
+set_target_properties(test_mpifh_coverage PROPERTIES
+  RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/tests")
+add_test(NAME test_mpifh_coverage
+         COMMAND ${MPIEXEC_EXECUTABLE} ${MPIEXEC_NUMPROC_FLAG} 2
+                 $<TARGET_FILE:test_mpifh_coverage>)
+set_tests_properties(test_mpifh_coverage PROPERTIES
+  WORKING_DIRECTORY "${CMAKE_BINARY_DIR}/tests"
+  PASS_REGULAR_EXPRESSION "Test passed")
+if(vapaa_test_environment)
+  set_property(TEST test_mpifh_coverage PROPERTY
+    ENVIRONMENT "${vapaa_test_environment}")
+endif()
 
 add_test(NAME test_verbose_init
          COMMAND ${MPIEXEC_EXECUTABLE} ${MPIEXEC_NUMPROC_FLAG} 1

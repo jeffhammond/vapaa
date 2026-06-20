@@ -60,6 +60,7 @@ void C_MPI_Request_get_status_all(int * count, int requests_f[], int * flag_f,
         free(statuses);
     }
 #else
+    (void) statuses_f;
     *flag_f = 0;
     *ierror = MPI_ERR_UNSUPPORTED_OPERATION;
 #endif
@@ -95,6 +96,7 @@ void C_MPI_Request_get_status_any(int * count, int requests_f[], int * index_f, 
     }
     *index_f = C_MPI_UNDEFINED_C2F(index);
 #else
+    (void) status_f;
     *index_f = VAPAA_MPI_UNDEFINED;
     *flag_f = 0;
     *ierror = MPI_ERR_UNSUPPORTED_OPERATION;
@@ -140,6 +142,8 @@ void C_MPI_Request_get_status_some(int * incount, int requests_f[], int * outcou
         free(statuses);
     }
 #else
+    (void) indices;
+    (void) statuses_f;
     *outcount_f = VAPAA_MPI_UNDEFINED;
     *ierror = MPI_ERR_UNSUPPORTED_OPERATION;
 #endif
