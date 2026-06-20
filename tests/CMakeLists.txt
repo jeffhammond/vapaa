@@ -9,6 +9,12 @@ set(MPIFH_MORE_COVERAGE_TEST_SOURCE
     "${CMAKE_CURRENT_SOURCE_DIR}/test_mpifh_comm_io_rma.f")
 set(F08_MISSING_IERROR_FATAL_TEST_SOURCE
     "${CMAKE_CURRENT_SOURCE_DIR}/test_f08_missing_ierror_fatal.F90")
+set(C_DIRECT_COVERAGE_TEST_SOURCE
+    "${CMAKE_CURRENT_SOURCE_DIR}/test_c_direct_coverage.c")
+set(CFI_UTIL_DIRECT_TEST_SOURCE
+    "${CMAKE_CURRENT_SOURCE_DIR}/test_cfi_util_direct.c")
+set(F77_DIRECT_COVERAGE_TEST_SOURCE
+    "${CMAKE_CURRENT_SOURCE_DIR}/test_f77_direct_coverage.c")
 
 set(vapaa_cfi_element_type_warnings_available TRUE)
 if(NOT VAPAA_ENABLE_CFI OR CMAKE_Fortran_COMPILER_ID MATCHES "Intel|NVHPC")
@@ -167,6 +173,72 @@ set_tests_properties(test_mpifh_comm_io_rma PROPERTIES
   PASS_REGULAR_EXPRESSION "Test passed")
 if(vapaa_test_environment)
   set_property(TEST test_mpifh_comm_io_rma PROPERTY
+    ENVIRONMENT "${vapaa_test_environment}")
+endif()
+
+add_executable(test_c_direct_coverage ${C_DIRECT_COVERAGE_TEST_SOURCE})
+target_compile_options(test_c_direct_coverage PRIVATE
+  ${VAPAA_C_WARNING_OPTIONS}
+  -g -fPIE
+  $<$<BOOL:${VAPAA_ENABLE_CFI}>:-DHAVE_CFI>)
+target_include_directories(test_c_direct_coverage PRIVATE
+  "${CMAKE_SOURCE_DIR}/source")
+target_link_libraries(test_c_direct_coverage PRIVATE ${vapa_lib} MPI::MPI_C)
+set_target_properties(test_c_direct_coverage PROPERTIES
+  RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/tests"
+  LINKER_LANGUAGE Fortran)
+add_test(NAME test_c_direct_coverage
+         COMMAND ${MPIEXEC_EXECUTABLE} ${MPIEXEC_NUMPROC_FLAG} 4
+                 $<TARGET_FILE:test_c_direct_coverage>)
+set_tests_properties(test_c_direct_coverage PROPERTIES
+  WORKING_DIRECTORY "${CMAKE_BINARY_DIR}/tests"
+  PASS_REGULAR_EXPRESSION "Test passed")
+if(vapaa_test_environment)
+  set_property(TEST test_c_direct_coverage PROPERTY
+    ENVIRONMENT "${vapaa_test_environment}")
+endif()
+
+add_executable(test_cfi_util_direct ${CFI_UTIL_DIRECT_TEST_SOURCE})
+target_compile_options(test_cfi_util_direct PRIVATE
+  ${VAPAA_C_WARNING_OPTIONS}
+  -g -fPIE
+  $<$<BOOL:${VAPAA_ENABLE_CFI}>:-DHAVE_CFI>)
+target_include_directories(test_cfi_util_direct PRIVATE
+  "${CMAKE_SOURCE_DIR}/source")
+target_link_libraries(test_cfi_util_direct PRIVATE ${vapa_lib} MPI::MPI_C)
+set_target_properties(test_cfi_util_direct PROPERTIES
+  RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/tests"
+  LINKER_LANGUAGE Fortran)
+add_test(NAME test_cfi_util_direct
+         COMMAND ${MPIEXEC_EXECUTABLE} ${MPIEXEC_NUMPROC_FLAG} 1
+                 $<TARGET_FILE:test_cfi_util_direct>)
+set_tests_properties(test_cfi_util_direct PROPERTIES
+  WORKING_DIRECTORY "${CMAKE_BINARY_DIR}/tests"
+  PASS_REGULAR_EXPRESSION "Test passed")
+if(vapaa_test_environment)
+  set_property(TEST test_cfi_util_direct PROPERTY
+    ENVIRONMENT "${vapaa_test_environment}")
+endif()
+
+add_executable(test_f77_direct_coverage ${F77_DIRECT_COVERAGE_TEST_SOURCE})
+target_compile_options(test_f77_direct_coverage PRIVATE
+  ${VAPAA_C_WARNING_OPTIONS}
+  -g -fPIE
+  $<$<BOOL:${VAPAA_ENABLE_CFI}>:-DHAVE_CFI>)
+target_include_directories(test_f77_direct_coverage PRIVATE
+  "${CMAKE_SOURCE_DIR}/source")
+target_link_libraries(test_f77_direct_coverage PRIVATE ${vapa_lib} MPI::MPI_C)
+set_target_properties(test_f77_direct_coverage PROPERTIES
+  RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/tests"
+  LINKER_LANGUAGE Fortran)
+add_test(NAME test_f77_direct_coverage
+         COMMAND ${MPIEXEC_EXECUTABLE} ${MPIEXEC_NUMPROC_FLAG} 4
+                 $<TARGET_FILE:test_f77_direct_coverage>)
+set_tests_properties(test_f77_direct_coverage PROPERTIES
+  WORKING_DIRECTORY "${CMAKE_BINARY_DIR}/tests"
+  PASS_REGULAR_EXPRESSION "Test passed")
+if(vapaa_test_environment)
+  set_property(TEST test_f77_direct_coverage PROPERTY
     ENVIRONMENT "${vapaa_test_environment}")
 endif()
 

@@ -1400,7 +1400,7 @@ static int VAPAA_DTYPE_FLATTEN_RECURSE(MPI_Datatype datatype, VAPAA_Iov_list *ou
             }
         }
         VAPAA_IOV_FREE(&child);
-#ifdef MPI_COMBINER_HINDEXED_BLOCK
+#if defined(MPI_COMBINER_HINDEXED_BLOCK) || MPI_VERSION >= 3
     } else if (contents.combiner == MPI_COMBINER_HINDEXED_BLOCK) {
         MPI_Count count = VAPAA_CONTENT_ARG(&contents, 0);
         MPI_Count blocklength = VAPAA_CONTENT_ARG(&contents, 1);

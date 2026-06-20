@@ -198,6 +198,13 @@
       call MPI_Iallgatherv(send1, 1, MPI_INTEGER, recvv, counts,
      &     displs, MPI_INTEGER, MPI_COMM_WORLD, req, ierr)
       call finish_request(req, ierr, errors)
+      call MPI_Allgather_init(send1, 1, MPI_INTEGER, recvv, 1,
+     &     MPI_INTEGER, MPI_COMM_WORLD, MPI_INFO_NULL, req, ierr)
+      call finish_persistent(req, ierr, errors)
+      call MPI_Allgatherv_init(send1, 1, MPI_INTEGER, recvv, counts,
+     &     displs, MPI_INTEGER, MPI_COMM_WORLD, MPI_INFO_NULL, req,
+     &     ierr)
+      call finish_persistent(req, ierr, errors)
 
       do i = 1, 4
           sendv(i) = rank * 10 + i
@@ -243,6 +250,26 @@
       call MPI_Alltoallw_init(sendv, counts, bdispls, types, recvv,
      &     counts, bdispls, types, MPI_COMM_WORLD, MPI_INFO_NULL, req,
      &     ierr)
+      call finish_persistent(req, ierr, errors)
+      call MPI_Alltoall_init(sendv, 1, MPI_INTEGER, recvv, 1,
+     &     MPI_INTEGER, MPI_COMM_WORLD, MPI_INFO_NULL, req, ierr)
+      call finish_persistent(req, ierr, errors)
+      call MPI_Alltoallv_init(sendv, counts, displs, MPI_INTEGER,
+     &     recvv, counts, displs, MPI_INTEGER, MPI_COMM_WORLD,
+     &     MPI_INFO_NULL, req, ierr)
+      call finish_persistent(req, ierr, errors)
+      call MPI_Gather_init(send1, 1, MPI_INTEGER, recvv, 1,
+     &     MPI_INTEGER, 0, MPI_COMM_WORLD, MPI_INFO_NULL, req, ierr)
+      call finish_persistent(req, ierr, errors)
+      call MPI_Gatherv_init(send1, 1, MPI_INTEGER, recvv, counts,
+     &     displs, MPI_INTEGER, 0, MPI_COMM_WORLD, MPI_INFO_NULL, req,
+     &     ierr)
+      call finish_persistent(req, ierr, errors)
+      call MPI_Reduce_scatter_init(sendv, recv1, counts, MPI_INTEGER,
+     &     MPI_SUM, MPI_COMM_WORLD, MPI_INFO_NULL, req, ierr)
+      call finish_persistent(req, ierr, errors)
+      call MPI_Reduce_scatter_block_init(sendv, recv1, 1, MPI_INTEGER,
+     &     MPI_SUM, MPI_COMM_WORLD, MPI_INFO_NULL, req, ierr)
       call finish_persistent(req, ierr, errors)
 
       dims(1) = nproc
@@ -295,6 +322,17 @@
       call finish_request(req, ierr, errors)
       call MPI_Neighbor_allgather_init(send1, 1, MPI_INTEGER, nrecv,
      &     1, MPI_INTEGER, cart, MPI_INFO_NULL, req, ierr)
+      call finish_persistent(req, ierr, errors)
+      call MPI_Neighbor_allgatherv_init(send1, 1, MPI_INTEGER, nrecv,
+     &     ncounts, ndispls, MPI_INTEGER, cart, MPI_INFO_NULL, req,
+     &     ierr)
+      call finish_persistent(req, ierr, errors)
+      call MPI_Neighbor_alltoall_init(nsend, 1, MPI_INTEGER, nrecv,
+     &     1, MPI_INTEGER, cart, MPI_INFO_NULL, req, ierr)
+      call finish_persistent(req, ierr, errors)
+      call MPI_Neighbor_alltoallv_init(nsend, ncounts, ndispls,
+     &     MPI_INTEGER, nrecv, ncounts, ndispls, MPI_INTEGER, cart,
+     &     MPI_INFO_NULL, req, ierr)
       call finish_persistent(req, ierr, errors)
       call MPI_Neighbor_alltoallw_init(nsend, ncounts, nadispls,
      &     ntypes, nrecv, ncounts, nadispls, ntypes, cart,
@@ -364,12 +402,42 @@
       call MPI_File_iread_at(fh, offset, got, count, MPI_INTEGER,
      &     req, ierr)
       call finish_request(req, ierr, errors)
+      call MPI_File_iwrite(fh, buf, count, MPI_INTEGER, req, ierr)
+      call finish_request(req, ierr, errors)
+      call MPI_File_seek(fh, offset, MPI_SEEK_SET, ierr)
+      call check_success(ierr, errors)
+      call MPI_File_iread(fh, got, count, MPI_INTEGER, req, ierr)
+      call finish_request(req, ierr, errors)
+      call MPI_File_iwrite_all(fh, buf, count, MPI_INTEGER, req, ierr)
+      call finish_request(req, ierr, errors)
+      call MPI_File_iread_all(fh, got, count, MPI_INTEGER, req, ierr)
+      call finish_request(req, ierr, errors)
+      call MPI_File_iwrite_at_all(fh, offset, buf, count, MPI_INTEGER,
+     &     req, ierr)
+      call finish_request(req, ierr, errors)
+      call MPI_File_iread_at_all(fh, offset, got, count, MPI_INTEGER,
+     &     req, ierr)
+      call finish_request(req, ierr, errors)
+      call MPI_File_iwrite_shared(fh, buf, count, MPI_INTEGER, req,
+     &     ierr)
+      call finish_request(req, ierr, errors)
+      call MPI_File_seek_shared(fh, offset, MPI_SEEK_SET, ierr)
+      call check_success(ierr, errors)
+      call MPI_File_iread_shared(fh, got, count, MPI_INTEGER, req,
+     &     ierr)
+      call finish_request(req, ierr, errors)
       call MPI_File_write_shared(fh, buf, count, MPI_INTEGER, status,
      &     ierr)
       call check_success(ierr, errors)
       call MPI_File_seek_shared(fh, offset, MPI_SEEK_SET, ierr)
       call check_success(ierr, errors)
       call MPI_File_read_shared(fh, got, count, MPI_INTEGER, status,
+     &     ierr)
+      call check_success(ierr, errors)
+      call MPI_File_write_ordered(fh, buf, count, MPI_INTEGER, status,
+     &     ierr)
+      call check_success(ierr, errors)
+      call MPI_File_read_ordered(fh, got, count, MPI_INTEGER, status,
      &     ierr)
       call check_success(ierr, errors)
       call MPI_File_get_position(fh, offset, ierr)
@@ -397,6 +465,12 @@
       call MPI_Group_free(group, ierr)
       call check_success(ierr, errors)
       call MPI_File_get_info(fh, info, ierr)
+      call check_success(ierr, errors)
+      call MPI_Info_free(info, ierr)
+      call check_success(ierr, errors)
+      call MPI_Info_create(info, ierr)
+      call check_success(ierr, errors)
+      call MPI_File_set_info(fh, info, ierr)
       call check_success(ierr, errors)
       call MPI_Info_free(info, ierr)
       call check_success(ierr, errors)
