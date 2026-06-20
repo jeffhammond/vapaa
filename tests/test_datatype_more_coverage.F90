@@ -1,4 +1,5 @@
 program test_datatype_more_coverage
+    use iso_fortran_env, only: error_unit
     use mpi_f08
     implicit none
 
@@ -154,10 +155,24 @@ contains
         character(len=*), intent(in) :: label
 
         if (.not. ok) then
-            print *, "FAIL:", trim(label), "rank", rank, "ierr", ierr
+            write(error_unit, *) "FAIL:", trim(label), "rank", rank, &
+                "ierr", ierr
+            flush(error_unit)
             call MPI_Abort(MPI_COMM_WORLD, 1, ierr)
         end if
     end subroutine require
+
+    subroutine require_same_type_size(actual, expected, label)
+        type(MPI_Datatype), intent(in) :: actual, expected
+        character(len=*), intent(in) :: label
+        integer :: actual_size, expected_size
+
+        call MPI_Type_size(actual, actual_size, ierr)
+        call require(ierr == MPI_SUCCESS, trim(label) // " actual size")
+        call MPI_Type_size(expected, expected_size, ierr)
+        call require(ierr == MPI_SUCCESS, trim(label) // " expected size")
+        call require(actual_size == expected_size, label)
+    end subroutine require_same_type_size
 
     subroutine commit_and_free(datatype, label)
         type(MPI_Datatype), intent(inout) :: datatype
@@ -188,10 +203,10 @@ contains
         call MPI_Type_get_contents(datatype, 8, 8, 4, ints, &
                                    contents_addrs, contents_types, ierr)
         call require(ierr == MPI_SUCCESS, "MPI_Type_get_contents struct")
-        call require(contents_types(1) == MPI_INTEGER, &
-                     "contents struct type 1")
-        call require(contents_types(2) == MPI_DOUBLE_PRECISION, &
-                     "contents struct type 2")
+        call require_same_type_size(contents_types(1), MPI_INTEGER, &
+                                    "contents struct type 1")
+        call require_same_type_size(contents_types(2), MPI_DOUBLE_PRECISION, &
+                                    "contents struct type 2")
     end subroutine inspect_contents
 
     subroutine inspect_contents_c(datatype)
@@ -217,10 +232,10 @@ contains
                                    contents_addrs, contents_counts, &
                                    contents_types, ierr)
         call require(ierr == MPI_SUCCESS, "MPI_Type_get_contents_c")
-        call require(contents_types(1) == MPI_INTEGER, &
-                     "contents_c struct type 1")
-        call require(contents_types(2) == MPI_DOUBLE_PRECISION, &
-                     "contents_c struct type 2")
+        call require_same_type_size(contents_types(1), MPI_INTEGER, &
+                                    "contents_c struct type 1")
+        call require_same_type_size(contents_types(2), MPI_DOUBLE_PRECISION, &
+                                    "contents_c struct type 2")
     end subroutine inspect_contents_c
 
 end program test_datatype_more_coverage

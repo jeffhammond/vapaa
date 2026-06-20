@@ -159,7 +159,9 @@ static void run_warning_matrix(void)
     long double ld = 1.0L;
     _Bool b = 1;
     char c = 'x';
+#ifdef CFI_type_ucs4_char
     wchar_t wc = L'x';
+#endif
     float _Complex z = 1.0f + 2.0f * I;
     double _Complex zz = 1.0 + 2.0 * I;
     long double _Complex zld = 1.0L + 2.0L * I;

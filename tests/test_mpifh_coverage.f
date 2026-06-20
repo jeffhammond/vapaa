@@ -120,8 +120,8 @@
       call MPI_Group_intersection(one_group, world_group,
      &                            intersection_group, ierr)
       call check_success(ierr, errors)
-      call MPI_Group_difference(world_group, one_group, difference_group,
-     &                          ierr)
+      call MPI_Group_difference(world_group, one_group,
+     &                          difference_group, ierr)
       call check_success(ierr, errors)
       call MPI_Group_excl(world_group, 1, ranks1, excl_group, ierr)
       call check_success(ierr, errors)
@@ -129,14 +129,14 @@
       ranges(1,1) = 0
       ranges(2,1) = nproc - 1
       ranges(3,1) = 1
-      call MPI_Group_range_incl(world_group, 1, ranges, range_incl_group,
-     &                          ierr)
+      call MPI_Group_range_incl(world_group, 1, ranges,
+     &                          range_incl_group, ierr)
       call check_success(ierr, errors)
       ranges(1,1) = 0
       ranges(2,1) = 0
       ranges(3,1) = 1
-      call MPI_Group_range_excl(world_group, 1, ranges, range_excl_group,
-     &                          ierr)
+      call MPI_Group_range_excl(world_group, 1, ranges,
+     &                          range_excl_group, ierr)
       call check_success(ierr, errors)
 
       call MPI_Group_free(range_excl_group, ierr)

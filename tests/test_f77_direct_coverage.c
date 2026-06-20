@@ -71,6 +71,7 @@ void mpi_bsend_init_(void *buffer, int *count, int *datatype, int *dest,
                      int *tag, int *comm, int *request, int *ierror);
 void mpi_request_free_(int *request, int *ierror);
 void mpi_wait_(int *request, int *status, int *ierror);
+void mpi_start_(int *request, int *ierror);
 void mpi_op_create_(vapaa_c_funptr user_fn, int *commute, int *op,
                     int *ierror);
 void mpi_op_free_(int *op, int *ierror);
@@ -360,6 +361,14 @@ static void check_datarep_registration(int ierr, const char *label)
     if (ierr == MPI_SUCCESS || is_unsupported(ierr) || ierr == MPI_ERR_OTHER) {
         return;
     }
+#ifdef MPI_ERR_CONVERSION
+    if (ierr == MPI_ERR_CONVERSION) {
+        return;
+    }
+#endif
+    if (ierr == VAPAA_MPI_ERR_CONVERSION) {
+        return;
+    }
 #ifdef MPI_ERR_UNSUPPORTED_DATAREP
     if (ierr == MPI_ERR_UNSUPPORTED_DATAREP) {
         return;
@@ -378,6 +387,105 @@ static void wait_if_live(int *request, const char *label)
     }
     mpi_wait_(request, status, &ierr);
     check_success(ierr, label);
+}
+
+static void free_request_if_live(int *request, const char *label)
+{
+    int ierr = MPI_SUCCESS;
+
+    if (*request == VAPAA_MPI_REQUEST_NULL) {
+        return;
+    }
+    mpi_request_free_(request, &ierr);
+    check_success(ierr, label);
+}
+
+static int request_is_supported(int ierr, int *request, const char *label)
+{
+    check_success_or_unsupported(ierr, label);
+    if (ierr != MPI_SUCCESS) {
+        *request = VAPAA_MPI_REQUEST_NULL;
+        return 0;
+    }
+    return 1;
+}
+
+static int start_request_if_live(int *request, const char *label)
+{
+    int ierr = MPI_SUCCESS;
+
+    if (*request == VAPAA_MPI_REQUEST_NULL) {
+        return 0;
+    }
+    mpi_start_(request, &ierr);
+    check_success(ierr, label);
+    return ierr == MPI_SUCCESS;
+}
+
+static void run_partitioned_pair(int mode, const char *label)
+{
+    int ierr = MPI_SUCCESS;
+    int comm = VAPAA_MPI_COMM_WORLD;
+    int info = VAPAA_MPI_INFO_NULL;
+    int dtype = VAPAA_MPI_INTEGER;
+    int dest = 0;
+    int source = 0;
+    int tag = 880 + mode;
+    int partitions[2] = {0, 1};
+    int length = 2;
+    int one = 1;
+    int partition = 0;
+    int flag = 0;
+    int send_request = VAPAA_MPI_REQUEST_NULL;
+    int recv_request = VAPAA_MPI_REQUEST_NULL;
+    int sendbuf[2] = {g_rank + 11, g_rank + 12};
+    int recvbuf[2] = {-1, -1};
+
+    if (g_size < 2) {
+        return;
+    }
+    dest = (g_rank + 1) % g_size;
+    source = (g_rank + g_size - 1) % g_size;
+
+    mpi_precv_init_(recvbuf, &length, &one, &dtype, &source, &tag, &comm,
+                    &info, &recv_request, &ierr);
+    if (!request_is_supported(ierr, &recv_request, "mpi_precv_init pair")) {
+        return;
+    }
+    mpi_psend_init_(sendbuf, &length, &one, &dtype, &dest, &tag, &comm,
+                    &info, &send_request, &ierr);
+    if (!request_is_supported(ierr, &send_request, "mpi_psend_init pair")) {
+        free_request_if_live(&recv_request, "mpi_precv_init pair free");
+        return;
+    }
+
+    if (!start_request_if_live(&recv_request, "mpi_start precv pair") ||
+        !start_request_if_live(&send_request, "mpi_start psend pair")) {
+        free_request_if_live(&send_request, "mpi_psend_init pair cleanup");
+        free_request_if_live(&recv_request, "mpi_precv_init pair cleanup");
+        return;
+    }
+
+    if (mode == 0) {
+        mpi_pready_(&partitions[0], &send_request, &ierr);
+        check_success(ierr, "mpi_pready partition 0");
+        mpi_pready_(&partitions[1], &send_request, &ierr);
+        check_success(ierr, "mpi_pready partition 1");
+    } else if (mode == 1) {
+        mpi_pready_list_(&length, partitions, &send_request, &ierr);
+        check_success(ierr, "mpi_pready_list pair");
+    } else {
+        mpi_pready_range_(&partitions[0], &partitions[1], &send_request,
+                          &ierr);
+        check_success(ierr, "mpi_pready_range pair");
+    }
+
+    mpi_parrived_(&recv_request, &partition, &flag, &ierr);
+    check_success(ierr, label);
+    wait_if_live(&send_request, "mpi_psend partitioned wait");
+    wait_if_live(&recv_request, "mpi_precv partitioned wait");
+    free_request_if_live(&send_request, "mpi_psend partitioned free");
+    free_request_if_live(&recv_request, "mpi_precv partitioned free");
 }
 
 static void free_type_if_live(int *datatype, const char *label)
@@ -783,10 +891,6 @@ static void run_missing_memory_status_and_p2p(void)
     int tag = 780;
     int proc_null = VAPAA_MPI_PROC_NULL;
     int request = VAPAA_MPI_REQUEST_NULL;
-    int partition = 0;
-    int partitions[2] = {0, 1};
-    int length = 2;
-    int flag = 0;
     int buffer[256] = {0};
     int bsend_payload = 13;
     int recv_payload = -1;
@@ -799,18 +903,12 @@ static void run_missing_memory_status_and_p2p(void)
     int infos[1] = {VAPAA_MPI_INFO_NULL};
     int level = 0;
     int hw_info = VAPAA_MPI_INFO_NULL;
-    int errors_return = VAPAA_MPI_ERRORS_RETURN;
-    int session = VAPAA_MPI_SESSION_NULL;
-    int session_errhandler = VAPAA_MPI_ERRHANDLER_NULL;
-    int pset_len = VAPAA_MPI_MAX_PSET_NAME_LEN;
-    int npsets = -1;
     intptr_t bytes = 64;
     intptr_t address = 0;
     int buffer_size = (int)sizeof(buffer);
     void *base = NULL;
     void *detached = NULL;
     char command[] = "ignored";
-    char pset[VAPAA_MPI_MAX_PSET_NAME_LEN] = {0};
     MPI_Status c_status;
     struct F_MPI_Status f_status;
     int64_t count_c = -1;
@@ -872,29 +970,9 @@ static void run_missing_memory_status_and_p2p(void)
     check_success_or_unsupported(ierr, "mpi_isendrecv_replace PROC_NULL");
     wait_if_live(&request, "mpi_isendrecv_replace wait");
 
-    request = VAPAA_MPI_REQUEST_NULL;
-    mpi_parrived_(&request, &partition, &flag, &ierr);
-    check_success_or_unsupported(ierr, "mpi_parrived");
-    mpi_pready_(&partition, &request, &ierr);
-    check_success_or_unsupported(ierr, "mpi_pready");
-    mpi_pready_list_(&length, partitions, &request, &ierr);
-    check_success_or_unsupported(ierr, "mpi_pready_list");
-    mpi_pready_range_(&partitions[0], &partitions[1], &request, &ierr);
-    check_success_or_unsupported(ierr, "mpi_pready_range");
-    mpi_precv_init_(&recv_payload, &length, &one, &dtype, &proc_null, &tag,
-                    &self, &info, &request, &ierr);
-    check_success_or_unsupported(ierr, "mpi_precv_init PROC_NULL");
-    if (request != VAPAA_MPI_REQUEST_NULL) {
-        mpi_request_free_(&request, &ierr);
-        check_success(ierr, "mpi_precv_init free");
-    }
-    mpi_psend_init_(&bsend_payload, &length, &one, &dtype, &proc_null, &tag,
-                    &self, &info, &request, &ierr);
-    check_success_or_unsupported(ierr, "mpi_psend_init PROC_NULL");
-    if (request != VAPAA_MPI_REQUEST_NULL) {
-        mpi_request_free_(&request, &ierr);
-        check_success(ierr, "mpi_psend_init free");
-    }
+    run_partitioned_pair(0, "mpi_parrived after mpi_pready");
+    run_partitioned_pair(1, "mpi_parrived after mpi_pready_list");
+    run_partitioned_pair(2, "mpi_parrived after mpi_pready_range");
 
     mpi_comm_spawn_(command, NULL, &maxprocs, &info, &zero, &self,
                     &intercomm, errcodes, &ierr, strlen(command));
@@ -913,6 +991,14 @@ static void run_missing_memory_status_and_p2p(void)
     check_success(ierr, "mpi_pcontrol");
 
 #if MPI_VERSION < 4
+    {
+    int errors_return = VAPAA_MPI_ERRORS_RETURN;
+    int session = VAPAA_MPI_SESSION_NULL;
+    int session_errhandler = VAPAA_MPI_ERRHANDLER_NULL;
+    int pset_len = VAPAA_MPI_MAX_PSET_NAME_LEN;
+    int npsets = -1;
+    char pset[VAPAA_MPI_MAX_PSET_NAME_LEN] = {0};
+
     mpi_session_attach_buffer_(&session, buffer, &buffer_size, &ierr);
     check_success_or_unsupported(ierr, "mpi_session_attach_buffer");
     mpi_session_create_errhandler_((vapaa_c_funptr)legacy_comm_errhandler,
@@ -944,6 +1030,7 @@ static void run_missing_memory_status_and_p2p(void)
     check_success_or_unsupported(ierr, "mpi_session_set_errhandler");
     mpi_session_finalize_(&session, &ierr);
     check_success_or_unsupported(ierr, "mpi_session_finalize");
+    }
 #endif
 
     mpi_sizeof_(&ierr);

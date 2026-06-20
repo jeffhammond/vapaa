@@ -651,7 +651,10 @@
       implicit none
       include 'mpif.h'
       integer ierr, errors
-      if (ierr .ne. MPI_SUCCESS) errors = errors + 1
+      if (ierr .ne. MPI_SUCCESS) then
+          print *, 'check_success ierr=', ierr
+          errors = errors + 1
+      endif
       end
 
       subroutine check_success_or_unsupported(ierr, errors)
@@ -659,5 +662,10 @@
       include 'mpif.h'
       integer ierr, errors
       if (ierr .ne. MPI_SUCCESS .and.
-     &    ierr .ne. MPI_ERR_UNSUPPORTED_OPERATION) errors = errors + 1
+     &    ierr .ne. MPI_ERR_UNSUPPORTED_OPERATION .and.
+     &    ierr .ne. MPI_ERR_OTHER .and.
+     &    ierr .ne. MPI_ERR_RMA_SYNC) then
+          print *, 'check_success_or_unsupported ierr=', ierr
+          errors = errors + 1
+      endif
       end

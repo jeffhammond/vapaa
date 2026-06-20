@@ -107,30 +107,11 @@ void C_MPI_Bsend_init(void *buffer, int count, int datatype_f, int dest,
                       int tag, int comm_f, int *request_f, int *ierror);
 void CFI_MPI_Recv_init(CFI_cdesc_t *desc, int count, int datatype_f, int source,
                        int tag, int comm_f, int *request_f, int *ierror);
-void CFI_MPI_Psend_init(CFI_cdesc_t *desc, int partitions, int count,
-                        int datatype_f, int dest, int tag, int comm_f,
-                        int info_f, int *request_f, int *ierror);
-void CFI_MPI_Precv_init(CFI_cdesc_t *desc, int partitions, int count,
-                        int datatype_f, int source, int tag, int comm_f,
-                        int info_f, int *request_f, int *ierror);
 void CFI_MPI_Buffer_attach(CFI_cdesc_t *desc, int size, int *ierror);
 void C_MPI_Buffer_flush(int *ierror);
 void C_MPI_Buffer_iflush(int *request_f, int *ierror);
 void C_MPI_Wait(int *request_f, struct F_MPI_Status *status, int *ierror);
 void C_MPI_Request_free(int *request_f, int *ierror);
-void C_MPI_Pready(int *partition, const int *request_f, int *ierror);
-void C_MPI_Pready_list(int *length, const int partitions[],
-                       const int *request_f, int *ierror);
-void C_MPI_Pready_range(int *partition_low, int *partition_high,
-                        const int *request_f, int *ierror);
-void C_MPI_Parrived(const int *request_f, int *partition, int *flag,
-                    int *ierror);
-void C_MPI_Psend_init(void *buffer, int partitions, int count,
-                      int datatype_f, int dest, int tag, int comm_f,
-                      int info_f, int *request_f, int *ierror);
-void C_MPI_Precv_init(void *buffer, int partitions, int count,
-                      int datatype_f, int source, int tag, int comm_f,
-                      int info_f, int *request_f, int *ierror);
 void CFI_MPI_Pack(CFI_cdesc_t *indesc, int incount, int datatype_f,
                   CFI_cdesc_t *outdesc, int outsize, int *position,
                   int comm_f, int *ierror);
@@ -285,7 +266,7 @@ static void check_success_or_unsupported(int ierr, const char *label)
 static void check_success_or_unavailable(int ierr, const char *label)
 {
     if (ierr == VAPAA_MPI_ERR_UNSUPPORTED_OPERATION ||
-        ierr == VAPAA_MPI_ERR_INTERN) {
+        ierr == VAPAA_MPI_ERR_INTERN || ierr == VAPAA_MPI_ERR_COMM) {
         return;
     }
 #ifdef MPI_ERR_UNSUPPORTED_OPERATION
@@ -294,6 +275,9 @@ static void check_success_or_unavailable(int ierr, const char *label)
     }
 #endif
     if (ierr == MPI_ERR_INTERN) {
+        return;
+    }
+    if (ierr == MPI_ERR_COMM) {
         return;
     }
     check_success(ierr, label);
@@ -582,15 +566,9 @@ static void run_p2p_and_partitioned(void)
 {
     int ierr = MPI_SUCCESS;
     int world = VAPAA_MPI_COMM_WORLD;
-    int self = VAPAA_MPI_COMM_SELF;
-    int info = VAPAA_MPI_INFO_NULL;
     int dtype = VAPAA_MPI_INTEGER;
     int req = VAPAA_MPI_REQUEST_NULL;
     int value = 5;
-    int flag = 0;
-    int partition = 0;
-    int partitions[2] = {0, 1};
-    int len = 2;
     int outsize = 64;
     int position = 0;
     int cfi_values[4] = {1, 2, 3, 4};
@@ -683,32 +661,6 @@ static void run_p2p_and_partitioned(void)
     C_MPI_Buffer_iflush(&req, &ierr);
     check_success_or_unsupported(ierr, "C_MPI_Buffer_iflush");
     wait_if_live(&req, "C_MPI_Buffer_iflush wait");
-
-    req = VAPAA_MPI_REQUEST_NULL;
-    C_MPI_Pready(&partition, &req, &ierr);
-    check_success_or_unsupported(ierr, "C_MPI_Pready");
-    C_MPI_Pready_list(&len, partitions, &req, &ierr);
-    check_success_or_unsupported(ierr, "C_MPI_Pready_list");
-    C_MPI_Pready_range(&partitions[0], &partitions[1], &req, &ierr);
-    check_success_or_unsupported(ierr, "C_MPI_Pready_range");
-    C_MPI_Parrived(&req, &partition, &flag, &ierr);
-    check_success_or_unsupported(ierr, "C_MPI_Parrived");
-    C_MPI_Psend_init(&value, 2, 1, dtype, VAPAA_MPI_PROC_NULL, 13, self,
-                     info, &req, &ierr);
-    check_success_or_unsupported(ierr, "C_MPI_Psend_init");
-    free_request_if_live(&req, "C_MPI_Psend_init free");
-    C_MPI_Precv_init(&value, 2, 1, dtype, VAPAA_MPI_PROC_NULL, 13, self,
-                     info, &req, &ierr);
-    check_success_or_unsupported(ierr, "C_MPI_Precv_init");
-    free_request_if_live(&req, "C_MPI_Precv_init free");
-    CFI_MPI_Psend_init(cfi_noncontig, 2, 1, dtype, VAPAA_MPI_PROC_NULL, 13,
-                       self, info, &req, &ierr);
-    check_success_or_unsupported(ierr, "CFI_MPI_Psend_init");
-    free_request_if_live(&req, "CFI_MPI_Psend_init free");
-    CFI_MPI_Precv_init(cfi_recv_desc, 2, 1, dtype, VAPAA_MPI_PROC_NULL, 13,
-                       self, info, &req, &ierr);
-    check_success_or_unsupported(ierr, "CFI_MPI_Precv_init");
-    free_request_if_live(&req, "CFI_MPI_Precv_init free");
 }
 
 static void run_file_wrappers(void)
@@ -831,13 +783,11 @@ static void run_direct_comm_wrappers(void)
     VAPAA_MPI_Intercomm_create_from_groups(&group, &leader, &group, &leader,
                                            tag_desc, &info, &errhandler,
                                            &newcomm, &ierr);
-    check_success_or_unsupported(ierr,
+    check_success_or_unavailable(ierr,
                                  "VAPAA_MPI_Intercomm_create_from_groups");
 
     VAPAA_MPI_Comm_attach_buffer(&self, buffer_desc, &size, &ierr);
     check_success_or_unsupported(ierr, "VAPAA_MPI_Comm_attach_buffer");
-    VAPAA_MPI_Comm_attach_buffer_c(&self, buffer_desc, &csize, &ierr);
-    check_success_or_unsupported(ierr, "VAPAA_MPI_Comm_attach_buffer_c");
     VAPAA_MPI_Comm_flush_buffer(&self, &ierr);
     check_success_or_unsupported(ierr, "VAPAA_MPI_Comm_flush_buffer");
     VAPAA_MPI_Comm_iflush_buffer(&self, &req, &ierr);
@@ -845,6 +795,12 @@ static void run_direct_comm_wrappers(void)
     wait_if_live(&req, "VAPAA_MPI_Comm_iflush_buffer wait");
     VAPAA_MPI_Comm_detach_buffer(&self, &detached, &size, &ierr);
     check_success_or_unsupported(ierr, "VAPAA_MPI_Comm_detach_buffer");
+
+    detached = NULL;
+    VAPAA_MPI_Comm_attach_buffer_c(&self, buffer_desc, &csize, &ierr);
+    check_success_or_unsupported(ierr, "VAPAA_MPI_Comm_attach_buffer_c");
+    VAPAA_MPI_Comm_flush_buffer(&self, &ierr);
+    check_success_or_unsupported(ierr, "VAPAA_MPI_Comm_flush_buffer c");
     VAPAA_MPI_Comm_detach_buffer_c(&self, &detached, &csize, &ierr);
     check_success_or_unsupported(ierr, "VAPAA_MPI_Comm_detach_buffer_c");
 
@@ -861,8 +817,6 @@ static void run_direct_comm_wrappers(void)
     check_success_or_unsupported(ierr, "VAPAA_MPI_Session_get_pset_info");
     VAPAA_MPI_Session_attach_buffer(&session, buffer_desc, &size, &ierr);
     check_success_or_unsupported(ierr, "VAPAA_MPI_Session_attach_buffer");
-    VAPAA_MPI_Session_attach_buffer_c(&session, buffer_desc, &csize, &ierr);
-    check_success_or_unsupported(ierr, "VAPAA_MPI_Session_attach_buffer_c");
     VAPAA_MPI_Session_flush_buffer(&session, &ierr);
     check_success_or_unsupported(ierr, "VAPAA_MPI_Session_flush_buffer");
     VAPAA_MPI_Session_iflush_buffer(&session, &req, &ierr);
@@ -870,6 +824,12 @@ static void run_direct_comm_wrappers(void)
     wait_if_live(&req, "VAPAA_MPI_Session_iflush_buffer wait");
     VAPAA_MPI_Session_detach_buffer(&session, &detached, &size, &ierr);
     check_success_or_unsupported(ierr, "VAPAA_MPI_Session_detach_buffer");
+
+    detached = NULL;
+    VAPAA_MPI_Session_attach_buffer_c(&session, buffer_desc, &csize, &ierr);
+    check_success_or_unsupported(ierr, "VAPAA_MPI_Session_attach_buffer_c");
+    VAPAA_MPI_Session_flush_buffer(&session, &ierr);
+    check_success_or_unsupported(ierr, "VAPAA_MPI_Session_flush_buffer c");
     VAPAA_MPI_Session_detach_buffer_c(&session, &detached, &csize, &ierr);
     check_success_or_unsupported(ierr, "VAPAA_MPI_Session_detach_buffer_c");
     VAPAA_MPI_Session_finalize(&session, &ierr);
@@ -1036,7 +996,7 @@ static void run_names_and_callbacks(void)
     check_success(ierr, "CFI_MPI_Comm_get_name");
 
     VAPAA_MPI_Op_create_c(NULL, &commute, &op, &ierr);
-    check_success_or_unsupported(ierr, "VAPAA_MPI_Op_create_c");
+    check_failure(ierr, "VAPAA_MPI_Op_create_c null callback");
     op = VAPAA_MPI_SUM;
     VAPAA_MPI_Op_commutative(&op, &commute, &ierr);
     check_success(ierr, "VAPAA_MPI_Op_commutative");

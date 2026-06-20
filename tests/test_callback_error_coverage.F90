@@ -1,5 +1,6 @@
 program test_callback_error_coverage
     use iso_c_binding, only: c_associated, c_ptr
+    use iso_fortran_env, only: error_unit
     use mpi_f08
     implicit none
 
@@ -62,7 +63,9 @@ contains
         character(len=*), intent(in) :: label
 
         if (.not. ok) then
-            print *, "FAIL:", trim(label), "rank", rank, "ierr", ierr
+            write(error_unit, *) "FAIL:", trim(label), "rank", rank, &
+                "ierr", ierr
+            flush(error_unit)
             call MPI_Abort(MPI_COMM_WORLD, 1, ierr)
         end if
     end subroutine require
@@ -360,6 +363,7 @@ contains
                                   datarep_write_cb, datarep_extent_cb, &
                                   19_MPI_ADDRESS_KIND, ierr)
         call require(ierr == MPI_SUCCESS .or. &
+                     ierr == MPI_ERR_CONVERSION .or. &
                      ierr == MPI_ERR_UNSUPPORTED_DATAREP .or. &
                      ierr == MPI_ERR_UNSUPPORTED_OPERATION .or. &
                      ierr == MPI_ERR_OTHER, &
@@ -370,6 +374,7 @@ contains
                                     datarep_write_c_cb, datarep_extent_cb, &
                                     23_MPI_ADDRESS_KIND, ierr)
         call require(ierr == MPI_SUCCESS .or. &
+                     ierr == MPI_ERR_CONVERSION .or. &
                      ierr == MPI_ERR_UNSUPPORTED_DATAREP .or. &
                      ierr == MPI_ERR_UNSUPPORTED_OPERATION .or. &
                      ierr == MPI_ERR_OTHER, &

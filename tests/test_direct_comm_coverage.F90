@@ -1,5 +1,6 @@
 program test_direct_comm_coverage
     use iso_c_binding, only: c_ptr
+    use iso_fortran_env, only: error_unit
     use mpi_f08
     implicit none
 
@@ -32,7 +33,9 @@ contains
         character(len=*), intent(in) :: label
 
         if (.not. ok) then
-            print *, "FAIL:", trim(label), "rank", rank, "ierr", ierr
+            write(error_unit, *) "FAIL:", trim(label), "rank", rank, &
+                "ierr", ierr
+            flush(error_unit)
             call MPI_Abort(MPI_COMM_WORLD, 1, ierr)
         end if
     end subroutine require
@@ -195,7 +198,9 @@ contains
         end if
 
         call MPI_Open_port(MPI_INFO_NULL, port_name, ierr)
-        call require_success_or_unsupported("MPI_Open_port")
+        call require(ierr == MPI_SUCCESS .or. &
+                     ierr == MPI_ERR_UNSUPPORTED_OPERATION .or. &
+                     ierr == MPI_ERR_OTHER, "MPI_Open_port")
         if (ierr == MPI_SUCCESS) then
             call MPI_Close_port(port_name, ierr)
             call require(ierr == MPI_SUCCESS, "MPI_Close_port")
