@@ -4,6 +4,18 @@ set(MPICH_MAIN_INCLUDE_ROOT "${CMAKE_CURRENT_SOURCE_DIR}/include")
 
 find_package(Threads REQUIRED)
 
+set(vapaa_mpich_main_imported_fortran_options
+  -g -fPIE
+  $<$<COMPILE_LANG_AND_ID:Fortran,GNU>:-w>
+  $<$<COMPILE_LANG_AND_ID:Fortran,GNU>:-std=legacy>
+  $<$<COMPILE_LANG_AND_ID:Fortran,Intel,IntelLLVM>:-diag-disable:8100>
+  $<$<COMPILE_LANG_AND_ID:Fortran,Intel,IntelLLVM>:-diag-disable:8101>)
+set(vapaa_mpich_main_imported_c_options
+  $<$<COMPILE_LANGUAGE:C>:-g>
+  $<$<COMPILE_LANGUAGE:C>:-fPIE>
+  $<$<COMPILE_LANG_AND_ID:C,NVHPC>:--diag_suppress=declared_but_not_referenced>
+  $<$<COMPILE_LANG_AND_ID:C,NVHPC>:--diag_suppress=mixed_enum_type>)
+
 set(vapaa_mpich_main_test_environment "")
 if(FLAG_MPI MATCHES "OPEN_MPI")
   list(APPEND vapaa_mpich_main_test_environment
@@ -13,14 +25,48 @@ if(FLAG_MPI MATCHES "OPEN_MPI")
     "OMPI_MCA_hwloc_base_binding_policy=none"
     "UCX_WARN_UNUSED_ENV_VARS=n")
 endif()
+set(vapaa_mpich_main_library_dirs ${VAPAA_COMPILER_RUNTIME_LIBRARY_DIRS})
+foreach(mpi_library IN LISTS MPI_C_LIBRARIES)
+  if(IS_ABSOLUTE "${mpi_library}")
+    get_filename_component(mpi_library_dir "${mpi_library}" DIRECTORY)
+    list(APPEND vapaa_mpich_main_library_dirs "${mpi_library_dir}")
+  endif()
+endforeach()
+if(NOT vapaa_mpich_main_library_dirs AND MPI_C_COMPILER)
+  execute_process(
+    COMMAND "${MPI_C_COMPILER}" -show
+    OUTPUT_VARIABLE vapaa_mpich_main_mpicc_show
+    ERROR_VARIABLE vapaa_mpich_main_mpicc_show_error
+    RESULT_VARIABLE vapaa_mpich_main_mpicc_show_result
+    OUTPUT_STRIP_TRAILING_WHITESPACE)
+  if(vapaa_mpich_main_mpicc_show_result EQUAL 0)
+    string(REGEX MATCHALL "(^| )-L[^ ]+" vapaa_mpich_main_link_dirs
+      "${vapaa_mpich_main_mpicc_show}")
+    foreach(link_dir IN LISTS vapaa_mpich_main_link_dirs)
+      string(STRIP "${link_dir}" link_dir)
+      string(REGEX REPLACE "^-L" "" link_dir "${link_dir}")
+      if(IS_ABSOLUTE "${link_dir}")
+        list(APPEND vapaa_mpich_main_library_dirs "${link_dir}")
+      endif()
+    endforeach()
+  endif()
+endif()
+if(vapaa_mpich_main_library_dirs)
+  list(REMOVE_DUPLICATES vapaa_mpich_main_library_dirs)
+  string(JOIN ":" vapaa_mpich_main_library_path
+    ${vapaa_mpich_main_library_dirs})
+  if(DEFINED ENV{LD_LIBRARY_PATH} AND NOT "$ENV{LD_LIBRARY_PATH}" STREQUAL "")
+    set(vapaa_mpich_main_library_path
+      "${vapaa_mpich_main_library_path}:$ENV{LD_LIBRARY_PATH}")
+  endif()
+  list(APPEND vapaa_mpich_main_test_environment
+    "LD_LIBRARY_PATH=${vapaa_mpich_main_library_path}")
+endif()
 
 add_library(mpich_main_mtest_f08 OBJECT
   "${MPICH_MAIN_UTIL_ROOT}/mtest_f08.f90")
 target_compile_options(mpich_main_mtest_f08 PRIVATE
-  ${VAPAA_FORTRAN_WARNING_OPTIONS}
-  -g
-  $<$<COMPILE_LANG_AND_ID:Fortran,GNU>:-std=f2018>
-  -fPIE)
+  ${vapaa_mpich_main_imported_fortran_options})
 target_include_directories(mpich_main_mtest_f08
   PRIVATE "${CMAKE_BINARY_DIR}/modules" "${MPICH_MAIN_INCLUDE_ROOT}")
 target_link_libraries(mpich_main_mtest_f08 PRIVATE ${vapa_lib})
@@ -31,7 +77,8 @@ add_library(mpich_main_mtest_c OBJECT
   "${MPICH_MAIN_UTIL_ROOT}/mtest.c"
   "${MPICH_MAIN_UTIL_ROOT}/mtest_common.c"
   "${MPICH_MAIN_UTIL_ROOT}/mtest_thread.c")
-target_compile_options(mpich_main_mtest_c PRIVATE -Wall -Wextra -g -fPIE)
+target_compile_options(mpich_main_mtest_c PRIVATE
+  ${vapaa_mpich_main_imported_c_options})
 target_compile_definitions(mpich_main_mtest_c PRIVATE _GNU_SOURCE)
 target_include_directories(mpich_main_mtest_c
   PRIVATE "${MPICH_MAIN_INCLUDE_ROOT}" "${MPICH_MAIN_UTIL_ROOT}")
@@ -55,6 +102,13 @@ function(vapaa_add_mpich_main_f08_test category test_name np)
   endif()
   if(NOT VAPAA_ENABLE_CFI AND category STREQUAL "profile" AND test_name STREQUAL "profile1f90")
     message(STATUS "Skipping MPICH main f08/profile/profile1f90: it interposes CFI-specific f08ts procedures")
+    return()
+  endif()
+  if(CMAKE_Fortran_COMPILER_ID STREQUAL "NVHPC"
+      AND category STREQUAL "attr"
+      AND test_name MATCHES "^(commattrf08|commattr2f08|commattr3f08|attrlangf08)$")
+    message(STATUS
+      "Skipping MPICH main f08/attr/${test_name}: NVHPC rejects this imported callback pattern with the PGI trampoline path")
     return()
   endif()
 
@@ -100,9 +154,8 @@ function(vapaa_add_mpich_main_f08_test category test_name np)
     $<TARGET_OBJECTS:mpich_main_mtest_f08>
     $<TARGET_OBJECTS:mpich_main_mtest_c>)
   target_compile_options(${target_name} PRIVATE
-    ${VAPAA_C_WARNING_OPTIONS}
-    ${VAPAA_FORTRAN_WARNING_OPTIONS}
-    -g -fPIE
+    ${vapaa_mpich_main_imported_fortran_options}
+    ${vapaa_mpich_main_imported_c_options}
     $<$<COMPILE_LANGUAGE:C>:-include>
     $<$<COMPILE_LANGUAGE:C>:${MPICH_MAIN_INCLUDE_ROOT}/vapaa_test_handle_compat.h>)
   target_compile_definitions(${target_name} PRIVATE _GNU_SOURCE)

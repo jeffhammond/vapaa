@@ -29,6 +29,15 @@ if(NOT VAPAA_HAVE_PGIF)
   list(REMOVE_ITEM TEST_SOURCES "${PGIF_DESCRIPTOR_TEST_SOURCE}")
   list(REMOVE_ITEM TEST_SOURCES "${PGIF_MPI_BYTE_TEST_SOURCE}")
 endif()
+if(NOT VAPAA_ENABLE_CFI)
+  file(GLOB VAPAA_CFI_MATRIX_TEST_SOURCES
+    "${CMAKE_CURRENT_SOURCE_DIR}/test_cfi_matrix_*.F90")
+  list(REMOVE_ITEM TEST_SOURCES ${VAPAA_CFI_MATRIX_TEST_SOURCES})
+endif()
+if(CMAKE_Fortran_COMPILER_ID STREQUAL "NVHPC")
+  list(REMOVE_ITEM TEST_SOURCES
+    "${CMAKE_CURRENT_SOURCE_DIR}/test_synthetic_error_handlers.F90")
+endif()
 
 # Number of MPI processes
 set(MPI_NUM_PROCESSES 4)
@@ -41,7 +50,7 @@ if(FLAG_MPI MATCHES "OPEN_MPI")
     "OMPI_MCA_hwloc_base_binding_policy=none"
     "UCX_WARN_UNUSED_ENV_VARS=n")
 endif()
-set(vapaa_test_mpi_library_dirs "")
+set(vapaa_test_mpi_library_dirs ${VAPAA_COMPILER_RUNTIME_LIBRARY_DIRS})
 foreach(mpi_library IN LISTS MPI_C_LIBRARIES)
   if(IS_ABSOLUTE "${mpi_library}")
     get_filename_component(mpi_library_dir "${mpi_library}" DIRECTORY)
@@ -176,48 +185,60 @@ if(vapaa_test_environment)
     ENVIRONMENT "${vapaa_test_environment}")
 endif()
 
-add_executable(test_c_direct_coverage ${C_DIRECT_COVERAGE_TEST_SOURCE})
-target_compile_options(test_c_direct_coverage PRIVATE
-  ${VAPAA_C_WARNING_OPTIONS}
-  -g -fPIE
-  $<$<BOOL:${VAPAA_ENABLE_CFI}>:-DHAVE_CFI>)
-target_include_directories(test_c_direct_coverage PRIVATE
-  "${CMAKE_SOURCE_DIR}/source")
-target_link_libraries(test_c_direct_coverage PRIVATE ${vapa_lib} MPI::MPI_C)
-set_target_properties(test_c_direct_coverage PROPERTIES
-  RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/tests"
-  LINKER_LANGUAGE Fortran)
-add_test(NAME test_c_direct_coverage
-         COMMAND ${MPIEXEC_EXECUTABLE} ${MPIEXEC_NUMPROC_FLAG} 4
-                 $<TARGET_FILE:test_c_direct_coverage>)
-set_tests_properties(test_c_direct_coverage PROPERTIES
-  WORKING_DIRECTORY "${CMAKE_BINARY_DIR}/tests"
-  PASS_REGULAR_EXPRESSION "Test passed")
-if(vapaa_test_environment)
-  set_property(TEST test_c_direct_coverage PROPERTY
-    ENVIRONMENT "${vapaa_test_environment}")
-endif()
+if(VAPAA_ENABLE_CFI)
+  add_executable(test_c_direct_coverage ${C_DIRECT_COVERAGE_TEST_SOURCE})
+  target_compile_options(test_c_direct_coverage PRIVATE
+    ${VAPAA_C_WARNING_OPTIONS}
+    -g -fPIE
+    -DHAVE_CFI)
+  target_include_directories(test_c_direct_coverage PRIVATE
+    "${CMAKE_SOURCE_DIR}/source")
+  target_link_libraries(test_c_direct_coverage PRIVATE ${vapa_lib} MPI::MPI_C)
+  if(CMAKE_Fortran_COMPILER_ID MATCHES "Intel")
+    target_link_options(test_c_direct_coverage PRIVATE -nofor-main)
+  elseif(CMAKE_Fortran_COMPILER_ID STREQUAL "NVHPC")
+    target_link_options(test_c_direct_coverage PRIVATE -Mnomain)
+  endif()
+  set_target_properties(test_c_direct_coverage PROPERTIES
+    RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/tests"
+    LINKER_LANGUAGE Fortran)
+  add_test(NAME test_c_direct_coverage
+           COMMAND ${MPIEXEC_EXECUTABLE} ${MPIEXEC_NUMPROC_FLAG} 4
+                   $<TARGET_FILE:test_c_direct_coverage>)
+  set_tests_properties(test_c_direct_coverage PROPERTIES
+    WORKING_DIRECTORY "${CMAKE_BINARY_DIR}/tests"
+    PASS_REGULAR_EXPRESSION "Test passed")
+  if(vapaa_test_environment)
+    set_property(TEST test_c_direct_coverage PROPERTY
+      ENVIRONMENT "${vapaa_test_environment}")
+  endif()
 
-add_executable(test_cfi_util_direct ${CFI_UTIL_DIRECT_TEST_SOURCE})
-target_compile_options(test_cfi_util_direct PRIVATE
-  ${VAPAA_C_WARNING_OPTIONS}
-  -g -fPIE
-  $<$<BOOL:${VAPAA_ENABLE_CFI}>:-DHAVE_CFI>)
-target_include_directories(test_cfi_util_direct PRIVATE
-  "${CMAKE_SOURCE_DIR}/source")
-target_link_libraries(test_cfi_util_direct PRIVATE ${vapa_lib} MPI::MPI_C)
-set_target_properties(test_cfi_util_direct PROPERTIES
-  RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/tests"
-  LINKER_LANGUAGE Fortran)
-add_test(NAME test_cfi_util_direct
-         COMMAND ${MPIEXEC_EXECUTABLE} ${MPIEXEC_NUMPROC_FLAG} 1
-                 $<TARGET_FILE:test_cfi_util_direct>)
-set_tests_properties(test_cfi_util_direct PROPERTIES
-  WORKING_DIRECTORY "${CMAKE_BINARY_DIR}/tests"
-  PASS_REGULAR_EXPRESSION "Test passed")
-if(vapaa_test_environment)
-  set_property(TEST test_cfi_util_direct PROPERTY
-    ENVIRONMENT "${vapaa_test_environment}")
+  add_executable(test_cfi_util_direct ${CFI_UTIL_DIRECT_TEST_SOURCE})
+  target_compile_options(test_cfi_util_direct PRIVATE
+    ${VAPAA_C_WARNING_OPTIONS}
+    -g -fPIE
+    -DHAVE_CFI)
+  target_include_directories(test_cfi_util_direct PRIVATE
+    "${CMAKE_SOURCE_DIR}/source")
+  target_link_libraries(test_cfi_util_direct PRIVATE ${vapa_lib} MPI::MPI_C)
+  if(CMAKE_Fortran_COMPILER_ID MATCHES "Intel")
+    target_link_options(test_cfi_util_direct PRIVATE -nofor-main)
+  elseif(CMAKE_Fortran_COMPILER_ID STREQUAL "NVHPC")
+    target_link_options(test_cfi_util_direct PRIVATE -Mnomain)
+  endif()
+  set_target_properties(test_cfi_util_direct PROPERTIES
+    RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/tests"
+    LINKER_LANGUAGE Fortran)
+  add_test(NAME test_cfi_util_direct
+           COMMAND ${MPIEXEC_EXECUTABLE} ${MPIEXEC_NUMPROC_FLAG} 1
+                   $<TARGET_FILE:test_cfi_util_direct>)
+  set_tests_properties(test_cfi_util_direct PROPERTIES
+    WORKING_DIRECTORY "${CMAKE_BINARY_DIR}/tests"
+    PASS_REGULAR_EXPRESSION "Test passed")
+  if(vapaa_test_environment)
+    set_property(TEST test_cfi_util_direct PROPERTY
+      ENVIRONMENT "${vapaa_test_environment}")
+  endif()
 endif()
 
 add_executable(test_f77_direct_coverage ${F77_DIRECT_COVERAGE_TEST_SOURCE})
@@ -228,6 +249,11 @@ target_compile_options(test_f77_direct_coverage PRIVATE
 target_include_directories(test_f77_direct_coverage PRIVATE
   "${CMAKE_SOURCE_DIR}/source")
 target_link_libraries(test_f77_direct_coverage PRIVATE ${vapa_lib} MPI::MPI_C)
+if(CMAKE_Fortran_COMPILER_ID MATCHES "Intel")
+  target_link_options(test_f77_direct_coverage PRIVATE -nofor-main)
+elseif(CMAKE_Fortran_COMPILER_ID STREQUAL "NVHPC")
+  target_link_options(test_f77_direct_coverage PRIVATE -Mnomain)
+endif()
 set_target_properties(test_f77_direct_coverage PROPERTIES
   RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/tests"
   LINKER_LANGUAGE Fortran)

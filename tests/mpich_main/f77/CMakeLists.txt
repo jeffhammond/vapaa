@@ -18,7 +18,8 @@ if(FLAG_MPI MATCHES "OPEN_MPI")
     "OMPI_MCA_hwloc_base_binding_policy=none"
     "UCX_WARN_UNUSED_ENV_VARS=n")
 endif()
-set(vapaa_mpich_main_f77_mpi_library_dirs "")
+set(vapaa_mpich_main_f77_mpi_library_dirs
+  ${VAPAA_COMPILER_RUNTIME_LIBRARY_DIRS})
 foreach(mpi_library IN LISTS MPI_C_LIBRARIES)
   if(IS_ABSOLUTE "${mpi_library}")
     get_filename_component(mpi_library_dir "${mpi_library}" DIRECTORY)
@@ -57,8 +58,7 @@ if(vapaa_mpich_main_f77_mpi_library_dirs)
 endif()
 
 set(vapaa_mpich_main_f77_fortran_options
-  ${VAPAA_FORTRAN_WARNING_OPTIONS}
-  -g -fPIE
+  ${vapaa_mpich_main_imported_fortran_options}
   $<$<COMPILE_LANG_AND_ID:Fortran,GNU>:-std=legacy>
   $<$<COMPILE_LANG_AND_ID:Fortran,GNU>:-ffixed-line-length-none>
   $<$<COMPILE_LANG_AND_ID:Fortran,GNU>:-fallow-argument-mismatch>
@@ -120,10 +120,7 @@ function(vapaa_add_mpich_main_f77_test category test_name np)
     $<TARGET_OBJECTS:mpich_main_mtest_c>)
   target_compile_options(${target_name} PRIVATE
     ${vapaa_mpich_main_f77_fortran_options}
-    $<$<COMPILE_LANGUAGE:C>:-Wall>
-    $<$<COMPILE_LANGUAGE:C>:-Wextra>
-    $<$<COMPILE_LANGUAGE:C>:-g>
-    $<$<COMPILE_LANGUAGE:C>:-fPIE>
+    ${vapaa_mpich_main_imported_c_options}
     $<$<COMPILE_LANGUAGE:C>:-include>
     $<$<COMPILE_LANGUAGE:C>:${MPICH_MAIN_INCLUDE_ROOT}/vapaa_test_handle_compat.h>)
   target_compile_definitions(${target_name} PRIVATE

@@ -18,10 +18,46 @@ if(FLAG_MPI MATCHES "OPEN_MPI")
     "OMPI_MCA_hwloc_base_binding_policy=none"
     "UCX_WARN_UNUSED_ENV_VARS=n")
 endif()
+set(vapaa_mpich_main_f90_library_dirs ${VAPAA_COMPILER_RUNTIME_LIBRARY_DIRS})
+foreach(mpi_library IN LISTS MPI_C_LIBRARIES)
+  if(IS_ABSOLUTE "${mpi_library}")
+    get_filename_component(mpi_library_dir "${mpi_library}" DIRECTORY)
+    list(APPEND vapaa_mpich_main_f90_library_dirs "${mpi_library_dir}")
+  endif()
+endforeach()
+if(NOT vapaa_mpich_main_f90_library_dirs AND MPI_C_COMPILER)
+  execute_process(
+    COMMAND "${MPI_C_COMPILER}" -show
+    OUTPUT_VARIABLE vapaa_mpich_main_f90_mpicc_show
+    ERROR_VARIABLE vapaa_mpich_main_f90_mpicc_show_error
+    RESULT_VARIABLE vapaa_mpich_main_f90_mpicc_show_result
+    OUTPUT_STRIP_TRAILING_WHITESPACE)
+  if(vapaa_mpich_main_f90_mpicc_show_result EQUAL 0)
+    string(REGEX MATCHALL "(^| )-L[^ ]+" vapaa_mpich_main_f90_link_dirs
+      "${vapaa_mpich_main_f90_mpicc_show}")
+    foreach(link_dir IN LISTS vapaa_mpich_main_f90_link_dirs)
+      string(STRIP "${link_dir}" link_dir)
+      string(REGEX REPLACE "^-L" "" link_dir "${link_dir}")
+      if(IS_ABSOLUTE "${link_dir}")
+        list(APPEND vapaa_mpich_main_f90_library_dirs "${link_dir}")
+      endif()
+    endforeach()
+  endif()
+endif()
+if(vapaa_mpich_main_f90_library_dirs)
+  list(REMOVE_DUPLICATES vapaa_mpich_main_f90_library_dirs)
+  string(JOIN ":" vapaa_mpich_main_f90_library_path
+    ${vapaa_mpich_main_f90_library_dirs})
+  if(DEFINED ENV{LD_LIBRARY_PATH} AND NOT "$ENV{LD_LIBRARY_PATH}" STREQUAL "")
+    set(vapaa_mpich_main_f90_library_path
+      "${vapaa_mpich_main_f90_library_path}:$ENV{LD_LIBRARY_PATH}")
+  endif()
+  list(APPEND vapaa_mpich_main_f90_test_environment
+    "LD_LIBRARY_PATH=${vapaa_mpich_main_f90_library_path}")
+endif()
 
 set(vapaa_mpich_main_f90_fortran_options
-  ${VAPAA_FORTRAN_WARNING_OPTIONS}
-  -g -fPIE
+  ${vapaa_mpich_main_imported_fortran_options}
   $<$<COMPILE_LANG_AND_ID:Fortran,GNU>:-fallow-argument-mismatch>)
 
 add_library(mpich_main_mtest_f90 OBJECT
@@ -38,6 +74,20 @@ set_target_properties(mpich_main_mtest_f90 PROPERTIES
 function(vapaa_add_mpich_main_f90_test category test_name np)
   if(category STREQUAL "spawn")
     message(STATUS "Skipping MPICH main f90/spawn/${test_name}: Vapaa does not implement spawn support")
+    return()
+  endif()
+  if(CMAKE_Fortran_COMPILER_ID STREQUAL "NVHPC"
+      AND category STREQUAL "attr"
+      AND test_name MATCHES "^(attrlangf90|fandcattrf90)$")
+    message(STATUS
+      "Skipping MPICH main f90/attr/${test_name}: NVHPC rejects old-style external callback actuals for module procedure dummies")
+    return()
+  endif()
+  if(CMAKE_Fortran_COMPILER_ID STREQUAL "NVHPC"
+      AND category STREQUAL "datatype"
+      AND test_name STREQUAL "structf")
+    message(STATUS
+      "Skipping MPICH main f90/datatype/${test_name}: NVHPC crashes in MPICH packing for this imported MPI_BOTTOM struct send")
     return()
   endif()
 
@@ -63,7 +113,7 @@ function(vapaa_add_mpich_main_f90_test category test_name np)
     $<TARGET_OBJECTS:mpich_main_mtest_c>)
   target_compile_options(${target_name} PRIVATE
     ${vapaa_mpich_main_f90_fortran_options}
-    ${VAPAA_C_WARNING_OPTIONS}
+    ${vapaa_mpich_main_imported_c_options}
     $<$<COMPILE_LANGUAGE:C>:-include>
     $<$<COMPILE_LANGUAGE:C>:${MPICH_MAIN_INCLUDE_ROOT}/vapaa_test_handle_compat.h>)
   target_compile_definitions(${target_name} PRIVATE _GNU_SOURCE)

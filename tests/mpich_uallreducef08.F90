@@ -41,7 +41,7 @@
       program main
       use mpi_f08
       external uop
-      external uop08
+      procedure(MPI_User_function) :: uop08
       integer ierr, errs
       integer count, vin(65000), vout(65000), i, size
       TYPE(MPI_Op) sumop

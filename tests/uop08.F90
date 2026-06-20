@@ -64,7 +64,7 @@ program main
     end
     end interface
 #endif
-    external :: uop08
+    procedure(MPI_User_function) :: uop08
         print *, 'Test passed'
     !type(MPI_Op) :: sumop, sumop08
     !call MPI_Op_create( uop, .true., sumop, ierr )
