@@ -38,6 +38,36 @@ void C_MPI_File_open(int * comm_f, char * filename, int * amode_f, int * info_f,
 }
 
 #ifdef HAVE_CFI
+static int CFI_MPI_File_prepare_memory(CFI_cdesc_t *desc, int count,
+                                       MPI_Datatype datatype, int *memcount,
+                                       MPI_Datatype *memtype)
+{
+    int rc;
+    *memcount = count;
+    *memtype = datatype;
+    if (1 == VAPAA_CFI_is_contiguous(desc)) {
+        return MPI_SUCCESS;
+    }
+    *memcount = 1;
+    rc = VAPAA_CFI_CREATE_DATATYPE(desc, count, datatype, memtype);
+    if (rc != MPI_SUCCESS) return rc;
+    rc = PMPI_Type_commit(memtype);
+    if (rc != MPI_SUCCESS) {
+        int free_rc = PMPI_Type_free(memtype);
+        (void)free_rc;
+    }
+    return rc;
+}
+
+static int CFI_MPI_File_release_memory(MPI_Datatype datatype,
+                                       MPI_Datatype *memtype)
+{
+    if (*memtype == datatype) {
+        return MPI_SUCCESS;
+    }
+    return PMPI_Type_free(memtype);
+}
+
 void CFI_MPI_File_open(int * comm_f, CFI_cdesc_t * filename_d, int * amode_f, int * info_f, int * file_f, int * ierror)
 {
     MPI_File file = MPI_FILE_NULL;
@@ -149,13 +179,19 @@ void CFI_MPI_File_read_at(int * file_f, size_t * offset_f, CFI_cdesc_t * desc, i
     MPI_Offset offset = *offset_f;
     int count = *count_f;
     MPI_Datatype datatype = C_MPI_TYPE_FROMINT(*datatype_f);
+    int memcount;
+    MPI_Datatype memtype;
     VAPAA_CFI_WARN_DATATYPE_MISMATCH(desc, datatype, "MPI_File_read_at");
-    if (1 == VAPAA_CFI_is_contiguous(desc)) {
-        *ierror = MPI_File_read_at(file, offset, desc->base_addr, count, datatype,
+    *ierror = CFI_MPI_File_prepare_memory(desc, count, datatype, &memcount,
+                                          &memtype);
+    if (*ierror == MPI_SUCCESS) {
+        *ierror = MPI_File_read_at(file, offset, desc->base_addr, memcount, memtype,
                                    C_IS_MPI_STATUS_IGNORE(status) ? MPI_STATUS_IGNORE : status);
-    } else {
-        fprintf(stderr, "FIXME: not contiguous case\n");
-        MPI_Abort(MPI_COMM_SELF, 99);
+        if (*ierror == MPI_SUCCESS) {
+            *ierror = CFI_MPI_File_release_memory(datatype, &memtype);
+        } else {
+            (void)CFI_MPI_File_release_memory(datatype, &memtype);
+        }
     }
     C_MPI_RC_FIX(*ierror);
 }
@@ -179,13 +215,19 @@ void CFI_MPI_File_read_at_all(int * file_f, size_t * offset_f, CFI_cdesc_t * des
     MPI_Offset offset = *offset_f;
     int count = *count_f;
     MPI_Datatype datatype = C_MPI_TYPE_FROMINT(*datatype_f);
+    int memcount;
+    MPI_Datatype memtype;
     VAPAA_CFI_WARN_DATATYPE_MISMATCH(desc, datatype, "MPI_File_read_at_all");
-    if (1 == VAPAA_CFI_is_contiguous(desc)) {
-        *ierror = MPI_File_read_at_all(file, offset, desc->base_addr, count, datatype,
+    *ierror = CFI_MPI_File_prepare_memory(desc, count, datatype, &memcount,
+                                          &memtype);
+    if (*ierror == MPI_SUCCESS) {
+        *ierror = MPI_File_read_at_all(file, offset, desc->base_addr, memcount, memtype,
                                        C_IS_MPI_STATUS_IGNORE(status) ? MPI_STATUS_IGNORE : status);
-    } else {
-        fprintf(stderr, "FIXME: not contiguous case\n");
-        MPI_Abort(MPI_COMM_SELF, 99);
+        if (*ierror == MPI_SUCCESS) {
+            *ierror = CFI_MPI_File_release_memory(datatype, &memtype);
+        } else {
+            (void)CFI_MPI_File_release_memory(datatype, &memtype);
+        }
     }
     C_MPI_RC_FIX(*ierror);
 }
@@ -209,13 +251,19 @@ void CFI_MPI_File_write_at(int * file_f, size_t * offset_f, CFI_cdesc_t * desc, 
     MPI_Offset offset = *offset_f;
     int count = *count_f;
     MPI_Datatype datatype = C_MPI_TYPE_FROMINT(*datatype_f);
+    int memcount;
+    MPI_Datatype memtype;
     VAPAA_CFI_WARN_DATATYPE_MISMATCH(desc, datatype, "MPI_File_write_at");
-    if (1 == VAPAA_CFI_is_contiguous(desc)) {
-        *ierror = MPI_File_write_at(file, offset, desc->base_addr, count, datatype,
+    *ierror = CFI_MPI_File_prepare_memory(desc, count, datatype, &memcount,
+                                          &memtype);
+    if (*ierror == MPI_SUCCESS) {
+        *ierror = MPI_File_write_at(file, offset, desc->base_addr, memcount, memtype,
                                     C_IS_MPI_STATUS_IGNORE(status) ? MPI_STATUS_IGNORE : status);
-    } else {
-        fprintf(stderr, "FIXME: not contiguous case\n");
-        MPI_Abort(MPI_COMM_SELF, 99);
+        if (*ierror == MPI_SUCCESS) {
+            *ierror = CFI_MPI_File_release_memory(datatype, &memtype);
+        } else {
+            (void)CFI_MPI_File_release_memory(datatype, &memtype);
+        }
     }
     C_MPI_RC_FIX(*ierror);
 }
@@ -239,13 +287,19 @@ void CFI_MPI_File_write_at_all(int * file_f, size_t * offset_f, CFI_cdesc_t * de
     MPI_Offset offset = *offset_f;
     int count = *count_f;
     MPI_Datatype datatype = C_MPI_TYPE_FROMINT(*datatype_f);
+    int memcount;
+    MPI_Datatype memtype;
     VAPAA_CFI_WARN_DATATYPE_MISMATCH(desc, datatype, "MPI_File_write_at_all");
-    if (1 == VAPAA_CFI_is_contiguous(desc)) {
-        *ierror = MPI_File_write_at_all(file, offset, desc->base_addr, count, datatype,
+    *ierror = CFI_MPI_File_prepare_memory(desc, count, datatype, &memcount,
+                                          &memtype);
+    if (*ierror == MPI_SUCCESS) {
+        *ierror = MPI_File_write_at_all(file, offset, desc->base_addr, memcount, memtype,
                                         C_IS_MPI_STATUS_IGNORE(status) ? MPI_STATUS_IGNORE : status);
-    } else {
-        fprintf(stderr, "FIXME: not contiguous case\n");
-        MPI_Abort(MPI_COMM_SELF, 99);
+        if (*ierror == MPI_SUCCESS) {
+            *ierror = CFI_MPI_File_release_memory(datatype, &memtype);
+        } else {
+            (void)CFI_MPI_File_release_memory(datatype, &memtype);
+        }
     }
     C_MPI_RC_FIX(*ierror);
 }
@@ -267,13 +321,19 @@ void CFI_MPI_File_read(int * file_f, CFI_cdesc_t * desc, int * count_f, int * da
     MPI_File file = C_MPI_FILE_FROMINT(*file_f);
     int count = *count_f;
     MPI_Datatype datatype = C_MPI_TYPE_FROMINT(*datatype_f);
+    int memcount;
+    MPI_Datatype memtype;
     VAPAA_CFI_WARN_DATATYPE_MISMATCH(desc, datatype, "MPI_File_read");
-    if (1 == VAPAA_CFI_is_contiguous(desc)) {
-        *ierror = MPI_File_read(file, desc->base_addr, count, datatype,
+    *ierror = CFI_MPI_File_prepare_memory(desc, count, datatype, &memcount,
+                                          &memtype);
+    if (*ierror == MPI_SUCCESS) {
+        *ierror = MPI_File_read(file, desc->base_addr, memcount, memtype,
                                 C_IS_MPI_STATUS_IGNORE(status) ? MPI_STATUS_IGNORE : status);
-    } else {
-        fprintf(stderr, "FIXME: not contiguous case\n");
-        MPI_Abort(MPI_COMM_SELF, 99);
+        if (*ierror == MPI_SUCCESS) {
+            *ierror = CFI_MPI_File_release_memory(datatype, &memtype);
+        } else {
+            (void)CFI_MPI_File_release_memory(datatype, &memtype);
+        }
     }
     C_MPI_RC_FIX(*ierror);
 }
@@ -295,13 +355,19 @@ void CFI_MPI_File_read_all(int * file_f, CFI_cdesc_t * desc, int * count_f, int 
     MPI_File file = C_MPI_FILE_FROMINT(*file_f);
     int count = *count_f;
     MPI_Datatype datatype = C_MPI_TYPE_FROMINT(*datatype_f);
+    int memcount;
+    MPI_Datatype memtype;
     VAPAA_CFI_WARN_DATATYPE_MISMATCH(desc, datatype, "MPI_File_read_all");
-    if (1 == VAPAA_CFI_is_contiguous(desc)) {
-        *ierror = MPI_File_read_all(file, desc->base_addr, count, datatype,
+    *ierror = CFI_MPI_File_prepare_memory(desc, count, datatype, &memcount,
+                                          &memtype);
+    if (*ierror == MPI_SUCCESS) {
+        *ierror = MPI_File_read_all(file, desc->base_addr, memcount, memtype,
                                     C_IS_MPI_STATUS_IGNORE(status) ? MPI_STATUS_IGNORE : status);
-    } else {
-        fprintf(stderr, "FIXME: not contiguous case\n");
-        MPI_Abort(MPI_COMM_SELF, 99);
+        if (*ierror == MPI_SUCCESS) {
+            *ierror = CFI_MPI_File_release_memory(datatype, &memtype);
+        } else {
+            (void)CFI_MPI_File_release_memory(datatype, &memtype);
+        }
     }
     C_MPI_RC_FIX(*ierror);
 }
@@ -323,13 +389,19 @@ void CFI_MPI_File_write(int * file_f, CFI_cdesc_t * desc, int * count_f, int * d
     MPI_File file = C_MPI_FILE_FROMINT(*file_f);
     int count = *count_f;
     MPI_Datatype datatype = C_MPI_TYPE_FROMINT(*datatype_f);
+    int memcount;
+    MPI_Datatype memtype;
     VAPAA_CFI_WARN_DATATYPE_MISMATCH(desc, datatype, "MPI_File_write");
-    if (1 == VAPAA_CFI_is_contiguous(desc)) {
-        *ierror = MPI_File_write(file, desc->base_addr, count, datatype,
+    *ierror = CFI_MPI_File_prepare_memory(desc, count, datatype, &memcount,
+                                          &memtype);
+    if (*ierror == MPI_SUCCESS) {
+        *ierror = MPI_File_write(file, desc->base_addr, memcount, memtype,
                                  C_IS_MPI_STATUS_IGNORE(status) ? MPI_STATUS_IGNORE : status);
-    } else {
-        fprintf(stderr, "FIXME: not contiguous case\n");
-        MPI_Abort(MPI_COMM_SELF, 99);
+        if (*ierror == MPI_SUCCESS) {
+            *ierror = CFI_MPI_File_release_memory(datatype, &memtype);
+        } else {
+            (void)CFI_MPI_File_release_memory(datatype, &memtype);
+        }
     }
     C_MPI_RC_FIX(*ierror);
 }
@@ -351,13 +423,19 @@ void CFI_MPI_File_write_all(int * file_f, CFI_cdesc_t * desc, int * count_f, int
     MPI_File file = C_MPI_FILE_FROMINT(*file_f);
     int count = *count_f;
     MPI_Datatype datatype = C_MPI_TYPE_FROMINT(*datatype_f);
+    int memcount;
+    MPI_Datatype memtype;
     VAPAA_CFI_WARN_DATATYPE_MISMATCH(desc, datatype, "MPI_File_write_all");
-    if (1 == VAPAA_CFI_is_contiguous(desc)) {
-        *ierror = MPI_File_write_all(file, desc->base_addr, count, datatype,
+    *ierror = CFI_MPI_File_prepare_memory(desc, count, datatype, &memcount,
+                                          &memtype);
+    if (*ierror == MPI_SUCCESS) {
+        *ierror = MPI_File_write_all(file, desc->base_addr, memcount, memtype,
                                      C_IS_MPI_STATUS_IGNORE(status) ? MPI_STATUS_IGNORE : status);
-    } else {
-        fprintf(stderr, "FIXME: not contiguous case\n");
-        MPI_Abort(MPI_COMM_SELF, 99);
+        if (*ierror == MPI_SUCCESS) {
+            *ierror = CFI_MPI_File_release_memory(datatype, &memtype);
+        } else {
+            (void)CFI_MPI_File_release_memory(datatype, &memtype);
+        }
     }
     C_MPI_RC_FIX(*ierror);
 }

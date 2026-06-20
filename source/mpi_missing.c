@@ -905,10 +905,10 @@ void VAPAA_MPI_Type_get_contents(int *datatype_f, int *mi, int *ma, int *md, int
         }
         VAPAA_MPI_TYPES_TOINT_ARRAY(nd, types, types_f);
     }
-    if (nd > 0) {
+    if (types != &dummy_type) {
         free(types);
     }
-    if (na > 0) {
+    if (addrs != &dummy_addr) {
         free(addrs);
     }
     C_MPI_RC_FIX(*ierror);
@@ -1005,13 +1005,13 @@ void VAPAA_MPI_Type_get_contents_c(int *datatype_f, int64_t *mi_f, int64_t *ma_f
             VAPAA_MPI_TYPES_TOINT_ARRAY(nd_i, types, types_f);
         }
     }
-    if (nd_i > 0) {
+    if (types != &dummy_type) {
         free(types);
     }
-    if (nl_i > 0) {
+    if (counts != &dummy_count) {
         free(counts);
     }
-    if (na_i > 0) {
+    if (addrs != &dummy_addr) {
         free(addrs);
     }
 #else
@@ -1054,10 +1054,10 @@ void VAPAA_MPI_Type_get_contents_c(int *datatype_f, int64_t *mi_f, int64_t *ma_f
         }
         VAPAA_MPI_TYPES_TOINT_ARRAY(md, types, types_f);
     }
-    if (md > 0) {
+    if (types != &dummy_type) {
         free(types);
     }
-    if (ma > 0) {
+    if (addrs != &dummy_addr) {
         free(addrs);
     }
 #endif

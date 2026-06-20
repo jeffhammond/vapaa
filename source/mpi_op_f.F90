@@ -103,88 +103,7 @@ module mpi_op_f
             call f08_op_slots(slot) % fn(invec, inoutvec, len, datatype)
         end subroutine f08_op_dispatch
 
-#if defined(HAVE_PGIF) || defined(__flang__)
-#define VAPAA_F08_OP_TRAMPOLINE(N) \
-        subroutine f08_op_trampoline_##N(invec, inoutvec, len, datatype_f) bind(C); \
-            type(c_ptr), value :: invec, inoutvec; \
-            integer(c_int), intent(in) :: len; \
-            integer(c_int), intent(in) :: datatype_f; \
-            call f08_op_dispatch(N, invec, inoutvec, len, datatype_f); \
-        end subroutine f08_op_trampoline_##N
-#else
-#define VAPAA_F08_OP_TRAMPOLINE(N) \
-        subroutine f08_op_trampoline_/**/N(invec, inoutvec, len, datatype_f) bind(C); \
-            type(c_ptr), value :: invec, inoutvec; \
-            integer(c_int), intent(in) :: len; \
-            integer(c_int), intent(in) :: datatype_f; \
-            call f08_op_dispatch(N, invec, inoutvec, len, datatype_f); \
-        end subroutine f08_op_trampoline_/**/N
-#endif
-        VAPAA_F08_OP_TRAMPOLINE(0)
-        VAPAA_F08_OP_TRAMPOLINE(1)
-        VAPAA_F08_OP_TRAMPOLINE(2)
-        VAPAA_F08_OP_TRAMPOLINE(3)
-        VAPAA_F08_OP_TRAMPOLINE(4)
-        VAPAA_F08_OP_TRAMPOLINE(5)
-        VAPAA_F08_OP_TRAMPOLINE(6)
-        VAPAA_F08_OP_TRAMPOLINE(7)
-        VAPAA_F08_OP_TRAMPOLINE(8)
-        VAPAA_F08_OP_TRAMPOLINE(9)
-        VAPAA_F08_OP_TRAMPOLINE(10)
-        VAPAA_F08_OP_TRAMPOLINE(11)
-        VAPAA_F08_OP_TRAMPOLINE(12)
-        VAPAA_F08_OP_TRAMPOLINE(13)
-        VAPAA_F08_OP_TRAMPOLINE(14)
-        VAPAA_F08_OP_TRAMPOLINE(15)
-        VAPAA_F08_OP_TRAMPOLINE(16)
-        VAPAA_F08_OP_TRAMPOLINE(17)
-        VAPAA_F08_OP_TRAMPOLINE(18)
-        VAPAA_F08_OP_TRAMPOLINE(19)
-        VAPAA_F08_OP_TRAMPOLINE(20)
-        VAPAA_F08_OP_TRAMPOLINE(21)
-        VAPAA_F08_OP_TRAMPOLINE(22)
-        VAPAA_F08_OP_TRAMPOLINE(23)
-        VAPAA_F08_OP_TRAMPOLINE(24)
-        VAPAA_F08_OP_TRAMPOLINE(25)
-        VAPAA_F08_OP_TRAMPOLINE(26)
-        VAPAA_F08_OP_TRAMPOLINE(27)
-        VAPAA_F08_OP_TRAMPOLINE(28)
-        VAPAA_F08_OP_TRAMPOLINE(29)
-        VAPAA_F08_OP_TRAMPOLINE(30)
-        VAPAA_F08_OP_TRAMPOLINE(31)
-        VAPAA_F08_OP_TRAMPOLINE(32)
-        VAPAA_F08_OP_TRAMPOLINE(33)
-        VAPAA_F08_OP_TRAMPOLINE(34)
-        VAPAA_F08_OP_TRAMPOLINE(35)
-        VAPAA_F08_OP_TRAMPOLINE(36)
-        VAPAA_F08_OP_TRAMPOLINE(37)
-        VAPAA_F08_OP_TRAMPOLINE(38)
-        VAPAA_F08_OP_TRAMPOLINE(39)
-        VAPAA_F08_OP_TRAMPOLINE(40)
-        VAPAA_F08_OP_TRAMPOLINE(41)
-        VAPAA_F08_OP_TRAMPOLINE(42)
-        VAPAA_F08_OP_TRAMPOLINE(43)
-        VAPAA_F08_OP_TRAMPOLINE(44)
-        VAPAA_F08_OP_TRAMPOLINE(45)
-        VAPAA_F08_OP_TRAMPOLINE(46)
-        VAPAA_F08_OP_TRAMPOLINE(47)
-        VAPAA_F08_OP_TRAMPOLINE(48)
-        VAPAA_F08_OP_TRAMPOLINE(49)
-        VAPAA_F08_OP_TRAMPOLINE(50)
-        VAPAA_F08_OP_TRAMPOLINE(51)
-        VAPAA_F08_OP_TRAMPOLINE(52)
-        VAPAA_F08_OP_TRAMPOLINE(53)
-        VAPAA_F08_OP_TRAMPOLINE(54)
-        VAPAA_F08_OP_TRAMPOLINE(55)
-        VAPAA_F08_OP_TRAMPOLINE(56)
-        VAPAA_F08_OP_TRAMPOLINE(57)
-        VAPAA_F08_OP_TRAMPOLINE(58)
-        VAPAA_F08_OP_TRAMPOLINE(59)
-        VAPAA_F08_OP_TRAMPOLINE(60)
-        VAPAA_F08_OP_TRAMPOLINE(61)
-        VAPAA_F08_OP_TRAMPOLINE(62)
-        VAPAA_F08_OP_TRAMPOLINE(63)
-#undef VAPAA_F08_OP_TRAMPOLINE
+#include "mpi_op_trampoline_slots.inc"
 
         function f08_op_trampoline_funptr(slot) result(fn)
             integer, intent(in) :: slot
@@ -192,9 +111,9 @@ module mpi_op_f
             fn = c_null_funptr
             select case(slot)
 #if defined(HAVE_PGIF) || defined(__flang__)
-#define VAPAA_F08_OP_TRAMPOLINE_CASE(N) case(N); fn = c_funloc(f08_op_trampoline_##N)
+#define VAPAA_F08_OP_TRAMPOLINE_CASE(N) case(N); fn = c_funloc(f08_op_t_##N)
 #else
-#define VAPAA_F08_OP_TRAMPOLINE_CASE(N) case(N); fn = c_funloc(f08_op_trampoline_/**/N)
+#define VAPAA_F08_OP_TRAMPOLINE_CASE(N) case(N); fn = c_funloc(f08_op_t_/**/N)
 #endif
             VAPAA_F08_OP_TRAMPOLINE_CASE(0)
             VAPAA_F08_OP_TRAMPOLINE_CASE(1)

@@ -51,6 +51,36 @@ static void *VAPAA_MPI_RMA_ADDR(CFI_cdesc_t *desc)
 {
     return C_IS_MPI_BOTTOM(desc->base_addr) ? MPI_BOTTOM : desc->base_addr;
 }
+
+static int VAPAA_MPI_RMA_prepare_memory(CFI_cdesc_t *desc, int count,
+                                        MPI_Datatype datatype, int *memcount,
+                                        MPI_Datatype *memtype)
+{
+    int rc;
+    *memcount = count;
+    *memtype = datatype;
+    if (VAPAA_CFI_is_contiguous(desc) == 1) {
+        return MPI_SUCCESS;
+    }
+    *memcount = 1;
+    rc = VAPAA_CFI_CREATE_DATATYPE(desc, count, datatype, memtype);
+    if (rc != MPI_SUCCESS) return rc;
+    rc = PMPI_Type_commit(memtype);
+    if (rc != MPI_SUCCESS) {
+        int free_rc = PMPI_Type_free(memtype);
+        (void)free_rc;
+    }
+    return rc;
+}
+
+static int VAPAA_MPI_RMA_release_memory(MPI_Datatype datatype,
+                                        MPI_Datatype *memtype)
+{
+    if (*memtype == datatype) {
+        return MPI_SUCCESS;
+    }
+    return PMPI_Type_free(memtype);
+}
 #endif
 
 void VAPAA_MPI_Win_allocate(intptr_t *size_f, int *disp_unit, int *info_f, int *comm_f, void **baseptr, int *win_f, int *ierror)
@@ -120,10 +150,25 @@ void VAPAA_MPI_Put(CFI_cdesc_t *origin_addr, int *origin_count, int *origin_data
     MPI_Datatype origin_datatype = C_MPI_TYPE_FROMINT(*origin_datatype_f);
     MPI_Datatype target_datatype = C_MPI_TYPE_FROMINT(*target_datatype_f);
     MPI_Win win = C_MPI_WIN_FROMINT(*win_f);
+    int origin_memcount;
+    MPI_Datatype origin_memtype;
     VAPAA_CFI_WARN_DATATYPE_MISMATCH(origin_addr, origin_datatype, "MPI_Put");
-    *ierror = MPI_Put(VAPAA_MPI_RMA_ADDR(origin_addr), *origin_count, origin_datatype,
-                      C_MPI_DEST_F2C(*target_rank), (MPI_Aint) *target_disp,
-                      *target_count, target_datatype, win);
+    *ierror = VAPAA_MPI_RMA_prepare_memory(origin_addr, *origin_count,
+                                           origin_datatype, &origin_memcount,
+                                           &origin_memtype);
+    if (*ierror == MPI_SUCCESS) {
+        *ierror = MPI_Put(VAPAA_MPI_RMA_ADDR(origin_addr), origin_memcount,
+                          origin_memtype, C_MPI_DEST_F2C(*target_rank),
+                          (MPI_Aint) *target_disp, *target_count,
+                          target_datatype, win);
+        if (*ierror == MPI_SUCCESS) {
+            *ierror = VAPAA_MPI_RMA_release_memory(origin_datatype,
+                                                   &origin_memtype);
+        } else {
+            (void)VAPAA_MPI_RMA_release_memory(origin_datatype,
+                                               &origin_memtype);
+        }
+    }
     C_MPI_RC_FIX(*ierror);
 }
 
@@ -133,10 +178,25 @@ void VAPAA_MPI_Get(CFI_cdesc_t *origin_addr, int *origin_count, int *origin_data
     MPI_Datatype origin_datatype = C_MPI_TYPE_FROMINT(*origin_datatype_f);
     MPI_Datatype target_datatype = C_MPI_TYPE_FROMINT(*target_datatype_f);
     MPI_Win win = C_MPI_WIN_FROMINT(*win_f);
+    int origin_memcount;
+    MPI_Datatype origin_memtype;
     VAPAA_CFI_WARN_DATATYPE_MISMATCH(origin_addr, origin_datatype, "MPI_Get");
-    *ierror = MPI_Get(VAPAA_MPI_RMA_ADDR(origin_addr), *origin_count, origin_datatype,
-                      C_MPI_DEST_F2C(*target_rank), (MPI_Aint) *target_disp,
-                      *target_count, target_datatype, win);
+    *ierror = VAPAA_MPI_RMA_prepare_memory(origin_addr, *origin_count,
+                                           origin_datatype, &origin_memcount,
+                                           &origin_memtype);
+    if (*ierror == MPI_SUCCESS) {
+        *ierror = MPI_Get(VAPAA_MPI_RMA_ADDR(origin_addr), origin_memcount,
+                          origin_memtype, C_MPI_DEST_F2C(*target_rank),
+                          (MPI_Aint) *target_disp, *target_count,
+                          target_datatype, win);
+        if (*ierror == MPI_SUCCESS) {
+            *ierror = VAPAA_MPI_RMA_release_memory(origin_datatype,
+                                                   &origin_memtype);
+        } else {
+            (void)VAPAA_MPI_RMA_release_memory(origin_datatype,
+                                               &origin_memtype);
+        }
+    }
     C_MPI_RC_FIX(*ierror);
 }
 
@@ -148,10 +208,26 @@ void VAPAA_MPI_Accumulate(CFI_cdesc_t *origin_addr, int *origin_count, int *orig
     MPI_Datatype target_datatype = C_MPI_TYPE_FROMINT(*target_datatype_f);
     MPI_Op op = C_MPI_OP_FROMINT(*op_f);
     MPI_Win win = C_MPI_WIN_FROMINT(*win_f);
+    int origin_memcount;
+    MPI_Datatype origin_memtype;
     VAPAA_CFI_WARN_DATATYPE_MISMATCH(origin_addr, origin_datatype, "MPI_Accumulate");
-    *ierror = MPI_Accumulate(VAPAA_MPI_RMA_ADDR(origin_addr), *origin_count, origin_datatype,
-                             C_MPI_DEST_F2C(*target_rank), (MPI_Aint) *target_disp,
-                             *target_count, target_datatype, op, win);
+    *ierror = VAPAA_MPI_RMA_prepare_memory(origin_addr, *origin_count,
+                                           origin_datatype, &origin_memcount,
+                                           &origin_memtype);
+    if (*ierror == MPI_SUCCESS) {
+        *ierror = MPI_Accumulate(VAPAA_MPI_RMA_ADDR(origin_addr),
+                                 origin_memcount, origin_memtype,
+                                 C_MPI_DEST_F2C(*target_rank),
+                                 (MPI_Aint) *target_disp, *target_count,
+                                 target_datatype, op, win);
+        if (*ierror == MPI_SUCCESS) {
+            *ierror = VAPAA_MPI_RMA_release_memory(origin_datatype,
+                                                   &origin_memtype);
+        } else {
+            (void)VAPAA_MPI_RMA_release_memory(origin_datatype,
+                                               &origin_memtype);
+        }
+    }
     C_MPI_RC_FIX(*ierror);
 }
 
@@ -165,12 +241,39 @@ void VAPAA_MPI_Get_accumulate(CFI_cdesc_t *origin_addr, int *origin_count, int *
     MPI_Datatype target_datatype = C_MPI_TYPE_FROMINT(*target_datatype_f);
     MPI_Op op = C_MPI_OP_FROMINT(*op_f);
     MPI_Win win = C_MPI_WIN_FROMINT(*win_f);
+    int origin_memcount, result_memcount;
+    MPI_Datatype origin_memtype = origin_datatype;
+    MPI_Datatype result_memtype = result_datatype;
     VAPAA_CFI_WARN_DATATYPE_MISMATCH(origin_addr, origin_datatype, "MPI_Get_accumulate");
     VAPAA_CFI_WARN_DATATYPE_MISMATCH(result_addr, result_datatype, "MPI_Get_accumulate");
-    *ierror = MPI_Get_accumulate(VAPAA_MPI_RMA_ADDR(origin_addr), *origin_count, origin_datatype,
-                                 VAPAA_MPI_RMA_ADDR(result_addr), *result_count, result_datatype,
-                                 C_MPI_DEST_F2C(*target_rank), (MPI_Aint) *target_disp,
-                                 *target_count, target_datatype, op, win);
+    *ierror = VAPAA_MPI_RMA_prepare_memory(origin_addr, *origin_count,
+                                           origin_datatype, &origin_memcount,
+                                           &origin_memtype);
+    if (*ierror == MPI_SUCCESS) {
+        *ierror = VAPAA_MPI_RMA_prepare_memory(result_addr, *result_count,
+                                               result_datatype,
+                                               &result_memcount,
+                                               &result_memtype);
+    }
+    if (*ierror == MPI_SUCCESS) {
+        *ierror = MPI_Get_accumulate(VAPAA_MPI_RMA_ADDR(origin_addr),
+                                     origin_memcount, origin_memtype,
+                                     VAPAA_MPI_RMA_ADDR(result_addr),
+                                     result_memcount, result_memtype,
+                                     C_MPI_DEST_F2C(*target_rank),
+                                     (MPI_Aint) *target_disp, *target_count,
+                                     target_datatype, op, win);
+        if (*ierror == MPI_SUCCESS) {
+            *ierror = VAPAA_MPI_RMA_release_memory(result_datatype,
+                                                   &result_memtype);
+        } else {
+            (void)VAPAA_MPI_RMA_release_memory(result_datatype,
+                                               &result_memtype);
+        }
+    }
+    if (origin_memtype != origin_datatype) {
+        (void)VAPAA_MPI_RMA_release_memory(origin_datatype, &origin_memtype);
+    }
     C_MPI_RC_FIX(*ierror);
 }
 
@@ -182,10 +285,25 @@ void VAPAA_MPI_Rput(CFI_cdesc_t *origin_addr, int *origin_count, int *origin_dat
     MPI_Datatype origin_datatype = C_MPI_TYPE_FROMINT(*origin_datatype_f);
     MPI_Datatype target_datatype = C_MPI_TYPE_FROMINT(*target_datatype_f);
     MPI_Win win = C_MPI_WIN_FROMINT(*win_f);
+    int origin_memcount;
+    MPI_Datatype origin_memtype;
     VAPAA_CFI_WARN_DATATYPE_MISMATCH(origin_addr, origin_datatype, "MPI_Rput");
-    *ierror = MPI_Rput(VAPAA_MPI_RMA_ADDR(origin_addr), *origin_count, origin_datatype,
-                       C_MPI_DEST_F2C(*target_rank), (MPI_Aint) *target_disp,
-                       *target_count, target_datatype, win, &request);
+    *ierror = VAPAA_MPI_RMA_prepare_memory(origin_addr, *origin_count,
+                                           origin_datatype, &origin_memcount,
+                                           &origin_memtype);
+    if (*ierror == MPI_SUCCESS) {
+        *ierror = MPI_Rput(VAPAA_MPI_RMA_ADDR(origin_addr), origin_memcount,
+                           origin_memtype, C_MPI_DEST_F2C(*target_rank),
+                           (MPI_Aint) *target_disp, *target_count,
+                           target_datatype, win, &request);
+        if (*ierror == MPI_SUCCESS) {
+            *ierror = VAPAA_MPI_RMA_release_memory(origin_datatype,
+                                                   &origin_memtype);
+        } else {
+            (void)VAPAA_MPI_RMA_release_memory(origin_datatype,
+                                               &origin_memtype);
+        }
+    }
     *request_f = C_MPI_REQUEST_TOINT(request);
     C_MPI_RC_FIX(*ierror);
 }
@@ -198,10 +316,25 @@ void VAPAA_MPI_Rget(CFI_cdesc_t *origin_addr, int *origin_count, int *origin_dat
     MPI_Datatype origin_datatype = C_MPI_TYPE_FROMINT(*origin_datatype_f);
     MPI_Datatype target_datatype = C_MPI_TYPE_FROMINT(*target_datatype_f);
     MPI_Win win = C_MPI_WIN_FROMINT(*win_f);
+    int origin_memcount;
+    MPI_Datatype origin_memtype;
     VAPAA_CFI_WARN_DATATYPE_MISMATCH(origin_addr, origin_datatype, "MPI_Rget");
-    *ierror = MPI_Rget(VAPAA_MPI_RMA_ADDR(origin_addr), *origin_count, origin_datatype,
-                       C_MPI_DEST_F2C(*target_rank), (MPI_Aint) *target_disp,
-                       *target_count, target_datatype, win, &request);
+    *ierror = VAPAA_MPI_RMA_prepare_memory(origin_addr, *origin_count,
+                                           origin_datatype, &origin_memcount,
+                                           &origin_memtype);
+    if (*ierror == MPI_SUCCESS) {
+        *ierror = MPI_Rget(VAPAA_MPI_RMA_ADDR(origin_addr), origin_memcount,
+                           origin_memtype, C_MPI_DEST_F2C(*target_rank),
+                           (MPI_Aint) *target_disp, *target_count,
+                           target_datatype, win, &request);
+        if (*ierror == MPI_SUCCESS) {
+            *ierror = VAPAA_MPI_RMA_release_memory(origin_datatype,
+                                                   &origin_memtype);
+        } else {
+            (void)VAPAA_MPI_RMA_release_memory(origin_datatype,
+                                               &origin_memtype);
+        }
+    }
     *request_f = C_MPI_REQUEST_TOINT(request);
     C_MPI_RC_FIX(*ierror);
 }
@@ -215,10 +348,26 @@ void VAPAA_MPI_Raccumulate(CFI_cdesc_t *origin_addr, int *origin_count, int *ori
     MPI_Datatype target_datatype = C_MPI_TYPE_FROMINT(*target_datatype_f);
     MPI_Op op = C_MPI_OP_FROMINT(*op_f);
     MPI_Win win = C_MPI_WIN_FROMINT(*win_f);
+    int origin_memcount;
+    MPI_Datatype origin_memtype;
     VAPAA_CFI_WARN_DATATYPE_MISMATCH(origin_addr, origin_datatype, "MPI_Raccumulate");
-    *ierror = MPI_Raccumulate(VAPAA_MPI_RMA_ADDR(origin_addr), *origin_count, origin_datatype,
-                              C_MPI_DEST_F2C(*target_rank), (MPI_Aint) *target_disp,
-                              *target_count, target_datatype, op, win, &request);
+    *ierror = VAPAA_MPI_RMA_prepare_memory(origin_addr, *origin_count,
+                                           origin_datatype, &origin_memcount,
+                                           &origin_memtype);
+    if (*ierror == MPI_SUCCESS) {
+        *ierror = MPI_Raccumulate(VAPAA_MPI_RMA_ADDR(origin_addr),
+                                  origin_memcount, origin_memtype,
+                                  C_MPI_DEST_F2C(*target_rank),
+                                  (MPI_Aint) *target_disp, *target_count,
+                                  target_datatype, op, win, &request);
+        if (*ierror == MPI_SUCCESS) {
+            *ierror = VAPAA_MPI_RMA_release_memory(origin_datatype,
+                                                   &origin_memtype);
+        } else {
+            (void)VAPAA_MPI_RMA_release_memory(origin_datatype,
+                                               &origin_memtype);
+        }
+    }
     *request_f = C_MPI_REQUEST_TOINT(request);
     C_MPI_RC_FIX(*ierror);
 }
@@ -234,12 +383,39 @@ void VAPAA_MPI_Rget_accumulate(CFI_cdesc_t *origin_addr, int *origin_count, int 
     MPI_Datatype target_datatype = C_MPI_TYPE_FROMINT(*target_datatype_f);
     MPI_Op op = C_MPI_OP_FROMINT(*op_f);
     MPI_Win win = C_MPI_WIN_FROMINT(*win_f);
+    int origin_memcount, result_memcount;
+    MPI_Datatype origin_memtype = origin_datatype;
+    MPI_Datatype result_memtype = result_datatype;
     VAPAA_CFI_WARN_DATATYPE_MISMATCH(origin_addr, origin_datatype, "MPI_Rget_accumulate");
     VAPAA_CFI_WARN_DATATYPE_MISMATCH(result_addr, result_datatype, "MPI_Rget_accumulate");
-    *ierror = MPI_Rget_accumulate(VAPAA_MPI_RMA_ADDR(origin_addr), *origin_count, origin_datatype,
-                                  VAPAA_MPI_RMA_ADDR(result_addr), *result_count, result_datatype,
-                                  C_MPI_DEST_F2C(*target_rank), (MPI_Aint) *target_disp,
-                                  *target_count, target_datatype, op, win, &request);
+    *ierror = VAPAA_MPI_RMA_prepare_memory(origin_addr, *origin_count,
+                                           origin_datatype, &origin_memcount,
+                                           &origin_memtype);
+    if (*ierror == MPI_SUCCESS) {
+        *ierror = VAPAA_MPI_RMA_prepare_memory(result_addr, *result_count,
+                                               result_datatype,
+                                               &result_memcount,
+                                               &result_memtype);
+    }
+    if (*ierror == MPI_SUCCESS) {
+        *ierror = MPI_Rget_accumulate(VAPAA_MPI_RMA_ADDR(origin_addr),
+                                      origin_memcount, origin_memtype,
+                                      VAPAA_MPI_RMA_ADDR(result_addr),
+                                      result_memcount, result_memtype,
+                                      C_MPI_DEST_F2C(*target_rank),
+                                      (MPI_Aint) *target_disp, *target_count,
+                                      target_datatype, op, win, &request);
+        if (*ierror == MPI_SUCCESS) {
+            *ierror = VAPAA_MPI_RMA_release_memory(result_datatype,
+                                                   &result_memtype);
+        } else {
+            (void)VAPAA_MPI_RMA_release_memory(result_datatype,
+                                               &result_memtype);
+        }
+    }
+    if (origin_memtype != origin_datatype) {
+        (void)VAPAA_MPI_RMA_release_memory(origin_datatype, &origin_memtype);
+    }
     *request_f = C_MPI_REQUEST_TOINT(request);
     C_MPI_RC_FIX(*ierror);
 }

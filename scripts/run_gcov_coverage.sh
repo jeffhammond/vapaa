@@ -3,6 +3,9 @@ set -euo pipefail
 
 root_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 build_dir="${1:-${root_dir}/build-gcov}"
+if [[ "${build_dir}" != /* ]]; then
+  build_dir="${root_dir}/${build_dir}"
+fi
 
 cmake_args=(
   -S "${root_dir}"
@@ -45,4 +48,5 @@ gcovr --root "${root_dir}" \
   --merge-mode-functions merge-use-line-min \
   --print-summary \
   --html-details "${coverage_dir}/index.html" \
-  --json "${coverage_dir}/coverage.json"
+  --json "${coverage_dir}/coverage.json" \
+  "${build_dir}/CMakeFiles/vapa.dir/source"

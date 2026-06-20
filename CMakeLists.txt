@@ -354,6 +354,8 @@ set_target_properties(
   ${vapa_lib}
   PROPERTIES ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib"
              Fortran_MODULE_DIRECTORY "${CMAKE_BINARY_DIR}/modules")
+target_include_directories(${vapa_lib}
+  PRIVATE $<$<COMPILE_LANGUAGE:Fortran>:${CMAKE_BINARY_DIR}/modules>)
 
 add_subdirectory(source)
 add_subdirectory(tests)

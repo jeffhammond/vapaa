@@ -303,6 +303,91 @@ void C_MPI_Bcast(void * buffer, int count, int datatype_f, int root, int comm_f,
 }
 
 #ifdef HAVE_CFI
+static int CFI_MPI_pack_to_contig(CFI_cdesc_t *desc, int count,
+                                  MPI_Datatype datatype, MPI_Comm comm,
+                                  void **linear)
+{
+    MPI_Datatype subarray_type = MPI_DATATYPE_NULL;
+    MPI_Count type_size = 0;
+    void *packbuf = NULL;
+    int pack_size = 0, position = 0;
+    int rc;
+
+    *linear = NULL;
+    rc = MPI_Type_size_x(datatype, &type_size);
+    if (rc != MPI_SUCCESS) return rc;
+    *linear = malloc((size_t)count * (size_t)type_size + (count == 0));
+    if (*linear == NULL) return MPI_ERR_NO_MEM;
+    if (count == 0) return MPI_SUCCESS;
+
+    rc = VAPAA_CFI_CREATE_DATATYPE(desc, count, datatype, &subarray_type);
+    if (rc != MPI_SUCCESS) goto fail;
+    rc = PMPI_Type_commit(&subarray_type);
+    if (rc != MPI_SUCCESS) goto fail;
+    rc = MPI_Pack_size(1, subarray_type, comm, &pack_size);
+    if (rc != MPI_SUCCESS) goto fail;
+    packbuf = malloc((size_t)pack_size + (pack_size == 0));
+    if (packbuf == NULL) {
+        rc = MPI_ERR_NO_MEM;
+        goto fail;
+    }
+    rc = MPI_Pack(desc->base_addr, 1, subarray_type, packbuf, pack_size,
+                  &position, comm);
+    if (rc != MPI_SUCCESS) goto fail;
+    position = 0;
+    rc = MPI_Unpack(packbuf, pack_size, &position, *linear, count, datatype,
+                    comm);
+
+fail:
+    free(packbuf);
+    if (subarray_type != MPI_DATATYPE_NULL) {
+        int free_rc = PMPI_Type_free(&subarray_type);
+        if (rc == MPI_SUCCESS) rc = free_rc;
+    }
+    if (rc != MPI_SUCCESS) {
+        free(*linear);
+        *linear = NULL;
+    }
+    return rc;
+}
+
+static int CFI_MPI_unpack_from_contig(const void *linear, int count,
+                                      MPI_Datatype datatype, MPI_Comm comm,
+                                      CFI_cdesc_t *desc)
+{
+    MPI_Datatype subarray_type = MPI_DATATYPE_NULL;
+    void *packbuf = NULL;
+    int pack_size = 0, position = 0;
+    int rc;
+
+    if (count == 0) return MPI_SUCCESS;
+    rc = VAPAA_CFI_CREATE_DATATYPE(desc, count, datatype, &subarray_type);
+    if (rc != MPI_SUCCESS) goto fail;
+    rc = PMPI_Type_commit(&subarray_type);
+    if (rc != MPI_SUCCESS) goto fail;
+    rc = MPI_Pack_size(count, datatype, comm, &pack_size);
+    if (rc != MPI_SUCCESS) goto fail;
+    packbuf = malloc((size_t)pack_size + (pack_size == 0));
+    if (packbuf == NULL) {
+        rc = MPI_ERR_NO_MEM;
+        goto fail;
+    }
+    rc = MPI_Pack(linear, count, datatype, packbuf, pack_size, &position,
+                  comm);
+    if (rc != MPI_SUCCESS) goto fail;
+    position = 0;
+    rc = MPI_Unpack(packbuf, pack_size, &position, desc->base_addr, 1,
+                    subarray_type, comm);
+
+fail:
+    free(packbuf);
+    if (subarray_type != MPI_DATATYPE_NULL) {
+        int free_rc = PMPI_Type_free(&subarray_type);
+        if (rc == MPI_SUCCESS) rc = free_rc;
+    }
+    return rc;
+}
+
 void CFI_MPI_Bcast(CFI_cdesc_t * desc, int count, int datatype_f, int root, int comm_f, int * ierror)
 {
     int rc;
@@ -680,41 +765,52 @@ void CFI_MPI_Alltoall(CFI_cdesc_t * input, int * scount, int * stype_f, CFI_cdes
     bool in_contiguous  = (1 == VAPAA_CFI_is_contiguous(input));
     bool out_contiguous = (1 == VAPAA_CFI_is_contiguous(output));
 
-    int in_count  = *scount;
-    int out_count = *rcount;
-
-    MPI_Datatype in_type  = stype;
-    MPI_Datatype out_type = rtype;
-
-    if (!in_contiguous) {
-        in_count = 1;
-        rc = VAPAA_CFI_CREATE_DATATYPE(input, *scount, stype, &in_type);
-        VAPAA_Assert(rc == MPI_SUCCESS);
-        rc = PMPI_Type_commit(&in_type);
-        VAPAA_Assert(rc == MPI_SUCCESS);
-    }
-
-    if (!out_contiguous) {
-        out_count = 1;
-        rc = VAPAA_CFI_CREATE_DATATYPE(output, *rcount, rtype, &out_type);
-        VAPAA_Assert(rc == MPI_SUCCESS);
-        rc = PMPI_Type_commit(&out_type);
-        VAPAA_Assert(rc == MPI_SUCCESS);
-    }
-
     MPI_Comm comm = C_MPI_COMM_FROMINT(*comm_f);
-    *ierror = MPI_Alltoall(in_addr, in_count, in_type, out_addr, out_count, out_type, comm);
-    C_MPI_RC_FIX(*ierror);
+    int size = 0;
+    rc = MPI_Comm_size(comm, &size);
+    if (rc != MPI_SUCCESS) {
+        *ierror = rc;
+        C_MPI_RC_FIX(*ierror);
+        return;
+    }
 
-    if (!in_contiguous) {
-        rc = PMPI_Type_free(&in_type);
-        VAPAA_Assert(rc == MPI_SUCCESS);
+    void *send_work = in_addr;
+    void *recv_work = out_addr;
+    void *send_tmp = NULL;
+    void *recv_tmp = NULL;
+
+    if (in_addr != MPI_IN_PLACE && !in_contiguous) {
+        rc = CFI_MPI_pack_to_contig(input, (*scount) * size, stype, comm,
+                                    &send_tmp);
+        if (rc != MPI_SUCCESS) {
+            *ierror = rc;
+            C_MPI_RC_FIX(*ierror);
+            return;
+        }
+        send_work = send_tmp;
     }
 
     if (!out_contiguous) {
-        rc = PMPI_Type_free(&out_type);
-        VAPAA_Assert(rc == MPI_SUCCESS);
+        rc = CFI_MPI_pack_to_contig(output, (*rcount) * size, rtype, comm,
+                                    &recv_tmp);
+        if (rc != MPI_SUCCESS) {
+            free(send_tmp);
+            *ierror = rc;
+            C_MPI_RC_FIX(*ierror);
+            return;
+        }
+        recv_work = recv_tmp;
     }
+
+    *ierror = MPI_Alltoall(send_work, *scount, stype, recv_work, *rcount,
+                           rtype, comm);
+    if (*ierror == MPI_SUCCESS && !out_contiguous) {
+        *ierror = CFI_MPI_unpack_from_contig(recv_tmp, (*rcount) * size,
+                                             rtype, comm, output);
+    }
+    free(send_tmp);
+    free(recv_tmp);
+    C_MPI_RC_FIX(*ierror);
 }
 #endif
 

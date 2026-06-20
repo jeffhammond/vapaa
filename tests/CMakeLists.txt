@@ -1,8 +1,12 @@
 set(TYPECHECK_WARNING_TEST_SOURCE "${CMAKE_CURRENT_SOURCE_DIR}/test_typecheck_warnings.F90")
 set(PGIF_DESCRIPTOR_TEST_SOURCE "${CMAKE_CURRENT_SOURCE_DIR}/test_pgif_descriptor.F90")
 set(PGIF_DESCRIPTOR_TEST_C_SOURCE "${CMAKE_CURRENT_SOURCE_DIR}/test_pgif_descriptor.c")
+set(PGIF_UTIL_COVERAGE_TEST_C_SOURCE
+    "${CMAKE_CURRENT_SOURCE_DIR}/test_pgif_util_coverage.c")
 set(PGIF_MPI_BYTE_TEST_SOURCE "${CMAKE_CURRENT_SOURCE_DIR}/test_pgif_mpi_byte_noncontig.F90")
 set(MPIFH_COVERAGE_TEST_SOURCE "${CMAKE_CURRENT_SOURCE_DIR}/test_mpifh_coverage.f")
+set(MPIFH_MORE_COVERAGE_TEST_SOURCE
+    "${CMAKE_CURRENT_SOURCE_DIR}/test_mpifh_comm_io_rma.f")
 set(F08_MISSING_IERROR_FATAL_TEST_SOURCE
     "${CMAKE_CURRENT_SOURCE_DIR}/test_f08_missing_ierror_fatal.F90")
 
@@ -91,6 +95,11 @@ foreach(TEST_SOURCE ${TEST_SOURCES})
     target_include_directories(${TEST_NAME} PRIVATE "${CMAKE_SOURCE_DIR}/source")
     target_link_libraries(${TEST_NAME} PRIVATE MPI::MPI_C)
   endif()
+  if(TEST_NAME STREQUAL "test_pgif_util_coverage")
+    target_sources(${TEST_NAME} PRIVATE "${PGIF_UTIL_COVERAGE_TEST_C_SOURCE}")
+    target_include_directories(${TEST_NAME} PRIVATE "${CMAKE_SOURCE_DIR}/source")
+    target_link_libraries(${TEST_NAME} PRIVATE MPI::MPI_C)
+  endif()
   
   # Set the output directory for the executables
   set_target_properties(${TEST_NAME} PROPERTIES
@@ -135,6 +144,29 @@ set_tests_properties(test_mpifh_coverage PROPERTIES
   PASS_REGULAR_EXPRESSION "Test passed")
 if(vapaa_test_environment)
   set_property(TEST test_mpifh_coverage PROPERTY
+    ENVIRONMENT "${vapaa_test_environment}")
+endif()
+
+add_executable(test_mpifh_comm_io_rma ${MPIFH_MORE_COVERAGE_TEST_SOURCE})
+target_compile_options(test_mpifh_comm_io_rma PRIVATE
+  ${VAPAA_FORTRAN_WARNING_OPTIONS}
+  -g -fPIE
+  $<$<COMPILE_LANG_AND_ID:Fortran,GNU>:-std=legacy>
+  $<$<COMPILE_LANG_AND_ID:Fortran,GNU>:-ffixed-line-length-none>
+  $<$<COMPILE_LANG_AND_ID:Fortran,GNU>:-fallow-argument-mismatch>
+  $<$<COMPILE_LANG_AND_ID:Fortran,GNU>:-Wno-unused-parameter>)
+target_include_directories(test_mpifh_comm_io_rma PRIVATE "${SOURCE_DIR}")
+target_link_libraries(test_mpifh_comm_io_rma PRIVATE ${vapa_lib})
+set_target_properties(test_mpifh_comm_io_rma PROPERTIES
+  RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/tests")
+add_test(NAME test_mpifh_comm_io_rma
+         COMMAND ${MPIEXEC_EXECUTABLE} ${MPIEXEC_NUMPROC_FLAG} 4
+                 $<TARGET_FILE:test_mpifh_comm_io_rma>)
+set_tests_properties(test_mpifh_comm_io_rma PROPERTIES
+  WORKING_DIRECTORY "${CMAKE_BINARY_DIR}/tests"
+  PASS_REGULAR_EXPRESSION "Test passed")
+if(vapaa_test_environment)
+  set_property(TEST test_mpifh_comm_io_rma PROPERTY
     ENVIRONMENT "${vapaa_test_environment}")
 endif()
 
