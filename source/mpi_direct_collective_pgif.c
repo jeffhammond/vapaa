@@ -10,6 +10,7 @@
 #include "detect_builtins.h"
 #include "pgif_util.h"
 #include "vapaa_error_handling.h"
+#include "vapaa_wcollective_grequest.h"
 
 #ifdef HAVE_PGIF
 
@@ -729,22 +730,21 @@ void vapaa_mpi_ialltoallw_(void *sendbuf, const int sendcounts[],
                                       sizeof(*zero_displs));
             MPI_Datatype *sendtypes = null_types(size);
             VAPAA_Assert(zero_counts != NULL && zero_displs != NULL);
-            *ierror = MPI_Ialltoallw(MPI_IN_PLACE, zero_counts, zero_displs,
-                                     sendtypes, VAPAA_PGIF_ADDR(recvbuf),
-                                     recvcounts, rdispls, recvtypes, comm,
-                                     &request);
-            free(zero_counts);
-            free(zero_displs);
-            free(sendtypes);
+            *ierror = VAPAA_Grequest_alltoallw(MPI_IN_PLACE, zero_counts,
+                                                zero_displs, sendtypes,
+                                                VAPAA_PGIF_ADDR(recvbuf),
+                                                recvcounts, rdispls, recvtypes,
+                                                comm, zero_counts, zero_displs,
+                                                sendtypes, recvtypes, &request);
         } else {
             MPI_Datatype *sendtypes = types_fromint(sendtypes_f, size);
-            *ierror = MPI_Ialltoallw(VAPAA_PGIF_ADDR(sendbuf), sendcounts,
-                                     sdispls, sendtypes,
-                                     VAPAA_PGIF_ADDR(recvbuf), recvcounts,
-                                     rdispls, recvtypes, comm, &request);
-            free(sendtypes);
+            *ierror = VAPAA_Grequest_alltoallw(VAPAA_PGIF_ADDR(sendbuf),
+                                                sendcounts, sdispls, sendtypes,
+                                                VAPAA_PGIF_ADDR(recvbuf),
+                                                recvcounts, rdispls, recvtypes,
+                                                comm, NULL, NULL, sendtypes,
+                                                recvtypes, &request);
         }
-        free(recvtypes);
     }
     finish_request(request, request_f, ierror);
 }
@@ -1158,11 +1158,14 @@ void vapaa_mpi_ineighbor_alltoallw_(void *sendbuf, const int sendcounts[],
                                  &recvtypes, &outdegree, &indegree);
         MPI_Aint *sdispls = aints_from_intptr(sdispls_f, outdegree);
         MPI_Aint *rdispls = aints_from_intptr(rdispls_f, indegree);
-        *ierror = MPI_Ineighbor_alltoallw(VAPAA_PGIF_ADDR(sendbuf), sendcounts,
-                                          sdispls, sendtypes,
-                                          VAPAA_PGIF_ADDR(recvbuf), recvcounts,
-                                          rdispls, recvtypes, comm, &request);
-        free(sendtypes); free(recvtypes); free(sdispls); free(rdispls);
+        *ierror = VAPAA_Grequest_neighbor_alltoallw(VAPAA_PGIF_ADDR(sendbuf),
+                                                    sendcounts, sdispls,
+                                                    sendtypes,
+                                                    VAPAA_PGIF_ADDR(recvbuf),
+                                                    recvcounts, rdispls,
+                                                    recvtypes, comm, sdispls,
+                                                    sendtypes, rdispls,
+                                                    recvtypes, &request);
     }
     finish_request(request, request_f, ierror);
 }

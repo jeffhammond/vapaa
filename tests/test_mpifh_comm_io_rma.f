@@ -1,15 +1,19 @@
       program test_mpifh_comm_io_rma
       implicit none
       include 'mpif.h'
-      integer ierr, errors, rank, nproc
+      integer ierr, errors, provided, rank, nproc
 
       errors = 0
-      call MPI_Init(ierr)
+      call MPI_Init_thread(MPI_THREAD_MULTIPLE, provided, ierr)
       call check_success(ierr, errors)
       call MPI_Comm_rank(MPI_COMM_WORLD, rank, ierr)
       call check_success(ierr, errors)
       call MPI_Comm_size(MPI_COMM_WORLD, nproc, ierr)
       call check_success(ierr, errors)
+      if (provided .lt. MPI_THREAD_MULTIPLE) then
+          print *, 'MPI_THREAD_MULTIPLE not provided: ', provided
+          call MPI_Abort(MPI_COMM_WORLD, 1, ierr)
+      endif
       call MPI_Comm_set_errhandler(MPI_COMM_WORLD, MPI_ERRORS_RETURN,
      &     ierr)
       call check_success(ierr, errors)

@@ -2,16 +2,17 @@ program test_direct_collective_coverage
     use mpi_f08
     implicit none
 
-    integer :: ierr, rank, nranks
+    integer :: ierr, provided, rank, nranks
     integer :: sum_ranks
     type(MPI_Comm) :: cart
 
-    call MPI_Init(ierr)
-    call require(ierr == MPI_SUCCESS, "MPI_Init")
+    call MPI_Init_thread(MPI_THREAD_MULTIPLE, provided, ierr)
+    call require(ierr == MPI_SUCCESS, "MPI_Init_thread")
     call MPI_Comm_rank(MPI_COMM_WORLD, rank, ierr)
     call require(ierr == MPI_SUCCESS, "MPI_Comm_rank")
     call MPI_Comm_size(MPI_COMM_WORLD, nranks, ierr)
     call require(ierr == MPI_SUCCESS, "MPI_Comm_size")
+    call require(provided >= MPI_THREAD_MULTIPLE, "MPI_THREAD_MULTIPLE")
     call MPI_Comm_set_errhandler(MPI_COMM_WORLD, MPI_ERRORS_RETURN, ierr)
     call require(ierr == MPI_SUCCESS, "MPI_Comm_set_errhandler world")
     call require(nranks == 4, "this test expects four ranks")

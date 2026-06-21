@@ -9,6 +9,7 @@
 #include "convert_handles.h"
 #include "detect_sentinels.h"
 #include "vapaa_constants.h"
+#include "vapaa_wcollective_grequest.h"
 
 typedef void (*vapaa_c_funptr)(void);
 
@@ -1119,10 +1120,9 @@ void mpi_ialltoallw_(const void *sendbuf, const int sendcounts[], const int sdis
         return;
     }
     const void *send_addr = C_IS_MPI_IN_PLACE(sendbuf) ? MPI_IN_PLACE : sendbuf;
-    *ierror = MPI_Ialltoallw(send_addr, sendcounts, sdispls, sendtypes,
-                             recvbuf, recvcounts, rdispls, recvtypes, comm, &request);
-    free(sendtypes);
-    free(recvtypes);
+    *ierror = VAPAA_Grequest_alltoallw(send_addr, sendcounts, sdispls, sendtypes,
+                                        recvbuf, recvcounts, rdispls, recvtypes, comm,
+                                        NULL, NULL, sendtypes, recvtypes, &request);
     f77_request_store(request, request_f);
     C_MPI_RC_FIX(*ierror);
 }

@@ -15,12 +15,20 @@ C
       integer types(maxSize)
       integer sbuf(maxSize), rbuf(maxSize)
       integer comm, size, rank, req
-      integer ierr, errs
+      integer ierr, provided, errs
       integer ii, ans
 
       errs = 0
 
+      call MPI_Init_thread(MPI_THREAD_MULTIPLE, provided, ierr)
+      if (ierr .ne. MPI_SUCCESS) stop 1
       call mtest_init(ierr)
+      if (provided .lt. MPI_THREAD_MULTIPLE) then
+         errs = errs + 1
+         print *, 'MPI_THREAD_MULTIPLE not provided'
+         call mtest_finalize(errs)
+         stop 1
+      endif
 
       comm = MPI_COMM_WORLD
       call MPI_Comm_size(comm, size, ierr)

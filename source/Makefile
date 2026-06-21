@@ -9,6 +9,7 @@ all: libmpi_f08.a
 	$(FC) $(FCFLAGS) -c $<
 
 libmpi_f08.a: mpi_f08.o cfi_util.o debug.o vapaa_abi_handles.o \
+	      vapaa_wcollective_grequest.o \
 	      detect_sentinels.o detect_sentinels_c.o \
 	      mpi_global_constants.o \
 	      mpi_handle_types.o mpi_handle_operators.o \
@@ -44,6 +45,10 @@ debug.o: debug.c debug.h
 	$(CC) $(CFLAGS) -c $<
 
 vapaa_abi_handles.o: vapaa_abi_handles.c vapaa_abi_handles.h vapaa_constants.h
+	$(CC) $(CFLAGS) -c $<
+
+vapaa_wcollective_grequest.o: vapaa_wcollective_grequest.c \
+			      vapaa_wcollective_grequest.h vapaa_error_handling.h
 	$(CC) $(CFLAGS) -c $<
 
 cfi_util.o: cfi_util.c cfi_util.h

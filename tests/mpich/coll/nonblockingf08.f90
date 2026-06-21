@@ -18,12 +18,19 @@
       integer size, rank
       TYPE(MPI_Comm) comm
       TYPE(MPI_Request) req
-      integer ierr, errs
+      integer ierr, provided, errs
       integer ii, ans
 
       errs = 0
 
-      call mpi_init(ierr)
+      call MPI_Init_thread(MPI_THREAD_MULTIPLE, provided, ierr)
+      if (ierr .ne. MPI_SUCCESS) stop 1
+      if (provided .lt. MPI_THREAD_MULTIPLE) then
+         errs = errs + 1
+         print *, 'MPI_THREAD_MULTIPLE not provided'
+         call MPI_Finalize(ierr)
+         stop 1
+      endif
 
       comm = MPI_COMM_WORLD
       call MPI_Comm_size(comm, size, ierr)

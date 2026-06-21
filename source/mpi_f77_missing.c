@@ -12,6 +12,7 @@
 #include "detect_sentinels.h"
 #include "vapaa_constants.h"
 #include "vapaa_error_handling.h"
+#include "vapaa_wcollective_grequest.h"
 
 typedef void (*vapaa_c_funptr)(void);
 
@@ -1501,8 +1502,8 @@ void mpi_ineighbor_alltoallw_(const void *sendbuf, const int sendcounts[], const
     MPI_Aint *sdispls = f77_aints_from_intptrs(outdegree, sdispls_f);
     MPI_Aint *rdispls = f77_aints_from_intptrs(indegree, rdispls_f);
     if (sendtypes == NULL || recvtypes == NULL || sdispls == NULL || rdispls == NULL) { free(sendtypes); free(recvtypes); free(sdispls); free(rdispls); *ierror = MPI_ERR_OTHER; C_MPI_RC_FIX(*ierror); return; }
-    *ierror = MPI_Ineighbor_alltoallw(f77_const_addr(sendbuf), sendcounts, sdispls, sendtypes, f77_addr(recvbuf), recvcounts, rdispls, recvtypes, comm, &request);
-    free(sendtypes); free(recvtypes); free(sdispls); free(rdispls); f77_request_store(request, request_f); C_MPI_RC_FIX(*ierror);
+    *ierror = VAPAA_Grequest_neighbor_alltoallw(f77_const_addr(sendbuf), sendcounts, sdispls, sendtypes, f77_addr(recvbuf), recvcounts, rdispls, recvtypes, comm, sdispls, sendtypes, rdispls, recvtypes, &request);
+    f77_request_store(request, request_f); C_MPI_RC_FIX(*ierror);
 }
 
 extern void VAPAA_MPI_Intercomm_create(int *local_comm_f, int *local_leader, int *peer_comm_f, int *remote_leader, int *tag, int *newintercomm_f, int *ierror);

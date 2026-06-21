@@ -15,12 +15,20 @@ C
        integer sdispls(1), scounts(1), stypes(1)
        integer rdispls(MAX_SIZE), rcounts(MAX_SIZE), rtypes(MAX_SIZE)
        integer comm, rank, size, req
-       integer sumval, ierr, errs
+       integer sumval, ierr, provided, errs
        integer iexpected, igot
        integer i, j
 
        errs = 0
+       call MPI_Init_thread(MPI_THREAD_MULTIPLE, provided, ierr)
+       if (ierr .ne. MPI_SUCCESS) stop 1
        call mtest_init( ierr )
+       if (provided .lt. MPI_THREAD_MULTIPLE) then
+           errs = errs + 1
+           print *, 'MPI_THREAD_MULTIPLE not provided'
+           call mtest_finalize(errs)
+           stop 1
+       endif
 
        comm = MPI_COMM_WORLD
        call mpi_comm_rank( comm, rank, ierr )

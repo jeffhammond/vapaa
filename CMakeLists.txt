@@ -202,6 +202,7 @@ if(NOT VAPAA_MPIEXEC_EXPLICIT)
 endif()
 
 find_package(MPI REQUIRED COMPONENTS C)
+find_package(Threads REQUIRED)
 
 if(NOT VAPAA_MPIEXEC_EXPLICIT)
   vapaa_prefer_mpiexec_from_mpicc()
@@ -410,6 +411,7 @@ if(VAPAA_HAVE_PGIF)
   target_compile_definitions(${vapa_lib} PRIVATE HAVE_PGIF)
 endif()
 vapaa_target_link_mpi_c(${vapa_lib})
+target_link_libraries(${vapa_lib} PUBLIC $<LINK_ONLY:Threads::Threads>)
 
 # Set the library output and module directories
 set_target_properties(

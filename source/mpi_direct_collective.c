@@ -12,6 +12,7 @@
 #include "cfi_util.h"
 #include "vapaa_error_handling.h"
 #include "debug.h"
+#include "vapaa_wcollective_grequest.h"
 
 static bool VAPAA_COLL_REJECT_USER_OP_WITH_BUILTIN_TYPE(MPI_Op op, MPI_Datatype datatype)
 {
@@ -639,19 +640,16 @@ void VAPAA_MPI_Ialltoallw(CFI_cdesc_t *sendbuf, const int sendcounts[], const in
             int *zero_displs = calloc((size_t)(size > 0 ? size : 1), sizeof(*zero_displs));
             MPI_Datatype *sendtypes = VAPAA_COLL_NULL_TYPES(size);
             VAPAA_Assert(zero_counts != NULL && zero_displs != NULL);
-            *ierror = MPI_Ialltoallw(MPI_IN_PLACE, zero_counts, zero_displs, sendtypes,
-                                     VAPAA_COLL_ADDR(recvbuf), recvcounts, rdispls, recvtypes, comm, &request);
-            free(zero_counts);
-            free(zero_displs);
-            free(sendtypes);
+            *ierror = VAPAA_Grequest_alltoallw(MPI_IN_PLACE, zero_counts, zero_displs, sendtypes,
+                                                VAPAA_COLL_ADDR(recvbuf), recvcounts, rdispls, recvtypes, comm,
+                                                zero_counts, zero_displs, sendtypes, recvtypes, &request);
         } else {
             MPI_Datatype *sendtypes = VAPAA_COLL_TYPES_FROMINT(sendtypes_f, size);
             VAPAA_COLL_WARN_DATATYPE_ARRAY(sendbuf, sendtypes, size, "MPI_Ialltoallw");
-            *ierror = MPI_Ialltoallw(VAPAA_COLL_ADDR(sendbuf), sendcounts, sdispls, sendtypes,
-                                     VAPAA_COLL_ADDR(recvbuf), recvcounts, rdispls, recvtypes, comm, &request);
-            free(sendtypes);
+            *ierror = VAPAA_Grequest_alltoallw(VAPAA_COLL_ADDR(sendbuf), sendcounts, sdispls, sendtypes,
+                                                VAPAA_COLL_ADDR(recvbuf), recvcounts, rdispls, recvtypes, comm,
+                                                NULL, NULL, sendtypes, recvtypes, &request);
         }
-        free(recvtypes);
     }
     VAPAA_COLL_FINISH_REQUEST(request, request_f, ierror);
 }
@@ -1054,9 +1052,9 @@ void VAPAA_MPI_Ineighbor_alltoallw(CFI_cdesc_t *sendbuf, const int sendcounts[],
         VAPAA_COLL_WARN_DATATYPE_ARRAY(recvbuf, recvtypes, indegree, "MPI_Ineighbor_alltoallw");
         MPI_Aint *sdispls = VAPAA_COLL_AINTS_FROM_INTPTR(sdispls_f, outdegree);
         MPI_Aint *rdispls = VAPAA_COLL_AINTS_FROM_INTPTR(rdispls_f, indegree);
-        *ierror = MPI_Ineighbor_alltoallw(VAPAA_COLL_ADDR(sendbuf), sendcounts, sdispls, sendtypes,
-                                          VAPAA_COLL_ADDR(recvbuf), recvcounts, rdispls, recvtypes, comm, &request);
-        free(sendtypes); free(recvtypes); free(sdispls); free(rdispls);
+        *ierror = VAPAA_Grequest_neighbor_alltoallw(VAPAA_COLL_ADDR(sendbuf), sendcounts, sdispls, sendtypes,
+                                                    VAPAA_COLL_ADDR(recvbuf), recvcounts, rdispls, recvtypes, comm,
+                                                    sdispls, sendtypes, rdispls, recvtypes, &request);
     }
     VAPAA_COLL_FINISH_REQUEST(request, request_f, ierror);
 }
