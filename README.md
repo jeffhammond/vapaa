@@ -22,7 +22,7 @@ If you have trouble picking up the MPI vendor you can simply pass the flag `cmak
 
 1. The Fortran MPI profiling interface is not supported.  All Fortran MPI procedures call their C MPI counterparts, so all profiling information will be obtained as if the application calls MPI from C directly.
 
-2. Applications must initiatlize MPI using the initialization procedures in this library.  We may be able to relax this restriction later.
+2. Applications must initialize MPI using the initialization procedures in this library.  We may be able to relax this restriction later.
 
 3. Fortran 2018 C interoperability features (i.e. _Technical Specification (TS) 29113 on Further Interoperability of Fortran with C_) are currently required.  This requirement will be relaxed in the future.
 
