@@ -15,8 +15,8 @@ void VAPAA_MPI_Attr_delete(int *comm_f, int *keyval, int *ierror)
     int flag = 0;
     MPI_Comm comm = C_MPI_COMM_FROMINT(*comm_f);
     int keyval_c = C_MPI_COMM_ATTR_GLOBAL_F2C(*keyval);
-    (void) MPI_Attr_get(comm, keyval_c, &attrval, &flag);
-    *ierror = MPI_Attr_delete(comm, keyval_c);
+    (void) MPI_Comm_get_attr(comm, keyval_c, &attrval, &flag);
+    *ierror = MPI_Comm_delete_attr(comm, keyval_c);
     if (*ierror == MPI_SUCCESS && flag) {
         VAPAA_MPI_Attr_forget(attrval);
     }
@@ -28,7 +28,7 @@ void VAPAA_MPI_Attr_get(int *comm_f, int *keyval, int *attrval_f, int *flag, int
     void *attrval = NULL;
     MPI_Comm comm = C_MPI_COMM_FROMINT(*comm_f);
     const int keyval_c = C_MPI_COMM_ATTR_GLOBAL_F2C(*keyval);
-    *ierror = MPI_Attr_get(comm, keyval_c, &attrval, flag);
+    *ierror = MPI_Comm_get_attr(comm, keyval_c, &attrval, flag);
     if (*ierror == MPI_SUCCESS && *flag && C_MPI_COMM_ATTR_GLOBAL_IS_PREDEFINED(keyval_c)) {
         *attrval_f = attrval == NULL ? 0 : C_MPI_COMM_ATTR_VALUE_C2F(keyval_c, *(int *)attrval);
     } else if (*ierror == MPI_SUCCESS && *flag && VAPAA_MPI_Attr_load_fint(attrval, attrval_f)) {
@@ -42,14 +42,14 @@ void VAPAA_MPI_Attr_get(int *comm_f, int *keyval, int *attrval_f, int *flag, int
 void VAPAA_MPI_Attr_put(int *comm_f, int *keyval, int *attrval_f, int *ierror)
 {
     MPI_Comm comm = C_MPI_COMM_FROMINT(*comm_f);
-    *ierror = MPI_Attr_put(comm, C_MPI_COMM_ATTR_GLOBAL_F2C(*keyval),
-                           VAPAA_MPI_Attr_store_fint(*attrval_f));
+    *ierror = MPI_Comm_set_attr(comm, C_MPI_COMM_ATTR_GLOBAL_F2C(*keyval),
+                                VAPAA_MPI_Attr_store_fint(*attrval_f));
     C_MPI_RC_FIX(*ierror);
 }
 
 void VAPAA_MPI_Keyval_free(int *keyval, int *ierror)
 {
-    *ierror = MPI_Keyval_free(keyval);
+    *ierror = MPI_Comm_free_keyval(keyval);
     C_MPI_RC_FIX(*ierror);
 }
 

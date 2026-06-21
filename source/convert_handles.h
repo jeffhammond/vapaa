@@ -2,6 +2,7 @@
 #define CONVERT_HANDLES_H
 
 #include <stddef.h>
+#include <string.h>
 #include <mpi.h>
 #include "vapaa_abi_handles.h"
 #include "convert_constants.h"
@@ -40,9 +41,14 @@ static void C_MPI_STATUS_TO_C(const struct F_MPI_Status * f, MPI_Status * c)
     c->MPI_SOURCE = C_MPI_SOURCE_F2C(f->MPI_SOURCE);
     c->MPI_TAG    = C_MPI_TAG_F2C(f->MPI_TAG);
     c->MPI_ERROR  = f->MPI_ERROR;
+#if defined(OPEN_MPI)
+    c->_cancelled = f->MPI_internal[0];
+    (void) memcpy(&c->_ucount, &f->MPI_internal[1], sizeof(c->_ucount));
+#else
     for (int i = 0; i < 5; ++i) {
         c->MPI_internal[i] = f->MPI_internal[i];
     }
+#endif
 #else
 #if !(defined(MPICH) || defined(OPEN_MPI))
 #error Need Status ABI support
@@ -69,9 +75,14 @@ static void C_MPI_STATUS_FROM_C(const MPI_Status * c, struct F_MPI_Status * f)
     f->MPI_SOURCE = C_MPI_SOURCE_C2F(c->MPI_SOURCE);
     f->MPI_TAG    = C_MPI_TAG_C2F(c->MPI_TAG);
     f->MPI_ERROR  = c->MPI_ERROR;
+#if defined(OPEN_MPI)
+    f->MPI_internal[0] = c->_cancelled;
+    (void) memcpy(&f->MPI_internal[1], &c->_ucount, sizeof(c->_ucount));
+#else
     for (int i = 0; i < 5; ++i) {
         f->MPI_internal[i] = c->MPI_internal[i];
     }
+#endif
 #else
 #if !(defined(MPICH) || defined(OPEN_MPI))
 #error Need Status ABI support

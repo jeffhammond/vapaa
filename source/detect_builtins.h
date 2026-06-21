@@ -46,10 +46,10 @@ static bool C_MPI_TYPE_IS_BUILTIN(MPI_Datatype type_c)
     DT_ELIF(MPI_AINT)
     DT_ELIF(MPI_COUNT)
     DT_ELIF(MPI_OFFSET)
-#ifdef MPI_LB
+#if defined(MPI_LB) && !(defined(OPEN_MPI) && defined(OMPI_OMIT_MPI1_COMPAT_DECLS) && OMPI_OMIT_MPI1_COMPAT_DECLS)
     DT_ELIF(MPI_LB)
 #endif
-#ifdef MPI_UB
+#if defined(MPI_UB) && !(defined(OPEN_MPI) && defined(OMPI_OMIT_MPI1_COMPAT_DECLS) && OMPI_OMIT_MPI1_COMPAT_DECLS)
     DT_ELIF(MPI_UB)
 #endif
     DT_ELIF(MPI_PACKED)

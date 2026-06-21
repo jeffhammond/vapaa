@@ -2,12 +2,36 @@
 
 #include "vapaa_abi_handles.h"
 
-#if MPI_VERSION < 5
-
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include "vapaa_constants.h"
+
+#if defined(MPI_ABI)
+#define VAPAA_MPI_Comm_fallback_fromint(comm) MPI_Comm_fromint(comm)
+#define VAPAA_MPI_Errhandler_fallback_fromint(errhandler) MPI_Errhandler_fromint(errhandler)
+#define VAPAA_MPI_File_fallback_fromint(file) MPI_File_fromint(file)
+#define VAPAA_MPI_Group_fallback_fromint(group) MPI_Group_fromint(group)
+#define VAPAA_MPI_Info_fallback_fromint(info) MPI_Info_fromint(info)
+#define VAPAA_MPI_Message_fallback_fromint(message) MPI_Message_fromint(message)
+#define VAPAA_MPI_Op_fallback_fromint(op) MPI_Op_fromint(op)
+#define VAPAA_MPI_Request_fallback_fromint(request) MPI_Request_fromint(request)
+#define VAPAA_MPI_Session_fallback_fromint(session) MPI_Session_fromint(session)
+#define VAPAA_MPI_Type_fallback_fromint(datatype) MPI_Type_fromint(datatype)
+#define VAPAA_MPI_Win_fallback_fromint(win) MPI_Win_fromint(win)
+#else
+#define VAPAA_MPI_Comm_fallback_fromint(comm) MPI_Comm_f2c(comm)
+#define VAPAA_MPI_Errhandler_fallback_fromint(errhandler) MPI_Errhandler_f2c(errhandler)
+#define VAPAA_MPI_File_fallback_fromint(file) MPI_File_f2c(file)
+#define VAPAA_MPI_Group_fallback_fromint(group) MPI_Group_f2c(group)
+#define VAPAA_MPI_Info_fallback_fromint(info) MPI_Info_f2c(info)
+#define VAPAA_MPI_Message_fallback_fromint(message) MPI_Message_f2c(message)
+#define VAPAA_MPI_Op_fallback_fromint(op) MPI_Op_f2c(op)
+#define VAPAA_MPI_Request_fallback_fromint(request) MPI_Request_f2c(request)
+#define VAPAA_MPI_Session_fallback_fromint(session) MPI_Session_f2c(session)
+#define VAPAA_MPI_Type_fallback_fromint(datatype) MPI_Type_f2c(datatype)
+#define VAPAA_MPI_Win_fallback_fromint(win) MPI_Win_f2c(win)
+#endif
 
 #define DEFINE_HANDLE_TABLE(prefix, Type, first_dynamic) \
     typedef struct { int key; Type value; } prefix##_entry; \
@@ -86,7 +110,7 @@ MPI_Comm VAPAA_MPI_Comm_fromint(int comm)
             if (comm_lookup_key(comm, &value)) {
                 return value;
             }
-            return MPI_Comm_f2c(comm);
+            return VAPAA_MPI_Comm_fallback_fromint(comm);
     }
 }
 
@@ -112,7 +136,7 @@ MPI_Errhandler VAPAA_MPI_Errhandler_fromint(int errhandler)
             if (errhandler_lookup_key(errhandler, &value)) {
                 return value;
             }
-            return MPI_Errhandler_f2c(errhandler);
+            return VAPAA_MPI_Errhandler_fallback_fromint(errhandler);
     }
 }
 
@@ -136,7 +160,7 @@ MPI_File VAPAA_MPI_File_fromint(int file)
     if (file_lookup_key(file, &value)) {
         return value;
     }
-    return MPI_File_f2c(file);
+    return VAPAA_MPI_File_fallback_fromint(file);
 }
 
 int VAPAA_MPI_File_toint(MPI_File file)
@@ -157,7 +181,7 @@ MPI_Group VAPAA_MPI_Group_fromint(int group)
             if (group_lookup_key(group, &value)) {
                 return value;
             }
-            return MPI_Group_f2c(group);
+            return VAPAA_MPI_Group_fallback_fromint(group);
     }
 }
 
@@ -180,7 +204,7 @@ MPI_Info VAPAA_MPI_Info_fromint(int info)
             if (info_lookup_key(info, &value)) {
                 return value;
             }
-            return MPI_Info_f2c(info);
+            return VAPAA_MPI_Info_fallback_fromint(info);
     }
 }
 
@@ -203,7 +227,7 @@ MPI_Message VAPAA_MPI_Message_fromint(int message)
             if (message_lookup_key(message, &value)) {
                 return value;
             }
-            return MPI_Message_f2c(message);
+            return VAPAA_MPI_Message_fallback_fromint(message);
     }
 }
 
@@ -237,7 +261,7 @@ MPI_Op VAPAA_MPI_Op_fromint(int op)
             if (op_lookup_key(op, &value)) {
                 return value;
             }
-            return MPI_Op_f2c(op);
+            return VAPAA_MPI_Op_fallback_fromint(op);
     }
 }
 
@@ -270,7 +294,7 @@ MPI_Request VAPAA_MPI_Request_fromint(int request)
     if (request_lookup_key(request, &value)) {
         return value;
     }
-    return MPI_Request_f2c(request);
+    return VAPAA_MPI_Request_fallback_fromint(request);
 }
 
 int VAPAA_MPI_Request_toint(MPI_Request request)
@@ -291,7 +315,7 @@ MPI_Session VAPAA_MPI_Session_fromint(int session)
     if (session_lookup_key(session, &value)) {
         return value;
     }
-    return MPI_Session_f2c(session);
+    return VAPAA_MPI_Session_fallback_fromint(session);
 }
 
 int VAPAA_MPI_Session_toint(MPI_Session session)
@@ -393,7 +417,7 @@ MPI_Datatype VAPAA_MPI_Type_fromint(int datatype)
             if (datatype_lookup_key(datatype, &value)) {
                 return value;
             }
-            return MPI_Type_f2c(datatype);
+            return VAPAA_MPI_Type_fallback_fromint(datatype);
     }
 }
 
@@ -489,7 +513,7 @@ MPI_Win VAPAA_MPI_Win_fromint(int win)
     if (win_lookup_key(win, &value)) {
         return value;
     }
-    return MPI_Win_f2c(win);
+    return VAPAA_MPI_Win_fallback_fromint(win);
 }
 
 int VAPAA_MPI_Win_toint(MPI_Win win)
@@ -499,5 +523,3 @@ int VAPAA_MPI_Win_toint(MPI_Win win)
     }
     return win_store(win);
 }
-
-#endif

@@ -171,7 +171,7 @@ int C_MPI_ERROR_CODE_C2F(int error_c)
     else if (error == MPI_T_ERR_CANNOT_INIT         ) { return VAPAA_MPI_T_ERR_CANNOT_INIT; }
     //else if (error == MPI_T_ERR_NOT_ACCESSIBLE      ) { return VAPAA_MPI_T_ERR_NOT_ACCESSIBLE; }
     else if (error == MPI_T_ERR_NOT_INITIALIZED     ) { return VAPAA_MPI_T_ERR_NOT_INITIALIZED; }
-#if (MPI_VERSION >= 4)
+#if (MPI_VERSION >= 4) && defined(MPI_T_ERR_NOT_SUPPORTED)
     else if (error == MPI_T_ERR_NOT_SUPPORTED       ) { return VAPAA_MPI_T_ERR_NOT_SUPPORTED; }
 #endif
     else if (error == MPI_T_ERR_MEMORY              ) { return VAPAA_MPI_T_ERR_MEMORY; }
@@ -279,8 +279,10 @@ int C_MPI_ERROR_CODE_F2C(int error_f)
     else if (error_f == VAPAA_MPI_T_ERR_CANNOT_INIT          ) { return MPI_T_ERR_CANNOT_INIT;         }
     //else if (error_f == VAPAA_MPI_T_ERR_NOT_ACCESSIBLE       ) { return MPI_T_ERR_NOT_ACCESSIBLE;      }
     else if (error_f == VAPAA_MPI_T_ERR_NOT_INITIALIZED      ) { return MPI_T_ERR_NOT_INITIALIZED;     }
-#if (MPI_VERSION >= 4)
+#if (MPI_VERSION >= 4) && defined(MPI_T_ERR_NOT_SUPPORTED)
     else if (error_f == VAPAA_MPI_T_ERR_NOT_SUPPORTED        ) { return MPI_T_ERR_NOT_SUPPORTED;       }
+#else
+    else if (error_f == VAPAA_MPI_T_ERR_NOT_SUPPORTED        ) { return MPI_ERR_UNSUPPORTED_OPERATION; }
 #endif
     else if (error_f == VAPAA_MPI_T_ERR_MEMORY               ) { return MPI_T_ERR_MEMORY;              }
     else if (error_f == VAPAA_MPI_T_ERR_INVALID              ) { return MPI_T_ERR_INVALID;             }

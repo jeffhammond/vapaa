@@ -30,6 +30,7 @@ static void finish_request(MPI_Request request, int *request_f, int *ierror)
     C_MPI_RC_FIX(*ierror);
 }
 
+#if MPI_VERSION < 4
 static void unsupported_request(int *comm_f, int *request_f, int *ierror)
 {
     MPI_Request request = MPI_REQUEST_NULL;
@@ -37,6 +38,7 @@ static void unsupported_request(int *comm_f, int *request_f, int *ierror)
     VAPAA_MPI_handle_synthetic_error_comm(C_MPI_COMM_FROMINT(*comm_f), ierror);
     finish_request(request, request_f, ierror);
 }
+#endif
 
 static int require_contig1(const VAPAA_PGIF_Desc *a, MPI_Comm comm)
 {

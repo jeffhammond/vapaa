@@ -38,17 +38,38 @@ if(CMAKE_Fortran_COMPILER_ID STREQUAL "NVHPC")
   list(REMOVE_ITEM TEST_SOURCES
     "${CMAKE_CURRENT_SOURCE_DIR}/test_synthetic_error_handlers.F90")
 endif()
+if(VAPAA_MPI_VENDOR_LABEL STREQUAL "INTEL_MPI")
+  list(REMOVE_ITEM TEST_SOURCES
+    "${CMAKE_CURRENT_SOURCE_DIR}/test_direct_comm_coverage.F90")
+endif()
+if(FLAG_MPI MATCHES "MPI_ABI")
+  list(REMOVE_ITEM TEST_SOURCES
+    "${CMAKE_CURRENT_SOURCE_DIR}/test_direct_comm_coverage.F90"
+    "${CMAKE_CURRENT_SOURCE_DIR}/test_error_api_coverage.F90"
+    "${CMAKE_CURRENT_SOURCE_DIR}/test_matrix_noncontig_2.F90"
+    "${CMAKE_CURRENT_SOURCE_DIR}/test_reduce_mxxloc.F90")
+endif()
+if(FLAG_MPI MATCHES "OPEN_MPI|NVIDIA_HPCX|MPI_ABI" AND
+   CMAKE_Fortran_COMPILER_ID MATCHES "Intel")
+  list(REMOVE_ITEM TEST_SOURCES
+    "${CMAKE_CURRENT_SOURCE_DIR}/test_callback_error_coverage.F90")
+endif()
 
 # Number of MPI processes
 set(MPI_NUM_PROCESSES 4)
 set(vapaa_test_environment "")
-if(FLAG_MPI MATCHES "OPEN_MPI")
+if(FLAG_MPI MATCHES "OPEN_MPI|NVIDIA_HPCX|MPI_ABI")
   list(APPEND vapaa_test_environment
-    "OMPI_MCA_osc=pt2pt"
     "OMPI_MCA_coll_hcoll_enable=0"
     "OMPI_MCA_coll_ucc_enable=0"
     "OMPI_MCA_hwloc_base_binding_policy=none"
     "UCX_WARN_UNUSED_ENV_VARS=n")
+  if(FLAG_MPI MATCHES "OPEN_MPI|NVIDIA_HPCX")
+    list(APPEND vapaa_test_environment "OMPI_MCA_osc=pt2pt")
+  endif()
+  if(FLAG_MPI MATCHES "MPI_ABI")
+    list(APPEND vapaa_test_environment "OMPI_MCA_btl=self,tcp")
+  endif()
 endif()
 set(vapaa_test_mpi_library_dirs ${VAPAA_COMPILER_RUNTIME_LIBRARY_DIRS})
 foreach(mpi_library IN LISTS MPI_C_LIBRARIES)
@@ -108,12 +129,12 @@ foreach(TEST_SOURCE ${TEST_SOURCES})
   if(TEST_NAME STREQUAL "test_pgif_descriptor")
     target_sources(${TEST_NAME} PRIVATE "${PGIF_DESCRIPTOR_TEST_C_SOURCE}")
     target_include_directories(${TEST_NAME} PRIVATE "${CMAKE_SOURCE_DIR}/source")
-    target_link_libraries(${TEST_NAME} PRIVATE MPI::MPI_C)
+    vapaa_target_link_mpi_c(${TEST_NAME})
   endif()
   if(TEST_NAME STREQUAL "test_pgif_util_coverage")
     target_sources(${TEST_NAME} PRIVATE "${PGIF_UTIL_COVERAGE_TEST_C_SOURCE}")
     target_include_directories(${TEST_NAME} PRIVATE "${CMAKE_SOURCE_DIR}/source")
-    target_link_libraries(${TEST_NAME} PRIVATE MPI::MPI_C)
+    vapaa_target_link_mpi_c(${TEST_NAME})
   endif()
   
   # Set the output directory for the executables
@@ -139,53 +160,59 @@ foreach(TEST_SOURCE ${TEST_SOURCES})
   endif()
 endforeach()
 
-add_executable(test_mpifh_coverage ${MPIFH_COVERAGE_TEST_SOURCE})
-target_compile_options(test_mpifh_coverage PRIVATE
-  ${VAPAA_FORTRAN_WARNING_OPTIONS}
-  -g -fPIE
-  $<$<COMPILE_LANG_AND_ID:Fortran,GNU>:-std=legacy>
-  $<$<COMPILE_LANG_AND_ID:Fortran,GNU>:-ffixed-line-length-none>
-  $<$<COMPILE_LANG_AND_ID:Fortran,GNU>:-fallow-argument-mismatch>
-  $<$<COMPILE_LANG_AND_ID:Fortran,GNU>:-Wno-unused-parameter>)
-target_include_directories(test_mpifh_coverage PRIVATE "${SOURCE_DIR}")
-target_link_libraries(test_mpifh_coverage PRIVATE ${vapa_lib})
-set_target_properties(test_mpifh_coverage PROPERTIES
-  RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/tests")
-add_test(NAME test_mpifh_coverage
-         COMMAND ${MPIEXEC_EXECUTABLE} ${MPIEXEC_NUMPROC_FLAG} 2
-                 $<TARGET_FILE:test_mpifh_coverage>)
-set_tests_properties(test_mpifh_coverage PROPERTIES
-  WORKING_DIRECTORY "${CMAKE_BINARY_DIR}/tests"
-  PASS_REGULAR_EXPRESSION "Test passed")
-if(vapaa_test_environment)
-  set_property(TEST test_mpifh_coverage PROPERTY
-    ENVIRONMENT "${vapaa_test_environment}")
+if(NOT FLAG_MPI MATCHES "MPI_ABI")
+  add_executable(test_mpifh_coverage ${MPIFH_COVERAGE_TEST_SOURCE})
+  target_compile_options(test_mpifh_coverage PRIVATE
+    ${VAPAA_FORTRAN_WARNING_OPTIONS}
+    -g -fPIE
+    $<$<COMPILE_LANG_AND_ID:Fortran,GNU>:-std=legacy>
+    $<$<COMPILE_LANG_AND_ID:Fortran,GNU>:-ffixed-line-length-none>
+    $<$<COMPILE_LANG_AND_ID:Fortran,GNU>:-fallow-argument-mismatch>
+    $<$<COMPILE_LANG_AND_ID:Fortran,GNU>:-Wno-unused-parameter>)
+  target_include_directories(test_mpifh_coverage PRIVATE "${SOURCE_DIR}")
+  target_link_libraries(test_mpifh_coverage PRIVATE ${vapa_lib})
+  set_target_properties(test_mpifh_coverage PROPERTIES
+    RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/tests")
+  add_test(NAME test_mpifh_coverage
+           COMMAND ${MPIEXEC_EXECUTABLE} ${MPIEXEC_NUMPROC_FLAG} 2
+                   $<TARGET_FILE:test_mpifh_coverage>)
+  set_tests_properties(test_mpifh_coverage PROPERTIES
+    WORKING_DIRECTORY "${CMAKE_BINARY_DIR}/tests"
+    PASS_REGULAR_EXPRESSION "Test passed")
+  if(vapaa_test_environment)
+    set_property(TEST test_mpifh_coverage PROPERTY
+      ENVIRONMENT "${vapaa_test_environment}")
+  endif()
 endif()
 
-add_executable(test_mpifh_comm_io_rma ${MPIFH_MORE_COVERAGE_TEST_SOURCE})
-target_compile_options(test_mpifh_comm_io_rma PRIVATE
-  ${VAPAA_FORTRAN_WARNING_OPTIONS}
-  -g -fPIE
-  $<$<COMPILE_LANG_AND_ID:Fortran,GNU>:-std=legacy>
-  $<$<COMPILE_LANG_AND_ID:Fortran,GNU>:-ffixed-line-length-none>
-  $<$<COMPILE_LANG_AND_ID:Fortran,GNU>:-fallow-argument-mismatch>
-  $<$<COMPILE_LANG_AND_ID:Fortran,GNU>:-Wno-unused-parameter>)
-target_include_directories(test_mpifh_comm_io_rma PRIVATE "${SOURCE_DIR}")
-target_link_libraries(test_mpifh_comm_io_rma PRIVATE ${vapa_lib})
-set_target_properties(test_mpifh_comm_io_rma PROPERTIES
-  RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/tests")
-add_test(NAME test_mpifh_comm_io_rma
-         COMMAND ${MPIEXEC_EXECUTABLE} ${MPIEXEC_NUMPROC_FLAG} 4
-                 $<TARGET_FILE:test_mpifh_comm_io_rma>)
-set_tests_properties(test_mpifh_comm_io_rma PROPERTIES
-  WORKING_DIRECTORY "${CMAKE_BINARY_DIR}/tests"
-  PASS_REGULAR_EXPRESSION "Test passed")
-if(vapaa_test_environment)
-  set_property(TEST test_mpifh_comm_io_rma PROPERTY
-    ENVIRONMENT "${vapaa_test_environment}")
+if(NOT VAPAA_MPI_VENDOR_LABEL STREQUAL "INTEL_MPI")
+  add_executable(test_mpifh_comm_io_rma ${MPIFH_MORE_COVERAGE_TEST_SOURCE})
+  target_compile_options(test_mpifh_comm_io_rma PRIVATE
+    ${VAPAA_FORTRAN_WARNING_OPTIONS}
+    -g -fPIE
+    $<$<COMPILE_LANG_AND_ID:Fortran,GNU>:-std=legacy>
+    $<$<COMPILE_LANG_AND_ID:Fortran,GNU>:-ffixed-line-length-none>
+    $<$<COMPILE_LANG_AND_ID:Fortran,GNU>:-fallow-argument-mismatch>
+    $<$<COMPILE_LANG_AND_ID:Fortran,GNU>:-Wno-unused-parameter>)
+  target_include_directories(test_mpifh_comm_io_rma PRIVATE "${SOURCE_DIR}")
+  target_link_libraries(test_mpifh_comm_io_rma PRIVATE ${vapa_lib})
+  set_target_properties(test_mpifh_comm_io_rma PROPERTIES
+    RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/tests")
+  add_test(NAME test_mpifh_comm_io_rma
+           COMMAND ${MPIEXEC_EXECUTABLE} ${MPIEXEC_NUMPROC_FLAG} 4
+                   $<TARGET_FILE:test_mpifh_comm_io_rma>)
+  set_tests_properties(test_mpifh_comm_io_rma PROPERTIES
+    WORKING_DIRECTORY "${CMAKE_BINARY_DIR}/tests"
+    PASS_REGULAR_EXPRESSION "Test passed")
+  if(vapaa_test_environment)
+    set_property(TEST test_mpifh_comm_io_rma PROPERTY
+      ENVIRONMENT "${vapaa_test_environment}")
+  endif()
 endif()
 
-if(VAPAA_ENABLE_CFI)
+if(VAPAA_ENABLE_CFI
+    AND NOT VAPAA_MPI_VENDOR_LABEL STREQUAL "INTEL_MPI"
+    AND NOT FLAG_MPI MATCHES "MPI_ABI")
   add_executable(test_c_direct_coverage ${C_DIRECT_COVERAGE_TEST_SOURCE})
   target_compile_options(test_c_direct_coverage PRIVATE
     ${VAPAA_C_WARNING_OPTIONS}
@@ -193,7 +220,8 @@ if(VAPAA_ENABLE_CFI)
     -DHAVE_CFI)
   target_include_directories(test_c_direct_coverage PRIVATE
     "${CMAKE_SOURCE_DIR}/source")
-  target_link_libraries(test_c_direct_coverage PRIVATE ${vapa_lib} MPI::MPI_C)
+  target_link_libraries(test_c_direct_coverage PRIVATE ${vapa_lib})
+  vapaa_target_link_mpi_c(test_c_direct_coverage)
   if(CMAKE_Fortran_COMPILER_ID MATCHES "Intel")
     target_link_options(test_c_direct_coverage PRIVATE -nofor-main)
   elseif(CMAKE_Fortran_COMPILER_ID STREQUAL "NVHPC")
@@ -220,7 +248,8 @@ if(VAPAA_ENABLE_CFI)
     -DHAVE_CFI)
   target_include_directories(test_cfi_util_direct PRIVATE
     "${CMAKE_SOURCE_DIR}/source")
-  target_link_libraries(test_cfi_util_direct PRIVATE ${vapa_lib} MPI::MPI_C)
+  target_link_libraries(test_cfi_util_direct PRIVATE ${vapa_lib})
+  vapaa_target_link_mpi_c(test_cfi_util_direct)
   if(CMAKE_Fortran_COMPILER_ID MATCHES "Intel")
     target_link_options(test_cfi_util_direct PRIVATE -nofor-main)
   elseif(CMAKE_Fortran_COMPILER_ID STREQUAL "NVHPC")
@@ -241,31 +270,34 @@ if(VAPAA_ENABLE_CFI)
   endif()
 endif()
 
-add_executable(test_f77_direct_coverage ${F77_DIRECT_COVERAGE_TEST_SOURCE})
-target_compile_options(test_f77_direct_coverage PRIVATE
-  ${VAPAA_C_WARNING_OPTIONS}
-  -g -fPIE
-  $<$<BOOL:${VAPAA_ENABLE_CFI}>:-DHAVE_CFI>)
-target_include_directories(test_f77_direct_coverage PRIVATE
-  "${CMAKE_SOURCE_DIR}/source")
-target_link_libraries(test_f77_direct_coverage PRIVATE ${vapa_lib} MPI::MPI_C)
-if(CMAKE_Fortran_COMPILER_ID MATCHES "Intel")
-  target_link_options(test_f77_direct_coverage PRIVATE -nofor-main)
-elseif(CMAKE_Fortran_COMPILER_ID STREQUAL "NVHPC")
-  target_link_options(test_f77_direct_coverage PRIVATE -Mnomain)
-endif()
-set_target_properties(test_f77_direct_coverage PROPERTIES
-  RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/tests"
-  LINKER_LANGUAGE Fortran)
-add_test(NAME test_f77_direct_coverage
-         COMMAND ${MPIEXEC_EXECUTABLE} ${MPIEXEC_NUMPROC_FLAG} 4
-                 $<TARGET_FILE:test_f77_direct_coverage>)
-set_tests_properties(test_f77_direct_coverage PROPERTIES
-  WORKING_DIRECTORY "${CMAKE_BINARY_DIR}/tests"
-  PASS_REGULAR_EXPRESSION "Test passed")
-if(vapaa_test_environment)
-  set_property(TEST test_f77_direct_coverage PROPERTY
-    ENVIRONMENT "${vapaa_test_environment}")
+if(NOT FLAG_MPI MATCHES "MPI_ABI")
+  add_executable(test_f77_direct_coverage ${F77_DIRECT_COVERAGE_TEST_SOURCE})
+  target_compile_options(test_f77_direct_coverage PRIVATE
+    ${VAPAA_C_WARNING_OPTIONS}
+    -g -fPIE
+    $<$<BOOL:${VAPAA_ENABLE_CFI}>:-DHAVE_CFI>)
+  target_include_directories(test_f77_direct_coverage PRIVATE
+    "${CMAKE_SOURCE_DIR}/source")
+  target_link_libraries(test_f77_direct_coverage PRIVATE ${vapa_lib})
+  vapaa_target_link_mpi_c(test_f77_direct_coverage)
+  if(CMAKE_Fortran_COMPILER_ID MATCHES "Intel")
+    target_link_options(test_f77_direct_coverage PRIVATE -nofor-main)
+  elseif(CMAKE_Fortran_COMPILER_ID STREQUAL "NVHPC")
+    target_link_options(test_f77_direct_coverage PRIVATE -Mnomain)
+  endif()
+  set_target_properties(test_f77_direct_coverage PROPERTIES
+    RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/tests"
+    LINKER_LANGUAGE Fortran)
+  add_test(NAME test_f77_direct_coverage
+           COMMAND ${MPIEXEC_EXECUTABLE} ${MPIEXEC_NUMPROC_FLAG} 4
+                   $<TARGET_FILE:test_f77_direct_coverage>)
+  set_tests_properties(test_f77_direct_coverage PROPERTIES
+    WORKING_DIRECTORY "${CMAKE_BINARY_DIR}/tests"
+    PASS_REGULAR_EXPRESSION "Test passed")
+  if(vapaa_test_environment)
+    set_property(TEST test_f77_direct_coverage PROPERTY
+      ENVIRONMENT "${vapaa_test_environment}")
+  endif()
 endif()
 
 add_test(NAME test_verbose_init
@@ -375,8 +407,10 @@ vapaa_add_typecheck_warning_test(test_typecheck_match_character
   match_character NO_WARNING)
 vapaa_add_typecheck_warning_test(test_typecheck_match_packed
   match_packed NO_WARNING)
-vapaa_add_typecheck_warning_test(test_typecheck_match_2integer
-  match_2integer NO_WARNING)
+if(NOT FLAG_MPI MATCHES "MPI_ABI")
+  vapaa_add_typecheck_warning_test(test_typecheck_match_2integer
+    match_2integer NO_WARNING)
+endif()
 vapaa_add_typecheck_warning_test(test_typecheck_user_dtype_default_off
   user_dtype_mismatch NO_WARNING)
 vapaa_add_typecheck_warning_test(test_typecheck_user_dtype_warn_enabled

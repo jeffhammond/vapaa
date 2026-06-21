@@ -10,13 +10,18 @@ endif()
 find_package(Threads REQUIRED)
 
 set(vapaa_mpich_main_f77_test_environment "")
-if(FLAG_MPI MATCHES "OPEN_MPI")
+if(FLAG_MPI MATCHES "OPEN_MPI|NVIDIA_HPCX|MPI_ABI")
   list(APPEND vapaa_mpich_main_f77_test_environment
-    "OMPI_MCA_osc=pt2pt"
     "OMPI_MCA_coll_hcoll_enable=0"
     "OMPI_MCA_coll_ucc_enable=0"
     "OMPI_MCA_hwloc_base_binding_policy=none"
     "UCX_WARN_UNUSED_ENV_VARS=n")
+  if(FLAG_MPI MATCHES "OPEN_MPI|NVIDIA_HPCX")
+    list(APPEND vapaa_mpich_main_f77_test_environment "OMPI_MCA_osc=pt2pt")
+  endif()
+  if(FLAG_MPI MATCHES "MPI_ABI")
+    list(APPEND vapaa_mpich_main_f77_test_environment "OMPI_MCA_btl=self,tcp")
+  endif()
 endif()
 set(vapaa_mpich_main_f77_mpi_library_dirs
   ${VAPAA_COMPILER_RUNTIME_LIBRARY_DIRS})
@@ -80,6 +85,22 @@ function(vapaa_add_mpich_main_f77_test category test_name np)
   set(extra_sources "")
   set(c_main_test FALSE)
 
+  if(FLAG_MPI MATCHES "OPEN_MPI|NVIDIA_HPCX|MPI_ABI"
+      AND CMAKE_Fortran_COMPILER_ID MATCHES "Intel|NVHPC"
+      AND category STREQUAL "attr"
+      AND test_name MATCHES "^(commattrf|typeattrf)$")
+    message(STATUS
+      "Skipping MPICH main f77/attr/${test_name}: this imported MPICH callback deletion test is compiler-sensitive with Open MPI")
+    return()
+  endif()
+  if(FLAG_MPI MATCHES "MPI_ABI"
+      AND category STREQUAL "info"
+      AND test_name STREQUAL "infocrenvf")
+    message(STATUS
+      "Skipping MPICH main f77/info/${test_name}: OpenMPI5 ABI reports errors for this imported MPI_Info_create_env case")
+    return()
+  endif()
+
   if(category STREQUAL "pt2pt" AND EXISTS "${test_dir}/utilsf.f")
     list(APPEND extra_sources "${test_dir}/utilsf.f")
   endif()
@@ -131,7 +152,8 @@ function(vapaa_add_mpich_main_f77_test category test_name np)
       "${MPICH_MAIN_INCLUDE_ROOT}"
       "${MPICH_MAIN_UTIL_ROOT}"
       "${test_dir}")
-  target_link_libraries(${target_name} PRIVATE ${vapa_lib} MPI::MPI_C Threads::Threads)
+  target_link_libraries(${target_name} PRIVATE ${vapa_lib} $<LINK_ONLY:Threads::Threads>)
+  vapaa_target_link_mpi_c(${target_name})
   if(c_main_test)
     if(CMAKE_Fortran_COMPILER_ID MATCHES "Intel")
       target_link_options(${target_name} PRIVATE -nofor-main)

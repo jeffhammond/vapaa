@@ -8,7 +8,6 @@
 static int vapaa_comm_errhandler_dirty = 0;
 static int vapaa_file_errhandler_dirty = 0;
 static int vapaa_win_errhandler_dirty = 0;
-static int vapaa_session_errhandler_dirty = 0;
 
 static int VAPAA_MPI_is_active(void)
 {
@@ -44,7 +43,6 @@ void VAPAA_MPI_note_win_errhandler_set(void)
 
 void VAPAA_MPI_note_session_errhandler_set(void)
 {
-    vapaa_session_errhandler_dirty = 1;
 }
 
 void VAPAA_MPI_handle_synthetic_error_no_object(int *ierror)
@@ -108,7 +106,6 @@ void VAPAA_MPI_handle_synthetic_error_session(MPI_Session session, int *ierror)
         VAPAA_MPI_abort_without_return(*ierror);
     }
 
-    (void) vapaa_session_errhandler_dirty;
     (void) MPI_Session_call_errhandler(session, *ierror);
 }
 #else

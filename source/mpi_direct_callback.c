@@ -475,7 +475,8 @@ void VAPAA_MPI_Keyval_create(vapaa_c_funptr copy, vapaa_c_funptr del, int *keyva
     s->copy = (vapaa_keyval_copy_fn)copy;
     s->del = (vapaa_keyval_delete_fn)del;
     s->extra = *extra;
-    *ierror = MPI_Keyval_create(keyval_copy_trampoline, keyval_delete_trampoline, keyval, s);
+    *ierror = MPI_Comm_create_keyval(keyval_copy_trampoline,
+                                     keyval_delete_trampoline, keyval, s);
     C_MPI_RC_FIX(*ierror);
 }
 

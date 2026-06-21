@@ -92,12 +92,98 @@ static int VAPAA_CFI_ASSERT_ZERO_LOWER_BOUNDS(const CFI_cdesc_t *desc)
     return MPI_SUCCESS;
 }
 
+static bool VAPAA_MPI_DATATYPE_IS_KNOWN_BUILTIN(MPI_Datatype t)
+{
+#define VAPAA_MATCH_BUILTIN(candidate) \
+    do { if (t == (candidate)) return true; } while (0)
+    VAPAA_MATCH_BUILTIN(MPI_PACKED);
+    VAPAA_MATCH_BUILTIN(MPI_SHORT);
+    VAPAA_MATCH_BUILTIN(MPI_INT);
+    VAPAA_MATCH_BUILTIN(MPI_LONG);
+    VAPAA_MATCH_BUILTIN(MPI_LONG_LONG_INT);
+    VAPAA_MATCH_BUILTIN(MPI_UNSIGNED_SHORT);
+    VAPAA_MATCH_BUILTIN(MPI_UNSIGNED);
+    VAPAA_MATCH_BUILTIN(MPI_UNSIGNED_LONG);
+    VAPAA_MATCH_BUILTIN(MPI_UNSIGNED_LONG_LONG);
+    VAPAA_MATCH_BUILTIN(MPI_FLOAT);
+    VAPAA_MATCH_BUILTIN(MPI_DOUBLE);
+    VAPAA_MATCH_BUILTIN(MPI_LONG_DOUBLE);
+    VAPAA_MATCH_BUILTIN(MPI_CHAR);
+    VAPAA_MATCH_BUILTIN(MPI_SIGNED_CHAR);
+    VAPAA_MATCH_BUILTIN(MPI_UNSIGNED_CHAR);
+    VAPAA_MATCH_BUILTIN(MPI_BYTE);
+    VAPAA_MATCH_BUILTIN(MPI_WCHAR);
+    VAPAA_MATCH_BUILTIN(MPI_C_BOOL);
+    VAPAA_MATCH_BUILTIN(MPI_INT8_T);
+    VAPAA_MATCH_BUILTIN(MPI_UINT8_T);
+    VAPAA_MATCH_BUILTIN(MPI_INT16_T);
+    VAPAA_MATCH_BUILTIN(MPI_UINT16_T);
+    VAPAA_MATCH_BUILTIN(MPI_INT32_T);
+    VAPAA_MATCH_BUILTIN(MPI_UINT32_T);
+    VAPAA_MATCH_BUILTIN(MPI_INT64_T);
+    VAPAA_MATCH_BUILTIN(MPI_UINT64_T);
+    VAPAA_MATCH_BUILTIN(MPI_AINT);
+    VAPAA_MATCH_BUILTIN(MPI_COUNT);
+    VAPAA_MATCH_BUILTIN(MPI_OFFSET);
+    VAPAA_MATCH_BUILTIN(MPI_C_FLOAT_COMPLEX);
+    VAPAA_MATCH_BUILTIN(MPI_C_DOUBLE_COMPLEX);
+    VAPAA_MATCH_BUILTIN(MPI_C_LONG_DOUBLE_COMPLEX);
+    VAPAA_MATCH_BUILTIN(MPI_FLOAT_INT);
+    VAPAA_MATCH_BUILTIN(MPI_DOUBLE_INT);
+    VAPAA_MATCH_BUILTIN(MPI_LONG_INT);
+    VAPAA_MATCH_BUILTIN(MPI_2INT);
+    VAPAA_MATCH_BUILTIN(MPI_SHORT_INT);
+    VAPAA_MATCH_BUILTIN(MPI_LONG_DOUBLE_INT);
+    VAPAA_MATCH_BUILTIN(MPI_LOGICAL);
+    VAPAA_MATCH_BUILTIN(MPI_INTEGER);
+    VAPAA_MATCH_BUILTIN(MPI_REAL);
+    VAPAA_MATCH_BUILTIN(MPI_COMPLEX);
+    VAPAA_MATCH_BUILTIN(MPI_DOUBLE_PRECISION);
+    VAPAA_MATCH_BUILTIN(MPI_DOUBLE_COMPLEX);
+    VAPAA_MATCH_BUILTIN(MPI_CHARACTER);
+    VAPAA_MATCH_BUILTIN(MPI_2REAL);
+    VAPAA_MATCH_BUILTIN(MPI_2DOUBLE_PRECISION);
+    VAPAA_MATCH_BUILTIN(MPI_2INTEGER);
+    VAPAA_MATCH_BUILTIN(MPI_INTEGER1);
+    VAPAA_MATCH_BUILTIN(MPI_INTEGER2);
+    VAPAA_MATCH_BUILTIN(MPI_INTEGER4);
+    VAPAA_MATCH_BUILTIN(MPI_INTEGER8);
+    VAPAA_MATCH_BUILTIN(MPI_REAL4);
+    VAPAA_MATCH_BUILTIN(MPI_REAL8);
+    VAPAA_MATCH_BUILTIN(MPI_COMPLEX8);
+    VAPAA_MATCH_BUILTIN(MPI_COMPLEX16);
+#ifdef MPI_REAL2
+    VAPAA_MATCH_BUILTIN(MPI_REAL2);
+#endif
+#ifdef MPI_COMPLEX4
+    VAPAA_MATCH_BUILTIN(MPI_COMPLEX4);
+#endif
+#ifdef MPI_INTEGER16
+    VAPAA_MATCH_BUILTIN(MPI_INTEGER16);
+#endif
+#ifdef MPI_REAL16
+    VAPAA_MATCH_BUILTIN(MPI_REAL16);
+#endif
+#ifdef MPI_COMPLEX32
+    VAPAA_MATCH_BUILTIN(MPI_COMPLEX32);
+#endif
+#undef VAPAA_MATCH_BUILTIN
+    return false;
+}
+
 static bool VAPAA_MPI_DATATYPE_IS_BUILTIN(MPI_Datatype t)
 {
+    if (VAPAA_MPI_DATATYPE_IS_KNOWN_BUILTIN(t)) {
+        return true;
+    }
+#if defined(MPI_ABI)
+    return false;
+#else
     int ni, na, nd, c;
     int rc = PMPI_Type_get_envelope(t, &ni, &na, &nd, &c);
     VAPAA_Assert(rc == MPI_SUCCESS);
     return (c == MPI_COMBINER_NAMED);
+#endif
 }
 
 static bool VAPAA_CFI_WARN_BUILTIN_DATATYPE_MISMATCH = true;
@@ -1142,6 +1228,16 @@ static int VAPAA_DTYPE_FLATTEN_SUBARRAY(const VAPAA_Datatype_contents *contents,
                                         VAPAA_Iov_list *out, int depth)
 {
     int ndims = contents->ints[0];
+    MPI_Count *sizes = NULL;
+    MPI_Count *subsizes = NULL;
+    MPI_Count *starts = NULL;
+    MPI_Count *strides = NULL;
+    MPI_Count *coords = NULL;
+    VAPAA_Iov_list child = {0};
+    MPI_Aint old_extent = 0;
+    MPI_Count total = 1;
+    int rc;
+
     if (ndims < 0) {
         return MPI_ERR_DIMS;
     }
@@ -1151,12 +1247,7 @@ static int VAPAA_DTYPE_FLATTEN_SUBARRAY(const VAPAA_Datatype_contents *contents,
         return MPI_ERR_ARG;
     }
 
-    MPI_Count *sizes = NULL;
-    MPI_Count *subsizes = NULL;
-    MPI_Count *starts = NULL;
-    MPI_Count *strides = NULL;
-    MPI_Count *coords = NULL;
-    int rc = VAPAA_CALLOC_COUNT(ndims, sizeof(*sizes), (void **) &sizes);
+    rc = VAPAA_CALLOC_COUNT(ndims, sizeof(*sizes), (void **) &sizes);
     if (rc != MPI_SUCCESS) {
         goto fn_exit;
     }
@@ -1207,21 +1298,18 @@ static int VAPAA_DTYPE_FLATTEN_SUBARRAY(const VAPAA_Datatype_contents *contents,
         }
     }
 
-    VAPAA_Iov_list child = {0};
     rc = VAPAA_DTYPE_FLATTEN_CHILD(contents->types[0], &child, depth);
     if (rc != MPI_SUCCESS) {
         VAPAA_IOV_FREE(&child);
         goto fn_exit;
     }
 
-    MPI_Aint old_extent = 0;
     rc = VAPAA_DTYPE_GET_EXTENT(contents->types[0], &old_extent);
     if (rc != MPI_SUCCESS) {
         VAPAA_IOV_FREE(&child);
         goto fn_exit;
     }
 
-    MPI_Count total = 1;
     for (int i = 0; i < ndims; i++) {
         total *= subsizes[i];
     }
@@ -1984,6 +2072,16 @@ static int VAPAA_CFI_CREATE_INDEXED(const CFI_cdesc_t * desc, int count, MPI_Dat
                                     MPI_Datatype * array_datatype)
 {
     const int elem_len = desc->elem_len;
+    MPI_Aint extent = 0;
+    bool use_byte_elements = false;
+    size_t iov_elements = 0;
+    size_t nalloc = 0;
+    ssize_t total_cfi_elements = 0;
+    MPI_Aint type_extent_elements = 0;
+    size_t index = 0;
+    size_t n = 0;
+    MPI_Datatype elem_dt = MPI_DATATYPE_NULL;
+
     if (elem_len <= 0 || count < 0) {
         return MPI_ERR_ARG;
     }
@@ -2001,7 +2099,6 @@ static int VAPAA_CFI_CREATE_INDEXED(const CFI_cdesc_t * desc, int count, MPI_Dat
         goto fn_exit;
     }
 
-    MPI_Aint extent = 0;
     rc = VAPAA_DTYPE_GET_EXTENT(input_datatype, &extent);
     if (rc != MPI_SUCCESS) {
         goto fn_exit;
@@ -2018,18 +2115,18 @@ static int VAPAA_CFI_CREATE_INDEXED(const CFI_cdesc_t * desc, int count, MPI_Dat
     usleep(1000);
 #endif
 
-    const bool use_byte_elements = VAPAA_CFI_IS_OPAQUE_STRUCT_DESC(desc);
+    use_byte_elements = VAPAA_CFI_IS_OPAQUE_STRUCT_DESC(desc);
     if (use_byte_elements && (size_t) elem_len > (size_t) INT_MAX) {
         rc = MPI_ERR_COUNT;
         goto fn_exit;
     }
 
-    size_t iov_elements = total_bytes / elem_len;
+    iov_elements = total_bytes / elem_len;
     if ((size_t) count > 0 && iov_elements > SIZE_MAX / (size_t) count) {
         rc = MPI_ERR_NO_MEM;
         goto fn_exit;
     }
-    const size_t nalloc = (size_t) count * iov_elements;
+    nalloc = (size_t) count * iov_elements;
     if (nalloc > (size_t) INT_MAX) {
         rc = MPI_ERR_COUNT;
         goto fn_exit;
@@ -2050,9 +2147,8 @@ static int VAPAA_CFI_CREATE_INDEXED(const CFI_cdesc_t * desc, int count, MPI_Dat
     }
 
     input = VAPAA_CFI_CREATE_ELEMENT_ADDRESSES(desc);
-    const ssize_t total_cfi_elements = VAPAA_CFI_GET_TOTAL_ELEMENTS(desc);
-    const MPI_Aint type_extent_elements = extent / elem_len;
-    size_t index = 0;
+    total_cfi_elements = VAPAA_CFI_GET_TOTAL_ELEMENTS(desc);
+    type_extent_elements = extent / elem_len;
     for (int j=0; j < count; j++) {
         const MPI_Aint type_displacement = (MPI_Aint) j * type_extent_elements;
         for (size_t i=0; i < actual_iov_len; i++) {
@@ -2076,7 +2172,7 @@ static int VAPAA_CFI_CREATE_INDEXED(const CFI_cdesc_t * desc, int count, MPI_Dat
         }
     }
 
-    const size_t n = index;
+    n = index;
     VAPAA_Assert(n < INT_MAX);
 
 #if 0
@@ -2085,7 +2181,7 @@ static int VAPAA_CFI_CREATE_INDEXED(const CFI_cdesc_t * desc, int count, MPI_Dat
     }
 #endif
 
-    MPI_Datatype elem_dt = use_byte_elements ? MPI_BYTE : VAPAA_CFI_TO_MPI_TYPE(desc->type);
+    elem_dt = use_byte_elements ? MPI_BYTE : VAPAA_CFI_TO_MPI_TYPE(desc->type);
     if (elem_dt == MPI_DATATYPE_NULL) {
         rc = MPI_ERR_TYPE;
         goto fn_exit;

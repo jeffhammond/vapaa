@@ -9,7 +9,7 @@
 #include "vapaa_abi_handles.h"
 #include "vapaa_constants.h"
 
-#ifdef MPI_ABI_VERSION
+#if defined(MPI_ABI_VERSION) && !defined(MPI_Fint)
 typedef int MPI_Fint;
 #endif
 

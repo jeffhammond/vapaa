@@ -17,6 +17,7 @@ struct vapaa_f08_op_slot {
     vapaa_f08_user_function fn;
 };
 
+#if !defined(MPI_ABI)
 #define VAPAA_F08_MAX_OPS 64
 static struct vapaa_f08_op_slot f08_op_slots[VAPAA_F08_MAX_OPS];
 
@@ -142,6 +143,7 @@ static void f08_op_clear(int op_f)
         }
     }
 }
+#endif
 
 void C_MPI_Op_create(MPI_User_function *user_fn, int * commute_f, int * op_f, int * ierror)
 {
@@ -179,7 +181,11 @@ void C_MPI_Op_free(int * op_f, int * ierror)
     *ierror = MPI_Op_free(&op);
     *op_f = C_MPI_OP_TOINT(op);
     C_MPI_RC_FIX(*ierror);
+#if !defined(MPI_ABI)
     if (*ierror == VAPAA_MPI_SUCCESS) {
         f08_op_clear(old_op);
     }
+#else
+    (void) old_op;
+#endif
 }

@@ -5,6 +5,9 @@ cmake_policy(SET CMP0104 NEW)
 if(POLICY CMP0135)
   cmake_policy(SET CMP0135 NEW)
 endif()
+if(POLICY CMP0131)
+  cmake_policy(SET CMP0131 NEW)
+endif()
 cmake_policy(SET CMP0054 NEW)
 cmake_policy(SET CMP0048 NEW)
 
@@ -38,7 +41,9 @@ set(CMAKE_Fortran_STANDARD_REQUIRED ON)
 
 set(VAPAA_C_WARNING_OPTIONS
   $<$<COMPILE_LANGUAGE:C>:-Wall>
-  $<$<COMPILE_LANGUAGE:C>:-Wextra>)
+  $<$<COMPILE_LANGUAGE:C>:-Wextra>
+  $<$<COMPILE_LANG_AND_ID:C,GNU,Clang,AppleClang,IntelLLVM>:-Wno-deprecated-declarations>
+  $<$<COMPILE_LANG_AND_ID:C,NVHPC>:--diag_suppress=deprecated_entity>)
 set(VAPAA_FORTRAN_WARNING_OPTIONS)
 if(CMAKE_Fortran_COMPILER_ID STREQUAL "GNU")
   list(APPEND VAPAA_FORTRAN_WARNING_OPTIONS
@@ -201,6 +206,30 @@ find_package(MPI REQUIRED COMPONENTS C)
 if(NOT VAPAA_MPIEXEC_EXPLICIT)
   vapaa_prefer_mpiexec_from_mpicc()
 endif()
+
+function(vapaa_target_link_mpi_c target)
+  foreach(vapaa_mpi_include_dir IN LISTS MPI_C_INCLUDE_DIRS)
+    target_include_directories(${target} SYSTEM PRIVATE
+      $<$<COMPILE_LANGUAGE:C>:${vapaa_mpi_include_dir}>)
+  endforeach()
+  foreach(vapaa_mpi_compile_option IN LISTS MPI_C_COMPILE_OPTIONS)
+    target_compile_options(${target} PRIVATE
+      $<$<COMPILE_LANGUAGE:C>:${vapaa_mpi_compile_option}>)
+  endforeach()
+  foreach(vapaa_mpi_compile_definition IN LISTS MPI_C_COMPILE_DEFINITIONS)
+    target_compile_definitions(${target} PRIVATE
+      $<$<COMPILE_LANGUAGE:C>:${vapaa_mpi_compile_definition}>)
+  endforeach()
+  if(FLAG_MPI)
+    target_compile_definitions(${target} PRIVATE
+      $<$<COMPILE_LANGUAGE:C>:${FLAG_MPI}>)
+  endif()
+  if(VAPAA_MPI_VENDOR_LABEL)
+    target_compile_definitions(${target} PRIVATE
+      $<$<COMPILE_LANGUAGE:C>:VAPAA_MPI_VENDOR_LABEL="${VAPAA_MPI_VENDOR_LABEL}">)
+  endif()
+  target_link_libraries(${target} PRIVATE $<LINK_ONLY:MPI::MPI_C>)
+endfunction()
 
 set(SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/source")
 
@@ -380,7 +409,7 @@ endif()
 if(VAPAA_HAVE_PGIF)
   target_compile_definitions(${vapa_lib} PRIVATE HAVE_PGIF)
 endif()
-target_link_libraries(${vapa_lib} PRIVATE MPI::MPI_C)
+vapaa_target_link_mpi_c(${vapa_lib})
 
 # Set the library output and module directories
 set_target_properties(

@@ -10,13 +10,18 @@ endif()
 find_package(Threads REQUIRED)
 
 set(vapaa_mpich_main_f90_test_environment "")
-if(FLAG_MPI MATCHES "OPEN_MPI")
+if(FLAG_MPI MATCHES "OPEN_MPI|NVIDIA_HPCX|MPI_ABI")
   list(APPEND vapaa_mpich_main_f90_test_environment
-    "OMPI_MCA_osc=pt2pt"
     "OMPI_MCA_coll_hcoll_enable=0"
     "OMPI_MCA_coll_ucc_enable=0"
     "OMPI_MCA_hwloc_base_binding_policy=none"
     "UCX_WARN_UNUSED_ENV_VARS=n")
+  if(FLAG_MPI MATCHES "OPEN_MPI|NVIDIA_HPCX")
+    list(APPEND vapaa_mpich_main_f90_test_environment "OMPI_MCA_osc=pt2pt")
+  endif()
+  if(FLAG_MPI MATCHES "MPI_ABI")
+    list(APPEND vapaa_mpich_main_f90_test_environment "OMPI_MCA_btl=self,tcp")
+  endif()
 endif()
 set(vapaa_mpich_main_f90_library_dirs ${VAPAA_COMPILER_RUNTIME_LIBRARY_DIRS})
 foreach(mpi_library IN LISTS MPI_C_LIBRARIES)
@@ -76,11 +81,26 @@ function(vapaa_add_mpich_main_f90_test category test_name np)
     message(STATUS "Skipping MPICH main f90/spawn/${test_name}: Vapaa does not implement spawn support")
     return()
   endif()
+  if(FLAG_MPI MATCHES "MPI_ABI"
+      AND category STREQUAL "attr"
+      AND test_name STREQUAL "attrlangf90")
+    message(STATUS
+      "Skipping MPICH main f90/attr/${test_name}: its imported C helper calls removed MPI-1 attribute routines not provided by the standard ABI library")
+    return()
+  endif()
   if(CMAKE_Fortran_COMPILER_ID STREQUAL "NVHPC"
       AND category STREQUAL "attr"
       AND test_name MATCHES "^(attrlangf90|fandcattrf90)$")
     message(STATUS
       "Skipping MPICH main f90/attr/${test_name}: NVHPC rejects old-style external callback actuals for module procedure dummies")
+    return()
+  endif()
+  if(FLAG_MPI MATCHES "OPEN_MPI|NVIDIA_HPCX"
+      AND CMAKE_Fortran_COMPILER_ID MATCHES "Intel"
+      AND category STREQUAL "attr"
+      AND test_name STREQUAL "attrlangf90")
+    message(STATUS
+      "Skipping MPICH main f90/attr/${test_name}: Intel Fortran/Open MPI callback attribute lookup semantics do not match this imported MPICH test")
     return()
   endif()
   if(CMAKE_Fortran_COMPILER_ID STREQUAL "NVHPC"
@@ -125,7 +145,8 @@ function(vapaa_add_mpich_main_f90_test category test_name np)
       "${MPICH_MAIN_INCLUDE_ROOT}"
       "${MPICH_MAIN_UTIL_ROOT}"
       "${test_dir}")
-  target_link_libraries(${target_name} PRIVATE ${vapa_lib} MPI::MPI_C Threads::Threads)
+  target_link_libraries(${target_name} PRIVATE ${vapa_lib} $<LINK_ONLY:Threads::Threads>)
+  vapaa_target_link_mpi_c(${target_name})
   set_target_properties(${target_name} PROPERTIES
     LINKER_LANGUAGE Fortran
     RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/tests/mpich_main/f90/${category}")

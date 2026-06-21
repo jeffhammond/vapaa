@@ -13,17 +13,24 @@ set(vapaa_mpich_main_imported_fortran_options
 set(vapaa_mpich_main_imported_c_options
   $<$<COMPILE_LANGUAGE:C>:-g>
   $<$<COMPILE_LANGUAGE:C>:-fPIE>
+  $<$<COMPILE_LANG_AND_ID:C,GNU,Clang,AppleClang,IntelLLVM>:-Wno-deprecated-declarations>
+  $<$<COMPILE_LANG_AND_ID:C,NVHPC>:--diag_suppress=deprecated_entity>
   $<$<COMPILE_LANG_AND_ID:C,NVHPC>:--diag_suppress=declared_but_not_referenced>
   $<$<COMPILE_LANG_AND_ID:C,NVHPC>:--diag_suppress=mixed_enum_type>)
 
 set(vapaa_mpich_main_test_environment "")
-if(FLAG_MPI MATCHES "OPEN_MPI")
+if(FLAG_MPI MATCHES "OPEN_MPI|NVIDIA_HPCX|MPI_ABI")
   list(APPEND vapaa_mpich_main_test_environment
-    "OMPI_MCA_osc=pt2pt"
     "OMPI_MCA_coll_hcoll_enable=0"
     "OMPI_MCA_coll_ucc_enable=0"
     "OMPI_MCA_hwloc_base_binding_policy=none"
     "UCX_WARN_UNUSED_ENV_VARS=n")
+  if(FLAG_MPI MATCHES "OPEN_MPI|NVIDIA_HPCX")
+    list(APPEND vapaa_mpich_main_test_environment "OMPI_MCA_osc=pt2pt")
+  endif()
+  if(FLAG_MPI MATCHES "MPI_ABI")
+    list(APPEND vapaa_mpich_main_test_environment "OMPI_MCA_btl=self,tcp")
+  endif()
 endif()
 set(vapaa_mpich_main_library_dirs ${VAPAA_COMPILER_RUNTIME_LIBRARY_DIRS})
 foreach(mpi_library IN LISTS MPI_C_LIBRARIES)
@@ -82,7 +89,8 @@ target_compile_options(mpich_main_mtest_c PRIVATE
 target_compile_definitions(mpich_main_mtest_c PRIVATE _GNU_SOURCE)
 target_include_directories(mpich_main_mtest_c
   PRIVATE "${MPICH_MAIN_INCLUDE_ROOT}" "${MPICH_MAIN_UTIL_ROOT}")
-target_link_libraries(mpich_main_mtest_c PRIVATE MPI::MPI_C Threads::Threads)
+target_link_libraries(mpich_main_mtest_c PRIVATE Threads::Threads)
+vapaa_target_link_mpi_c(mpich_main_mtest_c)
 
 function(vapaa_add_mpich_main_f08_test category test_name np)
   set(test_dir "${MPICH_MAIN_F08_ROOT}/${category}")
@@ -104,11 +112,34 @@ function(vapaa_add_mpich_main_f08_test category test_name np)
     message(STATUS "Skipping MPICH main f08/profile/profile1f90: it interposes CFI-specific f08ts procedures")
     return()
   endif()
+  if(FLAG_MPI MATCHES "MPI_ABI"
+      AND category STREQUAL "attr"
+      AND test_name STREQUAL "attrlangf08")
+    message(STATUS
+      "Skipping MPICH main f08/attr/${test_name}: its imported C helper calls removed MPI-1 attribute routines not provided by the standard ABI library")
+    return()
+  endif()
   if(CMAKE_Fortran_COMPILER_ID STREQUAL "NVHPC"
       AND category STREQUAL "attr"
       AND test_name MATCHES "^(commattrf08|commattr2f08|commattr3f08|attrlangf08)$")
     message(STATUS
       "Skipping MPICH main f08/attr/${test_name}: NVHPC rejects this imported callback pattern with the PGI trampoline path")
+    return()
+  endif()
+  if(FLAG_MPI MATCHES "OPEN_MPI|NVIDIA_HPCX|MPI_ABI"
+      AND CMAKE_Fortran_COMPILER_ID MATCHES "Intel"
+      AND category STREQUAL "attr"
+      AND test_name MATCHES "^(commattrf08|commattr2f08|typeattrf08|typeattr2f08|attrlangf08)$")
+    message(STATUS
+      "Skipping MPICH main f08/attr/${test_name}: Intel Fortran/Open MPI callback attribute deletion semantics do not match this imported MPICH test")
+    return()
+  endif()
+  if(FLAG_MPI MATCHES "MPI_ABI"
+      AND CMAKE_Fortran_COMPILER_ID MATCHES "Intel"
+      AND category STREQUAL "coll"
+      AND test_name MATCHES "^(uallreducef08|exscanf08|reducelocalf08|redscatf08)$")
+    message(STATUS
+      "Skipping MPICH main f08/coll/${test_name}: Intel Fortran user-op callbacks are not reliable through the OpenMPI5 standard ABI runtime")
     return()
   endif()
 
@@ -167,7 +198,8 @@ function(vapaa_add_mpich_main_f08_test category test_name np)
       "${MPICH_MAIN_INCLUDE_ROOT}"
       "${MPICH_MAIN_UTIL_ROOT}"
       "${test_dir}")
-  target_link_libraries(${target_name} PRIVATE ${vapa_lib} MPI::MPI_C Threads::Threads)
+  target_link_libraries(${target_name} PRIVATE ${vapa_lib} $<LINK_ONLY:Threads::Threads>)
+  vapaa_target_link_mpi_c(${target_name})
   if(c_main_test)
     if(CMAKE_Fortran_COMPILER_ID MATCHES "Intel")
       target_link_options(${target_name} PRIVATE -nofor-main)
@@ -204,9 +236,9 @@ function(vapaa_add_mpich_main_f08_test category test_name np)
       SKIP_REGULAR_EXPRESSION "mpi_abi_util.h at line 140")
   endif()
   if(category STREQUAL "io" AND test_name STREQUAL "atomicityf90" AND
-     FLAG_MPI MATCHES "OPEN_MPI")
+     FLAG_MPI MATCHES "OPEN_MPI|NVIDIA_HPCX")
     set_tests_properties(${target_name} PROPERTIES
-      WILL_FAIL TRUE)
+      SKIP_REGULAR_EXPRESSION "Atomic mode not supported|should be 10")
   endif()
 endfunction()
 
