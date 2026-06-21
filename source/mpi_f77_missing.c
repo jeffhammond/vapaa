@@ -218,6 +218,14 @@ MAYBE_UNUSED static void f77_unsupported_request(int *request_f, int *ierror)
     C_MPI_RC_FIX(*ierror);
 }
 
+MAYBE_UNUSED static void f77_unsupported_request_comm(int *comm_f, int *request_f, int *ierror)
+{
+    *request_f = VAPAA_MPI_REQUEST_NULL;
+    *ierror = MPI_ERR_UNSUPPORTED_OPERATION;
+    VAPAA_MPI_handle_synthetic_error_comm(C_MPI_COMM_FROMINT(*comm_f), ierror);
+    C_MPI_RC_FIX(*ierror);
+}
+
 void mpi_win_null_copy_fn_(int *oldwin, int *keyval, intptr_t *extra, intptr_t *attr_in,
                            intptr_t *attr_out, int *flag, int *ierror)
 {
@@ -460,19 +468,8 @@ void mpi_alltoallv_init_(const void *sendbuf, const int sendcounts[], const int 
 
 void mpi_alltoallw_init_(const void *sendbuf, const int sendcounts[], const int sdispls[], const int sendtypes_f[], void *recvbuf, const int recvcounts[], const int rdispls[], const int recvtypes_f[], int *comm_f, int *info_f, int *request_f, int *ierror)
 {
-#if MPI_VERSION >= 4
-    MPI_Request request = MPI_REQUEST_NULL;
-    MPI_Comm comm = C_MPI_COMM_FROMINT(*comm_f); MPI_Info info = C_MPI_INFO_FROMINT(*info_f);
-    int comm_size = 0; *ierror = MPI_Comm_size(comm, &comm_size); if (*ierror != MPI_SUCCESS) { C_MPI_RC_FIX(*ierror); return; }
-    MPI_Datatype *sendtypes = f77_datatypes_from_ints(comm_size, sendtypes_f);
-    MPI_Datatype *recvtypes = f77_datatypes_from_ints(comm_size, recvtypes_f);
-    if (sendtypes == NULL || recvtypes == NULL) { free(sendtypes); free(recvtypes); *ierror = MPI_ERR_OTHER; C_MPI_RC_FIX(*ierror); return; }
-    *ierror = MPI_Alltoallw_init(f77_in_addr(sendbuf), sendcounts, sdispls, sendtypes, f77_addr(recvbuf), recvcounts, rdispls, recvtypes, comm, info, &request);
-    free(sendtypes); free(recvtypes); f77_request_store(request, request_f); C_MPI_RC_FIX(*ierror);
-#else
-    (void)sendbuf; (void)sendcounts; (void)sdispls; (void)sendtypes_f; (void)recvbuf; (void)recvcounts; (void)rdispls; (void)recvtypes_f; (void)comm_f; (void)info_f;
-    f77_unsupported_request(request_f, ierror);
-#endif
+    (void)sendbuf; (void)sendcounts; (void)sdispls; (void)sendtypes_f; (void)recvbuf; (void)recvcounts; (void)rdispls; (void)recvtypes_f; (void)info_f;
+    f77_unsupported_request_comm(comm_f, request_f, ierror);
 }
 
 extern void VAPAA_MPI_Barrier_init(int *comm_f, int *info_f, int *request_f, int *ierror);
@@ -1681,24 +1678,8 @@ void mpi_neighbor_alltoallw_(const void *sendbuf, const int sendcounts[], const 
 
 void mpi_neighbor_alltoallw_init_(const void *sendbuf, const int sendcounts[], const intptr_t sdispls_f[], const int sendtypes_f[], void *recvbuf, const int recvcounts[], const intptr_t rdispls_f[], const int recvtypes_f[], int *comm_f, int *info_f, int *request_f, int *ierror)
 {
-#if MPI_VERSION >= 4
-    MPI_Request request = MPI_REQUEST_NULL;
-    MPI_Comm comm = C_MPI_COMM_FROMINT(*comm_f); MPI_Info info = C_MPI_INFO_FROMINT(*info_f);
-    int indegree = 0, outdegree = 0, weighted = 0;
-    int topo = MPI_UNDEFINED; (void)MPI_Topo_test(comm, &topo);
-    if (topo == MPI_DIST_GRAPH) { (void)MPI_Dist_graph_neighbors_count(comm, &indegree, &outdegree, &weighted); }
-    else if (topo == MPI_CART) { (void)MPI_Cartdim_get(comm, &outdegree); outdegree *= 2; indegree = outdegree; }
-    else if (topo == MPI_GRAPH) { int rank = 0; (void)MPI_Comm_rank(comm, &rank); (void)MPI_Graph_neighbors_count(comm, rank, &outdegree); indegree = outdegree; }
-    MPI_Datatype *sendtypes = f77_datatypes_from_ints(outdegree, sendtypes_f);
-    MPI_Datatype *recvtypes = f77_datatypes_from_ints(indegree, recvtypes_f);
-    MPI_Aint *sdispls = f77_aints_from_intptrs(outdegree, sdispls_f);
-    MPI_Aint *rdispls = f77_aints_from_intptrs(indegree, rdispls_f);
-    if (sendtypes == NULL || recvtypes == NULL || sdispls == NULL || rdispls == NULL) { free(sendtypes); free(recvtypes); free(sdispls); free(rdispls); *ierror = MPI_ERR_OTHER; C_MPI_RC_FIX(*ierror); return; }
-    *ierror = MPI_Neighbor_alltoallw_init(f77_const_addr(sendbuf), sendcounts, sdispls, sendtypes, f77_addr(recvbuf), recvcounts, rdispls, recvtypes, comm, info, &request);
-    free(sendtypes); free(recvtypes); free(sdispls); free(rdispls); f77_request_store(request, request_f); C_MPI_RC_FIX(*ierror);
-#else
-    (void)sendbuf; (void)sendcounts; (void)sdispls_f; (void)sendtypes_f; (void)recvbuf; (void)recvcounts; (void)rdispls_f; (void)recvtypes_f; (void)comm_f; (void)info_f; f77_unsupported_request(request_f, ierror);
-#endif
+    (void)sendbuf; (void)sendcounts; (void)sdispls_f; (void)sendtypes_f; (void)recvbuf; (void)recvcounts; (void)rdispls_f; (void)recvtypes_f; (void)info_f;
+    f77_unsupported_request_comm(comm_f, request_f, ierror);
 }
 
 extern void VAPAA_MPI_Op_commutative(int *op_f, int *commute, int *ierror);

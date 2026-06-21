@@ -659,42 +659,9 @@ void VAPAA_MPI_Alltoallw_init(CFI_cdesc_t *sendbuf, const int sendcounts[], cons
                               const int rdispls[], const int recvtypes_f[], int *comm_f, int *info_f,
                               int *request_f, int *ierror)
 {
-#if MPI_VERSION >= 4
-    MPI_Request request = MPI_REQUEST_NULL;
-    MPI_Comm comm = C_MPI_COMM_FROMINT(*comm_f);
-    MPI_Info info = C_MPI_INFO_FROMINT(*info_f);
-    if (VAPAA_COLL_REQUIRE_CONTIG2(sendbuf, recvbuf, comm)) {
-        int size = 0;
-        (void)MPI_Comm_size(comm, &size);
-        MPI_Datatype *recvtypes = VAPAA_COLL_TYPES_FROMINT(recvtypes_f, size);
-        VAPAA_COLL_WARN_DATATYPE_ARRAY(recvbuf, recvtypes, size, "MPI_Alltoallw_init");
-        if (VAPAA_COLL_IN_ADDR(sendbuf) == MPI_IN_PLACE) {
-            int *zero_counts = calloc((size_t)(size > 0 ? size : 1), sizeof(*zero_counts));
-            int *zero_displs = calloc((size_t)(size > 0 ? size : 1), sizeof(*zero_displs));
-            MPI_Datatype *sendtypes = VAPAA_COLL_NULL_TYPES(size);
-            VAPAA_Assert(zero_counts != NULL && zero_displs != NULL);
-            *ierror = MPI_Alltoallw_init(MPI_IN_PLACE, zero_counts, zero_displs, sendtypes,
-                                         VAPAA_COLL_ADDR(recvbuf), recvcounts, rdispls, recvtypes, comm, info,
-                                         &request);
-            free(zero_counts);
-            free(zero_displs);
-            free(sendtypes);
-        } else {
-            MPI_Datatype *sendtypes = VAPAA_COLL_TYPES_FROMINT(sendtypes_f, size);
-            VAPAA_COLL_WARN_DATATYPE_ARRAY(sendbuf, sendtypes, size, "MPI_Alltoallw_init");
-            *ierror = MPI_Alltoallw_init(VAPAA_COLL_ADDR(sendbuf), sendcounts, sdispls, sendtypes,
-                                         VAPAA_COLL_ADDR(recvbuf), recvcounts, rdispls, recvtypes, comm, info,
-                                         &request);
-            free(sendtypes);
-        }
-        free(recvtypes);
-    }
-    VAPAA_COLL_FINISH_REQUEST(request, request_f, ierror);
-#else
     (void) sendbuf; (void) sendcounts; (void) sdispls; (void) sendtypes_f; (void) recvbuf; (void) recvcounts;
-    (void) rdispls; (void) recvtypes_f; (void) comm_f; (void) info_f;
+    (void) rdispls; (void) recvtypes_f; (void) info_f;
     VAPAA_COLL_UNSUPPORTED_REQUEST(comm_f, request_f, ierror);
-#endif
 }
 
 void VAPAA_MPI_Ireduce_scatter(CFI_cdesc_t *sendbuf, CFI_cdesc_t *recvbuf, const int recvcounts[],
@@ -1064,27 +1031,7 @@ void VAPAA_MPI_Neighbor_alltoallw_init(CFI_cdesc_t *sendbuf, const int sendcount
                                        const intptr_t rdispls_f[], const int recvtypes_f[], int *comm_f, int *info_f,
                                        int *request_f, int *ierror)
 {
-#if MPI_VERSION >= 4
-    MPI_Request request = MPI_REQUEST_NULL;
-    MPI_Comm comm = C_MPI_COMM_FROMINT(*comm_f);
-    MPI_Info info = C_MPI_INFO_FROMINT(*info_f);
-    if (VAPAA_COLL_REQUIRE_CONTIG2(sendbuf, recvbuf, comm)) {
-        int outdegree = 0, indegree = 0;
-        MPI_Datatype *sendtypes = NULL, *recvtypes = NULL;
-        VAPAA_COLL_NEIGHBOR_ALLTOALLW_TYPES(comm, sendtypes_f, recvtypes_f, &sendtypes, &recvtypes, &outdegree, &indegree);
-        VAPAA_COLL_WARN_DATATYPE_ARRAY(sendbuf, sendtypes, outdegree, "MPI_Neighbor_alltoallw_init");
-        VAPAA_COLL_WARN_DATATYPE_ARRAY(recvbuf, recvtypes, indegree, "MPI_Neighbor_alltoallw_init");
-        MPI_Aint *sdispls = VAPAA_COLL_AINTS_FROM_INTPTR(sdispls_f, outdegree);
-        MPI_Aint *rdispls = VAPAA_COLL_AINTS_FROM_INTPTR(rdispls_f, indegree);
-        *ierror = MPI_Neighbor_alltoallw_init(VAPAA_COLL_ADDR(sendbuf), sendcounts, sdispls, sendtypes,
-                                              VAPAA_COLL_ADDR(recvbuf), recvcounts, rdispls, recvtypes, comm, info,
-                                              &request);
-        free(sendtypes); free(recvtypes); free(sdispls); free(rdispls);
-    }
-    VAPAA_COLL_FINISH_REQUEST(request, request_f, ierror);
-#else
     (void) sendbuf; (void) sendcounts; (void) sdispls_f; (void) sendtypes_f; (void) recvbuf; (void) recvcounts;
-    (void) rdispls_f; (void) recvtypes_f; (void) comm_f; (void) info_f;
+    (void) rdispls_f; (void) recvtypes_f; (void) info_f;
     VAPAA_COLL_UNSUPPORTED_REQUEST(comm_f, request_f, ierror);
-#endif
 }

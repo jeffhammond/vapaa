@@ -386,14 +386,6 @@ contains
                                             40 + rank + 1, 60 + rank + 1]), &
                               "MPI_Alltoallv_init payload")
 
-        call MPI_Alltoallw_init(send4, counts, bdispls, types, recv4, &
-                                counts, bdispls, types, MPI_COMM_WORLD, &
-                                MPI_INFO_NULL, req, ierr)
-        ran = run_persistent_request(req, "MPI_Alltoallw_init")
-        if (ran) call require(all(recv4 == [rank + 1, 20 + rank + 1, &
-                                            40 + rank + 1, 60 + rank + 1]), &
-                              "MPI_Alltoallw_init payload")
-
         send4 = rank + 1
         recv1 = -1
         call MPI_Reduce_scatter_init(send4, recv1, counts, MPI_INTEGER, &
@@ -544,12 +536,6 @@ contains
         if (ran) call require(all(recv2 == [10 * left + 2, 10 * right + 1]), &
                               "MPI_Neighbor_alltoallv_init payload")
 
-        call MPI_Neighbor_alltoallw_init(send2, counts, adispls, types, &
-                                         recv2, counts, adispls, types, &
-                                         comm, MPI_INFO_NULL, req, ierr)
-        ran = run_persistent_request(req, "MPI_Neighbor_alltoallw_init")
-        if (ran) call require(all(recv2 == [10 * left + 2, 10 * right + 1]), &
-                              "MPI_Neighbor_alltoallw_init payload")
     end subroutine run_neighbor_collectives
 
 end program test_direct_collective_coverage

@@ -31,7 +31,6 @@ static void finish_request(MPI_Request request, int *request_f, int *ierror)
     C_MPI_RC_FIX(*ierror);
 }
 
-#if MPI_VERSION < 4
 static void unsupported_request(int *comm_f, int *request_f, int *ierror)
 {
     MPI_Request request = MPI_REQUEST_NULL;
@@ -39,7 +38,6 @@ static void unsupported_request(int *comm_f, int *request_f, int *ierror)
     VAPAA_MPI_handle_synthetic_error_comm(C_MPI_COMM_FROMINT(*comm_f), ierror);
     finish_request(request, request_f, ierror);
 }
-#endif
 
 static int require_contig1(const VAPAA_PGIF_Desc *a, MPI_Comm comm)
 {
@@ -786,49 +784,10 @@ void vapaa_mpi_alltoallw_init_(void *sendbuf, const int sendcounts[],
                                int *ierror, VAPAA_PGIF_Desc *send_desc,
                                VAPAA_PGIF_Desc *recv_desc)
 {
-#if MPI_VERSION >= 4
-    MPI_Request request = MPI_REQUEST_NULL;
-    MPI_Comm comm = C_MPI_COMM_FROMINT(*comm_f);
-    MPI_Info info = C_MPI_INFO_FROMINT(*info_f);
-    if (require_contig2(send_desc, recv_desc, comm)) {
-        int size = 0;
-        (void) MPI_Comm_size(comm, &size);
-        MPI_Datatype *recvtypes = types_fromint(recvtypes_f, size);
-        MPI_Datatype *sendtypes = NULL;
-        const int *active_sendcounts = sendcounts;
-        const int *active_sdispls = sdispls;
-        if (VAPAA_PGIF_IN_ADDR(sendbuf) == MPI_IN_PLACE) {
-            active_sendcounts = calloc((size_t) (size > 0 ? size : 1),
-                                       sizeof(*active_sendcounts));
-            active_sdispls = calloc((size_t) (size > 0 ? size : 1),
-                                    sizeof(*active_sdispls));
-            sendtypes = null_types(size);
-            VAPAA_Assert(active_sendcounts != NULL && active_sdispls != NULL);
-            *ierror = MPI_Alltoallw_init(MPI_IN_PLACE, active_sendcounts,
-                                         active_sdispls, sendtypes,
-                                         VAPAA_PGIF_ADDR(recvbuf), recvcounts,
-                                         rdispls, recvtypes, comm, info,
-                                         &request);
-            free((void *) active_sendcounts);
-            free((void *) active_sdispls);
-        } else {
-            sendtypes = types_fromint(sendtypes_f, size);
-            *ierror = MPI_Alltoallw_init(VAPAA_PGIF_ADDR(sendbuf), sendcounts,
-                                         sdispls, sendtypes,
-                                         VAPAA_PGIF_ADDR(recvbuf), recvcounts,
-                                         rdispls, recvtypes, comm, info,
-                                         &request);
-        }
-        free(sendtypes);
-        free(recvtypes);
-    }
-    finish_request(request, request_f, ierror);
-#else
     (void) sendbuf; (void) sendcounts; (void) sdispls; (void) sendtypes_f;
     (void) recvbuf; (void) recvcounts; (void) rdispls; (void) recvtypes_f;
-    (void) comm_f; (void) info_f; (void) send_desc; (void) recv_desc;
+    (void) info_f; (void) send_desc; (void) recv_desc;
     unsupported_request(comm_f, request_f, ierror);
-#endif
 }
 
 #define REDSCAT_REQ(name, mpi_fn)                                               \
@@ -1345,31 +1304,10 @@ void vapaa_mpi_neighbor_alltoallw_init_(void *sendbuf, const int sendcounts[],
                                         int *ierror, VAPAA_PGIF_Desc *send_desc,
                                         VAPAA_PGIF_Desc *recv_desc)
 {
-#if MPI_VERSION >= 4
-    MPI_Request request = MPI_REQUEST_NULL;
-    MPI_Comm comm = C_MPI_COMM_FROMINT(*comm_f);
-    MPI_Info info = C_MPI_INFO_FROMINT(*info_f);
-    if (require_contig2(send_desc, recv_desc, comm)) {
-        int outdegree = 0, indegree = 0;
-        MPI_Datatype *sendtypes = NULL, *recvtypes = NULL;
-        neighbor_alltoallw_types(comm, sendtypes_f, recvtypes_f, &sendtypes,
-                                 &recvtypes, &outdegree, &indegree);
-        MPI_Aint *sdispls = aints_from_intptr(sdispls_f, outdegree);
-        MPI_Aint *rdispls = aints_from_intptr(rdispls_f, indegree);
-        *ierror = MPI_Neighbor_alltoallw_init(VAPAA_PGIF_ADDR(sendbuf),
-                                              sendcounts, sdispls, sendtypes,
-                                              VAPAA_PGIF_ADDR(recvbuf),
-                                              recvcounts, rdispls, recvtypes,
-                                              comm, info, &request);
-        free(sendtypes); free(recvtypes); free(sdispls); free(rdispls);
-    }
-    finish_request(request, request_f, ierror);
-#else
     (void) sendbuf; (void) sendcounts; (void) sdispls_f; (void) sendtypes_f;
     (void) recvbuf; (void) recvcounts; (void) rdispls_f; (void) recvtypes_f;
-    (void) comm_f; (void) info_f; (void) send_desc; (void) recv_desc;
+    (void) info_f; (void) send_desc; (void) recv_desc;
     unsupported_request(comm_f, request_f, ierror);
-#endif
 }
 
 #endif

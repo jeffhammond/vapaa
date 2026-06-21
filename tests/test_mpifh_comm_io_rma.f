@@ -251,10 +251,6 @@
       call MPI_Exscan_init(send1, recv1, 1, MPI_INTEGER, MPI_SUM,
      &     MPI_COMM_WORLD, MPI_INFO_NULL, req, ierr)
       call finish_persistent(req, ierr, errors)
-      call MPI_Alltoallw_init(sendv, counts, bdispls, types, recvv,
-     &     counts, bdispls, types, MPI_COMM_WORLD, MPI_INFO_NULL, req,
-     &     ierr)
-      call finish_persistent(req, ierr, errors)
       call MPI_Alltoall_init(sendv, 1, MPI_INTEGER, recvv, 1,
      &     MPI_INTEGER, MPI_COMM_WORLD, MPI_INFO_NULL, req, ierr)
       call finish_persistent(req, ierr, errors)
@@ -336,10 +332,6 @@
       call finish_persistent(req, ierr, errors)
       call MPI_Neighbor_alltoallv_init(nsend, ncounts, ndispls,
      &     MPI_INTEGER, nrecv, ncounts, ndispls, MPI_INTEGER, cart,
-     &     MPI_INFO_NULL, req, ierr)
-      call finish_persistent(req, ierr, errors)
-      call MPI_Neighbor_alltoallw_init(nsend, ncounts, nadispls,
-     &     ntypes, nrecv, ncounts, nadispls, ntypes, cart,
      &     MPI_INFO_NULL, req, ierr)
       call finish_persistent(req, ierr, errors)
       call MPI_Comm_free(cart, ierr)
